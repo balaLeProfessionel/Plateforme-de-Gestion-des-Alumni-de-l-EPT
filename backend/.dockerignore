@@ -1,0 +1,7 @@
+# Ignore les dossiers inutiles pour le build
+frontend/node_modules
+frontend/dist
+backend/target
+.git
+.gitignore
+*.log
