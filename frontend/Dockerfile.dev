@@ -1,0 +1,18 @@
+# FROM node:24-alpine
+# WORKDIR /app
+# COPY package*.json ./
+# RUN npm install
+# COPY . .
+# # host 0.0.0.0 est requis pour exposer hors du conteneur
+# # poll 500 force la vérification des fichiers toutes les 500ms
+# CMD ["npm", "start", "--", "--host", "0.0.0.0", "--poll", "500"]
+
+
+# frontend/Dockerfile.dev
+FROM node:24-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 4200
+CMD ["npm", "start", "--", "--host", "0.0.0.0"]

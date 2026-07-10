@@ -1,6 +1,72 @@
+# services:
+#   db:
+#     image: postgres:16
+#     container_name: alumni-db
+#     environment:
+#       POSTGRES_DB: alumni_db
+#       POSTGRES_USER: root
+#       POSTGRES_PASSWORD: root
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+#     networks:
+#       - mon-reseau
+
+#   api:
+#     build:
+#       context: ./backend
+#       dockerfile: Dockerfile.dev
+#     container_name: alumni-api
+#     ports:
+#       - "8080:8080"
+#     depends_on:
+#       - db
+#     environment:
+#       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/alumni_db
+#       SPRING_DATASOURCE_USERNAME: root
+#       SPRING_DATASOURCE_PASSWORD: root
+#     volumes:
+#       - /app/target # Volume anonyme pour ne pas écraser les builds internes
+#     develop:
+#       watch:
+#         - action: sync
+#           path: ./backend/src
+#           target: /app/src
+#     networks:
+#       - mon-reseau
+
+#   web:
+#     build:
+#       context: ./frontend
+#       dockerfile: Dockerfile.dev
+#     container_name: alumni-frontend
+#     ports:
+#       - "80:4200"
+#     depends_on:
+#       - api
+#     volumes:
+#       - /app/node_modules # Important : empêche le conflit avec Windows
+#     develop:
+#       watch:
+#         - action: sync
+#           path: ./frontend/src
+#           target: /app/src
+#     networks:
+#       - mon-reseau
+
+# networks:
+#   mon-reseau:
+#     driver: bridge
+
+# volumes:
+#   postgres_data:
+
+
+
 services:
   db:
-    image: postgres:18-alpine
+    image: postgres:16-alpine
     container_name: alumni-db
     environment:
       POSTGRES_DB: alumni_db
@@ -10,26 +76,50 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d alumni_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   api:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
     container_name: alumni-api
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/alumni_db
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./backend/src
+          target: /app/src
+        - action: rebuild
+          path: ./backend/pom.xml
 
   web:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
     container_name: alumni-frontend
     ports:
-      - "80:80"
+      - "4200:4200"
     depends_on:
       - api
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend/src
+          target: /app/src
+        - action: rebuild
+          path: ./frontend/package.json
 
 volumes:
   postgres_data:

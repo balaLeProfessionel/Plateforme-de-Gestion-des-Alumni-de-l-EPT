@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres
+    container_name: alumni-db
+    environment:
+      POSTGRES_DB: alumni_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build: ./backend
+    container_name: alumni-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/alumni_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /app
+          ignore:
+            - target/
+        - action: rebuild
+          path: ./backend/pom.xml
+
+  web:
+    build: ./frontend
+    container_name: alumni-frontend
+    ports:
+      - "80:4200"
+    command: npm start
+    depends_on:
+      - api
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - node_modules/
+
+volumes:
+  postgres_data:
