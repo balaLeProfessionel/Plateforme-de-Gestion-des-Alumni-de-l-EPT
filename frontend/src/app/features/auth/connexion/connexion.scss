@@ -1,0 +1,175 @@
+.connexion-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panneau-marque {
+  background: var(--ept-primary);
+  color: var(--ept-text-on-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+
+  @media (max-width: 900px) {
+    display: none;
+  }
+
+  .marque-contenu {
+    max-width: 360px;
+  }
+
+  .logo {
+    font-family: var(--ept-font-heading);
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .tagline {
+    color: var(--ept-sky);
+    font-size: 1.05rem;
+    margin-bottom: 3rem;
+  }
+
+  .stats {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+
+    li {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chiffre {
+      font-family: var(--ept-font-heading);
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .libelle {
+      color: var(--ept-sky);
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.panneau-formulaire {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background: var(--ept-surface);
+
+  .formulaire-contenu {
+    width: 100%;
+    max-width: 380px;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+    margin: 0 0 0.25rem;
+  }
+
+  .sous-titre {
+    color: var(--ept-text-secondary);
+    margin: 0 0 2rem;
+  }
+
+  .message-erreur {
+    margin-bottom: 1.25rem;
+    width: 100%;
+    display: block;
+  }
+
+  .champ {
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+    .champ-mdp {
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      input {
+        width: 100%;
+        padding-right: 2.75rem;
+      }
+
+      .bascule-mdp {
+        position: absolute;
+        right: 0.5rem;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: var(--ept-text-secondary);
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        border-radius: var(--ept-radius-sm);
+
+        &:hover {
+          color: var(--ept-primary);
+        }
+
+        &:focus-visible {
+          outline: 2px solid var(--ept-primary);
+          outline-offset: 2px;
+        }
+      }
+    }
+  }
+
+  .erreur-champ {
+    color: var(--ept-error);
+    font-size: 0.8rem;
+    margin-top: 0.35rem;
+  }
+
+  .bouton-connexion {
+    margin-top: 0.5rem;
+    ::ng-deep .p-button {
+      background: var(--ept-primary);
+      border-color: var(--ept-primary);
+      font-family: var(--ept-font-heading);
+      font-weight: 600;
+
+      &:hover:not(:disabled) {
+        background: var(--ept-primary-dark);
+        border-color: var(--ept-primary-dark);
+      }
+    }
+  }
+
+  .lien-inscription {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--ept-text-secondary);
+
+    a {
+      color: var(--ept-primary);
+      font-weight: 600;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}

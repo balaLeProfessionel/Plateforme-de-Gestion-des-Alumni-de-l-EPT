@@ -1,0 +1,78 @@
+<div class="connexion-page">
+
+  <aside class="panneau-marque">
+    <div class="marque-contenu">
+      <div class="logo">EPT Alumni</div>
+      <p class="tagline">Le réseau des ingénieurs de Thiès</p>
+
+      <ul class="stats">
+        <li><span class="chiffre">2 400+</span><span class="libelle">diplômés</span></li>
+        <li><span class="chiffre">180</span><span class="libelle">entreprises partenaires</span></li>
+        <li><span class="chiffre">92 %</span><span class="libelle">d'insertion</span></li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="panneau-formulaire">
+    <div class="formulaire-contenu">
+      <h1>Connexion</h1>
+      <p class="sous-titre">Accédez à votre espace alumni</p>
+
+      @if (messageErreur()) {
+        <p-message severity="error" class="message-erreur">{{ messageErreur() }}</p-message>
+      }
+
+      <div class="champ">
+        <label for="email">Email</label>
+        <input
+          pInputText
+          id="email"
+          type="email"
+          [formField]="formulaire.email"
+          placeholder="vous@exemple.com"
+          autocomplete="email"
+          fluid />
+        @if (formulaire.email().touched() && formulaire.email().invalid()) {
+          <small class="erreur-champ">{{ formulaire.email().errors()[0]?.message }}</small>
+        }
+      </div>
+
+      <div class="champ">
+        <label for="password">Mot de passe</label>
+        <div class="champ-mdp">
+          <input
+            pInputText
+            id="password"
+            [type]="afficherMdp() ? 'text' : 'password'"
+            [formField]="formulaire.password"
+            placeholder="Votre mot de passe"
+            autocomplete="current-password"
+            fluid />
+          <button
+            type="button"
+            class="bascule-mdp"
+            (click)="afficherMdp.set(!afficherMdp())"
+            [attr.aria-label]="afficherMdp() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
+            <i class="pi" [class.pi-eye]="!afficherMdp()" [class.pi-eye-slash]="afficherMdp()"></i>
+          </button>
+        </div>
+        @if (formulaire.password().touched() && formulaire.password().invalid()) {
+          <small class="erreur-champ">{{ formulaire.password().errors()[0]?.message }}</small>
+        }
+      </div>
+
+      <p-button
+        label="Se connecter"
+        (onClick)="seConnecter()"
+        [loading]="enChargement()"
+        [disabled]="formulaire().invalid()"
+        class="bouton-connexion"
+        fluid />
+
+      <p class="lien-inscription">
+        Pas encore de compte ? <a href="#">Créer un compte</a>
+      </p>
+    </div>
+  </main>
+
+</div>
