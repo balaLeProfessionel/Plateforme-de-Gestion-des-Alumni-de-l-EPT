@@ -25,13 +25,6 @@ public class GlobalExceptionHandler {
                 .body(Map.of("message", "Email ou mot de passe incorrect"));
     }
 
-    @ExceptionHandler({DisabledException.class, LockedException.class})
-    public ResponseEntity<Map<String, String>> handleCompteSuspendu() {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(Map.of("message",
-                    "Votre compte a été suspendu. Contactez l'administration de l'EPT."));
-    }
-
     @ExceptionHandler(EmailDejaUtiliseException.class)
     public ResponseEntity<Map<String, String>> handleEmailDejaUtilise(EmailDejaUtiliseException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
