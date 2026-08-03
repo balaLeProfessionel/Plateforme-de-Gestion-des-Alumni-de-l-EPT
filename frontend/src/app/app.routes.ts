@@ -13,5 +13,10 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () =>
       import('./features/accueil/accueil').then((m) => m.Accueil)
-  }
+  },
+  {
+    path: 'inscription',
+    loadComponent: () =>
+      import('./features/auth/inscription/choix-role/choix-role').then((m) => m.ChoixRole)
+  },
 ];

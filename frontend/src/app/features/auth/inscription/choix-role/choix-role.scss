@@ -1,0 +1,110 @@
+.choix-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  background: var(--ept-bg);
+}
+
+.choix-contenu {
+  width: 100%;
+  max-width: 900px;
+}
+
+.entete {
+  text-align: center;
+  margin-bottom: 3rem;
+
+  h1 {
+    font-size: 2rem;
+    margin: 0 0 0.5rem;
+  }
+
+  .sous-titre {
+    color: var(--ept-text-secondary);
+    font-size: 1.05rem;
+    margin: 0;
+  }
+}
+
+.grille-roles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.carte-role {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 0.75rem;
+  padding: 1.75rem;
+  background: var(--ept-surface);
+  border: 2px solid var(--ept-border);
+  border-radius: var(--ept-radius);
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  font-family: var(--ept-font-body);
+
+  &:hover {
+    border-color: var(--ept-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--ept-shadow);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-primary);
+    outline-offset: 2px;
+  }
+
+  .icone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--ept-radius-sm);
+    background: var(--ept-primary-light);
+    color: var(--ept-primary);
+
+    i {
+      font-size: 1.4rem;
+    }
+  }
+
+  .titre {
+    font-family: var(--ept-font-heading);
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--ept-text);
+  }
+
+  .description {
+    font-size: 0.9rem;
+    color: var(--ept-text-secondary);
+    line-height: 1.5;
+  }
+}
+
+.lien-connexion {
+  text-align: center;
+  margin-top: 2.5rem;
+  font-size: 0.9rem;
+  color: var(--ept-text-secondary);
+
+  a {
+    color: var(--ept-primary);
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

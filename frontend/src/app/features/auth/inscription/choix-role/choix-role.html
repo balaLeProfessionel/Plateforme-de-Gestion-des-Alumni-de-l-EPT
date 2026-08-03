@@ -1,0 +1,30 @@
+<div class="choix-page">
+  <div class="choix-contenu">
+
+    <header class="entete">
+      <h1>Créer un compte</h1>
+      <p class="sous-titre">Choisissez le profil qui vous correspond</p>
+    </header>
+
+    <div class="grille-roles">
+      @for (role of roles; track role.cle) {
+        <button
+          type="button"
+          class="carte-role"
+          (click)="choisirRole(role.cle)"
+          [attr.aria-label]="'Choisir le profil ' + role.titre">
+          <span class="icone">
+            <i class="pi" [class]="'pi ' + role.icone"></i>
+          </span>
+          <span class="titre">{{ role.titre }}</span>
+          <span class="description">{{ role.description }}</span>
+        </button>
+      }
+    </div>
+
+    <p class="lien-connexion">
+      Vous avez déjà un compte ? <a routerLink="/connexion">Se connecter</a>
+    </p>
+
+  </div>
+</div>

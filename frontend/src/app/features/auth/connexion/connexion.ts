@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { AuthService } from '../../../core/services/auth/auth-service';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { email, form, required, FormField } from '@angular/forms/signals';
 
 import { InputTextModule } from 'primeng/inputtext';
@@ -10,7 +10,7 @@ import { MessageModule } from 'primeng/message';
 
 @Component({
   selector: 'app-connexion',
-  imports: [FormField, InputTextModule, PasswordModule, ButtonModule, MessageModule],
+  imports: [FormField, InputTextModule, PasswordModule, ButtonModule, MessageModule, RouterLink],
   templateUrl: './connexion.html',
   styleUrl: './connexion.scss',
 })
