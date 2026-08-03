@@ -13,6 +13,8 @@ import ept.edu.sn.alumni_backend.auth.dto.AuthResponse;
 import ept.edu.sn.alumni_backend.auth.dto.InscriptionResponse;
 import ept.edu.sn.alumni_backend.auth.dto.LoginRequest;
 import ept.edu.sn.alumni_backend.auth.dto.RegisterRequest;
+import ept.edu.sn.alumni_backend.auth.dto.RenvoyerOtpRequest;
+import ept.edu.sn.alumni_backend.auth.dto.VerifierOtpRequest;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import jakarta.validation.Valid;
@@ -28,6 +30,16 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<InscriptionResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.inscrire(request));
+    }
+
+    @PostMapping("/verifier-otp")
+    public ResponseEntity<AuthResponse> verifierOtp(@Valid @RequestBody VerifierOtpRequest request) {
+        return ResponseEntity.ok(authService.verifierOtp(request));
+    }
+
+    @PostMapping("/renvoyer-otp")
+    public ResponseEntity<InscriptionResponse> renvoyerOtp(@Valid @RequestBody RenvoyerOtpRequest request) {
+        return ResponseEntity.ok(authService.renvoyerOtp(request));
     }
 
     @PostMapping("/login")
