@@ -1,0 +1,518 @@
+### =====================================================================
+### FICHIER DE TEST — Authentification + OTP (Backend EPT Alumni)
+### Flux : register -> (lire le code dans les logs) -> verifier-otp -> login
+### Garde une fenêtre ouverte : docker compose logs -f api
+### =====================================================================
+
+@baseUrl = http://localhost:8080/api
+
+### =====================================================================
+### PARTIE 1 — INSCRIPTION + VÉRIFICATION OTP (logique de statut par rôle)
+### =====================================================================
+
+### 1.1 — Alumni email NON officiel : inscription (renvoie un message, PAS de token)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nom": "Diop",
+  "prenom": "Awa",
+  "email": "awa.diop@gmail.com",
+  "password": "password123",
+  "role": "ALUMNI",
+  "telephone": "771234501",
+  "anneeEntree": 2016,
+  "filiere": "Génie Informatique"
+}
+
+# ATTENDU : 201 Created, { email, message } — PAS de token
+# -> lis le code OTP dans les logs
+
+###
+
+### 1.2 — Vérifier l'OTP d'Awa : COLLE le code lu dans les logs
+# @name verifierAwa
+POST {{baseUrl}}/auth/verifier-otp
+Content-Type: application/json
+
+{
+  "email": "awa.diop@gmail.com",
+  "code": "______"
+}
+
+# ATTENDU : 200 OK, token présent, statutCompte = "EN_ATTENTE" (email gmail)
+
+###
+
+### 1.3 — Alumni email OFFICIEL EPT : inscription
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nom": "Fall",
+  "prenom": "Cheikh",
+  "email": "cheikh.fall@ept.sn",
+  "password": "password123",
+  "role": "ALUMNI",
+  "anneeEntree": 2013,
+  "filiere": "Génie Civil"
+}
+
+# ATTENDU : 201 Created, message d'envoi de code
+
+###
+
+### 1.4 — Vérifier l'OTP de Cheikh : COLLE le code -> doit passer ACTIF
+POST {{baseUrl}}/auth/verifier-otp
+Content-Type: application/json
+
+{
+  "email": "cheikh.fall@ept.sn",
+  "code": "529048"
+}
+
+# ATTENDU : 200 OK, statutCompte = "ACTIF" (badge accordé APRÈS vérif OTP)
+
+###
+
+### 1.5 — Organisme : inscription
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nom": "Sarr",
+  "prenom": "Ndèye",
+  "email": "contact@wave.com",
+  "password": "password123",
+  "role": "ORGANISME"
+}
+
+###
+
+### 1.6 — Vérifier l'OTP de l'organisme : COLLE le code -> reste EN_ATTENTE
+POST {{baseUrl}}/auth/verifier-otp
+Content-Type: application/json
+
+{
+  "email": "contact@wave.com",
+  "code": "______"
+}
+
+# ATTENDU : 200 OK, statutCompte = "EN_ATTENTE"
+
+###
+
+### 1.7 — Visiteur : inscription
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nom": "Ba",
+  "prenom": "Sophie",
+  "email": "sophie.ba@gmail.com",
+  "password": "password123",
+  "role": "VISITEUR"
+}
+
+###
+
+### 1.8 — Vérifier l'OTP du visiteur : COLLE le code -> ACTIF
+POST {{baseUrl}}/auth/verifier-otp
+Content-Type: application/json
+
+{
+  "email": "sophie.ba@gmail.com",
+  "code": "______"
+}
+
+# ATTENDU : 200 OK, role = "VISITEUR", statutCompte = "ACTIF"
+
+###
+
+### =====================================================================
+### PARTIE 2 — CAS D'ERREUR DE L'OTP
+### =====================================================================
+
+### 2.1 — Code incorrect -> 400 (incrémente le compteur de tentatives)
+### Inscris d'abord un compte, puis tente un mauvais code
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nom": "Test",
+  "prenom": "Otp",
+  "email": "test.otp@gmail.com",
+  "password": "password123",
+  "role": "VISITEUR"
+}
+
+###
+
+### 2.2 — Mauvais code -> 400 "Code incorrect"
+POST {{baseUrl}}/auth/verifier-otp
+Content-Type: application/json
+
+{
+  "email": "test.otp@gmail.com",
+  "code": "000000"
+}
+
+# ATTENDU : 400 Bad Request, "Code incorrect"
+# (retenter 5 fois invalide le code : "Trop de tentatives")
+
+###
+
+### 2.3 — Code au mauvais format (pas 6 chiffres) -> 400 validation
+POST {{baseUrl}}/auth/verifier-otp
+Content-Type: application/json
+
+{
+  "email": "test.otp@gmail.com",
+  "code": "12"
+}
+
+# ATTENDU : 400, { "code": "Le code doit contenir 6 chiffres" }
+
+###
+
+### 2.4 — Renvoyer un nouveau code
+POST {{baseUrl}}/auth/renvoyer-otp
+Content-Type: application/json
+
+{
+  "email": "test.otp@gmail.com"
+}
+
+# ATTENDU : 200 OK, nouveau code dans les logs (l'ancien est remplacé)
+
+###
+
+### 2.5 — Vérifier avec le NOUVEAU code : COLLE-le
+POST {{baseUrl}}/auth/verifier-otp
+Content-Type: application/json
+
+{
+  "email": "test.otp@gmail.com",
+  "code": "______"
+}
+
+# ATTENDU : 200 OK
+
+###
+
+### 2.6 — Renvoyer un code pour un email DÉJÀ vérifié -> 400
+POST {{baseUrl}}/auth/renvoyer-otp
+Content-Type: application/json
+
+{
+  "email": "sophie.ba@gmail.com"
+}
+
+# ATTENDU : 400, "déjà vérifié, connectez-vous"
+
+###
+
+### =====================================================================
+### PARTIE 3 — INSCRIPTIONS REFUSÉES (rôles interdits, validation)
+### =====================================================================
+
+### 3.1 — S'inscrire en ETUDIANT -> 403
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nom": "Ndiaye",
+  "prenom": "Mamadou",
+  "email": "mamadou.nd@gmail.com",
+  "password": "password123",
+  "role": "ETUDIANT"
+}
+
+# ATTENDU : 403 Forbidden (comptes étudiants créés par l'admin)
+
+###
+
+### 3.2 — S'inscrire en ADMIN -> 403
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nom": "Fake",
+  "prenom": "Admin",
+  "email": "fake.admin@gmail.com",
+  "password": "password123",
+  "role": "ADMIN"
+}
+
+# ATTENDU : 403 Forbidden
+
+###
+
+### 3.3 — Email mauvais format -> 400
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nom": "Test",
+  "prenom": "Format",
+  "email": "pas-un-email",
+  "password": "password123",
+  "role": "VISITEUR"
+}
+
+# ATTENDU : 400, { "email": "Format d'email invalide" }
+
+###
+
+### 3.4 — Mot de passe trop court -> 400
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nom": "Test",
+  "prenom": "Court",
+  "email": "test.court@gmail.com",
+  "password": "123",
+  "role": "VISITEUR"
+}
+
+# ATTENDU : 400, { "password": "...au moins 8 caractères" }
+
+###
+
+### 3.5 — Email déjà utilisé -> 409
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nom": "Doublon",
+  "prenom": "Awa",
+  "email": "awa.diop@gmail.com",
+  "password": "password123",
+  "role": "VISITEUR"
+}
+
+# ATTENDU : 409, "Cet email est déjà utilisé"
+
+###
+
+### =====================================================================
+### PARTIE 4 — CONNEXION (nécessite un email vérifié)
+### =====================================================================
+
+### 4.1 — Connexion d'un compte NON vérifié -> refusée
+### Inscris ce compte mais NE le vérifie PAS
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nom": "Non",
+  "prenom": "Verifie",
+  "email": "non.verifie@gmail.com",
+  "password": "password123",
+  "role": "VISITEUR"
+}
+
+###
+
+### 4.2 — Tenter de se connecter sans avoir vérifié -> 403
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "non.verifie@gmail.com",
+  "password": "password123"
+}
+
+# ATTENDU : 403 "Compte non activé. Vérifiez votre email..."
+# -> PROUVE qu'un email non vérifié ne peut pas accéder
+
+###
+
+### 4.3 — Connexion d'un compte vérifié (Awa) -> OK
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "awa.diop@gmail.com",
+  "password": "password123"
+}
+
+# ATTENDU : 200 OK, token présent
+
+###
+
+### 4.4 — Email en MAJUSCULES -> doit marcher (normalisation)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "AWA.DIOP@GMAIL.COM",
+  "password": "password123"
+}
+
+# ATTENDU : 200 OK
+
+###
+
+### 4.5 — Mauvais mot de passe -> 401 générique
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "awa.diop@gmail.com",
+  "password": "mauvais"
+}
+
+# ATTENDU : 401 "Email ou mot de passe incorrect"
+
+###
+
+### 4.6 — Email inexistant -> 401 (MÊME message générique)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "nexiste.pas@gmail.com",
+  "password": "password123"
+}
+
+# ATTENDU : 401, même message que 4.5 (ne révèle pas que l'email est inconnu)
+
+###
+
+### =====================================================================
+### PARTIE 5 — ROUTES PROTÉGÉES
+### =====================================================================
+
+### 5.1 — /me sans token -> 401/403
+GET {{baseUrl}}/auth/me
+
+# ATTENDU : 401 ou 403
+
+###
+
+### 5.2 — /me avec le token de la connexion (4.3) -> 200
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{login.response.body.token}}
+
+# ATTENDU : 200 OK, infos de l'utilisateur courant
+
+###
+
+### 5.3 — Token bidon -> 401/403
+GET {{baseUrl}}/auth/me
+Authorization: Bearer un.token.completement.invalide
+
+# ATTENDU : 401 ou 403
+
+###
+
+### =====================================================================
+### PARTIE 6 — CONTRÔLE D'ACCÈS PAR RÔLE (routes admin)
+### =====================================================================
+
+### 6.1 — Connexion visiteur (déjà vérifié en 1.8)
+# @name loginVisiteur
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "sophie.ba@gmail.com",
+  "password": "password123"
+}
+
+###
+
+### 6.2 — Le visiteur tente une route ADMIN -> 403
+POST {{baseUrl}}/admin/comptes
+Content-Type: application/json
+Authorization: Bearer {{loginVisiteur.response.body.token}}
+
+{
+  "nom": "Etudiant",
+  "prenom": "Test",
+  "email": "etudiant.test@ept.sn",
+  "role": "ETUDIANT",
+  "anneeEntree": 2022,
+  "filiere": "Génie Informatique"
+}
+
+# ATTENDU : 403 Forbidden
+
+###
+
+### =====================================================================
+### PARTIE 7 — CRÉATION DE COMPTE PAR L'ADMIN
+### Prérequis : un compte ADMIN en base (voir note en bas).
+### =====================================================================
+
+### 7.1 — Connexion admin
+# @name loginAdmin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@ept.sn",
+  "password": "admin1234"
+}
+
+# ATTENDU : 200 OK, role = "ADMIN"
+
+###
+
+### 7.2 — L'admin crée un compte étudiant -> 201 (compte ACTIF, email vérifié)
+POST {{baseUrl}}/admin/comptes
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "nom": "Sow",
+  "prenom": "Moussa",
+  "email": "moussa.sow@ept.sn",
+  "role": "ETUDIANT",
+  "anneeEntree": 2022,
+  "filiere": "Génie Informatique"
+}
+
+# ATTENDU : 201 Created, renvoie motDePasseTemporaire (affiché une seule fois)
+
+###
+
+### 7.3 — L'étudiant se connecte avec le mot de passe temporaire
+### (COLLE le motDePasseTemporaire reçu en 7.2 ; pas d'OTP : compte créé par l'admin)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "moussa.sow@ept.sn",
+  "password": "______"
+}
+
+# ATTENDU : 200 OK, role = "ETUDIANT", statutCompte = "ACTIF"
+
+###
+
+### =====================================================================
+### PARTIE 8 — DÉCONNEXION
+### =====================================================================
+
+### 8.1 — Logout (symbolique avec JWT)
+POST {{baseUrl}}/auth/logout
+
+# ATTENDU : 204 No Content
+
+###
+
+### =====================================================================
+### NOTE — Créer un compte ADMIN pour les parties 6 et 7
+### =====================================================================
+### Aucune API ne crée d'admin (volontairement). Options :
+### 1. Inscris un VISITEUR, vérifie son OTP, puis en base :
+###    UPDATE utilisateur SET role='ADMIN' WHERE email='sophie.ba@gmail.com';
+### 2. Ou insère directement un admin avec un vrai hash BCrypt.
+###
+### RAPPEL : un compte créé avant l'ajout de emailVerifie doit être
+### passé à vérifié pour pouvoir se connecter :
+###    UPDATE utilisateur SET email_verifie = true WHERE email='...';
