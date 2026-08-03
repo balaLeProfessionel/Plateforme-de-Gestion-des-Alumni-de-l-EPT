@@ -38,6 +38,8 @@ public class Utilisateur {
     private TypeRole role;
     @Enumerated(EnumType.STRING)
     private StatutCompte statutCompte;
+    @Column(nullable = false)
+    private boolean emailVerifie = false;
     private String prenom;
     private String nom;
     private String urlPhoto;

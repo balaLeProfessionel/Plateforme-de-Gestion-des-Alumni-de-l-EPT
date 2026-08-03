@@ -4,7 +4,7 @@ public enum TypeRole {
     ETUDIANT,
     ALUMNI,
     ENSEIGNANT,
-    ENTREPRISE,
+    ORGANISME,
     ADMIN,
     VISITEUR
 }
