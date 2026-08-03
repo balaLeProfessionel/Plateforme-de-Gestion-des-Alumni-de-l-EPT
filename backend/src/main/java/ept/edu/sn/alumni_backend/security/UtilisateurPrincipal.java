@@ -7,6 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import lombok.RequiredArgsConstructor;
 
@@ -17,20 +18,33 @@ public class UtilisateurPrincipal implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(
             new SimpleGrantedAuthority(
-                "ROLE_" + utilisateur.getRole().name()
+                "ROLE_" + this.utilisateur.getRole().name()
             )
         );
     }
 
     public String getPassword() {
-        return utilisateur.getPassword();
+        return this.utilisateur.getPassword();
     }
 
     public String getUsername() {
-        return utilisateur.getEmail();
+        return this.utilisateur.getEmail();
+    }
+
+    public Utilisateur getUtilisateur() {
+        return this.utilisateur;
     }
 
     public boolean isEnabled() {
+        return this.utilisateur.getStatutCompte() != StatutCompte.SUSPENDU
+            && this.utilisateur.isEmailVerifie();
+    }
+
+    public boolean isAccountNonExpired() {
         return true;
+    }
+
+    public boolean isAccountNonLocked() {
+        return this.utilisateur.getStatutCompte() != StatutCompte.SUSPENDU;
     }
 }
