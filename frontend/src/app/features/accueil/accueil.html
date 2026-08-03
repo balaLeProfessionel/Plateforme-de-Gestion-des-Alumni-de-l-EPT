@@ -1,0 +1,5 @@
+<div style="padding: 3rem;">
+  <h1>Bienvenue {{ authService.utilisateur()?.prenom }} !</h1>
+  <p>Vous êtes connecté en tant que {{ authService.utilisateur()?.role }}.</p>
+  <p>Statut : {{ authService.utilisateur()?.statutCompte }}</p>
+</div>
