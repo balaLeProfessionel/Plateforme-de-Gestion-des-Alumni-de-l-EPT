@@ -1,1 +1,64 @@
-/* You can add global styles to this file, and also import other style files */
+@import 'primeicons/primeicons.css';
+
+:root {
+  // ===== Typographie =====
+  --ept-font-heading: 'Space Grotesk', system-ui, sans-serif;
+  --ept-font-body: 'Inter', system-ui, sans-serif;
+
+  // Fond et surfaces
+  --ept-bg: #F8F9FA;
+  --ept-surface: #FFFFFF;
+
+  // Bleu foncé — couleur principale (texte, boutons, en-têtes)
+  --ept-primary: #014365;
+  --ept-primary-dark: #012E45;
+  --ept-primary-light: #E3EEF3;   // fond très clair dérivé, pour halos/sélections
+
+  // Bleu ciel — accent secondaire, TOUJOURS combiné au bleu foncé
+  // Règle stricte : texte ciel sur fond foncé, OU fond ciel avec texte foncé.
+  // Jamais de ciel seul sur blanc (contraste insuffisant).
+  --ept-sky: #73DBF2;
+  --ept-sky-text-on: var(--ept-primary);   // texte à utiliser SUR un fond ciel
+  --ept-sky-on-dark: var(--ept-sky);       // couleur à utiliser comme texte SUR fond foncé
+
+  // Doré premium — badges, éléments valorisants
+  --ept-gold: #A9782F;
+  --ept-gold-light: #F3E8D6;
+  --ept-gold-dark: #7C5820;
+
+  // Rouge — échecs, refus, suppressions
+  --ept-error: #B23B3B;
+  --ept-error-light: #F7E4E4;
+  --ept-error-dark: #8B2C2C;
+
+  // Vert — succès, validations (nécessaire en complément, non précisé mais indispensable)
+  --ept-success: #2E7D5B;
+  --ept-success-light: #E4F1EC;
+
+  // Textes et bordures
+  --ept-text: #014365;
+  --ept-text-secondary: #5B7789;
+  --ept-text-on-dark: #FFFFFF;
+  --ept-border: #E0E5E9;
+
+  // Rayons et ombres
+  --ept-radius: 12px;
+  --ept-radius-sm: 10px;
+  --ept-shadow: 0 2px 8px rgba(1, 67, 101, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--ept-bg);
+  color: var(--ept-text);
+  font-family: var(--ept-font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--ept-font-heading);
+  font-weight: 600;
+}
