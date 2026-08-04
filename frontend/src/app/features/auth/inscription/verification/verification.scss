@@ -1,0 +1,101 @@
+.verif-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  background: var(--ept-bg);
+}
+
+.verif-carte {
+  width: 100%;
+  max-width: 420px;
+  background: var(--ept-surface);
+  border-radius: var(--ept-radius);
+  box-shadow: var(--ept-shadow);
+  padding: 2.5rem;
+  text-align: center;
+}
+
+.icone-entete {
+  width: 3.5rem;
+  height: 3.5rem;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--ept-primary-light);
+  color: var(--ept-primary);
+
+  i {
+    font-size: 1.5rem;
+  }
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin: 0 0 0.5rem;
+}
+
+.sous-titre {
+  color: var(--ept-text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0 0 1.75rem;
+
+  strong {
+    color: var(--ept-text);
+  }
+}
+
+.message {
+  display: block;
+  margin-bottom: 1.25rem;
+}
+
+.champ-code {
+  margin-bottom: 1.5rem;
+  text-align: left;
+
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+}
+
+.input-code {
+  width: 100%;
+  text-align: center;
+  font-size: 1.5rem;
+  font-family: var(--ept-font-heading);
+  letter-spacing: 0.5rem;
+  font-weight: 600;
+}
+
+.renvoi {
+  font-size: 0.9rem;
+  color: var(--ept-text-secondary);
+  margin: 0;
+
+  .lien-renvoi {
+    background: none;
+    border: none;
+    color: var(--ept-primary);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0;
+
+    &:hover:not(:disabled) {
+      text-decoration: underline;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+  }
+}

@@ -24,4 +24,9 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/inscription/formulaire/formulaire').then((m) => m.Formulaire)
   },
+  {
+    path: 'inscription/verification',
+    loadComponent: () =>
+      import('./features/auth/inscription/verification/verification').then((m) => m.Verification)
+  },
 ];

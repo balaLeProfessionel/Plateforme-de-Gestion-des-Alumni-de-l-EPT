@@ -35,7 +35,7 @@ export class AuthService {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
-  private stocker(response: AuthResponse) {
+  public stocker(response: AuthResponse) {
     localStorage.setItem(this.TOKEN_KEY, response.token);
     localStorage.setItem(this.USER_KEY, JSON.stringify(response));
     this.utilisateurSignal.set(response);

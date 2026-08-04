@@ -1,0 +1,53 @@
+<div class="verif-page">
+  <div class="verif-carte">
+
+    <div class="icone-entete">
+      <i class="pi pi-envelope"></i>
+    </div>
+
+    <h1>Vérifiez votre email</h1>
+    <p class="sous-titre">
+      Nous avons envoyé un code à 6 chiffres à<br />
+      <strong>{{ email() }}</strong>
+    </p>
+
+    @if (messageErreur()) {
+      <p-message severity="error" class="message">{{ messageErreur() }}</p-message>
+    }
+    @if (messageSucces()) {
+      <p-message severity="success" class="message">{{ messageSucces() }}</p-message>
+    }
+
+    <div class="champ-code">
+      <label for="code">Code de vérification</label>
+      <input
+        pInputText
+        id="code"
+        inputmode="numeric"
+        autocomplete="one-time-code"
+        [value]="code()"
+        (input)="majCode($any($event.target).value)"
+        placeholder="• • • • • •"
+        maxlength="6"
+        class="input-code"
+        fluid />
+    </div>
+
+    <button
+      pButton
+      type="button"
+      (click)="verifier()"
+      [disabled]="enChargement() || code().length !== 6"
+      class="btn-principal">
+      {{ enChargement() ? 'Vérification…' : 'Vérifier' }}
+    </button>
+
+    <p class="renvoi">
+      Vous n'avez rien reçu ?
+      <button type="button" class="lien-renvoi" (click)="renvoyer()" [disabled]="enRenvoi()">
+        {{ enRenvoi() ? 'Envoi…' : 'Renvoyer le code' }}
+      </button>
+    </p>
+
+  </div>
+</div>
