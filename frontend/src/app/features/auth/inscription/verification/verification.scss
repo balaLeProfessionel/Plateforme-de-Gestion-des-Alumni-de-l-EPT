@@ -17,6 +17,35 @@
   text-align: center;
 }
 
+.btn-ept {
+  width: 100%;
+  background: var(--ept-primary);
+  border: none;
+  color: var(--ept-text-on-dark);
+  font-family: var(--ept-font-heading);
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.85rem 1.5rem;
+  border-radius: var(--ept-radius-sm);
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) {
+    background: var(--ept-primary-dark);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-primary-dark);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    background: var(--ept-border);
+    color: var(--ept-text-secondary);
+    cursor: default;
+  }
+}
+
 .icone-entete {
   width: 3.5rem;
   height: 3.5rem;

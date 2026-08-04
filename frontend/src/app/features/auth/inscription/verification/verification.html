@@ -34,11 +34,10 @@
     </div>
 
     <button
-      pButton
       type="button"
       (click)="verifier()"
       [disabled]="enChargement() || code().length !== 6"
-      class="btn-principal">
+      class="btn-ept">
       {{ enChargement() ? 'Vérification…' : 'Vérifier' }}
     </button>
 
