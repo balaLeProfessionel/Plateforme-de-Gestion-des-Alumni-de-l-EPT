@@ -66,7 +66,7 @@
         type="button"
         (click)="seConnecter()"
         [disabled]="enChargement()"
-        class="bouton-connexion"
+        class="btn-principal"
         [attr.aria-busy]="enChargement()">
         {{ enChargement() ? 'Connexion…' : 'Se connecter' }}
       </button>

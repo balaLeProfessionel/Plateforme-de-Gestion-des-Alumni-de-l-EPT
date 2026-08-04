@@ -62,3 +62,26 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--ept-font-heading);
   font-weight: 600;
 }
+
+.btn-principal.p-button {
+  width: 100%;
+  background: var(--ept-primary);
+  border-color: var(--ept-primary);
+  color: var(--ept-text-on-dark);
+  font-family: var(--ept-font-heading);
+  font-weight: 600;
+  padding: 0.85rem;
+  font-size: 1rem;
+  border-radius: var(--ept-radius-sm);
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) {
+    background: var(--ept-primary-dark);
+    border-color: var(--ept-primary-dark);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}

@@ -141,22 +141,6 @@
     margin-top: 0.35rem;
   }
 
-  .bouton-connexion {
-    margin-top: 0.5rem;
-    width: 100%;
-    ::ng-deep .p-button {
-      background: var(--ept-primary);
-      border-color: var(--ept-primary);
-      font-family: var(--ept-font-heading);
-      font-weight: 600;
-
-      &:hover:not(:disabled) {
-        background: var(--ept-primary-dark);
-        border-color: var(--ept-primary-dark);
-      }
-    }
-  }
-
   .lien-inscription {
     text-align: center;
     margin-top: 1.5rem;
