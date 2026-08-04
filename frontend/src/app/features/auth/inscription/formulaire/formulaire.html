@@ -1,0 +1,119 @@
+<div class="formulaire-page">
+  <div class="formulaire-carte">
+
+    <header class="entete">
+      <a routerLink="/inscription" class="retour">
+        <i class="pi pi-arrow-left"></i> Changer de profil
+      </a>
+      <h1>Inscription — {{ libelleRole() }}</h1>
+      <p class="sous-titre">Renseignez vos informations</p>
+    </header>
+
+    @if (messageErreur()) {
+      <p-message severity="error" class="message-erreur">{{ messageErreur() }}</p-message>
+    }
+
+    <!-- Nom de l'organisme (organisme uniquement) -->
+    @if (estOrganisme()) {
+      <div class="champ">
+        <label for="nomOrganisme">Nom de l'organisme</label>
+        <input pInputText id="nomOrganisme" [formField]="formulaire.nomOrganisme"
+              placeholder="Ex : Sonatel" fluid />
+      </div>
+    }
+
+    <!-- Nom et prénom (contact pour l'organisme, personne sinon) -->
+    <div class="ligne-double">
+      <div class="champ">
+        <label for="prenom">{{ estOrganisme() ? 'Prénom du contact' : 'Prénom' }}</label>
+        <input pInputText id="prenom" [formField]="formulaire.prenom" fluid />
+        @if (formulaire.prenom().touched() && formulaire.prenom().invalid()) {
+          <small class="erreur-champ">{{ formulaire.prenom().errors()[0]?.message }}</small>
+        }
+      </div>
+      <div class="champ">
+        <label for="nom">{{ estOrganisme() ? 'Nom du contact' : 'Nom' }}</label>
+        <input pInputText id="nom" [formField]="formulaire.nom" fluid />
+        @if (formulaire.nom().touched() && formulaire.nom().invalid()) {
+          <small class="erreur-champ">{{ formulaire.nom().errors()[0]?.message }}</small>
+        }
+      </div>
+    </div>
+
+    <!-- Email -->
+    <div class="champ">
+      <label for="email">Email</label>
+      <input pInputText id="email" type="email" [formField]="formulaire.email"
+            placeholder="vous@exemple.com" autocomplete="email" fluid />
+      @if (formulaire.email().touched() && formulaire.email().invalid()) {
+        <small class="erreur-champ">{{ formulaire.email().errors()[0]?.message }}</small>
+      }
+    </div>
+
+    <!-- Filière (alumni et enseignant) -->
+    @if (montreFiliere()) {
+      <div class="champ">
+        <label for="filiere">Filière</label>
+        <select pInputText id="filiere" [formField]="formulaire.filiere" fluid>
+          <option value="" disabled>Choisissez votre filière</option>
+          @for (f of filieres; track f.value) {
+            <option [value]="f.value">{{ f.label }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <!-- Année de sortie (alumni uniquement) -->
+    @if (montreAnnee()) {
+      <div class="champ">
+        <label for="annee">Année de sortie</label>
+        <input pInputText id="annee" type="number" [formField]="formulaire.anneeSortie"
+              placeholder="Ex : 2021" fluid />
+      </div>
+    }
+
+    <!-- Téléphone (optionnel, tous sauf visiteur) -->
+    @if (role() !== 'VISITEUR') {
+      <div class="champ">
+        <label for="telephone">Téléphone <span class="optionnel">(optionnel)</span></label>
+        <input pInputText id="telephone" [formField]="formulaire.telephone"
+              placeholder="77 123 45 67" fluid />
+      </div>
+    }
+
+    <!-- Mot de passe -->
+    <div class="champ">
+      <label for="password">Mot de passe</label>
+      <div class="champ-mdp">
+        <input pInputText id="password"
+              [type]="afficherMdp() ? 'text' : 'password'"
+              [formField]="formulaire.password"
+              placeholder="Au moins 8 caractères"
+              autocomplete="new-password" fluid />
+        <button type="button" class="bascule-mdp"
+                (click)="afficherMdp.set(!afficherMdp())"
+                [attr.aria-label]="afficherMdp() ? 'Masquer' : 'Afficher'">
+          <i class="pi" [class.pi-eye]="!afficherMdp()" [class.pi-eye-slash]="afficherMdp()"></i>
+        </button>
+      </div>
+      @if (formulaire.password().touched() && formulaire.password().invalid()) {
+        <small class="erreur-champ">{{ formulaire.password().errors()[0]?.message }}</small>
+      }
+    </div>
+
+    <button
+      pButton
+      type="button"
+      (click)="sInscrire()"
+      [disabled]="enChargement()"
+      class="bouton-inscription"
+      [attr.aria-busy]="enChargement()">
+      {{ enChargement() ? 'Création…' : 'Créer mon compte' }}
+    </button>
+
+    <p class="lien-connexion">
+      Déjà un compte ? <a routerLink="/connexion">Se connecter</a>
+    </p>
+
+  </div>
+</div>

@@ -19,4 +19,9 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/inscription/choix-role/choix-role').then((m) => m.ChoixRole)
   },
+  {
+    path: 'inscription/formulaire/:role',
+    loadComponent: () =>
+      import('./features/auth/inscription/formulaire/formulaire').then((m) => m.Formulaire)
+  },
 ];

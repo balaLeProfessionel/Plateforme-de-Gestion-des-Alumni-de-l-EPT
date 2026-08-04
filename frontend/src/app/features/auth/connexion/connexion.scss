@@ -143,6 +143,7 @@
 
   .bouton-connexion {
     margin-top: 0.5rem;
+    width: 100%;
     ::ng-deep .p-button {
       background: var(--ept-primary);
       border-color: var(--ept-primary);

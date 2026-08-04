@@ -61,13 +61,15 @@
         }
       </div>
 
-      <p-button
-        label="Se connecter"
-        (onClick)="seConnecter()"
-        [loading]="enChargement()"
-        [disabled]="formulaire().invalid()"
+      <button
+        pButton
+        type="button"
+        (click)="seConnecter()"
+        [disabled]="enChargement()"
         class="bouton-connexion"
-        fluid />
+        [attr.aria-busy]="enChargement()">
+        {{ enChargement() ? 'Connexion…' : 'Se connecter' }}
+      </button>
 
       <p class="lien-inscription">
         Pas encore de compte ? <a routerLink="/inscription">Créer un compte</a>

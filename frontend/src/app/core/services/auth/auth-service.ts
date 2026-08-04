@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { computed, inject, Service, signal } from '@angular/core';
 import { AuthResponse } from '../models/auth-response.model';
 import { tap } from 'rxjs';
+import { InscriptionResponse } from '../models/InscriptionResponse';
 
 @Service()
 export class AuthService {
@@ -24,6 +25,10 @@ export class AuthService {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
     this.utilisateurSignal.set(null);
+  }
+
+  inscrire(donnees: Record<string, unknown>) {
+    return this.http.post<InscriptionResponse>('/api/auth/register', donnees);
   }
 
   getToken(): string | null {
