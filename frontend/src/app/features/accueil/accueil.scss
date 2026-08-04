@@ -1,0 +1,40 @@
+.accueil {
+  padding: 2rem 3rem;
+}
+.entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+h1 {
+  margin: 0 0 0.5rem;
+}
+.infos {
+  color: var(--ept-text-secondary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.badge-attente {
+  background: var(--ept-gold-light);
+  color: var(--ept-gold-dark);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+.btn-deconnexion.p-button {
+  background: transparent;
+  border: 1px solid var(--ept-border);
+  color: var(--ept-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  &:hover {
+    border-color: var(--ept-error);
+    color: var(--ept-error);
+  }
+}
+

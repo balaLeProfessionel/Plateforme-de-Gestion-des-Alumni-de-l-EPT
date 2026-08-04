@@ -1,5 +1,16 @@
-<div style="padding: 3rem;">
-  <h1>Bienvenue {{ authService.utilisateur()?.prenom }} !</h1>
-  <p>Vous êtes connecté en tant que {{ authService.utilisateur()?.role }}.</p>
-  <p>Statut : {{ authService.utilisateur()?.statutCompte }}</p>
+<div class="accueil">
+  <div class="entete">
+    <div>
+      <h1>Bienvenue {{ authService.utilisateur()?.prenom }} !</h1>
+      <p class="infos">
+        Connecté en tant que {{ authService.utilisateur()?.role }}
+        @if (authService.utilisateur()?.statutCompte === 'EN_ATTENTE') {
+          <span class="badge-attente">Profil en cours de vérification</span>
+        }
+      </p>
+    </div>
+    <button pButton type="button" (click)="seDeconnecter()" class="btn-deconnexion">
+      <i class="pi pi-sign-out"></i> Déconnexion
+    </button>
+  </div>
 </div>
