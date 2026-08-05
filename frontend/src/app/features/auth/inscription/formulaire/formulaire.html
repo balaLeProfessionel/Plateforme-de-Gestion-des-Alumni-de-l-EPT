@@ -102,11 +102,10 @@
     </div>
 
     <button
-      pButton
       type="button"
       (click)="sInscrire()"
       [disabled]="enChargement()"
-      class="btn-principal"
+      class="btn-ept"
       [attr.aria-busy]="enChargement()">
       {{ enChargement() ? 'Création…' : 'Créer mon compte' }}
     </button>

@@ -62,11 +62,10 @@
       </div>
 
       <button
-        pButton
         type="button"
         (click)="seConnecter()"
         [disabled]="enChargement()"
-        class="btn-principal"
+        class="btn-ept"
         [attr.aria-busy]="enChargement()">
         {{ enChargement() ? 'Connexion…' : 'Se connecter' }}
       </button>

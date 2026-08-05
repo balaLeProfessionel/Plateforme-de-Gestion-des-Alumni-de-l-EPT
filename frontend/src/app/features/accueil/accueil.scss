@@ -25,16 +25,27 @@ h1 {
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
 }
-.btn-deconnexion.p-button {
+.btn-deconnexion {
   background: transparent;
-  border: 1px solid var(--ept-border);
+  border: 1.5px solid var(--ept-border);
   color: var(--ept-text);
+  font-family: var(--ept-font-body);
+  font-size: 0.9rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: var(--ept-radius-sm);
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  transition: border-color 0.15s, color 0.15s;
+
   &:hover {
     border-color: var(--ept-error);
     color: var(--ept-error);
   }
-}
 
+  &:focus-visible {
+    outline: 2px solid var(--ept-primary);
+    outline-offset: 2px;
+  }
+}

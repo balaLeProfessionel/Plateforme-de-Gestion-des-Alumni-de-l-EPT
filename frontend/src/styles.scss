@@ -63,25 +63,31 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
 }
 
-.btn-principal.p-button {
+.btn-ept {
   width: 100%;
   background: var(--ept-primary);
-  border-color: var(--ept-primary);
+  border: none;
   color: var(--ept-text-on-dark);
   font-family: var(--ept-font-heading);
   font-weight: 600;
-  padding: 0.85rem;
   font-size: 1rem;
+  padding: 0.85rem 1.5rem;
   border-radius: var(--ept-radius-sm);
+  cursor: pointer;
   transition: background 0.15s;
 
   &:hover:not(:disabled) {
     background: var(--ept-primary-dark);
-    border-color: var(--ept-primary-dark);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-primary-dark);
+    outline-offset: 2px;
   }
 
   &:disabled {
-    opacity: 0.5;
+    background: var(--ept-border);
+    color: var(--ept-text-secondary);
     cursor: default;
   }
 }

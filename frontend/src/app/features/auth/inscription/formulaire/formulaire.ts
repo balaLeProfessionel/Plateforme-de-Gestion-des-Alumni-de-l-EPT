@@ -1,17 +1,15 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { email, form, minLength, required, FormField } from '@angular/forms/signals';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Select } from 'primeng/select';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
-import { ButtonDirective } from 'primeng/button';
 
 import { AuthService } from '../../../../core/services/auth/auth-service';
 import { FILIERES } from '../../../../core/data/filieres';
 
 @Component({
   selector: 'app-formulaire',
-  imports: [FormField, InputText, Message, ButtonDirective, RouterLink],
+  imports: [FormField, InputText, Message, RouterLink],
   templateUrl: './formulaire.html',
   styleUrl: './formulaire.scss',
 })

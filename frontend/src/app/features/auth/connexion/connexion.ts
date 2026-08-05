@@ -5,12 +5,11 @@ import { email, form, required, FormField } from '@angular/forms/signals';
 
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
-import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 
 @Component({
   selector: 'app-connexion',
-  imports: [FormField, InputTextModule, PasswordModule, ButtonModule, MessageModule, RouterLink],
+  imports: [FormField, InputTextModule, PasswordModule, MessageModule, RouterLink],
   templateUrl: './connexion.html',
   styleUrl: './connexion.scss',
 })
