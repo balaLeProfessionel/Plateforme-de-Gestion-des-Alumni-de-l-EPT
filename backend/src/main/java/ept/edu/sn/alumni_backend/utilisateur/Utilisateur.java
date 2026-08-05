@@ -9,21 +9,28 @@ import java.util.UUID;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeDiplome;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
 import ept.edu.sn.alumni_backend.parcours.entity.ExperienceProfessionelle;
 import ept.edu.sn.alumni_backend.parcours.entity.Formation;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
-@Data
+@Getter
+@Setter
 public class Utilisateur {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -57,6 +64,10 @@ public class Utilisateur {
     
     @OneToMany(mappedBy = "utilisateur")
     private List<ExperienceProfessionelle> experiences = new ArrayList<>();
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organisme_id", unique = true)
+    private Organisme organisme; // uniquement si role = ORGANISME
 
     @PrePersist
     public void onCreate() {

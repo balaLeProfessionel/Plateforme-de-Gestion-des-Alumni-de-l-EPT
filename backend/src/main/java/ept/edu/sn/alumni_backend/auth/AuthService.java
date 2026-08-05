@@ -13,10 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ept.edu.sn.alumni_backend.auth.dto.*;
 import ept.edu.sn.alumni_backend.auth.exception.EmailDejaUtiliseException;
+import ept.edu.sn.alumni_backend.auth.exception.NomOrganismeManquantException;
 import ept.edu.sn.alumni_backend.auth.exception.RoleNonAutoriseException;
 import ept.edu.sn.alumni_backend.auth.exception.TokenInvalideException;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
+import ept.edu.sn.alumni_backend.organisme.repository.OrganismeRepository;
 import ept.edu.sn.alumni_backend.security.JwtService;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.CodeVerification;
@@ -38,6 +41,7 @@ public class AuthService {
     private static final int MAX_TENTATIVES = 5;
 
     private final UtilisateurRepository utilisateurRepository;
+    private final OrganismeRepository organismeRepository;
     private final CodeVerificationRepository codeVerificationRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -58,6 +62,10 @@ public class AuthService {
         if (utilisateurRepository.existsByEmail(email)) {
             throw new EmailDejaUtiliseException("Cet email est déjà utilisé");
         }
+        if (request.role() == TypeRole.ORGANISME
+                && (request.nomOrganisme() == null || request.nomOrganisme().isBlank())) {
+            throw new NomOrganismeManquantException("Le nom de l'organisme est obligatoire");
+        }
 
         Utilisateur utilisateur = new Utilisateur();
         utilisateur.setNom(request.nom());
@@ -71,8 +79,19 @@ public class AuthService {
         utilisateur.setAnneeEntree(request.anneeEntree());
         utilisateur.setFiliere(request.filiere());
 
-        utilisateur = utilisateurRepository.save(utilisateur);
+        if (request.role() == TypeRole.ORGANISME) {
+            Organisme organisme = new Organisme();
+            organisme.setNom(request.nomOrganisme());
+            organisme.setEmail(email);
+            organisme.setTelephone(request.telephone());
+            organisme.setStatutValidation(StatutCompte.EN_ATTENTE);
+            organisme = organismeRepository.save(organisme);
+            
+            utilisateur.setOrganisme(organisme);
+        }
 
+        utilisateur = utilisateurRepository.save(utilisateur);
+    
         genererEtEnvoyerCode(utilisateur);
 
         return new InscriptionResponse(email,

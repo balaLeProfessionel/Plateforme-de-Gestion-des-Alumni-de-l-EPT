@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import ept.edu.sn.alumni_backend.auth.exception.EmailDejaUtiliseException;
+import ept.edu.sn.alumni_backend.auth.exception.NomOrganismeManquantException;
 import ept.edu.sn.alumni_backend.auth.exception.RoleNonAutoriseException;
 import ept.edu.sn.alumni_backend.auth.exception.TokenInvalideException;
 
@@ -62,5 +63,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleLocked() {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(Map.of("message", "Votre compte a été suspendu. Contactez l'administration."));
+    }
+
+    @ExceptionHandler(NomOrganismeManquantException.class)
+    public ResponseEntity<Map<String, String>> handleNomOrganismeManquant(NomOrganismeManquantException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", e.getMessage()));
     }
 }

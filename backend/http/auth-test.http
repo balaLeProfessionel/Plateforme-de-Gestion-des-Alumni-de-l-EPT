@@ -75,7 +75,11 @@ Content-Type: application/json
 
 ###
 
-### 1.5 — Organisme : inscription
+### =====================================================================
+### TEST — Inscription ORGANISME avec création de l'entité liée
+### =====================================================================
+
+### 1 — Inscription organisme AVEC nom d'organisme -> doit réussir
 POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
@@ -84,12 +88,17 @@ Content-Type: application/json
   "prenom": "Ndèye",
   "email": "contact@wave.com",
   "password": "password123",
-  "role": "ORGANISME"
+  "role": "ORGANISME",
+  "nomOrganisme": "Wave Mobile Money",
+  "telephone": "338600000"
 }
+
+# ATTENDU : 201 Created, message d'envoi de code
+# -> lis le code dans les logs api
 
 ###
 
-### 1.6 — Vérifier l'OTP de l'organisme : COLLE le code -> reste EN_ATTENTE
+### 2 — Vérifier l'OTP : COLLE le code lu dans les logs
 POST {{baseUrl}}/auth/verifier-otp
 Content-Type: application/json
 
@@ -98,7 +107,64 @@ Content-Type: application/json
   "code": "______"
 }
 
-# ATTENDU : 200 OK, statutCompte = "EN_ATTENTE"
+# ATTENDU : 200 OK, statutCompte = "EN_ATTENTE", token présent
+
+###
+
+### 3 — Inscription organisme SANS nom d'organisme -> doit échouer
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nom": "Fall",
+  "prenom": "Ousmane",
+  "email": "contact2@sonatel.sn",
+  "password": "password123",
+  "role": "ORGANISME"
+}
+
+# ATTENDU : 400 Bad Request
+# message : "Le nom de l'organisme est obligatoire"
+
+###
+
+### 4 — Inscription organisme avec nom VIDE (chaîne d'espaces) -> doit échouer aussi
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nom": "Diallo",
+  "prenom": "Fatou",
+  "email": "contact4@sonatel.sn",
+  "password": "password123",
+  "role": "ORGANISME",
+  "nomOrganisme": "   "
+}
+
+# ATTENDU : 400 Bad Request (isBlank() attrape aussi les espaces)
+
+###
+
+### 5 — Se connecter avec le compte organisme vérifié (étape 2)
+# @name loginOrganisme
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "contact@wave.com",
+  "password": "password123"
+}
+
+# ATTENDU : 200 OK, role = "ORGANISME"
+
+###
+
+### 6 — Vérifier /me : doit renvoyer les infos du compte organisme
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{loginOrganisme.response.body.token}}
+
+# ATTENDU : 200 OK, role = "ORGANISME", statutCompte = "EN_ATTENTE"
+
 
 ###
 

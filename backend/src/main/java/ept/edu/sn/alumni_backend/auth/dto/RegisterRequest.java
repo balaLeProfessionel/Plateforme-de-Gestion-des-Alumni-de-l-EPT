@@ -26,6 +26,6 @@ public record RegisterRequest(
 
     String telephone,
     Integer anneeEntree,
-    String filiere
-
+    String filiere,
+    String nomOrganisme
 ) { }
