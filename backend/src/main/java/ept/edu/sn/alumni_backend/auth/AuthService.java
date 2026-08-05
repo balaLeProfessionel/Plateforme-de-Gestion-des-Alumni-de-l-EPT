@@ -35,7 +35,7 @@ public class AuthService {
     private static final Set<String> DOMAINES_OFFICIELS_EPT = Set.of("ept.edu.sn", "ept.sn");
 
     private static final Set<TypeRole> ROLES_INSCRIPTION_LIBRE =
-            EnumSet.of(TypeRole.ALUMNI, TypeRole.ENSEIGNANT, TypeRole.ORGANISME, TypeRole.VISITEUR);
+            EnumSet.of(TypeRole.ALUMNI, TypeRole.PERSONNEL, TypeRole.ORGANISME, TypeRole.VISITEUR);
 
     private static final int DUREE_VALIDITE_MINUTES = 10;
     private static final int MAX_TENTATIVES = 5;
@@ -76,7 +76,7 @@ public class AuthService {
         utilisateur.setEmailVerifie(false);
         utilisateur.setStatutCompte(StatutCompte.EN_ATTENTE);
         utilisateur.setTelephone(request.telephone());
-        utilisateur.setAnneeEntree(request.anneeEntree());
+        utilisateur.setAnneeSortie(request.anneeSortie());
         utilisateur.setFiliere(request.filiere());
 
         if (request.role() == TypeRole.ORGANISME) {
@@ -135,7 +135,7 @@ public class AuthService {
 
         // Le badge institutionnel ne se décide qu'ici, après preuve de propriété
         if ((utilisateur.getRole() == TypeRole.ALUMNI
-                || utilisateur.getRole() == TypeRole.ENSEIGNANT)
+                || utilisateur.getRole() == TypeRole.PERSONNEL)
                 && estEmailOfficielEpt(email)) {
             utilisateur.setStatutCompte(StatutCompte.ACTIF);
         }

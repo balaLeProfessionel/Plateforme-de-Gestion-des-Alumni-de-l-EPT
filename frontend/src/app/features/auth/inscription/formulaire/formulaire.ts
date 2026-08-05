@@ -26,7 +26,7 @@ export class Formulaire {
   protected readonly libelleRole = computed(() => {
     switch (this.role()) {
       case 'ALUMNI': return 'Diplômé';
-      case 'ENSEIGNANT': return 'Enseignant';
+      case 'PERSONNEL': return 'Personnel EPT';
       case 'ORGANISME': return 'Organisme';
       default: return 'Visiteur';
     }
@@ -34,7 +34,7 @@ export class Formulaire {
 
   protected readonly estOrganisme = computed(() => this.role() === 'ORGANISME');
   protected readonly montreFiliere = computed(
-    () => this.role() === 'ALUMNI' || this.role() === 'ENSEIGNANT'
+    () => this.role() === 'ALUMNI' || this.role() === 'PERSONNEL'
   );
 
   protected readonly montreAnnee = computed(() => this.role() === 'ALUMNI');
@@ -85,7 +85,7 @@ export class Formulaire {
     };
 
     if (this.montreAnnee() && m.anneeSortie) {
-      corps['anneeEntree'] = Number(m.anneeSortie);
+      corps['anneeSortie'] = Number(m.anneeSortie);
     }
     if (this.montreFiliere()) {
       corps['filiere'] = m.filiere;

@@ -53,6 +53,7 @@ public class Utilisateur {
     private LocalDate dateNaissance;
     private String telephone;
     private Integer anneeEntree;
+    private Integer anneeSortie;
     @Enumerated(EnumType.STRING)
     private TypeDiplome diplome;
     private String filiere;

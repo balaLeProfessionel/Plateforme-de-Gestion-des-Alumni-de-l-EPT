@@ -25,10 +25,10 @@ export class ChoixRole {
       icone: 'pi-graduation-cap'
     },
     {
-      cle: 'ENSEIGNANT',
-      titre: 'Enseignant',
-      description: "Vous enseignez ou avez enseigné à l'EPT. Accompagnez les étudiants et restez connecté à la communauté.",
-      icone: 'pi-book'
+      cle: 'PERSONNEL',
+      titre: 'Personnel EPT',
+      description: "Vous êtes enseignant, chercheur ou membre de l'administration de l'EPT. Accompagnez les étudiants et gérez la vie de l'école.",
+      icone: 'pi-briefcase'
     },
     {
       cle: 'ORGANISME',
