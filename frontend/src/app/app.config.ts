@@ -5,11 +5,12 @@ import { providePrimeNG } from 'primeng/config';
 
 import { routes } from './app.routes';
 import { EptPreset } from './theme/ept-preset';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { jwtInterceptor } from './core/interceptors/jwt.interceptors';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([jwtInterceptor])),
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     providePrimeNG({
