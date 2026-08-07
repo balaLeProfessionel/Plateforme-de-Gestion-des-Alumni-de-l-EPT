@@ -50,7 +50,11 @@ export class Verification {
           this.enChargement.set(false);
           // Le token est délivré ici : on le stocke et on entre dans l'app
           this.authService.stocker(res);
-          this.router.navigate(['/accueil']);
+          if (res.role === 'ORGANISME') {
+            this.router.navigate(['/completer-organisme']);
+          } else {
+            this.router.navigate(['/accueil']);
+          }
         },
         error: (err) => {
           this.enChargement.set(false);
