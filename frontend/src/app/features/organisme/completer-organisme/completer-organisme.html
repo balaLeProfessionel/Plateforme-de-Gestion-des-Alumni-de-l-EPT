@@ -1,0 +1,73 @@
+<div class="completion-page">
+  <div class="completion-carte">
+
+    <header class="entete">
+      <h1>Complétez le profil de votre organisme</h1>
+      <p class="sous-titre">
+        Ces informations seront visibles par les alumni et renforceront votre présence sur la plateforme.
+      </p>
+    </header>
+
+    @if (messageErreur()) {
+      <div class="alerte alerte-erreur" role="alert">{{ messageErreur() }}</div>
+    }
+
+    <div class="champ">
+      <label for="description">Description de l'organisme</label>
+      <textarea
+        [formField]="formulaire.description"
+        id="description"
+        rows="4"
+        placeholder="Présentez votre structure, ses activités, sa mission..."
+        class="textarea-ept"></textarea>
+      @if (formulaire.description().touched() && formulaire.description().invalid()) {
+        <small class="erreur-champ">{{ formulaire.description().errors()[0]?.message }}</small>
+      }
+    </div>
+
+    <div class="champ">
+      <label for="secteur">Secteur d'activité</label>
+      <input pInputText id="secteur" [formField]="formulaire.secteurActivite"
+              placeholder="Ex : Télécommunications" fluid />
+      @if (formulaire.secteurActivite().touched() && formulaire.secteurActivite().invalid()) {
+        <small class="erreur-champ">{{ formulaire.secteurActivite().errors()[0]?.message }}</small>
+      }
+    </div>
+
+    <div class="champ">
+      <label for="type">Type d'organisme</label>
+      <select id="type" class="select-ept" [formField]="formulaire.typeOrganisme">
+        <option value="" disabled>Choisissez un type</option>
+        @for (t of types; track t.value) {
+          <option [value]="t.value">{{ t.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="ligne-double">
+      <div class="champ">
+        <label for="adresse">Adresse</label>
+        <input pInputText id="adresse" [formField]="formulaire.adresse" fluid />
+      </div>
+      <div class="champ">
+        <label for="pays">Pays</label>
+        <input pInputText id="pays" [formField]="formulaire.pays" fluid />
+      </div>
+    </div>
+
+    <div class="champ">
+      <label for="siteWeb">Site web <span class="optionnel">(optionnel)</span></label>
+      <input pInputText id="siteWeb" [formField]="formulaire.siteWeb"
+              placeholder="https://..." fluid />
+    </div>
+
+    <button type="button" (click)="valider()" [disabled]="enChargement()" class="btn-ept">
+      {{ enChargement() ? 'Enregistrement…' : 'Enregistrer et continuer' }}
+    </button>
+
+    <button type="button" (click)="passer()" class="btn-passer">
+      Compléter plus tard
+    </button>
+
+  </div>
+</div>

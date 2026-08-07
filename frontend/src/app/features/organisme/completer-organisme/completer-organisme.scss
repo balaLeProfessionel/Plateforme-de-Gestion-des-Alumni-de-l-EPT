@@ -1,0 +1,107 @@
+.completion-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  background: var(--ept-bg);
+}
+
+.completion-carte {
+  width: 100%;
+  max-width: 560px;
+  background: var(--ept-surface);
+  border-radius: var(--ept-radius);
+  box-shadow: var(--ept-shadow);
+  padding: 2.5rem;
+}
+
+.entete {
+  margin-bottom: 1.75rem;
+
+  h1 {
+    font-size: 1.5rem;
+    margin: 0 0 0.5rem;
+  }
+
+  .sous-titre {
+    color: var(--ept-text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+}
+
+.ligne-double {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.champ {
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+
+    .optionnel {
+      font-weight: 400;
+      color: var(--ept-text-secondary);
+    }
+  }
+
+  input {
+    width: 100%;
+  }
+}
+
+.textarea-ept,
+.select-ept {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--ept-border);
+  border-radius: var(--ept-radius-sm);
+  font-family: var(--ept-font-body);
+  font-size: 0.95rem;
+  color: var(--ept-text);
+  background: var(--ept-surface);
+
+  &:focus {
+    outline: none;
+    border-color: var(--ept-primary);
+  }
+}
+
+.textarea-ept {
+  resize: vertical;
+}
+
+.erreur-champ {
+  color: var(--ept-error);
+  font-size: 0.8rem;
+  margin-top: 0.35rem;
+}
+
+.btn-passer {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--ept-text-secondary);
+  font-size: 0.9rem;
+  padding: 0.75rem;
+  cursor: pointer;
+  margin-top: 0.75rem;
+
+  &:hover {
+    color: var(--ept-primary);
+    text-decoration: underline;
+  }
+}
