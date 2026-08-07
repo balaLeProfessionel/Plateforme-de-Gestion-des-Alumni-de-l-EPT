@@ -29,4 +29,10 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/inscription/verification/verification').then((m) => m.Verification)
   },
+  {
+    path: 'completer-organisme',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/organisme/completer-organisme/completer-organisme').then((m) => m.CompleterOrganisme)
+  },
 ];
