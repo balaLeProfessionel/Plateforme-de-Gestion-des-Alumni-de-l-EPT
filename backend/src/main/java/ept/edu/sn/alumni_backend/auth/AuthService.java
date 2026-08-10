@@ -21,6 +21,7 @@ import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
 import ept.edu.sn.alumni_backend.organisme.repository.OrganismeRepository;
 import ept.edu.sn.alumni_backend.security.JwtService;
+import ept.edu.sn.alumni_backend.security.RefreshTokenService;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.CodeVerification;
 import ept.edu.sn.alumni_backend.utilisateur.CodeVerificationRepository;
@@ -47,6 +48,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final EmailService emailService;
+    private final RefreshTokenService refreshTokenService;
 
     // ==================== INSCRIPTION ====================
 
@@ -145,8 +147,9 @@ public class AuthService {
         codeVerificationRepository.delete(cv);
 
         // Le token n'est délivré qu'ici, une fois l'email vérifié
-        String token = jwtService.genererToken(new UtilisateurPrincipal(utilisateur));
-        return construireReponse(token, utilisateur, "Email vérifié. Bienvenue !");
+        String accesToken = this.jwtService.genererToken(new UtilisateurPrincipal(utilisateur));
+        String refreshToken = this.refreshTokenService.creerRefreshToken(utilisateur);
+        return construireReponse(accesToken, refreshToken, utilisateur, "Email vérifié. Bienvenue !");
     }
 
     @Transactional
@@ -180,8 +183,9 @@ public class AuthService {
             new UsernamePasswordAuthenticationToken(email, request.password()));
 
         Utilisateur utilisateur = utilisateurRepository.findByEmail(email).orElseThrow();
-        String token = jwtService.genererToken(new UtilisateurPrincipal(utilisateur));
-        return construireReponse(token, utilisateur, null);
+        String accesToken = this.jwtService.genererToken(new UtilisateurPrincipal(utilisateur));
+        String refreshToken = this.refreshTokenService.creerRefreshToken(utilisateur);
+        return construireReponse(accesToken, refreshToken, utilisateur, null);
     }
 
     // ==================== CRÉATION PAR L'ADMIN ====================
@@ -213,6 +217,25 @@ public class AuthService {
             utilisateur.getPrenom(), utilisateur.getRole().name(), motDePasseTemporaire);
     }
 
+    public AuthResponse rafraichir(RefreshRequest request) {
+        Utilisateur utilisateur = refreshTokenService.verifierEtObtenirUtilisateur(request.refreshToken());
+
+        // On délivre un nouvel access token, on garde le même refresh token (pas de rotation)
+        String nouveauAccessToken = jwtService.genererToken(new UtilisateurPrincipal(utilisateur));
+
+        return new AuthResponse(
+            nouveauAccessToken,
+            request.refreshToken(),   // on renvoie le même refresh token
+            utilisateur.getId(),
+            utilisateur.getEmail(),
+            utilisateur.getNom(),
+            utilisateur.getPrenom(),
+            utilisateur.getRole().name(),
+            utilisateur.getStatutCompte().name(),
+            null
+        );
+    }
+
     // ==================== OUTILS ====================
 
     private void genererEtEnvoyerCode(Utilisateur utilisateur) {
@@ -241,8 +264,12 @@ public class AuthService {
         return email == null ? null : email.toLowerCase().trim();
     }
 
-    private AuthResponse construireReponse(String token, Utilisateur u, String message) {
-        return new AuthResponse(token, u.getId(), u.getEmail(), u.getNom(), u.getPrenom(),
+    private AuthResponse construireReponse(String accessToken, String refreshToken, Utilisateur u, String message) {
+        return new AuthResponse(accessToken, refreshToken, u.getId(), u.getEmail(), u.getNom(), u.getPrenom(),
                 u.getRole().name(), u.getStatutCompte().name(), message);
+    }
+
+    public void deconnecter(String refreshToken) {
+        refreshTokenService.supprimerRefreshToken(refreshToken);
     }
 }

@@ -7,17 +7,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import ept.edu.sn.alumni_backend.security.RefreshTokenRepository;
 import ept.edu.sn.alumni_backend.utilisateur.CodeVerificationRepository;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class NettoyageScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(NettoyageScheduler.class);
     private final CodeVerificationRepository codeVerificationRepository;
-
-    public NettoyageScheduler(CodeVerificationRepository codeVerificationRepository) {
-        this.codeVerificationRepository = codeVerificationRepository;
-    }
+    private final RefreshTokenRepository refreshTokenRepository;
 
     // Toutes les heures
     @Scheduled(fixedRate = 3_600_000)
@@ -26,5 +26,10 @@ public class NettoyageScheduler {
         if (supprimes > 0) {
             log.info("Nettoyage : {} code(s) OTP expiré(s) supprimé(s)", supprimes);
         }
+    }
+
+    @Scheduled(fixedRate = 3_600_000) // toutes les heures, comme les OTP
+    public void nettoyerRefreshTokensExpires() {
+        refreshTokenRepository.supprimerExpires(LocalDateTime.now());
     }
 }

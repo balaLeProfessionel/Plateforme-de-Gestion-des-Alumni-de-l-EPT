@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ept.edu.sn.alumni_backend.auth.dto.AuthResponse;
 import ept.edu.sn.alumni_backend.auth.dto.InscriptionResponse;
 import ept.edu.sn.alumni_backend.auth.dto.LoginRequest;
+import ept.edu.sn.alumni_backend.auth.dto.RefreshRequest;
 import ept.edu.sn.alumni_backend.auth.dto.RegisterRequest;
 import ept.edu.sn.alumni_backend.auth.dto.RenvoyerOtpRequest;
 import ept.edu.sn.alumni_backend.auth.dto.VerifierOtpRequest;
@@ -48,16 +49,23 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
+    public ResponseEntity<Void> logout(@RequestBody(required = false) RefreshRequest request) {
+        if (request != null && request.refreshToken() != null) {
+            authService.deconnecter(request.refreshToken());
+        }
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/me")
     public ResponseEntity<AuthResponse> me(@AuthenticationPrincipal UtilisateurPrincipal principal) {
         Utilisateur u = principal.getUtilisateur();
-        return ResponseEntity.ok(new AuthResponse(
+        return ResponseEntity.ok(new AuthResponse(null,
             null, u.getId(), u.getEmail(), u.getNom(), u.getPrenom(),
             u.getRole().name(), u.getStatutCompte().name(), null));
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshRequest request) {
+        return ResponseEntity.ok(authService.rafraichir(request));
+    }
 }

@@ -71,7 +71,8 @@ public class SecurityConfig {
                     "/api/auth/register",
                     "/api/auth/login",
                     "/api/auth/verifier-otp",
-                    "/api/auth/renvoyer-otp"
+                    "/api/auth/renvoyer-otp",
+                    "/api/auth/refresh"
                 ).permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
