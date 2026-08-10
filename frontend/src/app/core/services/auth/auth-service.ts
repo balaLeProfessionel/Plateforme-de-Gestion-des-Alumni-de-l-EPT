@@ -8,6 +8,7 @@ import { InscriptionResponse } from '../models/InscriptionResponse';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly TOKEN_KEY = 'auth_token';
+  private readonly REFRESH_TOKEN_KEY = 'auth_refresh';
   private readonly USER_KEY = 'auth_user';
 
   private readonly utilisateurSignal = signal<AuthResponse | null>(this.lireUtilsateur());
@@ -22,7 +23,17 @@ export class AuthService {
   }
 
   logout() {
+    const refreshToken = this.getRefreshToken();
+    if (refreshToken) {
+      this.http.post('/api/auth/logout', { refreshToken: refreshToken }).subscribe(
+        next => {},
+        error => {
+          console.error('Erreur lors de la déconnexion :', error);
+        }
+      );
+    }
     localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
     this.utilisateurSignal.set(null);
   }
@@ -35,10 +46,24 @@ export class AuthService {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
+  getRefreshToken(): string | null {
+    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+  }
+
+  majAccessToken(nouveauToken: string): void {
+    localStorage.setItem(this.TOKEN_KEY, nouveauToken);
+  }
+
   public stocker(response: AuthResponse) {
     localStorage.setItem(this.TOKEN_KEY, response.token);
+    localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refreshToken);
     localStorage.setItem(this.USER_KEY, JSON.stringify(response));
     this.utilisateurSignal.set(response);
+  }
+
+  rafraichir() {
+    const refresh = this.getRefreshToken();
+    return this.http.post<AuthResponse>('/api/auth/refresh', { refreshToken: refresh });
   }
 
   private lireUtilsateur(): AuthResponse | null {

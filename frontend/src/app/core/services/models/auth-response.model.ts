@@ -1,5 +1,6 @@
 export interface AuthResponse {
   token: string;
+  refreshToken: string;
   id: string;
   email: string;
   nom: string;
