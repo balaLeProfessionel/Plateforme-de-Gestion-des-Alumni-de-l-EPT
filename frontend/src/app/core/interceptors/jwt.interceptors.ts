@@ -1,7 +1,7 @@
 import { HttpErrorResponse, HttpInterceptorFn } from "@angular/common/http";
 import { AuthService } from "../services/auth/auth-service";
 import { inject } from "@angular/core/primitives/di";
-import { BehaviorSubject, catchError, filter, switchMap, switchMap, take, throwError } from "rxjs";
+import { BehaviorSubject, catchError, filter, switchMap, take, throwError } from "rxjs";
 import { Router } from "@angular/router";
 
 // État partagé entre les appels de l'intercepteur pour éviter les rafraîchissements multiples
@@ -40,11 +40,11 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
         return authService.rafraichir().pipe(
           switchMap((reponse) => {
             rafraichissementEnCours = false;
-            authService.majAccessToken(reponse.token);
-            nouveauTokenSujet.next(reponse.token);
+            authService.majAccessToken(reponse.accessToken);
+            nouveauTokenSujet.next(reponse.accessToken);
             // On rejoue la requête initiale avec le nouveau token
             return next(
-              req.clone({ setHeaders: { Authorization: `Bearer ${reponse.token}` } })
+              req.clone({ setHeaders: { Authorization: `Bearer ${reponse.accessToken}` } })
             );
           }),
           catchError((erreurRefresh) => {

@@ -25,12 +25,10 @@ export class AuthService {
   logout() {
     const refreshToken = this.getRefreshToken();
     if (refreshToken) {
-      this.http.post('/api/auth/logout', { refreshToken: refreshToken }).subscribe(
-        next => {},
-        error => {
-          console.error('Erreur lors de la déconnexion :', error);
-        }
-      );
+      this.http.post('/api/auth/logout', { refreshToken }).subscribe({
+        next: () => {},
+        error: () => {}
+      });
     }
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
@@ -55,7 +53,7 @@ export class AuthService {
   }
 
   public stocker(response: AuthResponse) {
-    localStorage.setItem(this.TOKEN_KEY, response.token);
+    localStorage.setItem(this.TOKEN_KEY, response.accessToken);
     localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refreshToken);
     localStorage.setItem(this.USER_KEY, JSON.stringify(response));
     this.utilisateurSignal.set(response);
