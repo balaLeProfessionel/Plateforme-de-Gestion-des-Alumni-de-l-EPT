@@ -1,0 +1,222 @@
+### =====================================================================
+### TESTS — Système de Refresh Token (EPT Alumni)
+### =====================================================================
+### PROCÉDURE : lance TOUJOURS la requête nommée (# @name) AVANT
+### la requête qui utilise sa réponse. Clique "Send Request" sur le
+### login d'abord, attends la réponse, PUIS la requête suivante.
+### =====================================================================
+
+@baseUrl = http://localhost:8080/api
+@email = test.otp@gmail.com
+@password = password123
+
+### =====================================================================
+### SECTION 1 — FONDAMENTAUX
+### =====================================================================
+
+### 1.1 — Connexion : doit renvoyer accessToken ET refreshToken
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+# VÉRIFIER : 200, "accessToken" et "refreshToken" présents et non nuls
+# le refreshToken a la forme uuid.secret (avec un point)
+
+###
+
+### 1.2 — L'accessToken donne accès à /me (lance 1.1 juste avant !)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{login.response.body.accessToken}}
+
+# VÉRIFIER : 200, infos de l'utilisateur
+
+###
+
+### =====================================================================
+### SECTION 2 — LE RAFRAÎCHISSEMENT
+### =====================================================================
+
+### 2.1 — Rafraîchir : nouvel accessToken contre le refreshToken
+# @name refresh
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{login.response.body.refreshToken}}"
+}
+
+# VÉRIFIER : 200, "accessToken" présent et DIFFÉRENT de celui de 1.1
+# "refreshToken" identique (pas de rotation)
+
+###
+
+### 2.2 — Le nouvel accessToken (issu du refresh) fonctionne sur /me
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{refresh.response.body.accessToken}}
+
+# VÉRIFIER : 200 — prouve que le token rafraîchi est valide
+
+###
+
+### =====================================================================
+### SECTION 3 — CAS D'ERREUR DU REFRESH
+### =====================================================================
+
+### 3.1 — Refresh token mal formé (pas de point) -> rejeté proprement
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "token-sans-point"
+}
+
+# VÉRIFIER : 400 "Refresh token invalide", PAS 500
+
+###
+
+### 3.2 — UUID valide mais inexistant -> rejeté
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "00000000-0000-0000-0000-000000000000.secretbidon"
+}
+
+# VÉRIFIER : 400 "Refresh token invalide ou expiré"
+
+###
+
+### 3.3 — Refresh token vide -> rejeté par validation
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": ""
+}
+
+# VÉRIFIER : 400 (validation @NotBlank)
+
+###
+
+### =====================================================================
+### SECTION 4 — LA VRAIE DÉCONNEXION (test clé)
+### =====================================================================
+
+### 4.1 — Nouvelle connexion pour un refresh token frais
+# @name loginLogout
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+###
+
+### 4.2 — Le refresh token marche AVANT déconnexion (lance 4.1 avant)
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{loginLogout.response.body.refreshToken}}"
+}
+
+# VÉRIFIER : 200
+
+###
+
+### 4.3 — Déconnexion : supprime le refresh token en base
+POST {{baseUrl}}/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "{{loginLogout.response.body.refreshToken}}"
+}
+
+# VÉRIFIER : 204
+
+###
+
+### 4.4 — Rafraîchir APRÈS déconnexion -> DOIT échouer
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{loginLogout.response.body.refreshToken}}"
+}
+
+# VÉRIFIER : 400 "Refresh token invalide ou expiré"
+# *** PROUVE que la déconnexion est effective côté serveur ***
+
+###
+
+### =====================================================================
+### SECTION 5 — MULTI-APPAREIL (option A)
+### =====================================================================
+
+### 5.1 — Connexion appareil 1
+# @name appareil1
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+###
+
+### 5.2 — Connexion appareil 2 (même compte)
+# @name appareil2
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+###
+
+### 5.3 — Déconnexion appareil 1 seulement
+POST {{baseUrl}}/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "{{appareil1.response.body.refreshToken}}"
+}
+
+# VÉRIFIER : 204
+
+###
+
+### 5.4 — Le refresh de l'appareil 1 ne marche plus
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{appareil1.response.body.refreshToken}}"
+}
+
+# VÉRIFIER : 400
+
+###
+
+### 5.5 — MAIS le refresh de l'appareil 2 marche toujours
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{appareil2.response.body.refreshToken}}"
+}
+
+# VÉRIFIER : 200
+# *** PROUVE l'option A : déconnecter un appareil n'affecte pas l'autre ***
+
+###
