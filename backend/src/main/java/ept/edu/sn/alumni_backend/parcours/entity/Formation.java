@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.parcours.entity;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.UUID;
 
@@ -14,8 +15,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 public class Formation {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -25,17 +30,16 @@ public class Formation {
     private String description;
     @Enumerated(EnumType.STRING)
     private TypeFormation typeFormation;
-    private Date dateDebut;
-    private Date dateFin;
+    private LocalDate dateDebut;
+    private LocalDate dateFin; // null si formation en cours
     private boolean estStage;
-    private boolean enCours;
     private boolean EstValide;
 
     @ManyToOne
-    @JoinColumn(name = "organisme_id")
+    @JoinColumn(name = "organisme_id", nullable = false)
     private Organisme organisme;
 
     @ManyToOne
-    @JoinColumn(name = "utilisateur_id")
+    @JoinColumn(name = "utilisateur_id", nullable = false)
     private Utilisateur utilisateur;
 }

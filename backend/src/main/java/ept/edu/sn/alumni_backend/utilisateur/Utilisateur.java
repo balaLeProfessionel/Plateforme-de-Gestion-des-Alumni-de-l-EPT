@@ -21,7 +21,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
@@ -41,15 +40,21 @@ public class Utilisateur {
     @Column(nullable = false)
     private String password;
 
+    private String prenom;
+    private String nom;
+    @Column(length = 1000)
+    private String bio;
+    private String villeResidence;
+    private String posteActuel;
+    private String lienLinkedin;
+    private String lienPortfolio;
+    private String urlPhoto;
     @Enumerated(EnumType.STRING)
     private TypeRole role;
     @Enumerated(EnumType.STRING)
     private StatutCompte statutCompte;
     @Column(nullable = false)
     private boolean emailVerifie = false;
-    private String prenom;
-    private String nom;
-    private String urlPhoto;
     private LocalDate dateNaissance;
     private String telephone;
     private Integer anneeEntree;
