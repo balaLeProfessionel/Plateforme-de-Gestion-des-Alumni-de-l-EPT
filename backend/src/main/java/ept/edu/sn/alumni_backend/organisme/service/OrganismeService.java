@@ -59,12 +59,18 @@ public class OrganismeService {
             return organismeRepository.findById(organismeId)
                 .orElseThrow(() -> new IllegalArgumentException("Organisme introuvable"));
         }
-        // Cas 2 : l'utilisateur a tapé un nom absent -> création à la volée
+        // Cas 2 : l'utilisateur a saisi un nom libre
         if (nomNouvelOrganisme != null && !nomNouvelOrganisme.isBlank()) {
-            Organisme nouveau = new Organisme();
-            nouveau.setNom(nomNouvelOrganisme.trim());
-            nouveau.setStatutValidation(StatutCompte.EN_ATTENTE); // à valider/fusionner par l'admin
-            return organismeRepository.save(nouveau);
+            String nom = nomNouvelOrganisme.trim();
+            // On évite les doublons : si le nom correspond déjà à un organisme
+            // (insensible à la casse), on le réutilise plutôt que d'en créer un autre
+            return organismeRepository.findByNomIgnoreCase(nom)
+                .orElseGet(() -> {
+                    Organisme nouveau = new Organisme();
+                    nouveau.setNom(nom);
+                    nouveau.setStatutValidation(StatutCompte.EN_ATTENTE); // à valider par l'admin
+                    return organismeRepository.save(nouveau);
+                });
         }
         throw new IllegalArgumentException("Un organisme (existant ou nouveau) est obligatoire");
     }
