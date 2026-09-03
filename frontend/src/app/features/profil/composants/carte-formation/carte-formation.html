@@ -1,0 +1,121 @@
+<article class="carte">
+
+  <div class="champ">
+    <label [attr.for]="cle() + '-libelle'">Intitulé de la formation</label>
+    <input pInputText [id]="cle() + '-libelle'" [formField]="formulaire.libelle"
+           placeholder="Ex : Diplôme d'ingénieur en informatique" fluid />
+    @if ((formulaire.libelle().touched() || soumis()) && formulaire.libelle().invalid()) {
+      <small class="erreur-champ">{{ formulaire.libelle().errors()[0]?.message }}</small>
+    }
+  </div>
+
+  <div class="champ">
+    <app-autocomplete-organisme
+      [idChamp]="cle() + '-organisme'"
+      libelle="École ou établissement"
+      [valeurInitiale]="nomOrganismeInitial()"
+      [suggestions]="suggestions()"
+      [enRecherche]="enRecherche()"
+      (rechercher)="rechercherOrganisme.emit($event)"
+      (choix)="majLien($event)" />
+    @if (organismeManquant()) {
+      <small class="erreur-champ" role="alert">Indiquez l'établissement concerné</small>
+    }
+  </div>
+
+  <div class="ligne-double">
+    <div class="champ">
+      <label [attr.for]="cle() + '-type'">Type de formation</label>
+      <select [id]="cle() + '-type'" class="select-ept" [formField]="formulaire.typeFormation">
+        <option value="" disabled>Choisissez un type</option>
+        @for (t of typesFormation; track t.value) {
+          <option [value]="t.value">{{ t.label }}</option>
+        }
+      </select>
+      @if ((formulaire.typeFormation().touched() || soumis()) && formulaire.typeFormation().invalid()) {
+        <small class="erreur-champ">{{ formulaire.typeFormation().errors()[0]?.message }}</small>
+      }
+    </div>
+
+    <div class="champ case-a-cocher">
+      <input type="checkbox" [id]="cle() + '-stage'" [formField]="formulaire.estStage" />
+      <label [attr.for]="cle() + '-stage'">Formation en alternance ou stage</label>
+    </div>
+  </div>
+
+  <div class="ligne-double">
+    <div class="champ">
+      <label [attr.for]="cle() + '-debut'">Date de début</label>
+      <input pInputText type="date" [id]="cle() + '-debut'" [formField]="formulaire.dateDebut" fluid />
+      @if ((formulaire.dateDebut().touched() || soumis()) && formulaire.dateDebut().invalid()) {
+        <small class="erreur-champ">{{ formulaire.dateDebut().errors()[0]?.message }}</small>
+      }
+    </div>
+
+    <div class="champ">
+      <label [attr.for]="cle() + '-fin'">Date de fin</label>
+      <!-- Le champ se desactive tout seul : regle disabled() du schema -->
+      <input pInputText type="date" [id]="cle() + '-fin'" [formField]="formulaire.dateFin" fluid />
+    </div>
+  </div>
+
+  <div class="champ case-a-cocher">
+    <input type="checkbox" [id]="cle() + '-encours'" [formField]="formulaire.enCours" />
+    <label [attr.for]="cle() + '-encours'">Formation toujours en cours</label>
+  </div>
+
+  <div class="champ">
+    <label [attr.for]="cle() + '-description'">
+      Description <span class="optionnel">(facultatif)</span>
+    </label>
+    <textarea
+      [id]="cle() + '-description'"
+      [formField]="formulaire.description"
+      rows="3"
+      class="textarea-ept"
+      placeholder="Spécialité, mention, projets marquants…"></textarea>
+  </div>
+
+  <div class="zone-message" aria-live="polite">
+    @if (message(); as m) {
+      <div class="alerte" [class.alerte-erreur]="m.type === 'erreur'"
+           [class.alerte-succes]="m.type === 'succes'">
+        {{ m.texte }}
+      </div>
+    }
+  </div>
+
+  <div class="actions">
+    <!-- En mode global, seule la liste enregistre : la carte n'expose que
+         ses actions propres (retrait, suppression). -->
+    @if (modeEnregistrement() === 'parCarte') {
+      <button type="button" class="btn-ept btn-carte" (click)="valider()" [disabled]="enSauvegarde()">
+        {{ enSauvegarde() ? 'Enregistrement…' : (estNouvelle() ? 'Ajouter cette formation' : 'Enregistrer les modifications') }}
+      </button>
+    }
+
+    @if (estNouvelle()) {
+      <button type="button" class="btn-secondaire" (click)="abandonner.emit()" [disabled]="enSauvegarde()">
+        Retirer
+      </button>
+    } @else if (confirmeSuppression()) {
+      <!-- Confirmation en deux temps : pas de boite de dialogue native -->
+      <button type="button" class="btn-danger" (click)="confirmerSuppression()" [disabled]="enSauvegarde()">
+        Confirmer la suppression
+      </button>
+      <button type="button" class="btn-secondaire" (click)="annulerSuppression()">
+        Annuler
+      </button>
+    } @else {
+      <button type="button" class="btn-secondaire btn-supprimer" (click)="demanderSuppression()"
+              [disabled]="enSauvegarde()">
+        Supprimer
+      </button>
+    }
+
+    @if (enSauvegarde()) {
+      <span class="etat-sauvegarde" aria-live="polite">Enregistrement…</span>
+    }
+  </div>
+
+</article>

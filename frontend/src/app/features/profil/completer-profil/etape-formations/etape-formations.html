@@ -1,12 +1,17 @@
-<section class="section-profil" aria-labelledby="titre-formations">
-  <header class="section-entete">
-    <h2 id="titre-formations">Formations</h2>
-    <p class="section-aide">Cette section arrive très bientôt.</p>
-  </header>
-</section>
+<app-liste-formations
+  modeEnregistrement="global"
+  libelleEnregistrerTout="Enregistrer et continuer"
+  [formations]="formations()"
+  [brouillons]="brouillons()"
+  [suggestions]="suggestions()"
+  [enRecherche]="enRechercheOrganisme()"
+  [etat]="etat()"
+  (ajouter)="ajouterBrouillon()"
+  (abandonnerBrouillon)="abandonnerBrouillon($event)"
+  (enregistrerTout)="enregistrerTout($event)"
+  (supprimer)="supprimer($event)"
+  (rechercherOrganisme)="rechercherOrganismes($event)" />
 
 <app-navigation-etapes
-  libellePrincipal="Continuer"
   libelleSecondaire="Passer cette étape"
-  (principal)="etapeSuivante()"
   (secondaire)="etapeSuivante()" />
