@@ -1,0 +1,45 @@
+<section class="section-profil" aria-labelledby="titre-experiences">
+
+  <header class="section-entete">
+    <h2 id="titre-experiences">Expériences professionnelles</h2>
+    <p class="section-aide">
+      Ajoutez vos postes, stages et missions. Chaque expérience s'enregistre séparément.
+    </p>
+  </header>
+
+  @if (experiences().length === 0 && brouillons().length === 0) {
+    <p class="liste-vide">Aucune expérience enregistrée pour le moment.</p>
+  }
+
+  <div class="cartes">
+    @for (experience of experiences(); track experience.id) {
+      <app-carte-experience
+        [cle]="experience.id"
+        [experience]="experience"
+        [suggestions]="suggestions()"
+        [enRecherche]="enRecherche()"
+        [enSauvegarde]="enCoursPour(experience.id)"
+        [message]="messagePour(experience.id)"
+        (rechercherOrganisme)="rechercherOrganisme.emit($event)"
+        (enregistrer)="enregistrer.emit({ id: experience.id, cle: experience.id, donnees: $event })"
+        (supprimer)="supprimer.emit(experience.id)" />
+    }
+
+    @for (cle of brouillons(); track cle) {
+      <app-carte-experience
+        [cle]="cle"
+        [suggestions]="suggestions()"
+        [enRecherche]="enRecherche()"
+        [enSauvegarde]="enCoursPour(cle)"
+        [message]="messagePour(cle)"
+        (rechercherOrganisme)="rechercherOrganisme.emit($event)"
+        (enregistrer)="enregistrer.emit({ id: null, cle: cle, donnees: $event })"
+        (abandonner)="abandonnerBrouillon.emit(cle)" />
+    }
+  </div>
+
+  <button type="button" class="btn-ajouter" (click)="ajouter.emit()">
+    <span aria-hidden="true">+</span> Ajouter une expérience
+  </button>
+
+</section>

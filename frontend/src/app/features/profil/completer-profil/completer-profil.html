@@ -15,6 +15,18 @@
       [message]="messageInfos()"
       (sauvegarder)="enregistrerInfos($event)" />
 
+    <app-liste-experiences
+      [experiences]="experiences()"
+      [brouillons]="brouillonsExperiences()"
+      [suggestions]="suggestions()"
+      [enRecherche]="enRechercheOrganisme()"
+      [etat]="etatExperiences()"
+      (ajouter)="ajouterBrouillonExperience()"
+      (abandonnerBrouillon)="abandonnerBrouillonExperience($event)"
+      (enregistrer)="enregistrerExperience($event)"
+      (supprimer)="supprimerExperience($event)"
+      (rechercherOrganisme)="rechercherOrganismes($event)" />
+
     <button type="button" class="btn-plus-tard" (click)="remplirPlusTard()">
       Remplir plus tard
     </button>
