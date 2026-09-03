@@ -1,0 +1,53 @@
+.page-profil {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  background: var(--ept-bg);
+}
+
+.contenu {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.entete {
+  h1 {
+    font-size: 1.6rem;
+    margin: 0 0 0.5rem;
+  }
+
+  .sous-titre {
+    color: var(--ept-text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.55;
+    margin: 0;
+    max-width: 55ch;
+  }
+}
+
+// Volontairement discret : c'est une sortie, pas une action mise en avant
+.btn-plus-tard {
+  align-self: center;
+  background: transparent;
+  border: none;
+  color: var(--ept-text-secondary);
+  font-family: var(--ept-font-body);
+  font-size: 0.9rem;
+  padding: 0.6rem 1rem;
+  border-radius: var(--ept-radius-sm);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--ept-primary);
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-primary);
+    outline-offset: 2px;
+  }
+}

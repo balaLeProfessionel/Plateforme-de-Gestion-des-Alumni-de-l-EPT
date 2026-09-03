@@ -1,0 +1,23 @@
+<div class="page-profil">
+  <div class="contenu">
+
+    <header class="entete">
+      <h1>Completez votre profil</h1>
+      <p class="sous-titre">
+        Renseignez ce que vous souhaitez maintenant : chaque section s'enregistre
+        separement, et vous pourrez revenir la completer a tout moment.
+      </p>
+    </header>
+
+    <app-infos-personnelles
+      [profil]="profil()"
+      [enSauvegarde]="enSauvegardeInfos()"
+      [message]="messageInfos()"
+      (sauvegarder)="enregistrerInfos($event)" />
+
+    <button type="button" class="btn-plus-tard" (click)="remplirPlusTard()">
+      Remplir plus tard
+    </button>
+
+  </div>
+</div>

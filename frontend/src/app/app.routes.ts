@@ -30,6 +30,12 @@ export const routes: Routes = [
       import('./features/auth/inscription/verification/verification').then((m) => m.Verification)
   },
   {
+    path: 'completer-profil',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/profil/completer-profil/completer-profil').then((m) => m.CompleterProfil)
+  },
+  {
     path: 'completer-organisme',
     canActivate: [authGuard],
     loadComponent: () =>
