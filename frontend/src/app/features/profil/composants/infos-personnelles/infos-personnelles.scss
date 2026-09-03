@@ -75,3 +75,17 @@
 .zone-message:empty {
   display: none;
 }
+
+@media (max-width: 560px) {
+  .section-profil {
+    padding: 1.25rem;
+  }
+
+  .textarea-ept {
+    font-size: 16px;
+  }
+
+  .btn-ept {
+    min-height: 48px;
+  }
+}

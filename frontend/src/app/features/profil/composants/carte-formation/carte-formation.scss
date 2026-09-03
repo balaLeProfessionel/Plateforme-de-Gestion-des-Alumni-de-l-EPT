@@ -160,3 +160,38 @@
   font-weight: 400;
   color: var(--ept-text-secondary);
 }
+
+@media (max-width: 560px) {
+  .carte {
+    padding: 1rem;
+  }
+
+  // Sous 16px, iOS zoome automatiquement au focus et casse la mise en page
+  .select-ept,
+  .textarea-ept {
+    font-size: 16px;
+  }
+
+  // Les actions passent en pleine largeur, avec des cibles confortables
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-carte,
+  .btn-secondaire,
+  .btn-danger {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  // La case et son libelle restent alignes et faciles a viser
+  .case-a-cocher {
+    min-height: 44px;
+
+    input {
+      width: 1.15rem;
+      height: 1.15rem;
+    }
+  }
+}
