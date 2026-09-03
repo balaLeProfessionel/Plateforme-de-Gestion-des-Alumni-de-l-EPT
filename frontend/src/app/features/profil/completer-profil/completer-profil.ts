@@ -44,13 +44,13 @@ export class CompleterProfil {
       next: (profil) => {
         this.enSauvegardeInfos.set(false);
         this.profil.set(profil);
-        this.messageInfos.set({ type: 'succes', texte: 'Informations enregistrees.' });
+        this.messageInfos.set({ type: 'succes', texte: 'Informations enregistrées.' });
       },
       error: (err: { error?: { message?: string } }) => {
         this.enSauvegardeInfos.set(false);
         this.messageInfos.set({
           type: 'erreur',
-          texte: err?.error?.message ?? "Echec de l'enregistrement."
+          texte: err?.error?.message ?? "Échec de l'enregistrement."
         });
       }
     });

@@ -70,10 +70,10 @@ export class InfosPersonnelles {
   // seulement le format des liens, et uniquement s'ils sont renseignes.
   protected readonly formulaire = form(this.modele, (champ) => {
     pattern(champ.lienLinkedin, URL_OU_VIDE, {
-      message: 'Entrez une adresse complete, commencant par https://'
+      message: 'Entrez une adresse complète, commençant par https://'
     });
     pattern(champ.lienPortfolio, URL_OU_VIDE, {
-      message: 'Entrez une adresse complete, commencant par https://'
+      message: 'Entrez une adresse complète, commençant par https://'
     });
   });
 
