@@ -8,7 +8,9 @@ import { Component, input, output } from '@angular/core';
   styleUrl: './navigation-etapes.scss'
 })
 export class NavigationEtapes {
-  readonly libellePrincipal = input.required<string>();
+  // null : l'etape n'a pas d'action principale ici (le bouton
+  // d'enregistrement vit alors dans la section elle-meme)
+  readonly libellePrincipal = input<string | null>(null);
   readonly libelleSecondaire = input.required<string>();
   readonly enCours = input(false);
 

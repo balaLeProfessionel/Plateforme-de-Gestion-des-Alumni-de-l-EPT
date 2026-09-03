@@ -4,7 +4,7 @@
     <label [attr.for]="cle() + '-poste'">Poste occupé</label>
     <input pInputText [id]="cle() + '-poste'" [formField]="formulaire.poste"
            placeholder="Ex : Ingénieur logiciel" fluid />
-    @if (formulaire.poste().touched() && formulaire.poste().invalid()) {
+    @if ((formulaire.poste().touched() || soumis()) && formulaire.poste().invalid()) {
       <small class="erreur-champ">{{ formulaire.poste().errors()[0]?.message }}</small>
     }
   </div>
@@ -32,7 +32,7 @@
           <option [value]="t.value">{{ t.label }}</option>
         }
       </select>
-      @if (formulaire.typeContrat().touched() && formulaire.typeContrat().invalid()) {
+      @if ((formulaire.typeContrat().touched() || soumis()) && formulaire.typeContrat().invalid()) {
         <small class="erreur-champ">{{ formulaire.typeContrat().errors()[0]?.message }}</small>
       }
     </div>
@@ -47,7 +47,7 @@
     <div class="champ">
       <label [attr.for]="cle() + '-debut'">Date de début</label>
       <input pInputText type="date" [id]="cle() + '-debut'" [formField]="formulaire.dateDebut" fluid />
-      @if (formulaire.dateDebut().touched() && formulaire.dateDebut().invalid()) {
+      @if ((formulaire.dateDebut().touched() || soumis()) && formulaire.dateDebut().invalid()) {
         <small class="erreur-champ">{{ formulaire.dateDebut().errors()[0]?.message }}</small>
       }
     </div>
@@ -74,13 +74,17 @@
   </div>
 
   <div class="actions">
-    <button type="button" class="btn-ept btn-carte" (click)="valider()" [disabled]="enSauvegarde()">
-      {{ enSauvegarde() ? 'Enregistrement…' : (estNouvelle() ? 'Ajouter cette expérience' : 'Enregistrer les modifications') }}
-    </button>
+    <!-- En mode global, seule la liste enregistre : la carte n'expose que
+         ses actions propres (retrait, suppression). -->
+    @if (modeEnregistrement() === 'parCarte') {
+      <button type="button" class="btn-ept btn-carte" (click)="valider()" [disabled]="enSauvegarde()">
+        {{ enSauvegarde() ? 'Enregistrement…' : (estNouvelle() ? 'Ajouter cette expérience' : 'Enregistrer les modifications') }}
+      </button>
+    }
 
     @if (estNouvelle()) {
       <button type="button" class="btn-secondaire" (click)="abandonner.emit()" [disabled]="enSauvegarde()">
-        Annuler
+        Retirer
       </button>
     } @else if (confirmeSuppression()) {
       <!-- Confirmation en deux temps : pas de boite de dialogue native -->
@@ -95,6 +99,10 @@
               [disabled]="enSauvegarde()">
         Supprimer
       </button>
+    }
+
+    @if (enSauvegarde()) {
+      <span class="etat-sauvegarde" aria-live="polite">Enregistrement…</span>
     }
   </div>
 

@@ -1,4 +1,6 @@
 <app-liste-experiences
+  modeEnregistrement="global"
+  libelleEnregistrerTout="Enregistrer et terminer"
   [experiences]="experiences()"
   [brouillons]="brouillons()"
   [suggestions]="suggestions()"
@@ -6,12 +8,10 @@
   [etat]="etat()"
   (ajouter)="ajouterBrouillon()"
   (abandonnerBrouillon)="abandonnerBrouillon($event)"
-  (enregistrer)="enregistrerCarte($event)"
+  (enregistrerTout)="enregistrerTout($event)"
   (supprimer)="supprimer($event)"
   (rechercherOrganisme)="rechercherOrganismes($event)" />
 
 <app-navigation-etapes
-  libellePrincipal="Terminer"
   libelleSecondaire="Remplir plus tard"
-  (principal)="terminer()"
   (secondaire)="terminer()" />

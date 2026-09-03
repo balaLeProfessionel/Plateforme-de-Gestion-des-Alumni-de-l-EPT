@@ -60,3 +60,26 @@
     outline-offset: 2px;
   }
 }
+
+.zone-message {
+  margin-top: 1.25rem;
+
+  &:empty {
+    margin-top: 0;
+  }
+}
+
+.btn-enregistrer-tout {
+  width: 100%;
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 560px) {
+  .section-profil {
+    padding: 1.25rem;
+  }
+
+  .btn-enregistrer-tout {
+    min-height: 48px;
+  }
+}

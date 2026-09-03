@@ -10,6 +10,10 @@ import {
 } from '../../../../core/services/models/profil.model';
 import { OrganismeSuggestion } from '../../../../core/services/models/organisme.model';
 import { MessageSection } from '../message-section.model';
+import {
+  ModeEnregistrement,
+  ResultatCollecte
+} from '../demande-enregistrement.model';
 import { AutocompleteOrganisme } from '../autocomplete-organisme/autocomplete-organisme';
 
 // Modele du formulaire : le type de contrat vaut '' tant que rien n'est
@@ -44,6 +48,10 @@ function versModele(experience: Experience | null): ModeleExperience {
   };
 }
 
+function versLien(experience: Experience | null): LienOrganisme {
+  return experience ? { organismeId: experience.organismeId } : {};
+}
+
 // Edite UNE experience professionnelle. Aucun appel reseau : la carte emet
 // (enregistrer) et (supprimer), la page s'occupe du service.
 @Component({
@@ -57,6 +65,10 @@ export class CarteExperience {
   readonly cle = input.required<string>();
   // null : carte vierge, pas encore enregistree
   readonly experience = input<Experience | null>(null);
+
+  // En mode global, la carte n'affiche pas son propre bouton d'enregistrement :
+  // c'est la liste qui collecte toutes les cartes d'un coup.
+  readonly modeEnregistrement = input<ModeEnregistrement>('parCarte');
 
   readonly suggestions = input<OrganismeSuggestion[]>([]);
   readonly enRecherche = input(false);
@@ -75,7 +87,7 @@ export class CarteExperience {
   protected readonly formulaire = form(this.modele, (champ) => {
     required(champ.poste, { message: 'Le poste est obligatoire' });
     required(champ.typeContrat, { message: 'Le type de contrat est obligatoire' });
-    required(champ.dateDebut, { message: 'La date de debut est obligatoire' });
+    required(champ.dateDebut, { message: 'La date de début est obligatoire' });
     // Une experience toujours en cours n'a pas de date de fin a saisir
     disabled(champ.dateFin, ({ valueOf }) => valueOf(champ.enCours));
   });
@@ -83,18 +95,40 @@ export class CarteExperience {
   // L'organisme vit hors du formulaire : il ne se saisit pas au clavier dans
   // un champ simple mais se choisit dans l'autocomplete, qui emet deja le
   // format attendu par le backend.
-  protected readonly lien = linkedSignal<LienOrganisme>(() => {
-    const experience = this.experience();
-    return experience ? { organismeId: experience.organismeId } : {};
-  });
+  protected readonly lien = linkedSignal<LienOrganisme>(() => versLien(this.experience()));
 
   protected readonly nomOrganismeInitial = computed(() => this.experience()?.nomOrganisme ?? '');
 
   protected readonly organismeManquant = signal(false);
+  // Une tentative d'enregistrement a eu lieu : les erreurs s'affichent alors
+  // meme sur les champs que l'utilisateur n'a jamais visites.
+  protected readonly soumis = signal(false);
   // Confirmation en deux temps, plutot qu'une boite de dialogue native
   protected readonly confirmeSuppression = signal(false);
 
   protected readonly estNouvelle = computed(() => this.experience() === null);
+
+  // Empreinte de l'etat initial, pour ne pas rejouer une requete sur une
+  // carte que l'utilisateur n'a pas touchee.
+  private readonly empreinteInitiale = computed(() =>
+    this.empreinte(versModele(this.experience()), versLien(this.experience()))
+  );
+
+  protected readonly estModifiee = computed(
+    () => this.empreinte(this.modele(), this.lien()) !== this.empreinteInitiale()
+  );
+
+  // Appelee par la liste en mode global. Publique a dessein : c'est la carte
+  // qui detient son formulaire, elle seule peut le valider et le lire.
+  collecter(): ResultatCollecte<ExperienceRequest> {
+    if (!this.estNouvelle() && !this.estModifiee()) {
+      return { statut: 'inchangee' };
+    }
+    const donnees = this.extraire();
+    return donnees === null
+      ? { statut: 'invalide' }
+      : { statut: 'valide', demande: { id: this.experience()?.id ?? null, cle: this.cle(), donnees } };
+  }
 
   protected majLien(lien: LienOrganisme): void {
     this.lien.set(lien);
@@ -104,24 +138,10 @@ export class CarteExperience {
   }
 
   protected valider(): void {
-    const lien = this.lien();
-    const organismeRenseigne = Boolean(lien.organismeId ?? lien.nomNouvelOrganisme);
-    this.organismeManquant.set(!organismeRenseigne);
-
-    if (this.formulaire().invalid() || !organismeRenseigne) {
-      return;
+    const donnees = this.extraire();
+    if (donnees !== null) {
+      this.enregistrer.emit(donnees);
     }
-
-    const m = this.modele();
-    this.enregistrer.emit({
-      poste: m.poste.trim(),
-      typeContrat: m.typeContrat as TypeContrat,
-      dateDebut: m.dateDebut,
-      // Une experience en cours n'a pas de date de fin
-      dateFin: m.enCours ? null : m.dateFin || null,
-      estStage: m.estStage,
-      ...lien
-    });
   }
 
   protected demanderSuppression(): void {
@@ -135,5 +155,42 @@ export class CarteExperience {
   protected confirmerSuppression(): void {
     this.confirmeSuppression.set(false);
     this.supprimer.emit();
+  }
+
+  // Valide la saisie et renvoie la requete, ou null en affichant les erreurs.
+  private extraire(): ExperienceRequest | null {
+    this.soumis.set(true);
+
+    const lien = this.lien();
+    const organismeRenseigne = Boolean(lien.organismeId ?? lien.nomNouvelOrganisme);
+    this.organismeManquant.set(!organismeRenseigne);
+
+    if (this.formulaire().invalid() || !organismeRenseigne) {
+      return null;
+    }
+
+    const m = this.modele();
+    return {
+      poste: m.poste.trim(),
+      typeContrat: m.typeContrat as TypeContrat,
+      dateDebut: m.dateDebut,
+      // Une experience en cours n'a pas de date de fin
+      dateFin: m.enCours ? null : m.dateFin || null,
+      estStage: m.estStage,
+      ...lien
+    };
+  }
+
+  private empreinte(modele: ModeleExperience, lien: LienOrganisme): string {
+    return JSON.stringify([
+      modele.poste,
+      modele.typeContrat,
+      modele.dateDebut,
+      modele.dateFin,
+      modele.enCours,
+      modele.estStage,
+      lien.organismeId ?? null,
+      lien.nomNouvelOrganisme ?? null
+    ]);
   }
 }
