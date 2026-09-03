@@ -1,0 +1,17 @@
+<app-liste-experiences
+  [experiences]="experiences()"
+  [brouillons]="brouillons()"
+  [suggestions]="suggestions()"
+  [enRecherche]="enRechercheOrganisme()"
+  [etat]="etat()"
+  (ajouter)="ajouterBrouillon()"
+  (abandonnerBrouillon)="abandonnerBrouillon($event)"
+  (enregistrer)="enregistrerCarte($event)"
+  (supprimer)="supprimer($event)"
+  (rechercherOrganisme)="rechercherOrganismes($event)" />
+
+<app-navigation-etapes
+  libellePrincipal="Terminer"
+  libelleSecondaire="Remplir plus tard"
+  (principal)="terminer()"
+  (secondaire)="terminer()" />

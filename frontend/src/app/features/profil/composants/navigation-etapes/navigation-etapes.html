@@ -1,0 +1,16 @@
+<div class="navigation">
+
+  <button
+    type="button"
+    class="btn-ept btn-principal"
+    (click)="principal.emit()"
+    [disabled]="enCours()"
+    [attr.aria-busy]="enCours()">
+    {{ enCours() ? 'Enregistrement…' : libellePrincipal() }}
+  </button>
+
+  <button type="button" class="btn-discret" (click)="secondaire.emit()" [disabled]="enCours()">
+    {{ libelleSecondaire() }}
+  </button>
+
+</div>

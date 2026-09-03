@@ -30,10 +30,41 @@ export const routes: Routes = [
       import('./features/auth/inscription/verification/verification').then((m) => m.Verification)
   },
   {
+    // Parcours de completion en trois etapes. Le garde est declare une seule
+    // fois ici : les routes enfants en heritent.
     path: 'completer-profil',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./features/profil/completer-profil/completer-profil').then((m) => m.CompleterProfil)
+      import('./features/profil/completer-profil/parcours-completion/parcours-completion').then(
+        (m) => m.ParcoursCompletion
+      ),
+    children: [
+      { path: '', redirectTo: 'infos', pathMatch: 'full' },
+      {
+        path: 'infos',
+        data: { etape: 1 },
+        loadComponent: () =>
+          import('./features/profil/completer-profil/etape-infos/etape-infos').then(
+            (m) => m.EtapeInfos
+          )
+      },
+      {
+        path: 'formations',
+        data: { etape: 2 },
+        loadComponent: () =>
+          import('./features/profil/completer-profil/etape-formations/etape-formations').then(
+            (m) => m.EtapeFormations
+          )
+      },
+      {
+        path: 'experiences',
+        data: { etape: 3 },
+        loadComponent: () =>
+          import('./features/profil/completer-profil/etape-experiences/etape-experiences').then(
+            (m) => m.EtapeExperiences
+          )
+      }
+    ]
   },
   {
     path: 'completer-organisme',

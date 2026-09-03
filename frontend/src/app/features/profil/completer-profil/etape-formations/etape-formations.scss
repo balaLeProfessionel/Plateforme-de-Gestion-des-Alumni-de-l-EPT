@@ -1,0 +1,31 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.section-profil {
+  background: var(--ept-surface);
+  border: 1px solid var(--ept-border);
+  border-radius: var(--ept-radius);
+  box-shadow: var(--ept-shadow);
+  padding: 1.75rem;
+}
+
+.section-entete {
+  h2 {
+    font-size: 1.15rem;
+    margin: 0 0 0.35rem;
+  }
+
+  .section-aide {
+    color: var(--ept-text-secondary);
+    font-size: 0.85rem;
+    margin: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  :host { gap: 1.25rem; }
+  .section-profil { padding: 1.25rem; }
+}
