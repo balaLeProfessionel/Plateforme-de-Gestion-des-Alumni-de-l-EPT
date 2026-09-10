@@ -102,7 +102,7 @@ public class AuthService {
 
     // ==================== VÉRIFICATION OTP ====================
 
-    @Transactional
+    @Transactional(noRollbackFor = TokenInvalideException.class)
     public AuthResponse verifierOtp(VerifierOtpRequest request) {
         String email = normaliser(request.email());
 

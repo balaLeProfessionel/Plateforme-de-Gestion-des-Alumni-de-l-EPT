@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
+import { authGuard, roleGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'connexion', pathMatch: 'full' },
@@ -33,7 +33,8 @@ export const routes: Routes = [
     // Parcours de completion en trois etapes. Le garde est declare une seule
     // fois ici : les routes enfants en heritent.
     path: 'completer-profil',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ETUDIANT', 'ALUMNI', 'PERSONNEL'] },
     loadComponent: () =>
       import('./features/profil/completer-profil/parcours-completion/parcours-completion').then(
         (m) => m.ParcoursCompletion
@@ -68,8 +69,10 @@ export const routes: Routes = [
   },
   {
     path: 'completer-organisme',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ORGANISME'] },
     loadComponent: () =>
       import('./features/organisme/completer-organisme/completer-organisme').then((m) => m.CompleterOrganisme)
   },
+  { path: '**', redirectTo: 'connexion' },
 ];
