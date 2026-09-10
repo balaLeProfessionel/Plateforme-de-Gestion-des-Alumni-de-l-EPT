@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 interface OptionRole {
   cle: string;
@@ -10,7 +10,7 @@ interface OptionRole {
 
 @Component({
   selector: 'app-choix-role',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './choix-role.html',
   styleUrl: './choix-role.scss',
 })

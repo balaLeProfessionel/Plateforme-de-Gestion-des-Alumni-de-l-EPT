@@ -66,6 +66,7 @@ export class Formulaire {
 
   sInscrire(): void {
     if (this.formulaire().invalid()) {
+      this.formulaire().markAsTouched();
       return;
     }
 
@@ -90,14 +91,11 @@ export class Formulaire {
     if (this.montreFiliere()) {
       corps['filiere'] = m.filiere;
     }
-    if (this.montreAnnee() && m.anneeSortie) {
-      corps['anneeEntree'] = m.anneeSortie; // provisoire : le backend attend anneeEntree
-    }
     if (m.telephone) {
       corps['telephone'] = m.telephone;
     }
     if (this.estOrganisme()) {
-      corps['nomOrganisme'] = m.nomOrganisme; // le backend l'ignorera pour l'instant
+      corps['nomOrganisme'] = m.nomOrganisme;
     }
 
     this.authService.inscrire(corps).subscribe({

@@ -36,6 +36,7 @@ export class Connexion {
 
   seConnecter() {
     if (this.formulaire().invalid()) {
+      this.formulaire().markAsTouched();
       return;
     }
 
