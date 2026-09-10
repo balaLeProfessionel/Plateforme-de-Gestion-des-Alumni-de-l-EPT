@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 
 import { Verification } from './verification';
 
@@ -9,6 +11,18 @@ describe('Verification', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Verification],
+      providers: [
+        provideHttpClient(),
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              queryParamMap: convertToParamMap({ email: 'test@example.com' }),
+            },
+          },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Verification);
