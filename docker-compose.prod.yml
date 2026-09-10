@@ -36,8 +36,7 @@ services:
     build: ./frontend
     container_name: alumni-frontend
     ports:
-      - "80:4200"
-    command: npm start
+      - "80:80"
     depends_on:
       - api
     develop:
