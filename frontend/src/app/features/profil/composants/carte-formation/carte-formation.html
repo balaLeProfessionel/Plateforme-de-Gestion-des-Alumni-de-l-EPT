@@ -56,6 +56,9 @@
       <label [attr.for]="cle() + '-fin'">Date de fin</label>
       <!-- Le champ se desactive tout seul : regle disabled() du schema -->
       <input pInputText type="date" [id]="cle() + '-fin'" [formField]="formulaire.dateFin" fluid />
+      @if (datesInvalides()) {
+        <small class="erreur-champ" role="alert">La date de fin doit être postérieure à la date de début</small>
+      }
     </div>
   </div>
 

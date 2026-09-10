@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
 import ept.edu.sn.alumni_backend.organisme.service.OrganismeService;
@@ -29,7 +30,9 @@ public class ExperienceService {
             .toList();
     }
 
+    @Transactional
     public ExperienceResponse creer(Utilisateur utilisateur, ExperienceRequest request) {
+        verifierDates(request);
         Organisme organisme = organismeService.resoudreOrganisme(
             request.organismeId(), request.nomNouvelOrganisme());
 
@@ -42,7 +45,9 @@ public class ExperienceService {
         return this.experienceMapper.versResponse(experienceRepository.save(exp));
     }
 
+    @Transactional
     public ExperienceResponse modifier(Utilisateur utilisateur, UUID id, ExperienceRequest request) {
+        verifierDates(request);
         ExperienceProfessionelle exp = trouverEtVerifierProprietaire(utilisateur, id);
 
         // Si l'organisme change, on le re-résout
@@ -54,6 +59,7 @@ public class ExperienceService {
         return this.experienceMapper.versResponse(experienceRepository.save(exp));
     }
 
+    @Transactional
     public void supprimer(Utilisateur utilisateur, UUID id) {
         ExperienceProfessionelle exp = trouverEtVerifierProprietaire(utilisateur, id);
         experienceRepository.delete(exp);
@@ -69,5 +75,11 @@ public class ExperienceService {
             throw new SecurityException("Cette expérience ne vous appartient pas");
         }
         return exp;
+    }
+
+    private void verifierDates(ExperienceRequest request) {
+        if (request.dateFin() != null && request.dateFin().isBefore(request.dateDebut())) {
+            throw new IllegalArgumentException("La date de fin doit être postérieure à la date de début");
+        }
     }
 }

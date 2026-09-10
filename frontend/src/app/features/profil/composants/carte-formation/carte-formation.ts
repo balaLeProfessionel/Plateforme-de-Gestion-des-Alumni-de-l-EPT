@@ -99,6 +99,7 @@ export class CarteFormation {
   protected readonly nomOrganismeInitial = computed(() => this.formation()?.nomOrganisme ?? '');
 
   protected readonly organismeManquant = signal(false);
+  protected readonly datesInvalides = signal(false);
   // Une tentative d'enregistrement a eu lieu : les erreurs s'affichent alors
   // meme sur les champs que l'utilisateur n'a jamais visites.
   protected readonly soumis = signal(false);
@@ -167,11 +168,14 @@ export class CarteFormation {
     const organismeRenseigne = Boolean(lien.organismeId ?? lien.nomNouvelOrganisme);
     this.organismeManquant.set(!organismeRenseigne);
 
-    if (this.formulaire().invalid() || !organismeRenseigne) {
+    const m = this.modele();
+    const datesInvalides = Boolean(!m.enCours && m.dateFin && m.dateFin < m.dateDebut);
+    this.datesInvalides.set(datesInvalides);
+
+    if (this.formulaire().invalid() || !organismeRenseigne || datesInvalides) {
       return null;
     }
 
-    const m = this.modele();
     return {
       libelle: m.libelle.trim(),
       description: m.description.trim() || null,

@@ -4,6 +4,9 @@ import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/ro
 import { filter, map, startWith } from 'rxjs';
 import { IndicateurEtapes } from '../../composants/indicateur-etapes/indicateur-etapes';
 
+// Etape affichee tant que la route enfant n'est pas encore resolue
+const ETAPE_PAR_DEFAUT = 1;
+
 // Cadre commun aux trois etapes de la completion de profil : entete,
 // indicateur de progression, et emplacement de l'etape courante.
 // Le numero d'etape vient du champ data des routes enfants : ajouter une
@@ -28,8 +31,14 @@ export class ParcoursCompletion {
     { initialValue: this.etapeCourante() }
   );
 
+  // Lue a la construction du composant, donc potentiellement avant que la
+  // route enfant soit resolue : a ce moment firstChild peut etre absent, ou
+  // present mais sans snapshot. Chaque maillon est donc optionnel, et toute
+  // valeur inexploitable retombe sur la premiere etape plutot que de faire
+  // echouer la construction (ecran blanc).
   private etapeCourante(): number {
-    const donnees = this.route.firstChild?.snapshot.data;
-    return Number(donnees?.['etape'] ?? 1);
+    const brut = this.route.firstChild?.snapshot?.data?.['etape'];
+    const etape = Number(brut);
+    return Number.isInteger(etape) && etape > 0 ? etape : ETAPE_PAR_DEFAUT;
   }
 }

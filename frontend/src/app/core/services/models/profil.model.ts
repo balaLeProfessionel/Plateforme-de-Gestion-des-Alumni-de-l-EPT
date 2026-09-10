@@ -37,6 +37,7 @@ export interface ProfilRequest {
   urlPhoto?: string;
   telephone?: string;
   dateNaissance?: string;
+  effacerDateNaissance?: boolean;
 }
 
 // ===== Lien vers un organisme, partage par les experiences et les formations =====

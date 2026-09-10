@@ -91,9 +91,8 @@ export class InfosPersonnelles {
       lienLinkedin: valeurs.lienLinkedin.trim(),
       lienPortfolio: valeurs.lienPortfolio.trim(),
       telephone: valeurs.telephone.trim(),
-      // Exception : une date vide est omise du corps de la requete, une
-      // chaine vide n'etant pas une date valide cote backend.
-      dateNaissance: valeurs.dateNaissance || undefined
+      dateNaissance: valeurs.dateNaissance || undefined,
+      effacerDateNaissance: !valeurs.dateNaissance && Boolean(this.profil()?.dateNaissance)
     });
   }
 }

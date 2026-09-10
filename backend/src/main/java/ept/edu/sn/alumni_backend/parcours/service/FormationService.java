@@ -32,6 +32,7 @@ public class FormationService {
 
     @Transactional
     public FormationResponse creer(Utilisateur utilisateur, FormationRequest request) {
+        verifierDates(request);
         Organisme organisme = organismeService.resoudreOrganisme(
             request.organismeId(), request.nomNouvelOrganisme());
 
@@ -46,6 +47,7 @@ public class FormationService {
 
     @Transactional
     public FormationResponse modifier(Utilisateur utilisateur, UUID id, FormationRequest request) {
+        verifierDates(request);
         Formation formation = trouverEtVerifierProprietaire(utilisateur, id);
 
         // Si l'organisme change, on le re-résout
@@ -73,5 +75,11 @@ public class FormationService {
             throw new SecurityException("Cette formation ne vous appartient pas");
         }
         return formation;
+    }
+
+    private void verifierDates(FormationRequest request) {
+        if (request.dateFin() != null && request.dateFin().isBefore(request.dateDebut())) {
+            throw new IllegalArgumentException("La date de fin doit être postérieure à la date de début");
+        }
     }
 }

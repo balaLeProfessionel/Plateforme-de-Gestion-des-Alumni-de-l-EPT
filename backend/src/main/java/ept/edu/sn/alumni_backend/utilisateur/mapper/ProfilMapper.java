@@ -39,6 +39,10 @@ public class ProfilMapper {
         if (request.lienPortfolio() != null) u.setLienPortfolio(request.lienPortfolio());
         if (request.urlPhoto() != null) u.setUrlPhoto(request.urlPhoto());
         if (request.telephone() != null) u.setTelephone(request.telephone());
-        if (request.dateNaissance() != null) u.setDateNaissance(request.dateNaissance());
+        if (Boolean.TRUE.equals(request.effacerDateNaissance())) {
+            u.setDateNaissance(null);
+        } else if (request.dateNaissance() != null) {
+            u.setDateNaissance(request.dateNaissance());
+        }
     }
 }
