@@ -138,6 +138,27 @@ describe('Annuaire', () => {
     });
   });
 
+  it('affiche une pagination numérotée compacte pour un grand nombre de pages', async () => {
+    parametres.next(convertToParamMap({ page: '20' }));
+    creerComposant();
+    http.expectOne((req) => req.url === '/api/annuaire').flush(page({
+      contenu: [{
+        id: '1', nom: 'Sow', prenom: 'Ibrahima', role: 'ALUMNI', statutCompte: 'ACTIF',
+        urlPhoto: null, posteActuel: null, villeResidence: null, filiere: null, anneeSortie: 2024
+      }],
+      page: 20,
+      totalElements: 500,
+      totalPages: 42
+    }));
+    await fixture.whenStable();
+
+    const pages = [...fixture.nativeElement.querySelectorAll('.pagination button:not([aria-label*="précédente"]):not([aria-label*="suivante"])')]
+      .map((bouton) => (bouton as HTMLButtonElement).textContent?.trim());
+    expect(pages).toEqual(['1', '20', '21', '22', '42']);
+    expect(fixture.nativeElement.querySelector('[aria-current="page"]')?.textContent.trim()).toBe('21');
+    expect(fixture.nativeElement.querySelectorAll('.pagination .ellipse')).toHaveLength(2);
+  });
+
   function creerComposant(): Annuaire {
     fixture = TestBed.createComponent(Annuaire);
     return fixture.componentInstance;
