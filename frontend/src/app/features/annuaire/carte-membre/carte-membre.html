@@ -27,11 +27,17 @@
   </div>
 
   <dl>
-    @if (membre().posteActuel) {
-      <div><dt>Poste</dt><dd>{{ membre().posteActuel }}</dd></div>
-    }
-    @if (membre().villeResidence) {
-      <div><dt>Ville</dt><dd>{{ membre().villeResidence }}</dd></div>
-    }
+    <div>
+      <dt>Poste</dt>
+      <dd [class.non-renseigne]="!membre().posteActuel">
+        {{ membre().posteActuel || 'Non renseigné' }}
+      </dd>
+    </div>
+    <div>
+      <dt>Ville</dt>
+      <dd [class.non-renseigne]="!membre().villeResidence">
+        {{ membre().villeResidence || 'Non renseignée' }}
+      </dd>
+    </div>
   </dl>
 </article>
