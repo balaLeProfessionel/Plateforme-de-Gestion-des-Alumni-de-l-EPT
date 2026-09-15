@@ -34,7 +34,7 @@ export const routes: Routes = [
     // fois ici : les routes enfants en heritent.
     path: 'completer-profil',
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ETUDIANT', 'ALUMNI', 'PERSONNEL'] },
+    data: { roles: ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'] },
     loadComponent: () =>
       import('./features/profil/completer-profil/parcours-completion/parcours-completion').then(
         (m) => m.ParcoursCompletion

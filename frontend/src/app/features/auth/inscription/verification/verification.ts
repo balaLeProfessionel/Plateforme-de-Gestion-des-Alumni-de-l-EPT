@@ -56,12 +56,8 @@ export class Verification {
           this.enChargement.set(false);
           // Le token est délivré ici : on le stocke et on entre dans l'app
           this.authService.stocker(res);
-          // Chaque profil a son ecran de completion : organisme d'un cote,
-          // personnes physiques (alumni, etudiant, enseignant) de l'autre
           if (res.role === 'ORGANISME') {
             this.router.navigate(['/completer-organisme']);
-          } else if (res.role === 'VISITEUR') {
-            this.router.navigate(['/accueil']);
           } else {
             this.router.navigate(['/completer-profil/infos']);
           }
