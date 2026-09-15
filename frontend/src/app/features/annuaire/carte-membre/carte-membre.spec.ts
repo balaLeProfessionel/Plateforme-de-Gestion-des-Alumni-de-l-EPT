@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { AnnuaireMembre } from '../../../core/services/models/annuaire.model';
 import { CarteMembre } from './carte-membre';
@@ -7,7 +8,10 @@ describe('CarteMembre', () => {
   let fixture: ComponentFixture<CarteMembre>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [CarteMembre] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [CarteMembre],
+      providers: [provideRouter([])]
+    }).compileComponents();
     fixture = TestBed.createComponent(CarteMembre);
   });
 
@@ -43,6 +47,14 @@ describe('CarteMembre', () => {
     expect(contenu).not.toContain('awa.diop@example.com');
     expect(contenu).not.toContain('770000000');
     expect(contenu).not.toContain('2000-01-01');
+  });
+
+  it('ouvre la page publique du membre', async () => {
+    fixture.componentRef.setInput('membre', membre({ id: 'membre-42' }));
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('.carte-lien')?.getAttribute('href'))
+      .toBe('/profil/membre-42');
   });
 
   function membre(modifications: Partial<AnnuaireMembre>): AnnuaireMembre {
