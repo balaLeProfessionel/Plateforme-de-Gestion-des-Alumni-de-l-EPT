@@ -140,6 +140,46 @@ class MotDePasseOublieTests {
         verify(codeRepository).save(code);
     }
 
+    @Test
+    void invalideLeCodeApresLaCinquiemeErreur() {
+        Utilisateur utilisateur = utilisateurActif();
+        CodeReinitialisationMotDePasse code = new CodeReinitialisationMotDePasse(
+            "123456", LocalDateTime.now().plusMinutes(5), utilisateur
+        );
+        code.setTentatives(4);
+        when(utilisateurRepository.findByEmail(utilisateur.getEmail()))
+            .thenReturn(Optional.of(utilisateur));
+        when(codeRepository.findByUtilisateur(utilisateur)).thenReturn(Optional.of(code));
+
+        assertThrows(TokenInvalideException.class, () ->
+            authService.reinitialiserMotDePasse(new ReinitialiserMotDePasseRequest(
+                utilisateur.getEmail(), "654321", "NouveauPass2026!"
+            ))
+        );
+
+        verify(codeRepository).delete(code);
+        verify(codeRepository, never()).save(code);
+    }
+
+    @Test
+    void supprimeUnCodeExpire() {
+        Utilisateur utilisateur = utilisateurActif();
+        CodeReinitialisationMotDePasse code = new CodeReinitialisationMotDePasse(
+            "123456", LocalDateTime.now().minusMinutes(1), utilisateur
+        );
+        when(utilisateurRepository.findByEmail(utilisateur.getEmail()))
+            .thenReturn(Optional.of(utilisateur));
+        when(codeRepository.findByUtilisateur(utilisateur)).thenReturn(Optional.of(code));
+
+        assertThrows(TokenInvalideException.class, () ->
+            authService.reinitialiserMotDePasse(new ReinitialiserMotDePasseRequest(
+                utilisateur.getEmail(), "123456", "NouveauPass2026!"
+            ))
+        );
+
+        verify(codeRepository).delete(code);
+    }
+
     private Utilisateur utilisateurActif() {
         Utilisateur utilisateur = new Utilisateur();
         utilisateur.setId(UUID.randomUUID());
