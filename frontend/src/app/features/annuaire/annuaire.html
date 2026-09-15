@@ -15,62 +15,81 @@
   </header>
 
   <form class="filtres" role="search" (submit)="$event.preventDefault(); appliquerFiltres()">
-    <div class="recherche filtre-recherche">
-      <label for="recherche">Nom ou prénom</label>
-      <div class="champ-avec-icone">
-        <i class="pi pi-search" aria-hidden="true"></i>
-        <input id="recherche" type="search" [formField]="formulaire.recherche"
-          placeholder="Rechercher un membre" />
+    <div class="ligne-recherche">
+      <div class="recherche filtre-recherche">
+        <label for="recherche">Nom ou prénom</label>
+        <div class="champ-avec-icone">
+          <i class="pi pi-search" aria-hidden="true"></i>
+          <input id="recherche" type="search" [formField]="formulaire.recherche"
+            placeholder="Rechercher un membre" />
+        </div>
       </div>
+      <button type="submit" class="rechercher">Rechercher</button>
     </div>
 
-    <div>
-      <label for="role">Rôle</label>
-      <select id="role" [formField]="formulaire.role">
-        <option value="">Tous les rôles</option>
-        <option value="ETUDIANT">Étudiants</option>
-        <option value="ALUMNI">Alumni</option>
-        <option value="PERSONNEL">Personnel</option>
-        <option value="VISITEUR">Visiteurs</option>
-      </select>
-    </div>
+    <details class="panneau-filtres">
+      <summary>
+        <span class="libelle-filtres"><i class="pi pi-filter" aria-hidden="true"></i> Filtres avancés</span>
+        <span class="resume-filtres">
+          @if (nombreFiltresActifs() > 0) {
+            {{ nombreFiltresActifs() }} {{ nombreFiltresActifs() > 1 ? 'filtres actifs' : 'filtre actif' }}
+          } @else {
+            Rôle, filière, promotion, ville et tri
+          }
+        </span>
+        <i class="pi pi-chevron-down chevron" aria-hidden="true"></i>
+      </summary>
 
-    <div>
-      <label for="filiere">Filière</label>
-      <select id="filiere" [formField]="formulaire.filiere">
-        <option value="">Toutes les filières</option>
-        @for (filiere of filieres; track filiere) {
-          <option [value]="filiere">{{ filiere }}</option>
-        }
-      </select>
-    </div>
+      <div class="grille-filtres">
+        <div>
+          <label for="role">Rôle</label>
+          <select id="role" [formField]="formulaire.role">
+            <option value="">Tous les rôles</option>
+            <option value="ETUDIANT">Étudiants</option>
+            <option value="ALUMNI">Alumni</option>
+            <option value="PERSONNEL">Personnel</option>
+            <option value="VISITEUR">Visiteurs</option>
+          </select>
+        </div>
 
-    <div>
-      <label for="promotion">Promotion</label>
-      <input id="promotion" type="text" inputmode="numeric"
-        [formField]="formulaire.promotion" placeholder="Ex. 2025" />
-      @if (formulaire.promotion().touched() && formulaire.promotion().invalid()) {
-        <small class="erreur-champ">{{ formulaire.promotion().errors()[0]?.message }}</small>
-      }
-    </div>
+        <div>
+          <label for="filiere">Filière</label>
+          <select id="filiere" [formField]="formulaire.filiere">
+            <option value="">Toutes les filières</option>
+            @for (filiere of filieres; track filiere) {
+              <option [value]="filiere">{{ filiere }}</option>
+            }
+          </select>
+        </div>
 
-    <div>
-      <label for="ville">Ville</label>
-      <input id="ville" type="text" [formField]="formulaire.ville" placeholder="Ex. Thiès" />
-    </div>
+        <div>
+          <label for="promotion">Promotion</label>
+          <input id="promotion" type="text" inputmode="numeric"
+            [formField]="formulaire.promotion" placeholder="Ex. 2025" />
+          @if (formulaire.promotion().touched() && formulaire.promotion().invalid()) {
+            <small class="erreur-champ">{{ formulaire.promotion().errors()[0]?.message }}</small>
+          }
+        </div>
 
-    <div>
-      <label for="tri">Trier par</label>
-      <select id="tri" [formField]="formulaire.tri">
-        <option value="ALPHABETIQUE">Ordre alphabétique</option>
-        <option value="PROMOTION_DESC">Promotion récente</option>
-      </select>
-    </div>
+        <div>
+          <label for="ville">Ville</label>
+          <input id="ville" type="text" [formField]="formulaire.ville" placeholder="Ex. Thiès" />
+        </div>
 
-    <div class="actions-filtres">
-      <button type="submit" class="appliquer">Appliquer</button>
-      <button type="button" class="reinitialiser" (click)="reinitialiser()">Réinitialiser</button>
-    </div>
+        <div>
+          <label for="tri">Trier par</label>
+          <select id="tri" [formField]="formulaire.tri">
+            <option value="ALPHABETIQUE">Ordre alphabétique</option>
+            <option value="PROMOTION_DESC">Promotion récente</option>
+          </select>
+        </div>
+
+        <div class="actions-filtres">
+          <button type="submit" class="appliquer">Appliquer</button>
+          <button type="button" class="reinitialiser" (click)="reinitialiser()">Réinitialiser</button>
+        </div>
+      </div>
+    </details>
   </form>
 
   <section class="resultats" aria-live="polite" [attr.aria-busy]="enChargement()">

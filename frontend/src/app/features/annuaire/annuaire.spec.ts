@@ -113,6 +113,22 @@ describe('Annuaire', () => {
     expect(router.navigate).toHaveBeenLastCalledWith([], { relativeTo: route, queryParams: {} });
   });
 
+  it('regroupe les filtres avancés dans un panneau pliable', () => {
+    const composant = creerComposant();
+    http.expectOne((req) => req.url === '/api/annuaire').flush(page());
+
+    const panneau = fixture.nativeElement.querySelector('.panneau-filtres') as HTMLDetailsElement;
+    expect(panneau.open).toBe(false);
+    expect(panneau.querySelector('summary')?.textContent).toContain('Filtres avancés');
+
+    panneau.open = true;
+    composant['modele'].update((valeurs) => ({ ...valeurs, role: 'ALUMNI', ville: 'Thiès' }));
+    fixture.detectChanges();
+
+    expect(panneau.open).toBe(true);
+    expect(panneau.querySelector('.resume-filtres')?.textContent).toContain('2 filtres actifs');
+  });
+
   it('navigue vers la page suivante avec un bouton accessible', async () => {
     route.snapshot.queryParams = { role: 'ALUMNI' };
     creerComposant();

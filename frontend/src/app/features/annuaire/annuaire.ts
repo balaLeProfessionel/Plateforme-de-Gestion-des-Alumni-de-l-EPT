@@ -44,6 +44,12 @@ export class Annuaire {
   protected readonly resultat = signal<PageAnnuaire | null>(null);
   protected readonly enChargement = signal(true);
   protected readonly messageErreur = signal<string | null>(null);
+  protected readonly nombreFiltresActifs = computed(() => {
+    const valeurs = this.modele();
+    return [valeurs.role, valeurs.filiere, valeurs.promotion, valeurs.ville]
+      .filter((valeur) => valeur.trim() !== '').length
+      + (valeurs.tri === 'PROMOTION_DESC' ? 1 : 0);
+  });
   protected readonly pagesVisibles = computed<(number | 'ellipsis')[]>(() => {
     const resultat = this.resultat();
     if (!resultat || resultat.totalPages <= 1) {
