@@ -10,6 +10,14 @@
 
     <div class="nom-et-badge">
       <h2>{{ membre().prenom }} {{ membre().nom }}</h2>
+      @if (membre().anneeSortie || membre().filiere) {
+        <p class="parcours">
+          <i class="pi pi-graduation-cap" aria-hidden="true"></i>
+          @if (membre().anneeSortie) { <span>Promo {{ membre().anneeSortie }}</span> }
+          @if (membre().anneeSortie && membre().filiere) { <span aria-hidden="true">—</span> }
+          @if (membre().filiere) { <span>{{ membre().filiere }}</span> }
+        </p>
+      }
       @if (badge(); as libelle) {
         <span class="badge" [class.attente]="membre().statutCompte === 'EN_ATTENTE'">
           {{ libelle }}
@@ -21,12 +29,6 @@
   <dl>
     @if (membre().posteActuel) {
       <div><dt>Poste</dt><dd>{{ membre().posteActuel }}</dd></div>
-    }
-    @if (membre().filiere) {
-      <div><dt>Filière</dt><dd>{{ membre().filiere }}</dd></div>
-    }
-    @if (membre().anneeSortie) {
-      <div><dt>Promotion</dt><dd>{{ membre().anneeSortie }}</dd></div>
     }
     @if (membre().villeResidence) {
       <div><dt>Ville</dt><dd>{{ membre().villeResidence }}</dd></div>

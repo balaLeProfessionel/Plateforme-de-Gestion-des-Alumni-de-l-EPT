@@ -1,12 +1,21 @@
 <main class="annuaire-page">
   <header class="entete-page">
-    <p class="sur-titre">Réseau EPT</p>
-    <h1>Annuaire des membres</h1>
-    <p>Retrouvez les étudiants, alumni, personnels et visiteurs du réseau.</p>
+    <div>
+      <p class="sur-titre">Réseau EPT</p>
+      <h1>Annuaire des membres</h1>
+      <p class="introduction">Retrouvez les étudiants, alumni, personnels et visiteurs du réseau,
+        et développez vos relations professionnelles.</p>
+    </div>
+    @if (resultat(); as pageAnnuaire) {
+      <div class="compteur" aria-label="Nombre de membres trouvés">
+        <strong>{{ pageAnnuaire.totalElements }}</strong>
+        <span>{{ pageAnnuaire.totalElements > 1 ? 'membres' : 'membre' }}</span>
+      </div>
+    }
   </header>
 
   <form class="filtres" role="search" (submit)="$event.preventDefault(); appliquerFiltres()">
-    <div class="recherche">
+    <div class="recherche filtre-recherche">
       <label for="recherche">Nom ou prénom</label>
       <div class="champ-avec-icone">
         <i class="pi pi-search" aria-hidden="true"></i>
@@ -102,7 +111,18 @@
             [disabled]="pageAnnuaire.page === 0" aria-label="Page précédente">
             <i class="pi pi-chevron-left" aria-hidden="true"></i>
           </button>
-          <span>Page {{ pageAnnuaire.page + 1 }} sur {{ pageAnnuaire.totalPages }}</span>
+          @for (numero of pagesVisibles(); track $index) {
+            @if (numero === 'ellipsis') {
+              <span class="ellipse" aria-hidden="true">…</span>
+            } @else {
+              <button type="button" (click)="changerPage(numero)"
+                [class.page-active]="numero === pageAnnuaire.page"
+                [attr.aria-current]="numero === pageAnnuaire.page ? 'page' : null"
+                [attr.aria-label]="'Page ' + (numero + 1)">
+                {{ numero + 1 }}
+              </button>
+            }
+          }
           <button type="button" (click)="changerPage(pageAnnuaire.page + 1)"
             [disabled]="pageAnnuaire.page + 1 >= pageAnnuaire.totalPages" aria-label="Page suivante">
             <i class="pi pi-chevron-right" aria-hidden="true"></i>

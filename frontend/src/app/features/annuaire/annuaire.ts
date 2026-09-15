@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { form, FormField, pattern } from '@angular/forms/signals';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
@@ -44,6 +44,20 @@ export class Annuaire {
   protected readonly resultat = signal<PageAnnuaire | null>(null);
   protected readonly enChargement = signal(true);
   protected readonly messageErreur = signal<string | null>(null);
+  protected readonly pagesVisibles = computed<(number | 'ellipsis')[]>(() => {
+    const resultat = this.resultat();
+    if (!resultat || resultat.totalPages <= 1) {
+      return [];
+    }
+    if (resultat.totalPages <= 5) {
+      return Array.from({ length: resultat.totalPages }, (_, index) => index);
+    }
+    const candidates = new Set([0, resultat.page - 1, resultat.page, resultat.page + 1, resultat.totalPages - 1]);
+    const pages = [...candidates].filter((page) => page >= 0 && page < resultat.totalPages).sort((a, b) => a - b);
+    return pages.flatMap((page, index) => index > 0 && page - pages[index - 1] > 1
+      ? ['ellipsis' as const, page]
+      : [page]);
+  });
 
   constructor() {
     combineLatest([
