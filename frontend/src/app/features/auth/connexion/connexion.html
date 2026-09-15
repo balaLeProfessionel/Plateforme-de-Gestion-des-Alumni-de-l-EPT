@@ -21,6 +21,9 @@
       @if (messageErreur()) {
         <p-message severity="error" class="message-erreur">{{ messageErreur() }}</p-message>
       }
+      @if (messageSucces()) {
+        <p-message severity="success" class="message-erreur">{{ messageSucces() }}</p-message>
+      }
 
       <div class="champ">
         <label for="email">Email</label>
@@ -60,6 +63,8 @@
           <small class="erreur-champ">{{ formulaire.password().errors()[0]?.message }}</small>
         }
       </div>
+
+      <a class="lien-mot-de-passe" routerLink="/mot-de-passe-oublie">Mot de passe oublié ?</a>
 
       <button
         type="button"

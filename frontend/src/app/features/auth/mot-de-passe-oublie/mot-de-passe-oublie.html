@@ -1,0 +1,39 @@
+<main class="auth-page">
+  <section class="carte" aria-labelledby="titre-mot-de-passe-oublie">
+    <div class="icone" aria-hidden="true"><i class="pi pi-envelope"></i></div>
+    <h1 id="titre-mot-de-passe-oublie">Mot de passe oublié</h1>
+    <p class="sous-titre">
+      Indiquez l’adresse email de votre compte. Vous recevrez un code valable 10 minutes.
+    </p>
+
+    @if (messageErreur()) {
+      <p-message severity="error" class="message">{{ messageErreur() }}</p-message>
+    }
+
+    <div class="champ">
+      <label for="emailReinitialisation">Email</label>
+      <input
+        pInputText
+        id="emailReinitialisation"
+        type="email"
+        [formField]="formulaire.email"
+        autocomplete="email"
+        placeholder="vous@exemple.com"
+        fluid />
+      @if (formulaire.email().touched() && formulaire.email().invalid()) {
+        <small class="erreur-champ">{{ formulaire.email().errors()[0]?.message }}</small>
+      }
+    </div>
+
+    <button
+      type="button"
+      class="btn-ept"
+      [disabled]="enChargement()"
+      [attr.aria-busy]="enChargement()"
+      (click)="envoyerCode()">
+      {{ enChargement() ? 'Envoi…' : 'Recevoir un code' }}
+    </button>
+
+    <a class="retour" routerLink="/connexion">Retour à la connexion</a>
+  </section>
+</main>

@@ -22,6 +22,18 @@ export class AuthService {
       .pipe(tap((response) => this.stocker(response)));
   }
 
+  demanderReinitialisation(email: string) {
+    return this.http.post<{ message: string }>('/api/auth/mot-de-passe-oublie', { email });
+  }
+
+  reinitialiserMotDePasse(email: string, code: string, nouveauMotDePasse: string) {
+    return this.http.post<{ message: string }>('/api/auth/reinitialiser-mot-de-passe', {
+      email,
+      code,
+      nouveauMotDePasse
+    });
+  }
+
   logout() {
     const refreshToken = this.getRefreshToken();
     if (refreshToken) {

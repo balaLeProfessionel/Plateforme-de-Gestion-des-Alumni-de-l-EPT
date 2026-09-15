@@ -13,8 +13,11 @@ import ept.edu.sn.alumni_backend.auth.dto.AuthResponse;
 import ept.edu.sn.alumni_backend.auth.dto.ChangerMotDePasseInitialRequest;
 import ept.edu.sn.alumni_backend.auth.dto.InscriptionResponse;
 import ept.edu.sn.alumni_backend.auth.dto.LoginRequest;
+import ept.edu.sn.alumni_backend.auth.dto.MessageResponse;
+import ept.edu.sn.alumni_backend.auth.dto.MotDePasseOublieRequest;
 import ept.edu.sn.alumni_backend.auth.dto.RefreshRequest;
 import ept.edu.sn.alumni_backend.auth.dto.RegisterRequest;
+import ept.edu.sn.alumni_backend.auth.dto.ReinitialiserMotDePasseRequest;
 import ept.edu.sn.alumni_backend.auth.dto.RenvoyerOtpRequest;
 import ept.edu.sn.alumni_backend.auth.dto.VerifierOtpRequest;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
@@ -47,6 +50,18 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.connecter(request));
+    }
+
+    @PostMapping("/mot-de-passe-oublie")
+    public ResponseEntity<MessageResponse> motDePasseOublie(
+            @Valid @RequestBody MotDePasseOublieRequest request) {
+        return ResponseEntity.ok(authService.demanderReinitialisation(request));
+    }
+
+    @PostMapping("/reinitialiser-mot-de-passe")
+    public ResponseEntity<MessageResponse> reinitialiserMotDePasse(
+            @Valid @RequestBody ReinitialiserMotDePasseRequest request) {
+        return ResponseEntity.ok(authService.reinitialiserMotDePasse(request));
     }
 
     @PostMapping("/logout")

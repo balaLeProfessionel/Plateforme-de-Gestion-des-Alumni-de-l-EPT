@@ -34,6 +34,7 @@ import ept.edu.sn.alumni_backend.security.PremiereConnexionFilter;
 import ept.edu.sn.alumni_backend.security.RefreshTokenService;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.CodeVerificationRepository;
+import ept.edu.sn.alumni_backend.utilisateur.CodeReinitialisationMotDePasseRepository;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 
@@ -54,6 +55,7 @@ class PremiereConnexionTests {
             utilisateurRepository,
             mock(OrganismeRepository.class),
             mock(CodeVerificationRepository.class),
+            mock(CodeReinitialisationMotDePasseRepository.class),
             passwordEncoder,
             mock(AuthenticationManager.class),
             jwtService,

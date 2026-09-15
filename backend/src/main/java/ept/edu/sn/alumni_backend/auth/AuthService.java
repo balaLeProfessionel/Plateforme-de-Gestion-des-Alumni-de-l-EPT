@@ -25,6 +25,8 @@ import ept.edu.sn.alumni_backend.security.RefreshTokenService;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.CodeVerification;
 import ept.edu.sn.alumni_backend.utilisateur.CodeVerificationRepository;
+import ept.edu.sn.alumni_backend.utilisateur.CodeReinitialisationMotDePasse;
+import ept.edu.sn.alumni_backend.utilisateur.CodeReinitialisationMotDePasseRepository;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +46,7 @@ public class AuthService {
     private final UtilisateurRepository utilisateurRepository;
     private final OrganismeRepository organismeRepository;
     private final CodeVerificationRepository codeVerificationRepository;
+    private final CodeReinitialisationMotDePasseRepository codeReinitialisationRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
@@ -188,6 +191,62 @@ public class AuthService {
         return construireReponse(accesToken, refreshToken, utilisateur, null);
     }
 
+    @Transactional
+    public MessageResponse demanderReinitialisation(MotDePasseOublieRequest request) {
+        String email = normaliser(request.email());
+        utilisateurRepository.findByEmail(email)
+            .filter(Utilisateur::isEmailVerifie)
+            .filter(utilisateur -> utilisateur.getStatutCompte() != StatutCompte.SUSPENDU)
+            .ifPresent(utilisateur -> {
+                codeReinitialisationRepository.deleteByUtilisateur(utilisateur);
+                String code = genererCode();
+                codeReinitialisationRepository.save(new CodeReinitialisationMotDePasse(
+                    code,
+                    LocalDateTime.now().plusMinutes(DUREE_VALIDITE_MINUTES),
+                    utilisateur
+                ));
+                emailService.envoyerCodeReinitialisation(email, code);
+            });
+
+        return new MessageResponse(
+            "Si un compte actif correspond à cette adresse, un code de réinitialisation a été envoyé."
+        );
+    }
+
+    @Transactional(noRollbackFor = TokenInvalideException.class)
+    public MessageResponse reinitialiserMotDePasse(ReinitialiserMotDePasseRequest request) {
+        String email = normaliser(request.email());
+        Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
+            .orElseThrow(() -> new TokenInvalideException("Code invalide ou expiré"));
+        CodeReinitialisationMotDePasse code = codeReinitialisationRepository
+            .findByUtilisateur(utilisateur)
+            .orElseThrow(() -> new TokenInvalideException("Code invalide ou expiré"));
+
+        if (code.estExpire()) {
+            codeReinitialisationRepository.delete(code);
+            throw new TokenInvalideException("Code invalide ou expiré");
+        }
+        if (!code.getCode().equals(request.code())) {
+            code.setTentatives(code.getTentatives() + 1);
+            if (code.getTentatives() >= MAX_TENTATIVES) {
+                codeReinitialisationRepository.delete(code);
+                throw new TokenInvalideException(
+                    "Trop de tentatives échouées. Demandez un nouveau code."
+                );
+            }
+            codeReinitialisationRepository.save(code);
+            throw new TokenInvalideException("Code incorrect");
+        }
+
+        utilisateur.setPassword(passwordEncoder.encode(request.nouveauMotDePasse()));
+        utilisateur.setDoitChangerMotDePasse(false);
+        utilisateurRepository.save(utilisateur);
+        codeReinitialisationRepository.delete(code);
+        refreshTokenService.supprimerTousPour(utilisateur);
+
+        return new MessageResponse("Votre mot de passe a été réinitialisé. Vous pouvez vous connecter.");
+    }
+
     // ==================== CRÉATION PAR L'ADMIN ====================
 
     @Transactional
@@ -267,11 +326,15 @@ public class AuthService {
     // ==================== OUTILS ====================
 
     private void genererEtEnvoyerCode(Utilisateur utilisateur) {
-        String code = String.valueOf(new SecureRandom().nextInt(900000) + 100000);
+        String code = genererCode();
         CodeVerification cv = new CodeVerification(
             code, LocalDateTime.now().plusMinutes(DUREE_VALIDITE_MINUTES), utilisateur);
         codeVerificationRepository.save(cv);
         emailService.envoyerCodeOtp(utilisateur.getEmail(), code);
+    }
+
+    private String genererCode() {
+        return String.valueOf(new SecureRandom().nextInt(900000) + 100000);
     }
 
     private String genererMotDePasseTemporaire() {
