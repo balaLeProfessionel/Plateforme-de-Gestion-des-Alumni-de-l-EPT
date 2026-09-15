@@ -1,9 +1,10 @@
 import { Component, computed, input, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { AnnuaireMembre } from '../../../core/services/models/annuaire.model';
 
 @Component({
   selector: 'app-carte-membre',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './carte-membre.html',
   styleUrl: './carte-membre.scss',
 })

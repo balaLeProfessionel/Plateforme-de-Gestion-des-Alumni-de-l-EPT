@@ -113,6 +113,25 @@ export const routes: Routes = [
         canActivate: [authGuard, changementInitialRequisGuard],
         loadComponent: () =>
           import('./features/annuaire/annuaire').then((m) => m.Annuaire)
+      },
+      {
+        path: 'profil',
+        title: 'Mon profil | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard, roleGuard],
+        data: { roles: ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'] },
+        loadComponent: () =>
+          import('./features/profil/consultation-profil/consultation-profil').then(
+            (m) => m.ConsultationProfil
+          )
+      },
+      {
+        path: 'profil/:id',
+        title: 'Profil membre | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/profil/consultation-profil/consultation-profil').then(
+            (m) => m.ConsultationProfil
+          )
       }
     ]
   },

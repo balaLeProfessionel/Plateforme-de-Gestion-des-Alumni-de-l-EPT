@@ -27,6 +27,24 @@ export interface Profil {
   anneeSortie: number | null;
 }
 
+export interface ProfilPublic {
+  id: string;
+  nom: string;
+  prenom: string;
+  role: string;
+  statutCompte: string;
+  bio: string | null;
+  villeResidence: string | null;
+  posteActuel: string | null;
+  lienLinkedin: string | null;
+  lienPortfolio: string | null;
+  urlPhoto: string | null;
+  filiere: string | null;
+  anneeSortie: number | null;
+  experiences: Experience[];
+  formations: Formation[];
+}
+
 // Le backend fait une mise a jour partielle : tous les champs sont optionnels.
 export interface ProfilRequest {
   bio?: string;

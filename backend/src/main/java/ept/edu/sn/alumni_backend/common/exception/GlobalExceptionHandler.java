@@ -16,6 +16,7 @@ import ept.edu.sn.alumni_backend.auth.exception.EmailDejaUtiliseException;
 import ept.edu.sn.alumni_backend.auth.exception.NomOrganismeManquantException;
 import ept.edu.sn.alumni_backend.auth.exception.RoleNonAutoriseException;
 import ept.edu.sn.alumni_backend.auth.exception.TokenInvalideException;
+import ept.edu.sn.alumni_backend.utilisateur.exception.ProfilIntrouvableException;
 import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
@@ -75,6 +76,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleNomOrganismeManquant(NomOrganismeManquantException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ProfilIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> handleProfilIntrouvable(ProfilIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(Map.of("message", e.getMessage()));
     }
 
     @ExceptionHandler(SecurityException.class)

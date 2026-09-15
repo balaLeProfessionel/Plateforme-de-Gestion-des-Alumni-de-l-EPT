@@ -1,8 +1,6 @@
 package ept.edu.sn.alumni_backend.annuaire;
 
-import java.util.EnumSet;
 import java.util.Locale;
-import java.util.Set;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -12,8 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ept.edu.sn.alumni_backend.annuaire.dto.AnnuaireMembreResponse;
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
-import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.utilisateur.MembreVisibilite;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +19,6 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AnnuaireService {
-    private static final Set<TypeRole> ROLES_VISIBLES = EnumSet.of(
-        TypeRole.ETUDIANT,
-        TypeRole.ALUMNI,
-        TypeRole.PERSONNEL,
-        TypeRole.VISITEUR
-    );
-
     private final UtilisateurRepository utilisateurRepository;
     private final AnnuaireMapper annuaireMapper;
 
@@ -41,11 +32,11 @@ public class AnnuaireService {
             int page,
             int taille,
             AnnuaireTri tri) {
-        if (role != null && !ROLES_VISIBLES.contains(role)) {
+        if (role != null && !MembreVisibilite.ROLES_VISIBLES.contains(role)) {
             throw new IllegalArgumentException("Ce rôle n'est pas disponible dans l'annuaire");
         }
 
-        Specification<Utilisateur> specification = visibleDansAnnuaire();
+        Specification<Utilisateur> specification = MembreVisibilite.visibleDansAnnuaire();
         if (role != null) {
             specification = specification.and((racine, requete, cb) -> cb.equal(racine.get("role"), role));
         }
@@ -85,14 +76,6 @@ public class AnnuaireService {
 
         return PageResponse.depuis(
             utilisateurRepository.findAll(specification, pagination).map(annuaireMapper::versResponse)
-        );
-    }
-
-    private Specification<Utilisateur> visibleDansAnnuaire() {
-        return (racine, requete, cb) -> cb.and(
-            cb.isTrue(racine.get("emailVerifie")),
-            racine.get("statutCompte").in(StatutCompte.ACTIF, StatutCompte.EN_ATTENTE),
-            racine.get("role").in(ROLES_VISIBLES)
         );
     }
 

@@ -7,10 +7,14 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
+
+import java.util.UUID;
 
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.dto.ProfilRequest;
 import ept.edu.sn.alumni_backend.utilisateur.dto.ProfilResponse;
+import ept.edu.sn.alumni_backend.utilisateur.dto.ProfilPublicResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +28,11 @@ public class ProfilController {
     public ResponseEntity<ProfilResponse> monProfil(
             @AuthenticationPrincipal UtilisateurPrincipal principal) {
         return ResponseEntity.ok(profilService.obtenirProfil(principal.getUtilisateur()));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProfilPublicResponse> profilPublic(@PathVariable UUID id) {
+        return ResponseEntity.ok(profilService.obtenirProfilPublic(id));
     }
 
     @PatchMapping("/me")

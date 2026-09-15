@@ -6,6 +6,7 @@ import {
   Formation,
   FormationRequest,
   Profil,
+  ProfilPublic,
   ProfilRequest
 } from '../models/profil.model';
 
@@ -21,6 +22,10 @@ export class ProfilService {
 
   obtenirProfil() {
     return this.http.get<Profil>('/api/profil/me');
+  }
+
+  obtenirProfilPublic(id: string) {
+    return this.http.get<ProfilPublic>(`/api/profil/${id}`);
   }
 
   majProfil(donnees: ProfilRequest) {

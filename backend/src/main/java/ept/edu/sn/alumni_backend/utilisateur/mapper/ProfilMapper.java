@@ -1,10 +1,15 @@
 package ept.edu.sn.alumni_backend.utilisateur.mapper;
 
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.dto.ProfilRequest;
 import ept.edu.sn.alumni_backend.utilisateur.dto.ProfilResponse;
+import ept.edu.sn.alumni_backend.utilisateur.dto.ProfilPublicResponse;
+import ept.edu.sn.alumni_backend.parcours.dto.ExperienceResponse;
+import ept.edu.sn.alumni_backend.parcours.dto.FormationResponse;
 
 @Component
 public class ProfilMapper {
@@ -27,6 +32,29 @@ public class ProfilMapper {
             u.getDateNaissance(),
             u.getFiliere(),
             u.getAnneeSortie()
+        );
+    }
+
+    public ProfilPublicResponse versResponsePublique(
+            Utilisateur utilisateur,
+            List<ExperienceResponse> experiences,
+            List<FormationResponse> formations) {
+        return new ProfilPublicResponse(
+            utilisateur.getId(),
+            utilisateur.getNom(),
+            utilisateur.getPrenom(),
+            utilisateur.getRole().name(),
+            utilisateur.getStatutCompte().name(),
+            utilisateur.getBio(),
+            utilisateur.getVilleResidence(),
+            utilisateur.getPosteActuel(),
+            utilisateur.getLienLinkedin(),
+            utilisateur.getLienPortfolio(),
+            utilisateur.getUrlPhoto(),
+            utilisateur.getFiliere(),
+            utilisateur.getAnneeSortie(),
+            experiences,
+            formations
         );
     }
 

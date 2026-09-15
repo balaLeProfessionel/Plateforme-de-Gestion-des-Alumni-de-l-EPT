@@ -18,7 +18,7 @@ export class EspaceMembre {
       return '/completer-organisme';
     }
     if (role && ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'].includes(role)) {
-      return '/completer-profil/infos';
+      return '/profil';
     }
     return null;
   });

@@ -1,3 +1,5 @@
+<a class="carte-lien" [routerLink]="['/profil', membre().id]"
+  [attr.aria-label]="'Consulter le profil de ' + membre().prenom + ' ' + membre().nom">
 <article class="carte">
   <div class="identite">
     <div class="avatar" aria-hidden="true">
@@ -41,3 +43,4 @@
     </div>
   </dl>
 </article>
+</a>
