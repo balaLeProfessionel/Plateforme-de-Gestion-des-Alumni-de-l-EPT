@@ -1,0 +1,23 @@
+<header class="barre-navigation">
+  <a class="marque" routerLink="/accueil" aria-label="EPT Alumni, accueil">
+    <span class="monogramme" aria-hidden="true">EPT</span>
+    <span>Alumni</span>
+  </a>
+
+  <nav aria-label="Navigation principale">
+    <a routerLink="/accueil" routerLinkActive="actif" [routerLinkActiveOptions]="{ exact: true }">
+      Accueil
+    </a>
+    <a routerLink="/annuaire" routerLinkActive="actif">Annuaire</a>
+    @if (lienProfil(); as destination) {
+      <a [routerLink]="destination" routerLinkActive="actif">Mon profil</a>
+    }
+  </nav>
+
+  <button type="button" class="deconnexion" (click)="seDeconnecter()">
+    <i class="pi pi-sign-out" aria-hidden="true"></i>
+    <span>Déconnexion</span>
+  </button>
+</header>
+
+<router-outlet />

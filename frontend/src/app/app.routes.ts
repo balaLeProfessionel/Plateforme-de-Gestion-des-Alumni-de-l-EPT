@@ -28,12 +28,6 @@ export const routes: Routes = [
       )
   },
   {
-    path: 'accueil',
-    canActivate: [authGuard, changementInitialRequisGuard],
-    loadComponent: () =>
-      import('./features/accueil/accueil').then((m) => m.Accueil)
-  },
-  {
     path: 'premiere-connexion',
     canActivate: [authGuard, changementInitialSeulementGuard],
     loadComponent: () =>
@@ -100,6 +94,27 @@ export const routes: Routes = [
     data: { roles: ['ORGANISME'] },
     loadComponent: () =>
       import('./features/organisme/completer-organisme/completer-organisme').then((m) => m.CompleterOrganisme)
+  },
+  {
+    path: '',
+    loadComponent: () =>
+      import('./features/espace-membre/espace-membre').then((m) => m.EspaceMembre),
+    children: [
+      {
+        path: 'accueil',
+        title: 'Accueil | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/accueil/accueil').then((m) => m.Accueil)
+      },
+      {
+        path: 'annuaire',
+        title: 'Annuaire | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/annuaire/annuaire').then((m) => m.Annuaire)
+      }
+    ]
   },
   { path: '**', redirectTo: 'connexion' },
 ];

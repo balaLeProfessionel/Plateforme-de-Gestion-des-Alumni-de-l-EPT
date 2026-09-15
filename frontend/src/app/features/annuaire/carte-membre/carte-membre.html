@@ -1,0 +1,35 @@
+<article class="carte">
+  <div class="identite">
+    <div class="avatar" aria-hidden="true">
+      @if (membre().urlPhoto && !imageInvalide()) {
+        <img [src]="membre().urlPhoto" alt="" (error)="imageInvalide.set(true)" />
+      } @else {
+        <span>{{ initiales() }}</span>
+      }
+    </div>
+
+    <div class="nom-et-badge">
+      <h2>{{ membre().prenom }} {{ membre().nom }}</h2>
+      @if (badge(); as libelle) {
+        <span class="badge" [class.attente]="membre().statutCompte === 'EN_ATTENTE'">
+          {{ libelle }}
+        </span>
+      }
+    </div>
+  </div>
+
+  <dl>
+    @if (membre().posteActuel) {
+      <div><dt>Poste</dt><dd>{{ membre().posteActuel }}</dd></div>
+    }
+    @if (membre().filiere) {
+      <div><dt>Filière</dt><dd>{{ membre().filiere }}</dd></div>
+    }
+    @if (membre().anneeSortie) {
+      <div><dt>Promotion</dt><dd>{{ membre().anneeSortie }}</dd></div>
+    }
+    @if (membre().villeResidence) {
+      <div><dt>Ville</dt><dd>{{ membre().villeResidence }}</dd></div>
+    }
+  </dl>
+</article>

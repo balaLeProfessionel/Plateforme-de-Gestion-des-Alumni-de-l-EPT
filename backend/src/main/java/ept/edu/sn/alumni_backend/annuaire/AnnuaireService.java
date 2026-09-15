@@ -1,0 +1,106 @@
+package ept.edu.sn.alumni_backend.annuaire;
+
+import java.util.EnumSet;
+import java.util.Locale;
+import java.util.Set;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import ept.edu.sn.alumni_backend.annuaire.dto.AnnuaireMembreResponse;
+import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
+import ept.edu.sn.alumni_backend.enums.StatutCompte;
+import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
+import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class AnnuaireService {
+    private static final Set<TypeRole> ROLES_VISIBLES = EnumSet.of(
+        TypeRole.ETUDIANT,
+        TypeRole.ALUMNI,
+        TypeRole.PERSONNEL,
+        TypeRole.VISITEUR
+    );
+
+    private final UtilisateurRepository utilisateurRepository;
+    private final AnnuaireMapper annuaireMapper;
+
+    @Transactional(readOnly = true)
+    public PageResponse<AnnuaireMembreResponse> rechercher(
+            String recherche,
+            TypeRole role,
+            String filiere,
+            Integer promotion,
+            String ville,
+            int page,
+            int taille,
+            AnnuaireTri tri) {
+        if (role != null && !ROLES_VISIBLES.contains(role)) {
+            throw new IllegalArgumentException("Ce rôle n'est pas disponible dans l'annuaire");
+        }
+
+        Specification<Utilisateur> specification = visibleDansAnnuaire();
+        if (role != null) {
+            specification = specification.and((racine, requete, cb) -> cb.equal(racine.get("role"), role));
+        }
+        if (promotion != null) {
+            specification = specification.and(
+                (racine, requete, cb) -> cb.equal(racine.get("anneeSortie"), promotion)
+            );
+        }
+        if (aDuTexte(filiere)) {
+            String valeur = normaliser(filiere);
+            specification = specification.and((racine, requete, cb) ->
+                cb.equal(cb.lower(racine.get("filiere")), valeur)
+            );
+        }
+        if (aDuTexte(ville)) {
+            String motif = "%" + normaliser(ville) + "%";
+            specification = specification.and((racine, requete, cb) ->
+                cb.like(cb.lower(racine.get("villeResidence")), motif)
+            );
+        }
+        if (aDuTexte(recherche)) {
+            String motif = "%" + normaliser(recherche) + "%";
+            specification = specification.and((racine, requete, cb) -> cb.or(
+                cb.like(cb.lower(racine.get("nom")), motif),
+                cb.like(cb.lower(racine.get("prenom")), motif),
+                cb.like(
+                    cb.lower(cb.concat(cb.concat(racine.get("prenom"), " "), racine.get("nom"))),
+                    motif
+                )
+            ));
+        }
+
+        Sort sort = tri == AnnuaireTri.PROMOTION_DESC
+            ? Sort.by(Sort.Order.desc("anneeSortie").nullsLast(), Sort.Order.asc("nom"))
+            : Sort.by(Sort.Order.asc("nom"), Sort.Order.asc("prenom"));
+        PageRequest pagination = PageRequest.of(page, taille, sort);
+
+        return PageResponse.depuis(
+            utilisateurRepository.findAll(specification, pagination).map(annuaireMapper::versResponse)
+        );
+    }
+
+    private Specification<Utilisateur> visibleDansAnnuaire() {
+        return (racine, requete, cb) -> cb.and(
+            cb.isTrue(racine.get("emailVerifie")),
+            racine.get("statutCompte").in(StatutCompte.ACTIF, StatutCompte.EN_ATTENTE),
+            racine.get("role").in(ROLES_VISIBLES)
+        );
+    }
+
+    private boolean aDuTexte(String valeur) {
+        return valeur != null && !valeur.isBlank();
+    }
+
+    private String normaliser(String valeur) {
+        return valeur.trim().toLowerCase(Locale.ROOT);
+    }
+}

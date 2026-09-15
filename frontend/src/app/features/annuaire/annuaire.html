@@ -1,0 +1,114 @@
+<main class="annuaire-page">
+  <header class="entete-page">
+    <p class="sur-titre">Réseau EPT</p>
+    <h1>Annuaire des membres</h1>
+    <p>Retrouvez les étudiants, alumni, personnels et visiteurs du réseau.</p>
+  </header>
+
+  <form class="filtres" role="search" (submit)="$event.preventDefault(); appliquerFiltres()">
+    <div class="recherche">
+      <label for="recherche">Nom ou prénom</label>
+      <div class="champ-avec-icone">
+        <i class="pi pi-search" aria-hidden="true"></i>
+        <input id="recherche" type="search" [formField]="formulaire.recherche"
+          placeholder="Rechercher un membre" />
+      </div>
+    </div>
+
+    <div>
+      <label for="role">Rôle</label>
+      <select id="role" [formField]="formulaire.role">
+        <option value="">Tous les rôles</option>
+        <option value="ETUDIANT">Étudiants</option>
+        <option value="ALUMNI">Alumni</option>
+        <option value="PERSONNEL">Personnel</option>
+        <option value="VISITEUR">Visiteurs</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="filiere">Filière</label>
+      <select id="filiere" [formField]="formulaire.filiere">
+        <option value="">Toutes les filières</option>
+        @for (filiere of filieres; track filiere) {
+          <option [value]="filiere">{{ filiere }}</option>
+        }
+      </select>
+    </div>
+
+    <div>
+      <label for="promotion">Promotion</label>
+      <input id="promotion" type="text" inputmode="numeric"
+        [formField]="formulaire.promotion" placeholder="Ex. 2025" />
+      @if (formulaire.promotion().touched() && formulaire.promotion().invalid()) {
+        <small class="erreur-champ">{{ formulaire.promotion().errors()[0]?.message }}</small>
+      }
+    </div>
+
+    <div>
+      <label for="ville">Ville</label>
+      <input id="ville" type="text" [formField]="formulaire.ville" placeholder="Ex. Thiès" />
+    </div>
+
+    <div>
+      <label for="tri">Trier par</label>
+      <select id="tri" [formField]="formulaire.tri">
+        <option value="ALPHABETIQUE">Ordre alphabétique</option>
+        <option value="PROMOTION_DESC">Promotion récente</option>
+      </select>
+    </div>
+
+    <div class="actions-filtres">
+      <button type="submit" class="appliquer">Appliquer</button>
+      <button type="button" class="reinitialiser" (click)="reinitialiser()">Réinitialiser</button>
+    </div>
+  </form>
+
+  <section class="resultats" aria-live="polite" [attr.aria-busy]="enChargement()">
+    @if (enChargement()) {
+      <div class="grille" aria-label="Chargement des membres">
+        @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+          <div class="squelette" aria-hidden="true"></div>
+        }
+      </div>
+    } @else if (messageErreur()) {
+      <div class="etat-centre erreur">
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        <h2>Chargement impossible</h2>
+        <p>{{ messageErreur() }}</p>
+        <button type="button" (click)="actualiser()">Réessayer</button>
+      </div>
+    } @else if (resultat()?.contenu?.length === 0) {
+      <div class="etat-centre">
+        <i class="pi pi-users" aria-hidden="true"></i>
+        <h2>Aucun membre trouvé</h2>
+        <p>Modifiez vos critères ou réinitialisez les filtres.</p>
+      </div>
+    } @else if (resultat(); as pageAnnuaire) {
+      <div class="resume">
+        <strong>{{ pageAnnuaire.totalElements }}</strong>
+        {{ pageAnnuaire.totalElements > 1 ? 'membres trouvés' : 'membre trouvé' }}
+      </div>
+
+      <ul class="grille">
+        @for (membre of pageAnnuaire.contenu; track membre.id) {
+          <li><app-carte-membre [membre]="membre" /></li>
+        }
+      </ul>
+
+      @if (pageAnnuaire.totalPages > 1) {
+        <nav class="pagination" aria-label="Pagination de l’annuaire">
+          <button type="button" (click)="changerPage(pageAnnuaire.page - 1)"
+            [disabled]="pageAnnuaire.page === 0" aria-label="Page précédente">
+            <i class="pi pi-chevron-left" aria-hidden="true"></i>
+          </button>
+          <span>Page {{ pageAnnuaire.page + 1 }} sur {{ pageAnnuaire.totalPages }}</span>
+          <button type="button" (click)="changerPage(pageAnnuaire.page + 1)"
+            [disabled]="pageAnnuaire.page + 1 >= pageAnnuaire.totalPages" aria-label="Page suivante">
+            <i class="pi pi-chevron-right" aria-hidden="true"></i>
+          </button>
+        </nav>
+      }
+    }
+  </section>
+</main>

@@ -1,0 +1,98 @@
+.barre-navigation {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  min-height: 4.5rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 0.75rem clamp(1rem, 4vw, 3rem);
+  border-bottom: 1px solid var(--ept-border);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: var(--ept-shadow);
+  backdrop-filter: blur(10px);
+}
+
+.marque {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--ept-primary);
+  font-family: var(--ept-font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.monogramme {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background: var(--ept-primary);
+  color: var(--ept-text-on-dark);
+  font-size: 0.75rem;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-right: auto;
+
+  a {
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--ept-radius-sm);
+    color: var(--ept-text-secondary);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  a:hover,
+  a.actif {
+    background: var(--ept-primary-light);
+    color: var(--ept-primary);
+  }
+}
+
+.deconnexion {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--ept-border);
+  border-radius: var(--ept-radius-sm);
+  background: white;
+  color: var(--ept-text);
+  cursor: pointer;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--ept-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 680px) {
+  .barre-navigation {
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .marque > span:last-child,
+  .deconnexion span {
+    display: none;
+  }
+
+  nav {
+    flex: 1;
+    justify-content: center;
+    gap: 0;
+
+    a {
+      padding-inline: 0.6rem;
+      font-size: 0.85rem;
+    }
+  }
+}
