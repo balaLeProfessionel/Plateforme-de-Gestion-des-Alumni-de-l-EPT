@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import ept.edu.sn.alumni_backend.security.RefreshTokenRepository;
 import ept.edu.sn.alumni_backend.utilisateur.CodeVerificationRepository;
+import ept.edu.sn.alumni_backend.utilisateur.CodeReinitialisationMotDePasseRepository;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -17,6 +18,7 @@ public class NettoyageScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(NettoyageScheduler.class);
     private final CodeVerificationRepository codeVerificationRepository;
+    private final CodeReinitialisationMotDePasseRepository codeReinitialisationRepository;
     private final RefreshTokenRepository refreshTokenRepository;
 
     // Toutes les heures
@@ -26,6 +28,7 @@ public class NettoyageScheduler {
         if (supprimes > 0) {
             log.info("Nettoyage : {} code(s) OTP expiré(s) supprimé(s)", supprimes);
         }
+        codeReinitialisationRepository.supprimerExpires(LocalDateTime.now());
     }
 
     @Scheduled(fixedRate = 3_600_000) // toutes les heures, comme les OTP

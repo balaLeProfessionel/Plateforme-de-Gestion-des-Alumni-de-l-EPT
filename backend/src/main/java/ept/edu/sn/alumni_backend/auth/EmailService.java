@@ -19,4 +19,11 @@ public class EmailService {
         log.info("  (valable 10 minutes)");
         log.info("======================================================");
     }
+
+    public void envoyerCodeReinitialisation(String destinataire, String code) {
+        log.info("======================================================");
+        log.info("  CODE DE RÉINITIALISATION pour {} : {}", destinataire, code);
+        log.info("  (valable 10 minutes)");
+        log.info("======================================================");
+    }
 }

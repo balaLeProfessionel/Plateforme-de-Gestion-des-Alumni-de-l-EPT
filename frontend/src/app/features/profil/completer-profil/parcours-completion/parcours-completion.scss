@@ -1,0 +1,44 @@
+.page-parcours {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  background: var(--ept-bg);
+}
+
+.contenu {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.entete {
+  h1 {
+    font-size: 1.6rem;
+    margin: 0 0 0.5rem;
+  }
+
+  .sous-titre {
+    color: var(--ept-text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.55;
+    margin: 0;
+    max-width: 55ch;
+  }
+}
+
+@media (max-width: 560px) {
+  .page-parcours {
+    padding: 1.5rem 1rem;
+  }
+
+  .contenu {
+    gap: 1.25rem;
+  }
+
+  .entete h1 {
+    font-size: 1.35rem;
+  }
+}

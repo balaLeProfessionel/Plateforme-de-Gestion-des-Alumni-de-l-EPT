@@ -32,10 +32,12 @@ export class Connexion {
 
   protected readonly enChargement = signal(false);
   protected readonly messageErreur = signal<string | null>(null);
+  protected readonly messageSucces = signal<string | null>(history.state?.message ?? null);
   protected readonly afficherMdp = signal(false);
 
   seConnecter() {
     if (this.formulaire().invalid()) {
+      this.formulaire().markAsTouched();
       return;
     }
 
@@ -45,9 +47,11 @@ export class Connexion {
     const { email, password } = this.modele();
 
     this.authService.login(email, password).subscribe({
-      next: () => {
+      next: (utilisateur) => {
         this.enChargement.set(false);
-        this.router.navigate(['/accueil']);
+        this.router.navigate([
+          utilisateur.doitChangerMotDePasse ? '/premiere-connexion' : '/accueil'
+        ]);
       },
       error: (err) => {
         this.enChargement.set(false);

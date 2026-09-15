@@ -26,6 +26,12 @@ export class Verification {
   protected readonly messageErreur = signal<string | null>(null);
   protected readonly messageSucces = signal<string | null>(null);
 
+  constructor() {
+    if (!this.email()) {
+      this.router.navigate(['/inscription']);
+    }
+  }
+
   majCode(valeur: string) {
     const chiffres = valeur.replace(/\D/g, '').slice(0, 6); // Supprime tout caractère non numérique et limite à 6 caractères
     this.code.set(chiffres);
@@ -53,7 +59,7 @@ export class Verification {
           if (res.role === 'ORGANISME') {
             this.router.navigate(['/completer-organisme']);
           } else {
-            this.router.navigate(['/accueil']);
+            this.router.navigate(['/completer-profil/infos']);
           }
         },
         error: (err) => {

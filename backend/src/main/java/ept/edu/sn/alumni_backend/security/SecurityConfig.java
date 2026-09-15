@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
     private final UtilisateurDetailsService utilisateurDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
+    private final PremiereConnexionFilter premiereConnexionFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -70,16 +71,22 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/auth/register",
                     "/api/auth/login",
+                    "/api/auth/mot-de-passe-oublie",
+                    "/api/auth/reinitialiser-mot-de-passe",
                     "/api/auth/logout",
                     "/api/auth/verifier-otp",
                     "/api/auth/renvoyer-otp",
                     "/api/auth/refresh"
                 ).permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/organisme/me").hasRole("ORGANISME")
+                .requestMatchers("/api/formations/**", "/api/experiences/**")
+                    .hasAnyRole("ETUDIANT", "ALUMNI", "PERSONNEL", "VISITEUR")
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(premiereConnexionFilter, JwtAuthFilter.class);
 
         return http.build();
     }

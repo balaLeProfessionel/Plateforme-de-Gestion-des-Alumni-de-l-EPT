@@ -1,0 +1,66 @@
+<main class="premiere-connexion-page">
+  <section class="carte" aria-labelledby="titre-premiere-connexion">
+    <div class="icone" aria-hidden="true"><i class="pi pi-key"></i></div>
+    <h1 id="titre-premiere-connexion">Définissez votre mot de passe</h1>
+    <p class="sous-titre">
+      Pour sécuriser votre compte étudiant, remplacez le mot de passe temporaire fourni par l’administration.
+    </p>
+
+    @if (messageErreur()) {
+      <p-message severity="error" class="message-erreur">{{ messageErreur() }}</p-message>
+    }
+
+    <div class="champ">
+      <label for="nouveauMotDePasse">Nouveau mot de passe</label>
+      <div class="champ-mdp">
+        <input
+          pInputText
+          id="nouveauMotDePasse"
+          [type]="afficherNouveau() ? 'text' : 'password'"
+          [formField]="formulaire.nouveauMotDePasse"
+          autocomplete="new-password"
+          fluid />
+        <button
+          type="button"
+          (click)="afficherNouveau.set(!afficherNouveau())"
+          [attr.aria-label]="afficherNouveau() ? 'Masquer le nouveau mot de passe' : 'Afficher le nouveau mot de passe'">
+          <i class="pi" [class.pi-eye]="!afficherNouveau()" [class.pi-eye-slash]="afficherNouveau()"></i>
+        </button>
+      </div>
+      @if (formulaire.nouveauMotDePasse().touched() && formulaire.nouveauMotDePasse().invalid()) {
+        <small class="erreur-champ">{{ formulaire.nouveauMotDePasse().errors()[0]?.message }}</small>
+      }
+    </div>
+
+    <div class="champ">
+      <label for="confirmation">Confirmer le mot de passe</label>
+      <div class="champ-mdp">
+        <input
+          pInputText
+          id="confirmation"
+          [type]="afficherConfirmation() ? 'text' : 'password'"
+          [formField]="formulaire.confirmation"
+          autocomplete="new-password"
+          fluid />
+        <button
+          type="button"
+          (click)="afficherConfirmation.set(!afficherConfirmation())"
+          [attr.aria-label]="afficherConfirmation() ? 'Masquer la confirmation' : 'Afficher la confirmation'">
+          <i class="pi" [class.pi-eye]="!afficherConfirmation()" [class.pi-eye-slash]="afficherConfirmation()"></i>
+        </button>
+      </div>
+      @if (formulaire.confirmation().touched() && formulaire.confirmation().invalid()) {
+        <small class="erreur-champ">{{ formulaire.confirmation().errors()[0]?.message }}</small>
+      }
+    </div>
+
+    <button
+      type="button"
+      class="btn-ept"
+      [disabled]="enChargement()"
+      [attr.aria-busy]="enChargement()"
+      (click)="enregistrer()">
+      {{ enChargement() ? 'Enregistrement…' : 'Définir mon mot de passe' }}
+    </button>
+  </section>
+</main>

@@ -1,5 +1,10 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
+import {
+  authGuard,
+  changementInitialRequisGuard,
+  changementInitialSeulementGuard,
+  roleGuard
+} from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'connexion', pathMatch: 'full' },
@@ -9,10 +14,32 @@ export const routes: Routes = [
       import('./features/auth/connexion/connexion').then((m) => m.Connexion)
   },
   {
+    path: 'mot-de-passe-oublie',
+    loadComponent: () =>
+      import('./features/auth/mot-de-passe-oublie/mot-de-passe-oublie').then(
+        (m) => m.MotDePasseOublie
+      )
+  },
+  {
+    path: 'reinitialiser-mot-de-passe',
+    loadComponent: () =>
+      import('./features/auth/reinitialiser-mot-de-passe/reinitialiser-mot-de-passe').then(
+        (m) => m.ReinitialiserMotDePasse
+      )
+  },
+  {
     path: 'accueil',
-    canActivate: [authGuard],
+    canActivate: [authGuard, changementInitialRequisGuard],
     loadComponent: () =>
       import('./features/accueil/accueil').then((m) => m.Accueil)
+  },
+  {
+    path: 'premiere-connexion',
+    canActivate: [authGuard, changementInitialSeulementGuard],
+    loadComponent: () =>
+      import('./features/auth/premiere-connexion/premiere-connexion').then(
+        (m) => m.PremiereConnexion
+      )
   },
   {
     path: 'inscription',
@@ -30,9 +57,49 @@ export const routes: Routes = [
       import('./features/auth/inscription/verification/verification').then((m) => m.Verification)
   },
   {
+    // Parcours de completion en trois etapes. Le garde est declare une seule
+    // fois ici : les routes enfants en heritent.
+    path: 'completer-profil',
+    canActivate: [authGuard, changementInitialRequisGuard, roleGuard],
+    data: { roles: ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'] },
+    loadComponent: () =>
+      import('./features/profil/completer-profil/parcours-completion/parcours-completion').then(
+        (m) => m.ParcoursCompletion
+      ),
+    children: [
+      { path: '', redirectTo: 'infos', pathMatch: 'full' },
+      {
+        path: 'infos',
+        data: { etape: 1 },
+        loadComponent: () =>
+          import('./features/profil/completer-profil/etape-infos/etape-infos').then(
+            (m) => m.EtapeInfos
+          )
+      },
+      {
+        path: 'formations',
+        data: { etape: 2 },
+        loadComponent: () =>
+          import('./features/profil/completer-profil/etape-formations/etape-formations').then(
+            (m) => m.EtapeFormations
+          )
+      },
+      {
+        path: 'experiences',
+        data: { etape: 3 },
+        loadComponent: () =>
+          import('./features/profil/completer-profil/etape-experiences/etape-experiences').then(
+            (m) => m.EtapeExperiences
+          )
+      }
+    ]
+  },
+  {
     path: 'completer-organisme',
-    canActivate: [authGuard],
+    canActivate: [authGuard, changementInitialRequisGuard, roleGuard],
+    data: { roles: ['ORGANISME'] },
     loadComponent: () =>
       import('./features/organisme/completer-organisme/completer-organisme').then((m) => m.CompleterOrganisme)
   },
+  { path: '**', redirectTo: 'connexion' },
 ];

@@ -91,3 +91,35 @@ h1, h2, h3, h4, h5, h6 {
     cursor: default;
   }
 }
+
+// Bandeaux de message (erreur, succes) — utilises dans les formulaires
+.alerte {
+  padding: 0.75rem 1rem;
+  border-radius: var(--ept-radius-sm);
+  border-left: 4px solid transparent;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  margin-bottom: 1.25rem;
+}
+
+.alerte-erreur {
+  background: var(--ept-error-light);
+  border-left-color: var(--ept-error);
+  color: var(--ept-error-dark);
+}
+
+.alerte-succes {
+  background: var(--ept-success-light);
+  border-left-color: var(--ept-success);
+  color: var(--ept-success);
+}
+
+// Sur mobile, un champ dont le texte fait moins de 16px declenche un zoom
+// automatique sur iOS. On force la taille sur les champs habilles par PrimeNG,
+// qui sont hors de la portee des styles de composants.
+@media (max-width: 560px) {
+  input.p-inputtext,
+  .p-inputtext {
+    font-size: 16px;
+  }
+}

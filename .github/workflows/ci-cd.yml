@@ -1,0 +1,128 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches:
+      - develop
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-cd-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Recuperer le depot
+        uses: actions/checkout@v6
+
+      - name: Installer Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Tester et compiler le backend
+        run: mvn --batch-mode --no-transfer-progress verify
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Recuperer le depot
+        uses: actions/checkout@v6
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Installer les dependances
+        run: npm ci
+
+      - name: Tester le frontend
+        run: npm test -- --watch=false
+
+      - name: Compiler le frontend
+        run: npm run build
+
+  containers:
+    name: Image ${{ matrix.component }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs:
+      - backend
+      - frontend
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - component: backend
+            context: ./backend
+          - component: frontend
+            context: ./frontend
+    steps:
+      - name: Recuperer le depot
+        uses: actions/checkout@v6
+
+      - name: Valider les configurations Docker Compose
+        if: matrix.component == 'backend'
+        env:
+          POSTGRES_PASSWORD: validation_ci
+          JWT_SECRET: VGhpc0lzQVNlY3JldEtlZUZvckpXVFNpZ25pbmdEb05vdFVzZUluUHJvZA==
+        run: |
+          docker compose config --quiet
+          docker compose -f docker-compose.prod.yml config --quiet
+
+      - name: Configurer Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Se connecter a GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Preparer les etiquettes de l'image
+        id: metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}-${{ matrix.component }}
+          tags: |
+            type=sha,prefix=${{ github.ref_name }}-
+            type=raw,value=${{ github.ref_name }},enable=${{ github.event_name == 'push' }}
+
+      - name: Construire et publier l'image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: ${{ github.event_name == 'push' }}
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

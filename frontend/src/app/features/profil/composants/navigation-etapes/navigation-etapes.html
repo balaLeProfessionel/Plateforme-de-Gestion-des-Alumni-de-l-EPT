@@ -1,0 +1,18 @@
+<div class="navigation">
+
+  @if (libellePrincipal(); as libelle) {
+    <button
+      type="button"
+      class="btn-ept btn-principal"
+      (click)="principal.emit()"
+      [disabled]="enCours()"
+      [attr.aria-busy]="enCours()">
+      {{ enCours() ? 'Enregistrement…' : libelle }}
+    </button>
+  }
+
+  <button type="button" class="btn-discret" (click)="secondaire.emit()" [disabled]="enCours()">
+    {{ libelleSecondaire() }}
+  </button>
+
+</div>

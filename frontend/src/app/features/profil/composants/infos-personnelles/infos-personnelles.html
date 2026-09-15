@@ -1,0 +1,87 @@
+<section class="section-profil" aria-labelledby="titre-infos">
+
+  <header class="section-entete">
+    <h2 id="titre-infos">Informations personnelles</h2>
+    <p class="section-aide">
+      Ces informations apparaîtront sur votre profil. Tous les champs sont facultatifs.
+    </p>
+  </header>
+
+  <div class="champ">
+    <label for="bio">Biographie</label>
+    <textarea
+      [formField]="formulaire.bio"
+      id="bio"
+      rows="4"
+      placeholder="Présentez votre parcours en quelques lignes…"
+      class="textarea-ept"></textarea>
+  </div>
+
+  <div class="ligne-double">
+    <div class="champ">
+      <label for="posteActuel">Poste actuel</label>
+      <input pInputText id="posteActuel" [formField]="formulaire.posteActuel"
+             placeholder="Ex : Ingénieur logiciel" fluid />
+    </div>
+    <div class="champ">
+      <label for="villeResidence">Ville de résidence</label>
+      <input pInputText id="villeResidence" [formField]="formulaire.villeResidence"
+             placeholder="Ex : Dakar" fluid />
+    </div>
+  </div>
+
+  <div class="ligne-double">
+    <div class="champ">
+      <label for="telephone">Téléphone</label>
+      <input pInputText id="telephone" type="tel" [formField]="formulaire.telephone"
+             placeholder="+221 ..." fluid />
+    </div>
+    <div class="champ">
+      <label for="dateNaissance">Date de naissance</label>
+      <input pInputText id="dateNaissance" type="date" [formField]="formulaire.dateNaissance" fluid />
+    </div>
+  </div>
+
+  <div class="champ">
+    <label for="lienLinkedin">Profil LinkedIn</label>
+    <input pInputText id="lienLinkedin" type="url" [formField]="formulaire.lienLinkedin"
+           placeholder="https://www.linkedin.com/in/..."
+           [attr.aria-invalid]="formulaire.lienLinkedin().invalid() ? 'true' : null"
+           [attr.aria-describedby]="formulaire.lienLinkedin().invalid() ? 'erreur-linkedin' : null"
+           fluid />
+    @if (formulaire.lienLinkedin().touched() && formulaire.lienLinkedin().invalid()) {
+      <small class="erreur-champ" id="erreur-linkedin">
+        {{ formulaire.lienLinkedin().errors()[0]?.message }}
+      </small>
+    }
+  </div>
+
+  <div class="champ">
+    <label for="lienPortfolio">Portfolio ou site personnel</label>
+    <input pInputText id="lienPortfolio" type="url" [formField]="formulaire.lienPortfolio"
+           placeholder="https://..."
+           [attr.aria-invalid]="formulaire.lienPortfolio().invalid() ? 'true' : null"
+           [attr.aria-describedby]="formulaire.lienPortfolio().invalid() ? 'erreur-portfolio' : null"
+           fluid />
+    @if (formulaire.lienPortfolio().touched() && formulaire.lienPortfolio().invalid()) {
+      <small class="erreur-champ" id="erreur-portfolio">
+        {{ formulaire.lienPortfolio().errors()[0]?.message }}
+      </small>
+    }
+  </div>
+
+  <!-- aria-live : le lecteur d'ecran annonce le resultat de la sauvegarde -->
+  <div class="zone-message" aria-live="polite">
+    @if (message(); as m) {
+      <div class="alerte" [class.alerte-erreur]="m.type === 'erreur'"
+           [class.alerte-succes]="m.type === 'succes'">
+        {{ m.texte }}
+      </div>
+    }
+  </div>
+
+  <button type="button" class="btn-ept" (click)="valider()" [disabled]="enSauvegarde()">
+    {{ enSauvegarde() ? 'Enregistrement…' : 'Enregistrer mes informations' }}
+  </button>
+
+</section>

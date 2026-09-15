@@ -92,10 +92,18 @@ public class RefreshTokenService {
         }
         try {
             UUID id = UUID.fromString(parties[0]);
-            refreshTokenRepository.deleteById(id);
+            refreshTokenRepository.findById(id).ifPresent(token -> {
+                if (passwordEncoder.matches(parties[1], token.getSecretHash())) {
+                    refreshTokenRepository.delete(token);
+                }
+            });
         } catch (IllegalArgumentException e) {
             // id invalide, rien à faire
         }
+    }
+
+    public void supprimerTousPour(Utilisateur utilisateur) {
+        refreshTokenRepository.deleteByUtilisateur(utilisateur);
     }
 
     private String genererSecret() {

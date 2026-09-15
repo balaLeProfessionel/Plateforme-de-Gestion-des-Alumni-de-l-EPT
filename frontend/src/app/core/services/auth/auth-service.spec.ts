@@ -1,16 +1,78 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-
+import { AuthResponse } from '../models/auth-response.model';
 import { AuthService } from './auth-service';
 
 describe('AuthService', () => {
   let service: AuthService;
+  let http: HttpTestingController;
+
+  const utilisateur: AuthResponse = {
+    accessToken: 'access-token',
+    refreshToken: 'refresh-token',
+    id: 'utilisateur-id',
+    email: 'awa.diop@example.com',
+    nom: 'Diop',
+    prenom: 'Awa',
+    role: 'ALUMNI',
+    statutCompte: 'ACTIF',
+    doitChangerMotDePasse: false
+  };
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()]
+    });
     service = TestBed.inject(AuthService);
+    http = TestBed.inject(HttpTestingController);
   });
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
+  afterEach(() => {
+    http.verify();
+    localStorage.clear();
+  });
+
+  it('stocke la session apres connexion', () => {
+    service.login(utilisateur.email, 'MotDePasse2026!').subscribe();
+    http.expectOne('/api/auth/login').flush(utilisateur);
+
+    expect(service.getToken()).toBe('access-token');
+    expect(service.getRefreshToken()).toBe('refresh-token');
+    expect(service.utilisateur()?.email).toBe(utilisateur.email);
+  });
+
+  it('efface la session lors de la deconnexion', () => {
+    service.stocker(utilisateur);
+    service.logout();
+
+    http.expectOne('/api/auth/logout').flush(null);
+    expect(service.estConnecte()).toBe(false);
+    expect(service.getToken()).toBeNull();
+    expect(service.getRefreshToken()).toBeNull();
+  });
+
+  it('envoie le refresh token pour renouveler l acces', () => {
+    service.stocker(utilisateur);
+    service.rafraichir().subscribe();
+
+    const requete = http.expectOne('/api/auth/refresh');
+    expect(requete.request.body).toEqual({ refreshToken: 'refresh-token' });
+    requete.flush({ ...utilisateur, accessToken: 'nouvel-access-token' });
+  });
+
+  it('envoie les donnees de reinitialisation attendues', () => {
+    service.reinitialiserMotDePasse(
+      utilisateur.email, '123456', 'NouveauPass2026!'
+    ).subscribe();
+
+    const requete = http.expectOne('/api/auth/reinitialiser-mot-de-passe');
+    expect(requete.request.body).toEqual({
+      email: utilisateur.email,
+      code: '123456',
+      nouveauMotDePasse: 'NouveauPass2026!'
+    });
+    requete.flush({ message: 'Mot de passe réinitialisé' });
   });
 });

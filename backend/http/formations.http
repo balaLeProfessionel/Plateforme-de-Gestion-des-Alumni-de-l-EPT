@@ -1,0 +1,145 @@
+### =====================================================================
+### FICHIER DE TEST — Formations (parcours académique)
+### Prérequis : être connecté (récupère l'accessToken via auth-test.http)
+### Enum TypeFormation : DIPLOMANTE | CERTIFICATION | SEMINAIRE | AUTRE
+### =====================================================================
+
+@baseUrl = http://localhost:8080/api
+@token = COLLE_ICI_TON_ACCESS_TOKEN
+
+### =====================================================================
+### 1 — LISTER MES FORMATIONS
+### =====================================================================
+
+GET {{baseUrl}}/formations/me
+Authorization: Bearer {{token}}
+
+# ATTENDU : 200 OK, tableau (vide au premier appel)
+
+###
+
+### =====================================================================
+### 2 — CRÉER AVEC UN ORGANISME EXISTANT (organismeId)
+### =====================================================================
+
+# @name creerAvecOrganismeExistant
+POST {{baseUrl}}/formations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "libelle": "Diplôme d'ingénieur en Génie Informatique",
+  "description": "Formation initiale à l'EPT",
+  "typeFormation": "DIPLOMANTE",
+  "dateDebut": "2016-10-01",
+  "dateFin": "2019-07-31",
+  "estStage": false,
+  "organismeId": "COLLE_ICI_UN_ID_ORGANISME"
+}
+
+# ATTENDU : 201 Created, enCours = false, nomOrganisme rempli
+
+###
+
+### =====================================================================
+### 3 — CRÉER AVEC UN NOUVEL ORGANISME (nomNouvelOrganisme)
+### =====================================================================
+
+# @name creerAvecNouvelOrganisme
+POST {{baseUrl}}/formations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "libelle": "Certification AWS Solutions Architect",
+  "typeFormation": "CERTIFICATION",
+  "dateDebut": "2024-01-15",
+  "estStage": false,
+  "nomNouvelOrganisme": "Amazon Web Services"
+}
+
+# ATTENDU : 201 Created, organisme créé à la volée (EN_ATTENTE), enCours = true
+
+###
+
+### =====================================================================
+### 4 — MODIFIER UNE FORMATION
+### =====================================================================
+
+PUT {{baseUrl}}/formations/{{creerAvecNouvelOrganisme.response.body.id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "libelle": "Certification AWS Solutions Architect Associate",
+  "typeFormation": "CERTIFICATION",
+  "dateDebut": "2024-01-15",
+  "dateFin": "2024-06-30",
+  "estStage": false,
+  "organismeId": "{{creerAvecNouvelOrganisme.response.body.organismeId}}"
+}
+
+# ATTENDU : 200 OK, libellé mis à jour, enCours = false
+
+###
+
+### =====================================================================
+### 5 — SUPPRIMER UNE FORMATION
+### =====================================================================
+
+DELETE {{baseUrl}}/formations/{{creerAvecNouvelOrganisme.response.body.id}}
+Authorization: Bearer {{token}}
+
+# ATTENDU : 204 No Content
+
+###
+
+### =====================================================================
+### 6 — CAS D'ERREUR
+### =====================================================================
+
+### 6.1 — Libellé manquant
+POST {{baseUrl}}/formations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "typeFormation": "SEMINAIRE",
+  "dateDebut": "2024-01-15",
+  "estStage": false,
+  "nomNouvelOrganisme": "Organisme test"
+}
+
+# ATTENDU : 400 Bad Request (validation @NotBlank)
+
+###
+
+### 6.2 — Aucun organisme fourni
+POST {{baseUrl}}/formations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "libelle": "Formation sans organisme",
+  "typeFormation": "AUTRE",
+  "dateDebut": "2024-01-15",
+  "estStage": false
+}
+
+# ATTENDU : 400 Bad Request, "Un organisme (existant ou nouveau) est obligatoire"
+
+###
+
+### 6.3 — Formation inexistante
+DELETE {{baseUrl}}/formations/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}
+
+# ATTENDU : 400 Bad Request, "Formation introuvable"
+
+###
+
+### 6.4 — Formation d'un autre utilisateur (connecte-toi avec un autre compte)
+DELETE {{baseUrl}}/formations/COLLE_ICI_UN_ID_D_UN_AUTRE_UTILISATEUR
+Authorization: Bearer {{token}}
+
+# ATTENDU : 403 Forbidden, "Cette formation ne vous appartient pas"

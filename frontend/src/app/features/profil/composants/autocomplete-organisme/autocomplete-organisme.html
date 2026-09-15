@@ -1,0 +1,66 @@
+<div class="autocomplete">
+
+  <label [attr.for]="idChamp()">{{ libelle() }}</label>
+
+  <!-- Motif combobox : l'input decrit la liste qu'il pilote, et signale
+       via aria-activedescendant l'option survolee au clavier. -->
+  <div class="zone-saisie">
+    <input
+      [id]="idChamp()"
+      type="text"
+      class="champ-saisie"
+      role="combobox"
+      autocomplete="off"
+      [value]="texte()"
+      [attr.aria-expanded]="listeVisible()"
+      [attr.aria-controls]="idListe()"
+      aria-autocomplete="list"
+      [attr.aria-activedescendant]="indexActif() >= 0 ? idOption(indexActif()) : null"
+      [attr.aria-describedby]="idAide()"
+      placeholder="Commencez à taper le nom…"
+      (input)="saisir($any($event.target).value)"
+      (keydown)="auClavier($event)"
+      (focus)="ouvrir()"
+      (blur)="fermer()" />
+
+    @if (enRecherche()) {
+      <span class="indicateur" aria-hidden="true"></span>
+    }
+  </div>
+
+  <!-- mousedown.prevent : le clic sur une option ne doit pas retirer le focus
+       du champ, sinon (blur) fermerait la liste avant le (click). -->
+  @if (listeVisible()) {
+    <ul
+      class="liste-suggestions"
+      role="listbox"
+      [id]="idListe()"
+      [attr.aria-label]="'Organismes correspondant à votre saisie'"
+      (mousedown)="$event.preventDefault()">
+      @for (suggestion of suggestions(); track suggestion.id; let i = $index) {
+        <li
+          class="suggestion"
+          role="option"
+          [id]="idOption(i)"
+          [attr.aria-selected]="i === indexActif()"
+          [class.suggestion-active]="i === indexActif()"
+          (click)="selectionner(suggestion)"
+          (mouseenter)="indexActif.set(i)">
+          {{ suggestion.nom }}
+        </li>
+      }
+    </ul>
+  }
+
+  <p class="aide" [id]="idAide()" aria-live="polite">
+    @if (creeraNouvelOrganisme()) {
+      <span class="aide-nouveau">
+        Aucun ne correspond ? « {{ texte().trim() }} » sera créé, puis vérifié
+        par un administrateur.
+      </span>
+    } @else {
+      Choisissez un organisme dans la liste pour le relier à sa fiche.
+    }
+  </p>
+
+</div>

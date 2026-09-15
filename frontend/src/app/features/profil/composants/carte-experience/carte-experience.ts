@@ -1,0 +1,200 @@
+import { Component, computed, input, linkedSignal, output, signal } from '@angular/core';
+import { disabled, form, FormField, required } from '@angular/forms/signals';
+import { InputText } from 'primeng/inputtext';
+import { TYPES_CONTRAT } from '../../../../core/data/types-contrat';
+import {
+  Experience,
+  ExperienceRequest,
+  LienOrganisme,
+  TypeContrat
+} from '../../../../core/services/models/profil.model';
+import { OrganismeSuggestion } from '../../../../core/services/models/organisme.model';
+import { MessageSection } from '../message-section.model';
+import {
+  ModeEnregistrement,
+  ResultatCollecte
+} from '../demande-enregistrement.model';
+import { AutocompleteOrganisme } from '../autocomplete-organisme/autocomplete-organisme';
+
+// Modele du formulaire : le type de contrat vaut '' tant que rien n'est
+// choisi, ce que le type TypeContrat n'autorise pas a lui seul.
+interface ModeleExperience {
+  poste: string;
+  typeContrat: TypeContrat | '';
+  dateDebut: string;
+  dateFin: string;
+  enCours: boolean;
+  estStage: boolean;
+}
+
+function versModele(experience: Experience | null): ModeleExperience {
+  if (!experience) {
+    return {
+      poste: '',
+      typeContrat: '',
+      dateDebut: '',
+      dateFin: '',
+      enCours: false,
+      estStage: false
+    };
+  }
+  return {
+    poste: experience.poste,
+    typeContrat: experience.typeContrat,
+    dateDebut: experience.dateDebut,
+    dateFin: experience.dateFin ?? '',
+    enCours: experience.dateFin === null,
+    estStage: experience.estStage
+  };
+}
+
+function versLien(experience: Experience | null): LienOrganisme {
+  return experience ? { organismeId: experience.organismeId } : {};
+}
+
+// Edite UNE experience professionnelle. Aucun appel reseau : la carte emet
+// (enregistrer) et (supprimer), la page s'occupe du service.
+@Component({
+  selector: 'app-carte-experience',
+  imports: [FormField, InputText, AutocompleteOrganisme],
+  templateUrl: './carte-experience.html',
+  styleUrl: './carte-experience.scss'
+})
+export class CarteExperience {
+  // Cle unique de la carte : sert aux identifiants ARIA de l'autocomplete
+  readonly cle = input.required<string>();
+  // null : carte vierge, pas encore enregistree
+  readonly experience = input<Experience | null>(null);
+
+  // En mode global, la carte n'affiche pas son propre bouton d'enregistrement :
+  // c'est la liste qui collecte toutes les cartes d'un coup.
+  readonly modeEnregistrement = input<ModeEnregistrement>('parCarte');
+
+  readonly suggestions = input<OrganismeSuggestion[]>([]);
+  readonly enRecherche = input(false);
+  readonly enSauvegarde = input(false);
+  readonly message = input<MessageSection | null>(null);
+
+  readonly rechercherOrganisme = output<string>();
+  readonly enregistrer = output<ExperienceRequest>();
+  readonly supprimer = output<void>();
+  readonly abandonner = output<void>();
+
+  protected readonly typesContrat = TYPES_CONTRAT;
+
+  protected readonly modele = linkedSignal(() => versModele(this.experience()));
+
+  protected readonly formulaire = form(this.modele, (champ) => {
+    required(champ.poste, { message: 'Le poste est obligatoire' });
+    required(champ.typeContrat, { message: 'Le type de contrat est obligatoire' });
+    required(champ.dateDebut, { message: 'La date de début est obligatoire' });
+    // Une experience toujours en cours n'a pas de date de fin a saisir
+    disabled(champ.dateFin, ({ valueOf }) => valueOf(champ.enCours));
+  });
+
+  // L'organisme vit hors du formulaire : il ne se saisit pas au clavier dans
+  // un champ simple mais se choisit dans l'autocomplete, qui emet deja le
+  // format attendu par le backend.
+  protected readonly lien = linkedSignal<LienOrganisme>(() => versLien(this.experience()));
+
+  protected readonly nomOrganismeInitial = computed(() => this.experience()?.nomOrganisme ?? '');
+
+  protected readonly organismeManquant = signal(false);
+  protected readonly datesInvalides = signal(false);
+  // Une tentative d'enregistrement a eu lieu : les erreurs s'affichent alors
+  // meme sur les champs que l'utilisateur n'a jamais visites.
+  protected readonly soumis = signal(false);
+  // Confirmation en deux temps, plutot qu'une boite de dialogue native
+  protected readonly confirmeSuppression = signal(false);
+
+  protected readonly estNouvelle = computed(() => this.experience() === null);
+
+  // Empreinte de l'etat initial, pour ne pas rejouer une requete sur une
+  // carte que l'utilisateur n'a pas touchee.
+  private readonly empreinteInitiale = computed(() =>
+    this.empreinte(versModele(this.experience()), versLien(this.experience()))
+  );
+
+  protected readonly estModifiee = computed(
+    () => this.empreinte(this.modele(), this.lien()) !== this.empreinteInitiale()
+  );
+
+  // Appelee par la liste en mode global. Publique a dessein : c'est la carte
+  // qui detient son formulaire, elle seule peut le valider et le lire.
+  collecter(): ResultatCollecte<ExperienceRequest> {
+    if (!this.estNouvelle() && !this.estModifiee()) {
+      return { statut: 'inchangee' };
+    }
+    const donnees = this.extraire();
+    return donnees === null
+      ? { statut: 'invalide' }
+      : { statut: 'valide', demande: { id: this.experience()?.id ?? null, cle: this.cle(), donnees } };
+  }
+
+  protected majLien(lien: LienOrganisme): void {
+    this.lien.set(lien);
+    if (lien.organismeId || lien.nomNouvelOrganisme) {
+      this.organismeManquant.set(false);
+    }
+  }
+
+  protected valider(): void {
+    const donnees = this.extraire();
+    if (donnees !== null) {
+      this.enregistrer.emit(donnees);
+    }
+  }
+
+  protected demanderSuppression(): void {
+    this.confirmeSuppression.set(true);
+  }
+
+  protected annulerSuppression(): void {
+    this.confirmeSuppression.set(false);
+  }
+
+  protected confirmerSuppression(): void {
+    this.confirmeSuppression.set(false);
+    this.supprimer.emit();
+  }
+
+  // Valide la saisie et renvoie la requete, ou null en affichant les erreurs.
+  private extraire(): ExperienceRequest | null {
+    this.soumis.set(true);
+
+    const lien = this.lien();
+    const organismeRenseigne = Boolean(lien.organismeId ?? lien.nomNouvelOrganisme);
+    this.organismeManquant.set(!organismeRenseigne);
+
+    const m = this.modele();
+    const datesInvalides = Boolean(!m.enCours && m.dateFin && m.dateFin < m.dateDebut);
+    this.datesInvalides.set(datesInvalides);
+
+    if (this.formulaire().invalid() || !organismeRenseigne || datesInvalides) {
+      return null;
+    }
+
+    return {
+      poste: m.poste.trim(),
+      typeContrat: m.typeContrat as TypeContrat,
+      dateDebut: m.dateDebut,
+      // Une experience en cours n'a pas de date de fin
+      dateFin: m.enCours ? null : m.dateFin || null,
+      estStage: m.estStage,
+      ...lien
+    };
+  }
+
+  private empreinte(modele: ModeleExperience, lien: LienOrganisme): string {
+    return JSON.stringify([
+      modele.poste,
+      modele.typeContrat,
+      modele.dateDebut,
+      modele.dateFin,
+      modele.enCours,
+      modele.estStage,
+      lien.organismeId ?? null,
+      lien.nomNouvelOrganisme ?? null
+    ]);
+  }
+}

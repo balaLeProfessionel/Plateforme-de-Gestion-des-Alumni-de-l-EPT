@@ -11,5 +11,6 @@ public record AuthResponse(
     String prenom,
     String role,
     String statutCompte,
+    boolean doitChangerMotDePasse,
     String message
 ) { }

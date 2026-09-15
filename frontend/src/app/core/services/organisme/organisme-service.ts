@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
+import { OrganismeSuggestion } from '../models/organisme.model';
 
 
 export interface CompleterOrganismeRequest {
@@ -18,5 +19,12 @@ export class OrganismeService {
 
   completerMonProfilOrganisme(donnees: CompleterOrganismeRequest) {
     return this.http.patch<void>('/api/organisme/me', donnees);
+  }
+
+  // Suggestions pour l'autocomplete des experiences et des formations
+  rechercherOrganismes(q: string) {
+    return this.http.get<OrganismeSuggestion[]>('/api/organisme/recherche', {
+      params: { q }
+    });
   }
 }

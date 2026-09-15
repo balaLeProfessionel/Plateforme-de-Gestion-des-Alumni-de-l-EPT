@@ -1,0 +1,174 @@
+.carte {
+  border: 1px solid var(--ept-border);
+  border-radius: var(--ept-radius);
+  background: var(--ept-surface);
+  padding: 1.25rem;
+}
+
+.ligne-double {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: end;
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.champ {
+  margin-bottom: 1.1rem;
+  display: flex;
+  flex-direction: column;
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+
+  input {
+    width: 100%;
+  }
+}
+
+.case-a-cocher {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+
+  label {
+    margin-bottom: 0;
+    font-weight: 400;
+    font-size: 0.9rem;
+  }
+
+  input {
+    width: auto;
+    accent-color: var(--ept-primary);
+
+    &:focus-visible {
+      outline: 2px solid var(--ept-primary);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.select-ept {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--ept-border);
+  border-radius: var(--ept-radius-sm);
+  font-family: var(--ept-font-body);
+  font-size: 0.95rem;
+  color: var(--ept-text);
+  background: var(--ept-surface);
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-primary);
+    outline-offset: 1px;
+    border-color: var(--ept-primary);
+  }
+}
+
+.erreur-champ {
+  color: var(--ept-error);
+  font-size: 0.8rem;
+  margin-top: 0.35rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+// Le bouton principal ne prend pas toute la largeur dans une carte
+.btn-carte {
+  width: auto;
+  font-size: 0.9rem;
+  padding: 0.6rem 1.1rem;
+}
+
+.btn-secondaire {
+  background: transparent;
+  border: 1px solid var(--ept-border);
+  color: var(--ept-text-secondary);
+  font-family: var(--ept-font-body);
+  font-size: 0.9rem;
+  padding: 0.6rem 1rem;
+  border-radius: var(--ept-radius-sm);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--ept-primary);
+    color: var(--ept-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-primary);
+    outline-offset: 2px;
+  }
+}
+
+.btn-supprimer:hover:not(:disabled) {
+  border-color: var(--ept-error);
+  color: var(--ept-error);
+}
+
+.btn-danger {
+  background: var(--ept-error);
+  border: 1px solid var(--ept-error);
+  color: var(--ept-text-on-dark);
+  font-family: var(--ept-font-body);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.6rem 1rem;
+  border-radius: var(--ept-radius-sm);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--ept-error-dark);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-error-dark);
+    outline-offset: 2px;
+  }
+}
+
+@media (max-width: 560px) {
+  .carte {
+    padding: 1rem;
+  }
+
+  // Sous 16px, iOS zoome automatiquement au focus et casse la mise en page
+  .select-ept,
+  .textarea-ept {
+    font-size: 16px;
+  }
+
+  // Les actions passent en pleine largeur, avec des cibles confortables
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-carte,
+  .btn-secondaire,
+  .btn-danger {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  // La case et son libelle restent alignes et faciles a viser
+  .case-a-cocher {
+    min-height: 44px;
+
+    input {
+      width: 1.15rem;
+      height: 1.15rem;
+    }
+  }
+}

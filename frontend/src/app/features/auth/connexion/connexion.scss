@@ -141,6 +141,20 @@
     margin-top: 0.35rem;
   }
 
+  .lien-mot-de-passe {
+    display: block;
+    width: fit-content;
+    margin: -0.5rem 0 1.25rem auto;
+    color: var(--ept-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
   .lien-inscription {
     text-align: center;
     margin-top: 1.5rem;

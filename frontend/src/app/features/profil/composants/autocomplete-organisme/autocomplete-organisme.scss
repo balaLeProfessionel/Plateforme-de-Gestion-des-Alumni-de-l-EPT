@@ -1,0 +1,124 @@
+.autocomplete {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+}
+
+.zone-saisie {
+  position: relative;
+}
+
+.champ-saisie {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--ept-border);
+  border-radius: var(--ept-radius-sm);
+  font-family: var(--ept-font-body);
+  font-size: 0.95rem;
+  color: var(--ept-text);
+  background: var(--ept-surface);
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-primary);
+    outline-offset: 1px;
+    border-color: var(--ept-primary);
+  }
+}
+
+// Petit point de progression pendant que le parent interroge le serveur
+.indicateur {
+  position: absolute;
+  top: 50%;
+  right: 0.85rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-top: -0.275rem;
+  border-radius: 50%;
+  background: var(--ept-primary);
+  animation: pulsation 1s ease-in-out infinite;
+}
+
+@keyframes pulsation {
+  0%, 100% { opacity: 0.25; }
+  50%      { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .indicateur { animation: none; opacity: 0.6; }
+}
+
+// La liste prime sur le reste du formulaire : elle est l'action souhaitee
+.liste-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 0.25rem 0 0;
+  padding: 0.25rem;
+  list-style: none;
+  max-height: 14rem;
+  overflow-y: auto;
+  background: var(--ept-surface);
+  border: 1px solid var(--ept-primary);
+  border-radius: var(--ept-radius-sm);
+  box-shadow: var(--ept-shadow);
+}
+
+.suggestion {
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--ept-radius-sm);
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+// Fond bleu clair : lisible et conforme au contraste, contrairement au ciel sur blanc
+.suggestion-active {
+  background: var(--ept-primary-light);
+  color: var(--ept-primary-dark);
+  font-weight: 600;
+}
+
+.aide {
+  font-size: 0.8rem;
+  color: var(--ept-text-secondary);
+  line-height: 1.45;
+  margin: 0.4rem 0 0;
+}
+
+// L'avertissement de creation reste secondaire : signale, jamais mis en avant
+.aide-nouveau {
+  color: var(--ept-gold-dark);
+}
+
+// Au doigt, une suggestion doit offrir une cible d'au moins 44px
+@media (pointer: coarse) {
+  .suggestion {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0.7rem 0.8rem;
+  }
+}
+
+.liste-suggestions {
+  // Le defilement de la liste ne doit pas entrainer celui de la page
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 560px) {
+  .champ-saisie {
+    font-size: 16px;
+  }
+
+  .liste-suggestions {
+    max-height: 11rem;
+  }
+}

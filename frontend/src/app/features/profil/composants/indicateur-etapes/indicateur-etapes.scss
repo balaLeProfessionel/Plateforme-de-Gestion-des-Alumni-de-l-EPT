@@ -1,0 +1,95 @@
+.indicateur {
+  margin-bottom: 0.5rem;
+}
+
+.compteur {
+  font-family: var(--ept-font-heading);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ept-text-secondary);
+  margin: 0 0 0.6rem;
+}
+
+.jalons {
+  display: flex;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.jalon {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.6rem;
+  // La barre superieure materialise l'avancement
+  border-top: 3px solid var(--ept-border);
+  font-size: 0.85rem;
+  color: var(--ept-text-secondary);
+  min-width: 0;
+}
+
+.pastille {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--ept-border);
+  color: var(--ept-text-secondary);
+  font-family: var(--ept-font-heading);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.libelle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jalon-franchi {
+  border-top-color: var(--ept-primary);
+  color: var(--ept-primary);
+
+  .pastille {
+    background: var(--ept-primary-light);
+    color: var(--ept-primary-dark);
+  }
+}
+
+.jalon-courant {
+  border-top-color: var(--ept-primary);
+  color: var(--ept-primary);
+  font-weight: 600;
+
+  // Fond fonce, texte clair : conforme a la regle de contraste du projet
+  .pastille {
+    background: var(--ept-primary);
+    color: var(--ept-text-on-dark);
+  }
+}
+
+// Sur mobile, seuls la pastille et l'etape courante gardent leur libelle
+@media (max-width: 560px) {
+  .jalon .libelle {
+    display: none;
+  }
+
+  .jalon-courant .libelle {
+    display: inline;
+  }
+
+  .jalon {
+    flex: none;
+  }
+
+  .jalon-courant {
+    flex: 1;
+  }
+}

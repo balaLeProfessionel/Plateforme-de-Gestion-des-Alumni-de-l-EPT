@@ -1,0 +1,74 @@
+<section class="section-profil" aria-labelledby="titre-experiences">
+
+  <header class="section-entete">
+    <h2 id="titre-experiences">Expériences professionnelles</h2>
+    <p class="section-aide">
+      @if (modeEnregistrement() === 'global') {
+        Ajoutez vos postes, stages et missions, puis enregistrez-les en une fois.
+      } @else {
+        Ajoutez vos postes, stages et missions. Chaque expérience s'enregistre séparément.
+      }
+    </p>
+  </header>
+
+  @if (experiences().length === 0 && brouillons().length === 0) {
+    <p class="liste-vide">Aucune expérience enregistrée pour le moment.</p>
+  }
+
+  <div class="cartes">
+    @for (experience of experiences(); track experience.id) {
+      <app-carte-experience
+        [cle]="experience.id"
+        [experience]="experience"
+        [modeEnregistrement]="modeEnregistrement()"
+        [suggestions]="suggestions()"
+        [enRecherche]="enRecherche()"
+        [enSauvegarde]="enCoursPour(experience.id)"
+        [message]="messagePour(experience.id)"
+        (rechercherOrganisme)="rechercherOrganisme.emit($event)"
+        (enregistrer)="enregistrerCarte.emit({ id: experience.id, cle: experience.id, donnees: $event })"
+        (supprimer)="supprimer.emit(experience.id)" />
+    }
+
+    @for (cle of brouillons(); track cle) {
+      <app-carte-experience
+        [cle]="cle"
+        [modeEnregistrement]="modeEnregistrement()"
+        [suggestions]="suggestions()"
+        [enRecherche]="enRecherche()"
+        [enSauvegarde]="enCoursPour(cle)"
+        [message]="messagePour(cle)"
+        (rechercherOrganisme)="rechercherOrganisme.emit($event)"
+        (enregistrer)="enregistrerCarte.emit({ id: null, cle: cle, donnees: $event })"
+        (abandonner)="abandonnerBrouillon.emit(cle)" />
+    }
+  </div>
+
+  <button type="button" class="btn-ajouter" (click)="ajouter.emit()">
+    <span aria-hidden="true">+</span> Ajouter une expérience
+  </button>
+
+  @if (modeEnregistrement() === 'global') {
+    <div class="zone-message" aria-live="polite">
+      @if (erreurCollecte(); as texte) {
+        <div class="alerte alerte-erreur">{{ texte }}</div>
+      }
+      @if (etat().messageGlobal; as m) {
+        <div class="alerte" [class.alerte-erreur]="m.type === 'erreur'"
+             [class.alerte-succes]="m.type === 'succes'">
+          {{ m.texte }}
+        </div>
+      }
+    </div>
+
+    <button
+      type="button"
+      class="btn-ept btn-enregistrer-tout"
+      (click)="collecterEtEmettre()"
+      [disabled]="etat().clesEnCours.length > 0"
+      [attr.aria-busy]="etat().clesEnCours.length > 0">
+      {{ etat().clesEnCours.length > 0 ? 'Enregistrement…' : libelleEnregistrerTout() }}
+    </button>
+  }
+
+</section>
