@@ -55,6 +55,8 @@ public class Utilisateur {
     private StatutCompte statutCompte;
     @Column(nullable = false)
     private boolean emailVerifie = false;
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean doitChangerMotDePasse = false;
     private LocalDate dateNaissance;
     private String telephone;
     private Integer anneeEntree;

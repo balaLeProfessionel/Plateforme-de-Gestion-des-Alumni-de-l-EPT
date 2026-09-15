@@ -207,6 +207,7 @@ public class AuthService {
         utilisateur.setRole(request.role());
         utilisateur.setStatutCompte(StatutCompte.ACTIF);
         utilisateur.setEmailVerifie(true);
+        utilisateur.setDoitChangerMotDePasse(request.role() == TypeRole.ETUDIANT);
         utilisateur.setAnneeEntree(request.anneeEntree());
         utilisateur.setFiliere(request.filiere());
 
@@ -232,7 +233,34 @@ public class AuthService {
             utilisateur.getPrenom(),
             utilisateur.getRole().name(),
             utilisateur.getStatutCompte().name(),
+            utilisateur.isDoitChangerMotDePasse(),
             null
+        );
+    }
+
+    @Transactional
+    public AuthResponse changerMotDePasseInitial(
+            Utilisateur utilisateur,
+            ChangerMotDePasseInitialRequest request) {
+        if (!utilisateur.isDoitChangerMotDePasse()) {
+            throw new IllegalArgumentException("Aucun changement de mot de passe initial n'est requis");
+        }
+
+        Utilisateur utilisateurDuRefresh = refreshTokenService
+            .verifierEtObtenirUtilisateur(request.refreshToken());
+        if (!utilisateur.getId().equals(utilisateurDuRefresh.getId())) {
+            throw new TokenInvalideException("Le refresh token ne correspond pas à la session active");
+        }
+
+        utilisateur.setPassword(passwordEncoder.encode(request.nouveauMotDePasse()));
+        utilisateur.setDoitChangerMotDePasse(false);
+        utilisateur = utilisateurRepository.save(utilisateur);
+
+        refreshTokenService.supprimerTousPour(utilisateur);
+        String accessToken = jwtService.genererToken(new UtilisateurPrincipal(utilisateur));
+        String refreshToken = refreshTokenService.creerRefreshToken(utilisateur);
+        return construireReponse(
+            accessToken, refreshToken, utilisateur, "Votre mot de passe a été défini."
         );
     }
 
@@ -266,7 +294,7 @@ public class AuthService {
 
     private AuthResponse construireReponse(String accessToken, String refreshToken, Utilisateur u, String message) {
         return new AuthResponse(accessToken, refreshToken, u.getId(), u.getEmail(), u.getNom(), u.getPrenom(),
-                u.getRole().name(), u.getStatutCompte().name(), message);
+                u.getRole().name(), u.getStatutCompte().name(), u.isDoitChangerMotDePasse(), message);
     }
 
     public void deconnecter(String refreshToken) {

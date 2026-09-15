@@ -7,5 +7,6 @@ export interface AuthResponse {
   prenom: string;
   role: string;
   statutCompte: 'EN_ATTENTE' | 'ACTIF' | 'SUSPENDU';
+  doitChangerMotDePasse: boolean;
   message?: string
 }

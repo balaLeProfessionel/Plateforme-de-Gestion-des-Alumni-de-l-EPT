@@ -53,7 +53,8 @@ describe('Verification', () => {
       nom: 'Visiteur',
       prenom: 'Test',
       role: 'VISITEUR',
-      statutCompte: 'EN_ATTENTE'
+      statutCompte: 'EN_ATTENTE',
+      doitChangerMotDePasse: false
     });
 
     expect(navigation).toHaveBeenCalledWith(['/completer-profil/infos']);

@@ -64,6 +64,13 @@ export class AuthService {
     return this.http.post<AuthResponse>('/api/auth/refresh', { refreshToken: refresh });
   }
 
+  changerMotDePasseInitial(nouveauMotDePasse: string) {
+    return this.http.post<AuthResponse>('/api/auth/changer-mot-de-passe-initial', {
+      nouveauMotDePasse,
+      refreshToken: this.getRefreshToken() ?? ''
+    }).pipe(tap((response) => this.stocker(response)));
+  }
+
   private lireUtilsateur(): AuthResponse | null {
     const userJson = localStorage.getItem(this.USER_KEY);
     return userJson ? (JSON.parse(userJson) as AuthResponse) : null;

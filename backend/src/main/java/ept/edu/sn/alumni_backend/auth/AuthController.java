@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import ept.edu.sn.alumni_backend.auth.dto.AuthResponse;
+import ept.edu.sn.alumni_backend.auth.dto.ChangerMotDePasseInitialRequest;
 import ept.edu.sn.alumni_backend.auth.dto.InscriptionResponse;
 import ept.edu.sn.alumni_backend.auth.dto.LoginRequest;
 import ept.edu.sn.alumni_backend.auth.dto.RefreshRequest;
@@ -61,11 +62,21 @@ public class AuthController {
         Utilisateur u = principal.getUtilisateur();
         return ResponseEntity.ok(new AuthResponse(null,
             null, u.getId(), u.getEmail(), u.getNom(), u.getPrenom(),
-            u.getRole().name(), u.getStatutCompte().name(), null));
+            u.getRole().name(), u.getStatutCompte().name(),
+            u.isDoitChangerMotDePasse(), null));
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshRequest request) {
         return ResponseEntity.ok(authService.rafraichir(request));
+    }
+
+    @PostMapping("/changer-mot-de-passe-initial")
+    public ResponseEntity<AuthResponse> changerMotDePasseInitial(
+            @AuthenticationPrincipal UtilisateurPrincipal principal,
+            @Valid @RequestBody ChangerMotDePasseInitialRequest request) {
+        return ResponseEntity.ok(
+            authService.changerMotDePasseInitial(principal.getUtilisateur(), request)
+        );
     }
 }

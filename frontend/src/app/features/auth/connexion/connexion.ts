@@ -46,9 +46,11 @@ export class Connexion {
     const { email, password } = this.modele();
 
     this.authService.login(email, password).subscribe({
-      next: () => {
+      next: (utilisateur) => {
         this.enChargement.set(false);
-        this.router.navigate(['/accueil']);
+        this.router.navigate([
+          utilisateur.doitChangerMotDePasse ? '/premiere-connexion' : '/accueil'
+        ]);
       },
       error: (err) => {
         this.enChargement.set(false);

@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
     private final UtilisateurDetailsService utilisateurDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
+    private final PremiereConnexionFilter premiereConnexionFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -82,7 +83,8 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(premiereConnexionFilter, JwtAuthFilter.class);
 
         return http.build();
     }

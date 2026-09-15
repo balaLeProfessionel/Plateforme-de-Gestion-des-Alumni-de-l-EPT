@@ -102,6 +102,10 @@ public class RefreshTokenService {
         }
     }
 
+    public void supprimerTousPour(Utilisateur utilisateur) {
+        refreshTokenRepository.deleteByUtilisateur(utilisateur);
+    }
+
     private String genererSecret() {
         byte[] bytes = new byte[32];
         RANDOM.nextBytes(bytes);
