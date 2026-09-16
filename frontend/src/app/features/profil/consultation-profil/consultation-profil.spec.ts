@@ -89,6 +89,9 @@ describe('ConsultationProfil', () => {
     expect(section?.textContent).toContain('Parcours à l’EPT');
     expect(section?.textContent).toContain('Assistant de recherche');
     expect(section?.textContent).toContain('Diplôme d ingénieur');
+    const logo = section?.querySelector('.logo-ept') as HTMLImageElement | undefined;
+    expect(logo?.getAttribute('src')).toBe('/images/logo-ept.png');
+    expect(logo?.getAttribute('alt')).toBe('Logo de l’École Polytechnique de Thiès');
   });
 
   function creerComposant(): void {

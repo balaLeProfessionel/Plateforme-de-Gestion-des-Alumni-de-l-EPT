@@ -33,7 +33,7 @@
 
 .parcours-ept { border-color: #b9dce8; border-top: 4px solid var(--ept-primary); background: #f6fbfd; }
 .titre-parcours-ept { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-.titre-parcours-ept > span { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 50%; background: var(--ept-primary); color: white; font-family: var(--ept-font-heading); font-weight: 800; }
+.logo-ept { width: 3.75rem; height: 3.75rem; flex: 0 0 auto; object-fit: contain; padding: 0.35rem; border: 1px solid #b9dce8; border-radius: 0.75rem; background: white; }
 .sur-titre-ept { margin: 0 0 0.25rem; color: var(--ept-primary); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
 .sous-titre-parcours { margin: 1.4rem 0 0; color: var(--ept-text-secondary); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
 
