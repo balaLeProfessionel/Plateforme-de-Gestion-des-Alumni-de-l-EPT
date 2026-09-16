@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { BehaviorSubject, of } from 'rxjs';
 import { vi } from 'vitest';
 
@@ -52,6 +52,25 @@ describe('DetailParcours', () => {
     const lien = fixture.nativeElement.querySelector('.modifier') as HTMLAnchorElement;
     expect(lien).not.toBeNull();
     expect(lien.getAttribute('href')).toBe('/completer-profil/experiences?modifier=exp-1');
+  });
+
+  it('demande confirmation puis supprime l expérience et retourne au profil', async () => {
+    fixture = TestBed.createComponent(DetailParcours);
+    await fixture.whenStable();
+    const navigation = vi.spyOn(TestBed.inject(Router), 'navigate');
+
+    const boutons = () => Array.from(
+      fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>
+    );
+    boutons().find((bouton) => bouton.textContent?.trim() === 'Supprimer')?.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Supprimer définitivement cet élément du parcours ?');
+    boutons().find((bouton) => bouton.textContent?.trim() === 'Confirmer la suppression')?.click();
+    await fixture.whenStable();
+
+    expect(service.supprimerExperience).toHaveBeenCalledWith('exp-1');
+    expect(navigation).toHaveBeenCalledWith(['/profil']);
   });
 
   function profil(): ProfilPublic {
