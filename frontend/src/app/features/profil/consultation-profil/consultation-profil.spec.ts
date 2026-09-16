@@ -66,6 +66,31 @@ describe('ConsultationProfil', () => {
     expect(fixture.nativeElement.querySelector('.modifier')).not.toBeNull();
   });
 
+  it('met les expériences et formations de l EPT dans une section dédiée', async () => {
+    service.obtenirProfilPublic.mockReturnValue(of({
+      ...profilPublic(),
+      experiences: [{
+        id: 'exp-1', poste: 'Assistant de recherche', typeContrat: 'CDD',
+        dateDebut: '2024-01-01', dateFin: null, estStage: false, enCours: true,
+        organismeId: 'ept', nomOrganisme: 'École Polytechnique de Thiès (EPT)',
+        etablissementEpt: true
+      }],
+      formations: [{
+        id: 'formation-1', libelle: 'Diplôme d ingénieur', description: null,
+        typeFormation: 'DIPLOMANTE', dateDebut: '2019-01-01', dateFin: '2024-01-01',
+        estStage: false, enCours: false, organismeId: 'ept',
+        nomOrganisme: 'École Polytechnique de Thiès (EPT)', etablissementEpt: true
+      }]
+    }));
+    creerComposant();
+    await fixture.whenStable();
+
+    const section = fixture.nativeElement.querySelector('.parcours-ept');
+    expect(section?.textContent).toContain('Parcours à l’EPT');
+    expect(section?.textContent).toContain('Assistant de recherche');
+    expect(section?.textContent).toContain('Diplôme d ingénieur');
+  });
+
   function creerComposant(): void {
     fixture = TestBed.createComponent(ConsultationProfil);
   }

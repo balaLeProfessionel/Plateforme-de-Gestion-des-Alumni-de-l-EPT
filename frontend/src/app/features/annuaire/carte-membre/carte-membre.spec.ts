@@ -57,6 +57,17 @@ describe('CarteMembre', () => {
       .toBe('/profil/membre-42');
   });
 
+  it('affiche un organisme sans créer de lien vers un profil personnel', async () => {
+    fixture.componentRef.setInput('membre', membre({
+      nom: 'SunuTech', prenom: null, role: 'ORGANISME', posteActuel: 'Numérique'
+    }));
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain('SunuTech');
+    expect(fixture.nativeElement.textContent).toContain('Secteur');
+    expect(fixture.nativeElement.querySelector('.carte-lien')).toBeNull();
+  });
+
   function membre(modifications: Partial<AnnuaireMembre>): AnnuaireMembre {
     return {
       id: 'membre-1',

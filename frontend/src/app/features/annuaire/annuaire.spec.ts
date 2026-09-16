@@ -122,11 +122,25 @@ describe('Annuaire', () => {
     expect(panneau.querySelector('summary')?.textContent).toContain('Filtres avancés');
 
     panneau.open = true;
-    composant['modele'].update((valeurs) => ({ ...valeurs, role: 'ALUMNI', ville: 'Thiès' }));
+    composant['modele'].update((valeurs) => ({ ...valeurs, role: 'ORGANISME', ville: 'Thiès' }));
     fixture.detectChanges();
 
     expect(panneau.open).toBe(true);
     expect(panneau.querySelector('.resume-filtres')?.textContent).toContain('2 filtres actifs');
+  });
+
+  it('affiche les alumni par défaut et permet d élargir à tous les membres', () => {
+    const composant = creerComposant();
+    const requeteInitiale = http.expectOne((req) => req.url === '/api/annuaire');
+    expect(requeteInitiale.request.params.get('role')).toBe('ALUMNI');
+    requeteInitiale.flush(page());
+
+    composant['changerPortee']('TOUS');
+
+    expect(router.navigate).toHaveBeenCalledWith([], {
+      relativeTo: route,
+      queryParams: { role: 'TOUS' }
+    });
   });
 
   it('navigue vers la page suivante avec un bouton accessible', async () => {

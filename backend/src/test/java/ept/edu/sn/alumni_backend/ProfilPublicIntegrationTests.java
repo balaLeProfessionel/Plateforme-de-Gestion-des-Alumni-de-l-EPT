@@ -60,7 +60,8 @@ class ProfilPublicIntegrationTests {
     void retourneLeProfilEtLeParcoursSansCoordonneesPrivees() throws Exception {
         Utilisateur membre = membreVisible();
         Organisme organisme = new Organisme();
-        organisme.setNom("SunuTech");
+        organisme.setNom("École Polytechnique de Thiès (EPT)");
+        organisme.setEtablissementEpt(true);
         organisme = organismeRepository.save(organisme);
 
         ExperienceProfessionelle experience = new ExperienceProfessionelle();
@@ -84,7 +85,9 @@ class ProfilPublicIntegrationTests {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.prenom").value("Ibrahima"))
             .andExpect(jsonPath("$.experiences[0].poste").value("Ingénieur logiciel"))
+            .andExpect(jsonPath("$.experiences[0].etablissementEpt").value(true))
             .andExpect(jsonPath("$.formations[0].libelle").value("Diplôme d'ingénieur"))
+            .andExpect(jsonPath("$.formations[0].etablissementEpt").value(true))
             .andExpect(jsonPath("$.email").doesNotExist())
             .andExpect(jsonPath("$.telephone").doesNotExist())
             .andExpect(jsonPath("$.dateNaissance").doesNotExist());

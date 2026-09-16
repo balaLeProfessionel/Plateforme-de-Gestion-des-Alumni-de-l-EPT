@@ -41,4 +41,15 @@ describe('AnnuaireService', () => {
     expect(requete.request.params.get('taille')).toBe('12');
     requete.flush({ contenu: [], page: 2, taille: 12, totalElements: 0, totalPages: 0 });
   });
+
+  it('n envoie aucun type au backend pour tous les membres', () => {
+    service.rechercher({
+      recherche: '', role: 'TOUS', filiere: '', promotion: '', ville: '',
+      tri: 'ALPHABETIQUE', page: 0, taille: 12
+    }).subscribe();
+
+    const requete = http.expectOne((req) => req.url === '/api/annuaire');
+    expect(requete.request.params.has('role')).toBe(false);
+    requete.flush({ contenu: [], page: 0, taille: 12, totalElements: 0, totalPages: 0 });
+  });
 });

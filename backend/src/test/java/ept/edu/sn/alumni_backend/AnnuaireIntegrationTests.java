@@ -26,6 +26,8 @@ import ept.edu.sn.alumni_backend.annuaire.dto.AnnuaireMembreResponse;
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
+import ept.edu.sn.alumni_backend.organisme.repository.OrganismeRepository;
 import ept.edu.sn.alumni_backend.security.JwtService;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
@@ -44,6 +46,9 @@ class AnnuaireIntegrationTests {
     private UtilisateurRepository utilisateurRepository;
 
     @Autowired
+    private OrganismeRepository organismeRepository;
+
+    @Autowired
     private MockMvc mockMvc;
 
     @Autowired
@@ -59,9 +64,16 @@ class AnnuaireIntegrationTests {
             utilisateur("Fatou", "Ndiaye", TypeRole.VISITEUR, StatutCompte.ACTIF, true, "Saint-Louis", null, null),
             utilisateur("Compte", "Suspendu", TypeRole.ALUMNI, StatutCompte.SUSPENDU, true, "Thiès", GIT, 2020),
             utilisateur("Compte", "Nonverifie", TypeRole.ETUDIANT, StatutCompte.ACTIF, false, "Thiès", GIT, 2026),
-            utilisateur("Admin", "EPT", TypeRole.ADMIN, StatutCompte.ACTIF, true, "Thiès", null, null),
-            utilisateur(null, "Entreprise", TypeRole.ORGANISME, StatutCompte.ACTIF, true, "Dakar", null, null)
+            utilisateur("Admin", "EPT", TypeRole.ADMIN, StatutCompte.ACTIF, true, "Thiès", null, null)
         ));
+        Organisme organisme = new Organisme();
+        organisme.setNom("Entreprise Démonstration");
+        organisme.setSecteurActivite("Numérique");
+        organisme.setAdresse("Dakar");
+        organisme = organismeRepository.save(organisme);
+        Utilisateur contact = utilisateur(null, "Contact", TypeRole.ORGANISME, StatutCompte.ACTIF, true, null, null, null);
+        contact.setOrganisme(organisme);
+        utilisateurRepository.save(contact);
     }
 
     @Test
@@ -84,6 +96,17 @@ class AnnuaireIntegrationTests {
     }
 
     @Test
+    void rechercheUnOrganismeParSonNomPublic() {
+        PageResponse<AnnuaireMembreResponse> resultat = rechercher(
+            "démonstration", TypeRole.ORGANISME, null, null, null, 0, 12, AnnuaireTri.ALPHABETIQUE
+        );
+
+        assertEquals(1, resultat.totalElements());
+        assertEquals("Entreprise Démonstration", resultat.contenu().getFirst().nom());
+        assertNull(resultat.contenu().getFirst().prenom());
+    }
+
+    @Test
     void pagineEtTrieParPromotionDecroissanteAvecLesValeursVidesEnDernier() {
         PageResponse<AnnuaireMembreResponse> premierePage = rechercher(
             null, null, null, null, null, 0, 2, AnnuaireTri.PROMOTION_DESC
@@ -94,7 +117,7 @@ class AnnuaireIntegrationTests {
 
         assertEquals(List.of(2025, 2024), premierePage.contenu().stream()
             .map(AnnuaireMembreResponse::anneeSortie).toList());
-        assertEquals(2, premierePage.totalPages());
+        assertEquals(3, premierePage.totalPages());
         assertEquals(2012, secondePage.contenu().getFirst().anneeSortie());
         assertNull(secondePage.contenu().get(1).anneeSortie());
     }
@@ -105,11 +128,12 @@ class AnnuaireIntegrationTests {
             null, null, null, null, null, 0, 12, AnnuaireTri.ALPHABETIQUE
         );
 
-        assertEquals(4, resultat.totalElements());
+        assertEquals(5, resultat.totalElements());
         assertEquals(
-            List.of("ETUDIANT", "PERSONNEL", "VISITEUR", "ALUMNI"),
+            List.of("ORGANISME", "ETUDIANT", "PERSONNEL", "VISITEUR", "ALUMNI"),
             resultat.contenu().stream().map(AnnuaireMembreResponse::role).toList()
         );
+        assertTrue(resultat.contenu().stream().anyMatch(membre -> membre.nom().equals("Entreprise Démonstration")));
         assertTrue(resultat.contenu().stream().anyMatch(membre -> membre.statutCompte().equals("EN_ATTENTE")));
     }
 
