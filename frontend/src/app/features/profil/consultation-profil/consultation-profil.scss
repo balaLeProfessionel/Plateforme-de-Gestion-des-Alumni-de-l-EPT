@@ -13,21 +13,23 @@
 
 .avatar { width: 8rem; height: 8rem; display: grid; place-items: center; overflow: hidden; border: 1px solid var(--ept-border); border-radius: 4px; background: var(--ept-primary-light); color: var(--ept-primary); font-family: var(--ept-font-heading); font-size: 2rem; font-weight: 700; }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
+.identite { min-width: 0; }
 .ligne-nom { display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; }
-.ligne-nom h1 { margin: 0; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.05; letter-spacing: -0.03em; }
+.ligne-nom h1 { margin: 0; overflow-wrap: anywhere; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.05; letter-spacing: -0.03em; }
 .badge-role, .badge-attente { padding: 0.3rem 0.65rem; border-radius: 999px; background: var(--ept-primary-light); color: var(--ept-primary-dark); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; }
 .badge-attente { background: var(--ept-gold-light); color: var(--ept-gold-dark); }
-.poste { margin: 0.65rem 0; color: var(--ept-primary); font-size: 1.15rem; font-weight: 600; }
+.poste { display: -webkit-box; margin: 0.65rem 0; overflow: hidden; overflow-wrap: anywhere; color: var(--ept-primary); font-size: 1.15rem; font-weight: 600; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .resume-identite { display: flex; flex-wrap: wrap; gap: 0.55rem 1.2rem; margin: 0; padding: 0; color: var(--ept-text-secondary); list-style: none; }
-.resume-identite li { display: inline-flex; align-items: center; gap: 0.4rem; }
+.resume-identite li { min-width: 0; display: inline-flex; align-items: center; gap: 0.4rem; overflow-wrap: anywhere; }
 .modifier { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.8rem; padding: 0.65rem 1rem; border: 1px solid var(--ept-primary); color: var(--ept-primary); font-family: var(--ept-font-heading); font-weight: 700; text-decoration: none; }
 .modifier:hover { background: var(--ept-primary); color: white; }
 
-.grille-profil { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 0.85fr); align-items: start; gap: 1.5rem; margin-top: 1.5rem; }
+.grille-profil { min-width: 0; display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 0.85fr); align-items: start; gap: 1.5rem; margin-top: 1.5rem; }
 .colonne-principale, .colonne-laterale { display: grid; gap: 1.5rem; }
+.colonne-principale, .colonne-laterale { min-width: 0; }
 .section-profil { padding: 1.5rem; border: 1px solid var(--ept-border); background: white; }
 .section-profil h2 { margin: 0; font-size: 1.25rem; }
-.bio { margin: 1rem 0 0; color: var(--ept-text-secondary); line-height: 1.7; white-space: pre-line; }
+.bio { margin: 1rem 0 0; overflow-wrap: anywhere; color: var(--ept-text-secondary); line-height: 1.7; white-space: pre-line; }
 .titre-section { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .titre-section a { color: var(--ept-primary); font-weight: 700; text-decoration: none; }
 
@@ -39,12 +41,14 @@
 
 .liste-parcours { margin: 1rem 0 0; padding: 0; list-style: none; }
 .liste-parcours li { display: grid; grid-template-columns: auto 1fr; gap: 1rem; padding: 1.1rem 0; border-top: 1px solid var(--ept-border); }
+.liste-parcours li > div:last-child { min-width: 0; }
 .icone-parcours { width: 2.5rem; height: 2.5rem; display: grid; place-items: center; background: var(--ept-primary-light); color: var(--ept-primary); }
 .liste-parcours h3, .liste-parcours h4, .liste-parcours p { margin: 0; }
-.liste-parcours h3, .liste-parcours h4 { font-size: 1rem; }
-.organisme { margin-top: 0.25rem !important; color: var(--ept-primary); font-weight: 600; }
-.meta { margin-top: 0.25rem !important; color: var(--ept-text-secondary); font-size: 0.85rem; }
-.description { margin-top: 0.7rem !important; color: var(--ept-text-secondary); line-height: 1.55; }
+.liste-parcours h3, .liste-parcours h4, .organisme, .description { display: -webkit-box; overflow: hidden; overflow-wrap: anywhere; -webkit-box-orient: vertical; }
+.liste-parcours h3, .liste-parcours h4 { font-size: 1rem; -webkit-line-clamp: 2; }
+.organisme { margin-top: 0.25rem !important; color: var(--ept-primary); font-weight: 600; -webkit-line-clamp: 2; }
+.meta { margin-top: 0.25rem !important; overflow-wrap: anywhere; color: var(--ept-text-secondary); font-size: 0.85rem; }
+.description { margin-top: 0.7rem !important; color: var(--ept-text-secondary); line-height: 1.55; -webkit-line-clamp: 3; }
 .etat-vide { margin: 1rem 0 0; color: var(--ept-text-secondary); font-style: italic; }
 .etat-vide-public { display: grid; justify-items: center; gap: 0.75rem; padding: 3rem 1rem; color: var(--ept-text-secondary); text-align: center; }
 .etat-vide-public i { font-size: 2rem; }

@@ -22,9 +22,9 @@
     </div>
 
     <div class="nom-et-badge">
-      <h2>{{ nomAffiche() }}</h2>
+      <h2 [attr.title]="nomAffiche()">{{ nomAffiche() }}</h2>
       @if (membre().anneeSortie || membre().filiere) {
-        <p class="parcours">
+        <p class="parcours" [attr.title]="membre().filiere || null">
           <i class="pi pi-graduation-cap" aria-hidden="true"></i>
           @if (membre().anneeSortie) { <span>Promo {{ membre().anneeSortie }}</span> }
           @if (membre().anneeSortie && membre().filiere) { <span aria-hidden="true">—</span> }
@@ -42,13 +42,15 @@
   <dl>
     <div>
       <dt>{{ estOrganisme() ? 'Secteur' : 'Poste' }}</dt>
-      <dd [class.non-renseigne]="!membre().posteActuel">
+      <dd [class.non-renseigne]="!membre().posteActuel"
+          [attr.title]="membre().posteActuel || null">
         {{ membre().posteActuel || 'Non renseigné' }}
       </dd>
     </div>
     <div>
       <dt>Localisation</dt>
-      <dd [class.non-renseigne]="!membre().villeResidence">
+      <dd [class.non-renseigne]="!membre().villeResidence"
+          [attr.title]="membre().villeResidence || null">
         {{ membre().villeResidence || 'Non renseignée' }}
       </dd>
     </div>

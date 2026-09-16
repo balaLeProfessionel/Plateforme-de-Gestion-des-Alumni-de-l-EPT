@@ -29,7 +29,9 @@
           @if (badgeRole(); as badge) { <span class="badge-role">{{ badge }}</span> }
           @if (membre.statutCompte === 'EN_ATTENTE') { <span class="badge-attente">En attente</span> }
         </div>
-        @if (membre.posteActuel) { <p class="poste">{{ membre.posteActuel }}</p> }
+        @if (membre.posteActuel) {
+          <p class="poste" [attr.title]="membre.posteActuel">{{ membre.posteActuel }}</p>
+        }
 
         @if (membre.villeResidence || membre.anneeSortie || membre.filiere) {
           <ul class="resume-identite">
@@ -85,8 +87,8 @@
                   <li>
                     <div class="icone-parcours"><i class="pi pi-briefcase" aria-hidden="true"></i></div>
                     <div>
-                      <h4>{{ experience.poste }}</h4>
-                      <p class="organisme">{{ experience.nomOrganisme }}</p>
+                      <h4 [attr.title]="experience.poste">{{ experience.poste }}</h4>
+                      <p class="organisme" [attr.title]="experience.nomOrganisme">{{ experience.nomOrganisme }}</p>
                       <p class="meta">{{ libelleContrat(experience.typeContrat) }} · {{ periode(experience) }}</p>
                     </div>
                   </li>
@@ -101,10 +103,12 @@
                   <li>
                     <div class="icone-parcours"><i class="pi pi-graduation-cap" aria-hidden="true"></i></div>
                     <div>
-                      <h4>{{ formation.libelle }}</h4>
-                      <p class="organisme">{{ formation.nomOrganisme }}</p>
+                      <h4 [attr.title]="formation.libelle">{{ formation.libelle }}</h4>
+                      <p class="organisme" [attr.title]="formation.nomOrganisme">{{ formation.nomOrganisme }}</p>
                       <p class="meta">{{ libelleFormation(formation.typeFormation) }} · {{ periode(formation) }}</p>
-                      @if (formation.description) { <p class="description">{{ formation.description }}</p> }
+                      @if (formation.description) {
+                        <p class="description" [attr.title]="formation.description">{{ formation.description }}</p>
+                      }
                     </div>
                   </li>
                 }
@@ -125,8 +129,8 @@
                   <li>
                     <div class="icone-parcours"><i class="pi pi-briefcase" aria-hidden="true"></i></div>
                     <div>
-                      <h3>{{ experience.poste }}</h3>
-                      <p class="organisme">{{ experience.nomOrganisme }}</p>
+                      <h3 [attr.title]="experience.poste">{{ experience.poste }}</h3>
+                      <p class="organisme" [attr.title]="experience.nomOrganisme">{{ experience.nomOrganisme }}</p>
                       <p class="meta">{{ libelleContrat(experience.typeContrat) }} · {{ periode(experience) }}</p>
                     </div>
                   </li>
@@ -150,10 +154,12 @@
                   <li>
                     <div class="icone-parcours"><i class="pi pi-graduation-cap" aria-hidden="true"></i></div>
                     <div>
-                      <h3>{{ formation.libelle }}</h3>
-                      <p class="organisme">{{ formation.nomOrganisme }}</p>
+                      <h3 [attr.title]="formation.libelle">{{ formation.libelle }}</h3>
+                      <p class="organisme" [attr.title]="formation.nomOrganisme">{{ formation.nomOrganisme }}</p>
                       <p class="meta">{{ libelleFormation(formation.typeFormation) }} · {{ periode(formation) }}</p>
-                      @if (formation.description) { <p class="description">{{ formation.description }}</p> }
+                      @if (formation.description) {
+                        <p class="description" [attr.title]="formation.description">{{ formation.description }}</p>
+                      }
                     </div>
                   </li>
                 }

@@ -57,6 +57,14 @@ describe('CarteMembre', () => {
       .toBe('/profil/membre-42');
   });
 
+  it('conserve le texte complet des champs tronqués dans leur infobulle', async () => {
+    const poste = 'Responsable de la transformation numérique et des plateformes distribuées';
+    fixture.componentRef.setInput('membre', membre({ posteActuel: poste }));
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('dd')?.getAttribute('title')).toBe(poste);
+  });
+
   it('affiche un organisme sans créer de lien vers un profil personnel', async () => {
     fixture.componentRef.setInput('membre', membre({
       nom: 'SunuTech', prenom: null, role: 'ORGANISME', posteActuel: 'Numérique'
