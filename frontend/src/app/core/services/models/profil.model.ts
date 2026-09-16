@@ -71,6 +71,7 @@ export interface LienOrganisme {
 export interface Experience {
   id: string;
   poste: string;
+  description: string | null;
   typeContrat: TypeContrat;
   dateDebut: string;
   dateFin: string | null;
@@ -83,6 +84,7 @@ export interface Experience {
 
 export interface ExperienceRequest extends LienOrganisme {
   poste: string;
+  description?: string | null;
   typeContrat: TypeContrat;
   dateDebut: string;
   dateFin?: string | null;

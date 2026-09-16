@@ -125,6 +125,26 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'profil/:id/experience/:parcoursId',
+        title: 'Détail de l’expérience | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        data: { typeParcours: 'experience' },
+        loadComponent: () =>
+          import('./features/profil/detail-parcours/detail-parcours').then(
+            (m) => m.DetailParcours
+          )
+      },
+      {
+        path: 'profil/:id/formation/:parcoursId',
+        title: 'Détail de la formation | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        data: { typeParcours: 'formation' },
+        loadComponent: () =>
+          import('./features/profil/detail-parcours/detail-parcours').then(
+            (m) => m.DetailParcours
+          )
+      },
+      {
         path: 'profil/:id',
         title: 'Profil membre | EPT Alumni',
         canActivate: [authGuard, changementInitialRequisGuard],

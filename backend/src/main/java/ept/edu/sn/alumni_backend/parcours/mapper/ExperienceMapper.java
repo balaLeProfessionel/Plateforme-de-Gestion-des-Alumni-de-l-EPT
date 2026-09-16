@@ -13,6 +13,7 @@ public class ExperienceMapper {
         return new ExperienceResponse(
             exp.getId(),
             exp.getPoste(),
+            exp.getDescription(),
             exp.getTypeContrat(),
             exp.getDateDebut(),
             exp.getDateFin(),
@@ -26,6 +27,7 @@ public class ExperienceMapper {
 
     public void appliquer(ExperienceProfessionelle exp, ExperienceRequest request) {
         exp.setPoste(request.poste());
+        exp.setDescription(request.description());
         exp.setTypeContrat(request.typeContrat());
         exp.setDateDebut(request.dateDebut());
         exp.setDateFin(request.dateFin());

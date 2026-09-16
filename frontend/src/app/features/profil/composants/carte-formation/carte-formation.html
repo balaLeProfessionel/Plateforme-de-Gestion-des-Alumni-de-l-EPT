@@ -77,6 +77,9 @@
       rows="3"
       class="textarea-ept"
       placeholder="Spécialité, mention, projets marquants…"></textarea>
+    @if ((formulaire.description().touched() || soumis()) && formulaire.description().invalid()) {
+      <small class="erreur-champ">{{ formulaire.description().errors()[0]?.message }}</small>
+    }
   </div>
 
   <div class="zone-message" aria-live="polite">

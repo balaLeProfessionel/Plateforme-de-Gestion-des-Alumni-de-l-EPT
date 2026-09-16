@@ -70,7 +70,7 @@ describe('ConsultationProfil', () => {
     service.obtenirProfilPublic.mockReturnValue(of({
       ...profilPublic(),
       experiences: [{
-        id: 'exp-1', poste: 'Assistant de recherche', typeContrat: 'CDD',
+        id: 'exp-1', poste: 'Assistant de recherche', description: 'Analyse de données', typeContrat: 'CDD',
         dateDebut: '2024-01-01', dateFin: null, estStage: false, enCours: true,
         organismeId: 'ept', nomOrganisme: 'École Polytechnique de Thiès (EPT)',
         etablissementEpt: true
@@ -90,6 +90,7 @@ describe('ConsultationProfil', () => {
     expect(section?.textContent).toContain('Assistant de recherche');
     expect(section?.textContent).toContain('Diplôme d ingénieur');
     expect(section?.querySelector('h4')?.getAttribute('title')).toBe('Assistant de recherche');
+    expect(section?.querySelector('a[href="/profil/membre-1/experience/exp-1"]')).not.toBeNull();
     const logo = section?.querySelector('.logo-ept') as HTMLImageElement | undefined;
     expect(logo?.getAttribute('src')).toBe('/images/logo-ept.png');
     expect(logo?.getAttribute('alt')).toBe('Logo de l’École Polytechnique de Thiès');

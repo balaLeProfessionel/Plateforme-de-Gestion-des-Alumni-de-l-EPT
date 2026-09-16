@@ -10,6 +10,21 @@
   </div>
 
   <div class="champ">
+    <label [attr.for]="cle() + '-description'">
+      Missions et réalisations <span class="optionnel">(facultatif)</span>
+    </label>
+    <textarea
+      [id]="cle() + '-description'"
+      [formField]="formulaire.description"
+      rows="4"
+      class="textarea-ept"
+      placeholder="Décrivez vos principales missions, responsabilités ou réalisations…"></textarea>
+    @if ((formulaire.description().touched() || soumis()) && formulaire.description().invalid()) {
+      <small class="erreur-champ">{{ formulaire.description().errors()[0]?.message }}</small>
+    }
+  </div>
+
+  <div class="champ">
     <app-autocomplete-organisme
       [idChamp]="cle() + '-organisme'"
       libelle="Entreprise ou organisme"

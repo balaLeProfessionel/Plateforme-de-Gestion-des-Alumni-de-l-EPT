@@ -6,15 +6,16 @@ import java.util.UUID;
 import ept.edu.sn.alumni_backend.enums.TypeFormation;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 public record FormationRequest(
-    @NotBlank String libelle,
-    String description,
+    @NotBlank @Size(max = 255) String libelle,
+    @Size(max = 2000) String description,
     @NotNull TypeFormation typeFormation,
     @NotNull LocalDate dateDebut,
     LocalDate dateFin, // null si formation en cours
     boolean estStage,
 
     UUID organismeId,
-    String nomNouvelOrganisme
+    @Size(max = 255) String nomNouvelOrganisme
 ) {}

@@ -1,5 +1,5 @@
 import { Component, computed, input, linkedSignal, output, signal } from '@angular/core';
-import { disabled, form, FormField, required } from '@angular/forms/signals';
+import { disabled, form, FormField, maxLength, required } from '@angular/forms/signals';
 import { InputText } from 'primeng/inputtext';
 import { TYPES_FORMATION } from '../../../../core/data/types-formation';
 import {
@@ -86,6 +86,8 @@ export class CarteFormation {
 
   protected readonly formulaire = form(this.modele, (champ) => {
     required(champ.libelle, { message: 'L’intitulé est obligatoire' });
+    maxLength(champ.libelle, 255, { message: 'L’intitulé ne peut pas dépasser 255 caractères' });
+    maxLength(champ.description, 2000, { message: 'La description ne peut pas dépasser 2 000 caractères' });
     required(champ.typeFormation, { message: 'Le type de formation est obligatoire' });
     required(champ.dateDebut, { message: 'La date de début est obligatoire' });
     // Une formation toujours en cours n'a pas de date de fin a saisir

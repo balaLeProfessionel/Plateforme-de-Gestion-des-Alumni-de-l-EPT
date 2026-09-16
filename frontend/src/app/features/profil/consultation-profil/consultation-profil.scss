@@ -40,8 +40,7 @@
 .sous-titre-parcours { margin: 1.4rem 0 0; color: var(--ept-text-secondary); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
 
 .liste-parcours { margin: 1rem 0 0; padding: 0; list-style: none; }
-.liste-parcours li { display: grid; grid-template-columns: auto 1fr; gap: 1rem; padding: 1.1rem 0; border-top: 1px solid var(--ept-border); }
-.liste-parcours li > div:last-child { min-width: 0; }
+.liste-parcours li { border-top: 1px solid var(--ept-border); }
 .icone-parcours { width: 2.5rem; height: 2.5rem; display: grid; place-items: center; background: var(--ept-primary-light); color: var(--ept-primary); }
 .liste-parcours h3, .liste-parcours h4, .liste-parcours p { margin: 0; }
 .liste-parcours h3, .liste-parcours h4, .organisme, .description { display: -webkit-box; overflow: hidden; overflow-wrap: anywhere; -webkit-box-orient: vertical; }

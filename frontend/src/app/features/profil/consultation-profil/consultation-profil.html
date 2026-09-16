@@ -85,12 +85,16 @@
               <ul class="liste-parcours">
                 @for (experience of experiencesEpt(); track experience.id) {
                   <li>
-                    <div class="icone-parcours"><i class="pi pi-briefcase" aria-hidden="true"></i></div>
-                    <div>
-                      <h4 [attr.title]="experience.poste">{{ experience.poste }}</h4>
-                      <p class="organisme" [attr.title]="experience.nomOrganisme">{{ experience.nomOrganisme }}</p>
-                      <p class="meta">{{ libelleContrat(experience.typeContrat) }} · {{ periode(experience) }}</p>
-                    </div>
+                    <a class="lien-parcours" [routerLink]="['/profil', membre.id, 'experience', experience.id]"
+                      [attr.aria-label]="'Voir les détails de l’expérience ' + experience.poste">
+                      <div class="icone-parcours"><i class="pi pi-briefcase" aria-hidden="true"></i></div>
+                      <div>
+                        <h4 [attr.title]="experience.poste">{{ experience.poste }}</h4>
+                        <p class="organisme" [attr.title]="experience.nomOrganisme">{{ experience.nomOrganisme }}</p>
+                        <p class="meta">{{ libelleContrat(experience.typeContrat) }} · {{ periode(experience) }}</p>
+                      </div>
+                      <i class="pi pi-chevron-right indicateur-detail" aria-hidden="true"></i>
+                    </a>
                   </li>
                 }
               </ul>
@@ -101,15 +105,19 @@
               <ul class="liste-parcours">
                 @for (formation of formationsEpt(); track formation.id) {
                   <li>
-                    <div class="icone-parcours"><i class="pi pi-graduation-cap" aria-hidden="true"></i></div>
-                    <div>
-                      <h4 [attr.title]="formation.libelle">{{ formation.libelle }}</h4>
-                      <p class="organisme" [attr.title]="formation.nomOrganisme">{{ formation.nomOrganisme }}</p>
-                      <p class="meta">{{ libelleFormation(formation.typeFormation) }} · {{ periode(formation) }}</p>
-                      @if (formation.description) {
-                        <p class="description" [attr.title]="formation.description">{{ formation.description }}</p>
-                      }
-                    </div>
+                    <a class="lien-parcours" [routerLink]="['/profil', membre.id, 'formation', formation.id]"
+                      [attr.aria-label]="'Voir les détails de la formation ' + formation.libelle">
+                      <div class="icone-parcours"><i class="pi pi-graduation-cap" aria-hidden="true"></i></div>
+                      <div>
+                        <h4 [attr.title]="formation.libelle">{{ formation.libelle }}</h4>
+                        <p class="organisme" [attr.title]="formation.nomOrganisme">{{ formation.nomOrganisme }}</p>
+                        <p class="meta">{{ libelleFormation(formation.typeFormation) }} · {{ periode(formation) }}</p>
+                        @if (formation.description) {
+                          <p class="description" [attr.title]="formation.description">{{ formation.description }}</p>
+                        }
+                      </div>
+                      <i class="pi pi-chevron-right indicateur-detail" aria-hidden="true"></i>
+                    </a>
                   </li>
                 }
               </ul>
@@ -127,12 +135,16 @@
               <ul class="liste-parcours">
                 @for (experience of experiencesHorsEpt(); track experience.id) {
                   <li>
-                    <div class="icone-parcours"><i class="pi pi-briefcase" aria-hidden="true"></i></div>
-                    <div>
-                      <h3 [attr.title]="experience.poste">{{ experience.poste }}</h3>
-                      <p class="organisme" [attr.title]="experience.nomOrganisme">{{ experience.nomOrganisme }}</p>
-                      <p class="meta">{{ libelleContrat(experience.typeContrat) }} · {{ periode(experience) }}</p>
-                    </div>
+                    <a class="lien-parcours" [routerLink]="['/profil', membre.id, 'experience', experience.id]"
+                      [attr.aria-label]="'Voir les détails de l’expérience ' + experience.poste">
+                      <div class="icone-parcours"><i class="pi pi-briefcase" aria-hidden="true"></i></div>
+                      <div>
+                        <h3 [attr.title]="experience.poste">{{ experience.poste }}</h3>
+                        <p class="organisme" [attr.title]="experience.nomOrganisme">{{ experience.nomOrganisme }}</p>
+                        <p class="meta">{{ libelleContrat(experience.typeContrat) }} · {{ periode(experience) }}</p>
+                      </div>
+                      <i class="pi pi-chevron-right indicateur-detail" aria-hidden="true"></i>
+                    </a>
                   </li>
                 }
               </ul>
@@ -152,15 +164,19 @@
               <ul class="liste-parcours">
                 @for (formation of formationsHorsEpt(); track formation.id) {
                   <li>
-                    <div class="icone-parcours"><i class="pi pi-graduation-cap" aria-hidden="true"></i></div>
-                    <div>
-                      <h3 [attr.title]="formation.libelle">{{ formation.libelle }}</h3>
-                      <p class="organisme" [attr.title]="formation.nomOrganisme">{{ formation.nomOrganisme }}</p>
-                      <p class="meta">{{ libelleFormation(formation.typeFormation) }} · {{ periode(formation) }}</p>
-                      @if (formation.description) {
-                        <p class="description" [attr.title]="formation.description">{{ formation.description }}</p>
-                      }
-                    </div>
+                    <a class="lien-parcours" [routerLink]="['/profil', membre.id, 'formation', formation.id]"
+                      [attr.aria-label]="'Voir les détails de la formation ' + formation.libelle">
+                      <div class="icone-parcours"><i class="pi pi-graduation-cap" aria-hidden="true"></i></div>
+                      <div>
+                        <h3 [attr.title]="formation.libelle">{{ formation.libelle }}</h3>
+                        <p class="organisme" [attr.title]="formation.nomOrganisme">{{ formation.nomOrganisme }}</p>
+                        <p class="meta">{{ libelleFormation(formation.typeFormation) }} · {{ periode(formation) }}</p>
+                        @if (formation.description) {
+                          <p class="description" [attr.title]="formation.description">{{ formation.description }}</p>
+                        }
+                      </div>
+                      <i class="pi pi-chevron-right indicateur-detail" aria-hidden="true"></i>
+                    </a>
                   </li>
                 }
               </ul>

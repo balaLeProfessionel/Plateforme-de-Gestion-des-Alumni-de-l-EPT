@@ -1,5 +1,5 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withInMemoryScrolling } from '@angular/router';
 
 import { providePrimeNG } from 'primeng/config';
 
@@ -12,7 +12,10 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withInterceptors([jwtInterceptor])),
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
+    provideRouter(routes, withInMemoryScrolling({
+      scrollPositionRestoration: 'enabled',
+      anchorScrolling: 'enabled'
+    })),
     providePrimeNG({
             theme: {
                 preset: EptPreset,

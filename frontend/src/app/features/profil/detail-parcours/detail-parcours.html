@@ -1,0 +1,73 @@
+<main class="page-detail" aria-live="polite" [attr.aria-busy]="enChargement()">
+  @if (enChargement()) {
+    <div class="squelette" aria-hidden="true"></div>
+  } @else if (messageErreur() && !item()) {
+    <section class="etat-centre">
+      <i class="pi pi-folder-open" aria-hidden="true"></i>
+      <h1>Parcours indisponible</h1>
+      <p>{{ messageErreur() }}</p>
+      <a [routerLink]="lienRetour()">Retourner au profil</a>
+    </section>
+  } @else if (item(); as parcours) {
+    <a class="retour" [routerLink]="lienRetour()">
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>Retour au profil
+    </a>
+
+    <article class="fiche" [class.fiche-ept]="estEpt()">
+      <header class="entete-detail">
+        <div>
+          <p class="sur-titre">{{ type === 'experience' ? 'Expérience professionnelle' : 'Formation' }}</p>
+          <h1>{{ titre() }}</h1>
+          <p class="organisme">{{ parcours.nomOrganisme }}</p>
+        </div>
+        @if (estEpt()) {
+          <div class="marque-ept">
+            <img src="/images/logo-ept.png" alt="Logo de l’École Polytechnique de Thiès"
+              width="400" height="400" />
+            <span>Parcours à l’EPT</span>
+          </div>
+        }
+      </header>
+
+      <dl class="informations">
+        <div>
+          <dt>{{ type === 'experience' ? 'Entreprise ou organisme' : 'École ou établissement' }}</dt>
+          <dd>{{ parcours.nomOrganisme }}</dd>
+        </div>
+        <div><dt>Type</dt><dd>{{ libelleType() }}</dd></div>
+        <div><dt>Période</dt><dd>{{ periode() }}</dd></div>
+        <div><dt>Statut</dt><dd>{{ parcours.enCours ? 'En cours' : 'Terminé' }}</dd></div>
+        <div>
+          <dt>{{ type === 'experience' ? 'Stage' : 'Alternance ou stage' }}</dt>
+          <dd>{{ parcours.estStage ? 'Oui' : 'Non' }}</dd>
+        </div>
+      </dl>
+
+      <section class="description-detail">
+        <h2>{{ type === 'experience' ? 'Missions et réalisations' : 'Description' }}</h2>
+        @if (description()) {
+          <p>{{ description() }}</p>
+        } @else {
+          <p class="non-renseigne">Aucune description renseignée.</p>
+        }
+      </section>
+
+      @if (estProprietaire()) {
+        <footer class="actions">
+          <a class="modifier" [routerLink]="lienModification()">
+            <i class="pi pi-pencil" aria-hidden="true"></i>Modifier
+          </a>
+          @if (confirmeSuppression()) {
+            <p>Supprimer définitivement cet élément du parcours ?</p>
+            <button type="button" class="danger" (click)="supprimer()" [disabled]="enSuppression()">
+              {{ enSuppression() ? 'Suppression…' : 'Confirmer la suppression' }}
+            </button>
+            <button type="button" class="secondaire" (click)="annulerSuppression()">Annuler</button>
+          } @else {
+            <button type="button" class="secondaire" (click)="demanderSuppression()">Supprimer</button>
+          }
+        </footer>
+      }
+    </article>
+  }
+</main>

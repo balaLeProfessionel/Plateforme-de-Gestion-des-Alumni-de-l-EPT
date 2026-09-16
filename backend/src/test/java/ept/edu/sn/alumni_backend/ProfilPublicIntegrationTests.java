@@ -66,6 +66,7 @@ class ProfilPublicIntegrationTests {
 
         ExperienceProfessionelle experience = new ExperienceProfessionelle();
         experience.setPoste("Ingénieur logiciel");
+        experience.setDescription("Conception et mise en production de services numériques.");
         experience.setTypeContrat(TypeContrat.CDI);
         experience.setDateDebut(LocalDate.of(2024, 1, 1));
         experience.setUtilisateur(membre);
@@ -85,6 +86,8 @@ class ProfilPublicIntegrationTests {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.prenom").value("Ibrahima"))
             .andExpect(jsonPath("$.experiences[0].poste").value("Ingénieur logiciel"))
+            .andExpect(jsonPath("$.experiences[0].description").value(
+                "Conception et mise en production de services numériques."))
             .andExpect(jsonPath("$.experiences[0].etablissementEpt").value(true))
             .andExpect(jsonPath("$.formations[0].libelle").value("Diplôme d'ingénieur"))
             .andExpect(jsonPath("$.formations[0].etablissementEpt").value(true))

@@ -71,6 +71,29 @@
   }
 }
 
+.textarea-ept {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--ept-border);
+  border-radius: var(--ept-radius-sm);
+  background: var(--ept-surface);
+  color: var(--ept-text);
+  font-family: var(--ept-font-body);
+  font-size: 0.95rem;
+  resize: vertical;
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-primary);
+    outline-offset: 1px;
+    border-color: var(--ept-primary);
+  }
+}
+
+.optionnel {
+  color: var(--ept-text-secondary);
+  font-weight: 400;
+}
+
 .erreur-champ {
   color: var(--ept-error);
   font-size: 0.8rem;
