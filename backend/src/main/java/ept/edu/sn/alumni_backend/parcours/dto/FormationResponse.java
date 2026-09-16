@@ -15,5 +15,6 @@ public record FormationResponse(
     boolean estStage,
     boolean enCours,
     UUID organismeId,
-    String nomOrganisme
+    String nomOrganisme,
+    boolean etablissementEpt
 ) {}

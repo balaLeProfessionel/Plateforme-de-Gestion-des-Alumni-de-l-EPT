@@ -53,6 +53,22 @@ export class ConsultationProfil {
     return Boolean(profil?.lienLinkedin || profil?.lienPortfolio);
   });
 
+  protected readonly experiencesEpt = computed(() =>
+    this.profil()?.experiences.filter((experience) => experience.etablissementEpt) ?? []
+  );
+  protected readonly formationsEpt = computed(() =>
+    this.profil()?.formations.filter((formation) => formation.etablissementEpt) ?? []
+  );
+  protected readonly experiencesHorsEpt = computed(() =>
+    this.profil()?.experiences.filter((experience) => !experience.etablissementEpt) ?? []
+  );
+  protected readonly formationsHorsEpt = computed(() =>
+    this.profil()?.formations.filter((formation) => !formation.etablissementEpt) ?? []
+  );
+  protected readonly aParcoursEpt = computed(() =>
+    this.experiencesEpt().length > 0 || this.formationsEpt().length > 0
+  );
+
   constructor() {
     this.route.paramMap.pipe(
       tap(() => {

@@ -14,4 +14,6 @@ public interface OrganismeRepository extends JpaRepository<Organisme, UUID> {
     List<Organisme> findByNomContainingIgnoreCase(String nom);
 
     Optional<Organisme> findByNomIgnoreCase(String nom);
+
+    Optional<Organisme> findFirstByEtablissementEptTrue();
 }

@@ -42,6 +42,7 @@ public class Organisme {
     private String trancheEffectif; // ex: "1-10", "11-50", "50-200", "200+"
     private LocalDate dateCreation;
     private String pays;
+    private boolean etablissementEpt;
     @Enumerated(EnumType.STRING)
     private StatutCompte statutValidation = StatutCompte.EN_ATTENTE;
     

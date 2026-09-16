@@ -1,6 +1,9 @@
 package ept.edu.sn.alumni_backend.organisme.service;
 
+import java.text.Normalizer;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -17,6 +20,13 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class OrganismeService {
+    private static final Set<String> NOMS_EPT = Set.of(
+        "ept",
+        "ecole polytechnique de thies",
+        "ecole polytechnique thies",
+        "ecole polytechnique de thies ept"
+    );
+
     private final OrganismeRepository organismeRepository;
 
     @Transactional
@@ -62,6 +72,10 @@ public class OrganismeService {
         // Cas 2 : l'utilisateur a saisi un nom libre
         if (nomNouvelOrganisme != null && !nomNouvelOrganisme.isBlank()) {
             String nom = nomNouvelOrganisme.trim();
+            if (NOMS_EPT.contains(normaliserNom(nom))) {
+                return organismeRepository.findFirstByEtablissementEptTrue()
+                    .orElseThrow(() -> new IllegalStateException("L'organisme officiel de l'EPT est introuvable"));
+            }
             // On évite les doublons : si le nom correspond déjà à un organisme
             // (insensible à la casse), on le réutilise plutôt que d'en créer un autre
             return organismeRepository.findByNomIgnoreCase(nom)
@@ -73,5 +87,13 @@ public class OrganismeService {
                 });
         }
         throw new IllegalArgumentException("Un organisme (existant ou nouveau) est obligatoire");
+    }
+
+    private String normaliserNom(String valeur) {
+        return Normalizer.normalize(valeur, Normalizer.Form.NFD)
+            .replaceAll("\\p{M}", "")
+            .replaceAll("[^a-zA-Z0-9]+", " ")
+            .trim()
+            .toLowerCase(Locale.ROOT);
     }
 }

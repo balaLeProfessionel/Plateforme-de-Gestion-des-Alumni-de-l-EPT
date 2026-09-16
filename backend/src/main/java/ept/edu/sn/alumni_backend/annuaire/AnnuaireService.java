@@ -32,7 +32,7 @@ public class AnnuaireService {
             int page,
             int taille,
             AnnuaireTri tri) {
-        if (role != null && !MembreVisibilite.ROLES_VISIBLES.contains(role)) {
+        if (role != null && !MembreVisibilite.ROLES_ANNUAIRE.contains(role)) {
             throw new IllegalArgumentException("Ce rôle n'est pas disponible dans l'annuaire");
         }
 
@@ -62,6 +62,7 @@ public class AnnuaireService {
             specification = specification.and((racine, requete, cb) -> cb.or(
                 cb.like(cb.lower(racine.get("nom")), motif),
                 cb.like(cb.lower(racine.get("prenom")), motif),
+                cb.like(cb.lower(racine.join("organisme", jakarta.persistence.criteria.JoinType.LEFT).get("nom")), motif),
                 cb.like(
                     cb.lower(cb.concat(cb.concat(racine.get("prenom"), " "), racine.get("nom"))),
                     motif

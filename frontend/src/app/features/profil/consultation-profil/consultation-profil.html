@@ -62,15 +62,60 @@
           </section>
         }
 
-        @if (membre.experiences.length > 0 || estMonProfil()) {
+        @if (aParcoursEpt()) {
+          <section class="section-profil parcours-ept">
+            <div class="titre-parcours-ept">
+              <div>
+                <p class="sur-titre-ept">École Polytechnique de Thiès</p>
+                <h2>Parcours à l’EPT</h2>
+              </div>
+              <span>EPT</span>
+            </div>
+
+            @if (experiencesEpt().length > 0) {
+              <h3 class="sous-titre-parcours">Expériences</h3>
+              <ul class="liste-parcours">
+                @for (experience of experiencesEpt(); track experience.id) {
+                  <li>
+                    <div class="icone-parcours"><i class="pi pi-briefcase" aria-hidden="true"></i></div>
+                    <div>
+                      <h4>{{ experience.poste }}</h4>
+                      <p class="organisme">{{ experience.nomOrganisme }}</p>
+                      <p class="meta">{{ libelleContrat(experience.typeContrat) }} · {{ periode(experience) }}</p>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+
+            @if (formationsEpt().length > 0) {
+              <h3 class="sous-titre-parcours">Formations</h3>
+              <ul class="liste-parcours">
+                @for (formation of formationsEpt(); track formation.id) {
+                  <li>
+                    <div class="icone-parcours"><i class="pi pi-graduation-cap" aria-hidden="true"></i></div>
+                    <div>
+                      <h4>{{ formation.libelle }}</h4>
+                      <p class="organisme">{{ formation.nomOrganisme }}</p>
+                      <p class="meta">{{ libelleFormation(formation.typeFormation) }} · {{ periode(formation) }}</p>
+                      @if (formation.description) { <p class="description">{{ formation.description }}</p> }
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+        }
+
+        @if (experiencesHorsEpt().length > 0 || estMonProfil()) {
           <section class="section-profil">
             <div class="titre-section">
               <h2>Expériences professionnelles</h2>
               @if (estMonProfil()) { <a routerLink="/completer-profil/experiences">Gérer</a> }
             </div>
-            @if (membre.experiences.length > 0) {
+            @if (experiencesHorsEpt().length > 0) {
               <ul class="liste-parcours">
-                @for (experience of membre.experiences; track experience.id) {
+                @for (experience of experiencesHorsEpt(); track experience.id) {
                   <li>
                     <div class="icone-parcours"><i class="pi pi-briefcase" aria-hidden="true"></i></div>
                     <div>
@@ -87,15 +132,15 @@
           </section>
         }
 
-        @if (membre.formations.length > 0 || estMonProfil()) {
+        @if (formationsHorsEpt().length > 0 || estMonProfil()) {
           <section class="section-profil">
             <div class="titre-section">
               <h2>Formations</h2>
               @if (estMonProfil()) { <a routerLink="/completer-profil/formations">Gérer</a> }
             </div>
-            @if (membre.formations.length > 0) {
+            @if (formationsHorsEpt().length > 0) {
               <ul class="liste-parcours">
-                @for (formation of membre.formations; track formation.id) {
+                @for (formation of formationsHorsEpt(); track formation.id) {
                   <li>
                     <div class="icone-parcours"><i class="pi pi-graduation-cap" aria-hidden="true"></i></div>
                     <div>
@@ -125,7 +170,7 @@
         <section class="section-profil informations">
           <h2>Informations</h2>
           <dl>
-            <div><dt>Rôle</dt><dd>{{ badgeRole() }}</dd></div>
+            <div><dt>Type de membre</dt><dd>{{ badgeRole() }}</dd></div>
             @if (membre.villeResidence) { <div><dt>Ville</dt><dd>{{ membre.villeResidence }}</dd></div> }
             @if (membre.filiere) { <div><dt>Filière</dt><dd>{{ membre.filiere }}</dd></div> }
             @if (membre.anneeSortie) { <div><dt>Promotion</dt><dd>{{ membre.anneeSortie }}</dd></div> }

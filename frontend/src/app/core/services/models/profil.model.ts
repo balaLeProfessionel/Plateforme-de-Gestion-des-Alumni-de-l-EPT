@@ -78,6 +78,7 @@ export interface Experience {
   enCours: boolean;
   organismeId: string;
   nomOrganisme: string;
+  etablissementEpt: boolean;
 }
 
 export interface ExperienceRequest extends LienOrganisme {
@@ -101,6 +102,7 @@ export interface Formation {
   enCours: boolean;
   organismeId: string;
   nomOrganisme: string;
+  etablissementEpt: boolean;
 }
 
 export interface FormationRequest extends LienOrganisme {

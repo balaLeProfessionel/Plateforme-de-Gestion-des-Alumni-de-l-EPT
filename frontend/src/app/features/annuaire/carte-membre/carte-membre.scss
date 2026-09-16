@@ -13,6 +13,7 @@
 }
 
 .carte:hover { border-color: #9babb5; box-shadow: 0 8px 24px rgba(1, 46, 69, 0.08); transform: translateY(-2px); }
+.carte-organisme { border-top: 3px solid var(--ept-primary); }
 .identite { min-height: 7.25rem; display: flex; align-items: flex-start; gap: 1rem; }
 
 .avatar {

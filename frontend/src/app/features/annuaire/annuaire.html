@@ -3,8 +3,8 @@
     <div>
       <p class="sur-titre">Réseau EPT</p>
       <h1>Annuaire des membres</h1>
-      <p class="introduction">Retrouvez les étudiants, alumni, personnels et visiteurs du réseau,
-        et développez vos relations professionnelles.</p>
+      <p class="introduction">Découvrez en priorité les alumni de l’EPT, puis élargissez votre recherche
+        à l’ensemble du réseau.</p>
     </div>
     @if (resultat(); as pageAnnuaire) {
       <div class="compteur" aria-label="Nombre de membres trouvés">
@@ -14,14 +14,25 @@
     }
   </header>
 
+  <nav class="portee-annuaire" aria-label="Choisir les personnes affichées">
+    <button type="button" [class.active]="modele().role === 'ALUMNI'"
+      [attr.aria-pressed]="modele().role === 'ALUMNI'" (click)="changerPortee('ALUMNI')">
+      Alumni
+    </button>
+    <button type="button" [class.active]="modele().role === 'TOUS'"
+      [attr.aria-pressed]="modele().role === 'TOUS'" (click)="changerPortee('TOUS')">
+      Tous les membres
+    </button>
+  </nav>
+
   <form class="filtres" role="search" (submit)="$event.preventDefault(); appliquerFiltres()">
     <div class="ligne-recherche">
       <div class="recherche filtre-recherche">
-        <label for="recherche">Nom ou prénom</label>
+        <label for="recherche">Nom, prénom ou organisme</label>
         <div class="champ-avec-icone">
           <i class="pi pi-search" aria-hidden="true"></i>
           <input id="recherche" type="search" [formField]="formulaire.recherche"
-            placeholder="Rechercher un membre" />
+            placeholder="Rechercher dans le réseau" />
         </div>
       </div>
       <button type="submit" class="rechercher">Rechercher</button>
@@ -34,7 +45,7 @@
           @if (nombreFiltresActifs() > 0) {
             {{ nombreFiltresActifs() }} {{ nombreFiltresActifs() > 1 ? 'filtres actifs' : 'filtre actif' }}
           } @else {
-            Rôle, filière, promotion, ville et tri
+            Type de membre, filière, promotion, ville et tri
           }
         </span>
         <i class="pi pi-chevron-down chevron" aria-hidden="true"></i>
@@ -42,11 +53,12 @@
 
       <div class="grille-filtres">
         <div>
-          <label for="role">Rôle</label>
+          <label for="role">Type de membre</label>
           <select id="role" [formField]="formulaire.role">
-            <option value="">Tous les rôles</option>
-            <option value="ETUDIANT">Étudiants</option>
             <option value="ALUMNI">Alumni</option>
+            <option value="TOUS">Tous les membres</option>
+            <option value="ORGANISME">Organismes</option>
+            <option value="ETUDIANT">Étudiants</option>
             <option value="PERSONNEL">Personnel</option>
             <option value="VISITEUR">Visiteurs</option>
           </select>

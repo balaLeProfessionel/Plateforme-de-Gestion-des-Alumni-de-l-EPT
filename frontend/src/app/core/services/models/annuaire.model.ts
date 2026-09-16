@@ -1,10 +1,11 @@
-export type RoleAnnuaire = 'ETUDIANT' | 'ALUMNI' | 'PERSONNEL' | 'VISITEUR';
+export type RoleAnnuaire = 'ETUDIANT' | 'ALUMNI' | 'PERSONNEL' | 'VISITEUR' | 'ORGANISME';
+export type TypeMembreAnnuaire = RoleAnnuaire | 'TOUS';
 export type TriAnnuaire = 'ALPHABETIQUE' | 'PROMOTION_DESC';
 
 export interface AnnuaireMembre {
   id: string;
   nom: string;
-  prenom: string;
+  prenom: string | null;
   role: RoleAnnuaire;
   statutCompte: 'ACTIF' | 'EN_ATTENTE';
   urlPhoto: string | null;
@@ -24,7 +25,7 @@ export interface PageAnnuaire {
 
 export interface FiltresAnnuaire {
   recherche: string;
-  role: RoleAnnuaire | '';
+  role: TypeMembreAnnuaire;
   filiere: string;
   promotion: string;
   ville: string;

@@ -14,7 +14,7 @@ export class AnnuaireService {
 
     for (const [cle, valeur] of Object.entries({
       recherche: filtres.recherche.trim(),
-      role: filtres.role,
+      role: filtres.role === 'TOUS' ? '' : filtres.role,
       filiere: filtres.filiere,
       promotion: filtres.promotion,
       ville: filtres.ville.trim()

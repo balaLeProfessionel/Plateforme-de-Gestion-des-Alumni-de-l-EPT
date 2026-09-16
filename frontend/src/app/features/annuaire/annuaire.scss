@@ -28,6 +28,19 @@
   span { font-size: 0.75rem; text-transform: uppercase; }
 }
 
+.portee-annuaire {
+  display: inline-flex;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+  padding: 0.3rem;
+  border: 1px solid var(--ept-border);
+  background: #f8fafb;
+
+  button { min-height: 2.7rem; padding: 0.55rem 1.1rem; border: 0; background: transparent; color: var(--ept-primary); font: inherit; font-weight: 700; cursor: pointer; }
+  button.active { background: var(--ept-primary); color: white; }
+  button:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+}
+
 .filtres {
   padding: 1.5rem 0 2rem;
   border-top: 1px solid var(--ept-border);

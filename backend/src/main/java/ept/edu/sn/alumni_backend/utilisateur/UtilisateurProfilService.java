@@ -29,7 +29,7 @@ public class UtilisateurProfilService {
     @Transactional(readOnly = true)
     public ProfilPublicResponse obtenirProfilPublic(UUID id) {
         Utilisateur utilisateur = utilisateurRepository.findOne(
-            MembreVisibilite.visibleDansAnnuaire().and(
+            MembreVisibilite.profilPublicVisible().and(
                 (racine, requete, cb) -> cb.equal(racine.get("id"), id)
             )
         ).orElseThrow(ProfilIntrouvableException::new);

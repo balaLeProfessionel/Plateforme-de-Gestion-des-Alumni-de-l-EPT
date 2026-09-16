@@ -20,7 +20,8 @@ public class FormationMapper {
             formation.isEstStage(),
             formation.getDateFin() == null,
             formation.getOrganisme().getId(),
-            formation.getOrganisme().getNom()
+            formation.getOrganisme().getNom(),
+            formation.getOrganisme().isEtablissementEpt()
         );
     }
 

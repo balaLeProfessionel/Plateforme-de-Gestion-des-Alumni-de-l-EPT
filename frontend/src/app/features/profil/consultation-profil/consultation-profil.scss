@@ -31,11 +31,17 @@
 .titre-section { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .titre-section a { color: var(--ept-primary); font-weight: 700; text-decoration: none; }
 
+.parcours-ept { border-color: #b9dce8; border-top: 4px solid var(--ept-primary); background: #f6fbfd; }
+.titre-parcours-ept { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.titre-parcours-ept > span { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 50%; background: var(--ept-primary); color: white; font-family: var(--ept-font-heading); font-weight: 800; }
+.sur-titre-ept { margin: 0 0 0.25rem; color: var(--ept-primary); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.sous-titre-parcours { margin: 1.4rem 0 0; color: var(--ept-text-secondary); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
+
 .liste-parcours { margin: 1rem 0 0; padding: 0; list-style: none; }
 .liste-parcours li { display: grid; grid-template-columns: auto 1fr; gap: 1rem; padding: 1.1rem 0; border-top: 1px solid var(--ept-border); }
 .icone-parcours { width: 2.5rem; height: 2.5rem; display: grid; place-items: center; background: var(--ept-primary-light); color: var(--ept-primary); }
-.liste-parcours h3, .liste-parcours p { margin: 0; }
-.liste-parcours h3 { font-size: 1rem; }
+.liste-parcours h3, .liste-parcours h4, .liste-parcours p { margin: 0; }
+.liste-parcours h3, .liste-parcours h4 { font-size: 1rem; }
 .organisme { margin-top: 0.25rem !important; color: var(--ept-primary); font-weight: 600; }
 .meta { margin-top: 0.25rem !important; color: var(--ept-text-secondary); font-size: 0.85rem; }
 .description { margin-top: 0.7rem !important; color: var(--ept-text-secondary); line-height: 1.55; }

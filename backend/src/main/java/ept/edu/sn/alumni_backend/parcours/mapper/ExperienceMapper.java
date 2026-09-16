@@ -19,7 +19,8 @@ public class ExperienceMapper {
             exp.isEstStage(),
             exp.getDateFin() == null,
             exp.getOrganisme().getId(),
-            exp.getOrganisme().getNom()
+            exp.getOrganisme().getNom(),
+            exp.getOrganisme().isEtablissementEpt()
         );
     }
 

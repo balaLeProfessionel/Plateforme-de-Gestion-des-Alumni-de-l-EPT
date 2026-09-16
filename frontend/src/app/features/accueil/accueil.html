@@ -3,7 +3,7 @@
     <div>
       <h1>Bienvenue {{ authService.utilisateur()?.prenom }} !</h1>
       <p class="infos">
-        Connecté en tant que {{ authService.utilisateur()?.role }}
+        Type de membre : {{ typeMembre() }}
         @if (authService.utilisateur()?.statutCompte === 'EN_ATTENTE') {
           <span class="badge-attente">Profil en cours de vérification</span>
         }

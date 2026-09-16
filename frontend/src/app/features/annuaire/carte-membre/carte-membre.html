@@ -1,6 +1,17 @@
-<a class="carte-lien" [routerLink]="['/profil', membre().id]"
-  [attr.aria-label]="'Consulter le profil de ' + membre().prenom + ' ' + membre().nom">
-<article class="carte">
+@if (estOrganisme()) {
+  <article class="carte carte-organisme">
+    <ng-container [ngTemplateOutlet]="contenuCarte" />
+  </article>
+} @else {
+  <a class="carte-lien" [routerLink]="['/profil', membre().id]"
+    [attr.aria-label]="'Consulter le profil de ' + nomAffiche()">
+    <article class="carte">
+      <ng-container [ngTemplateOutlet]="contenuCarte" />
+    </article>
+  </a>
+}
+
+<ng-template #contenuCarte>
   <div class="identite">
     <div class="avatar" aria-hidden="true">
       @if (membre().urlPhoto && !imageInvalide()) {
@@ -11,7 +22,7 @@
     </div>
 
     <div class="nom-et-badge">
-      <h2>{{ membre().prenom }} {{ membre().nom }}</h2>
+      <h2>{{ nomAffiche() }}</h2>
       @if (membre().anneeSortie || membre().filiere) {
         <p class="parcours">
           <i class="pi pi-graduation-cap" aria-hidden="true"></i>
@@ -30,17 +41,16 @@
 
   <dl>
     <div>
-      <dt>Poste</dt>
+      <dt>{{ estOrganisme() ? 'Secteur' : 'Poste' }}</dt>
       <dd [class.non-renseigne]="!membre().posteActuel">
         {{ membre().posteActuel || 'Non renseigné' }}
       </dd>
     </div>
     <div>
-      <dt>Ville</dt>
+      <dt>Localisation</dt>
       <dd [class.non-renseigne]="!membre().villeResidence">
         {{ membre().villeResidence || 'Non renseignée' }}
       </dd>
     </div>
   </dl>
-</article>
-</a>
+</ng-template>

@@ -9,7 +9,7 @@ import { AnnuaireService } from '../../core/services/annuaire/annuaire';
 import {
   FiltresAnnuaire,
   PageAnnuaire,
-  RoleAnnuaire,
+  TypeMembreAnnuaire,
   TriAnnuaire
 } from '../../core/services/models/annuaire.model';
 import { CarteMembre } from './carte-membre/carte-membre';
@@ -30,7 +30,7 @@ export class Annuaire {
   protected readonly filieres = FILIERES;
   protected readonly modele = signal({
     recherche: '',
-    role: '',
+    role: 'ALUMNI' as TypeMembreAnnuaire,
     filiere: '',
     promotion: '',
     ville: '',
@@ -46,7 +46,7 @@ export class Annuaire {
   protected readonly messageErreur = signal<string | null>(null);
   protected readonly nombreFiltresActifs = computed(() => {
     const valeurs = this.modele();
-    return [valeurs.role, valeurs.filiere, valeurs.promotion, valeurs.ville]
+    return [valeurs.role !== 'ALUMNI' ? valeurs.role : '', valeurs.filiere, valeurs.promotion, valeurs.ville]
       .filter((valeur) => valeur.trim() !== '').length
       + (valeurs.tri === 'PROMOTION_DESC' ? 1 : 0);
   });
@@ -107,6 +107,17 @@ export class Annuaire {
     this.router.navigate([], { relativeTo: this.route, queryParams: {} });
   }
 
+  protected changerPortee(role: 'ALUMNI' | 'TOUS'): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: this.parametresNonVides({
+        ...this.modele(),
+        role,
+        page: 0
+      })
+    });
+  }
+
   protected changerPage(page: number): void {
     const resultat = this.resultat();
     if (!resultat || page < 0 || page >= resultat.totalPages || page === resultat.page) {
@@ -127,7 +138,7 @@ export class Annuaire {
     const tri = params.get('tri');
     return {
       recherche: params.get('recherche') ?? '',
-      role: this.estRole(role) ? role : '',
+      role: this.estTypeMembre(role) ? role : 'ALUMNI',
       filiere: params.get('filiere') ?? '',
       promotion: params.get('promotion') ?? '',
       ville: params.get('ville') ?? '',
@@ -166,8 +177,8 @@ export class Annuaire {
     return params;
   }
 
-  private estRole(role: string | null): role is RoleAnnuaire {
-    return ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'].includes(role ?? '');
+  private estTypeMembre(role: string | null): role is TypeMembreAnnuaire {
+    return ['TOUS', 'ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR', 'ORGANISME'].includes(role ?? '');
   }
 
   private entierPositif(valeur: string | null, valeurParDefaut: number): number {

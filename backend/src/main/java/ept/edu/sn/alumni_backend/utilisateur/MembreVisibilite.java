@@ -9,11 +9,18 @@ import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 
 public final class MembreVisibilite {
-    public static final Set<TypeRole> ROLES_VISIBLES = Set.copyOf(EnumSet.of(
+    public static final Set<TypeRole> ROLES_PROFIL_PUBLIC = Set.copyOf(EnumSet.of(
         TypeRole.ETUDIANT,
         TypeRole.ALUMNI,
         TypeRole.PERSONNEL,
         TypeRole.VISITEUR
+    ));
+    public static final Set<TypeRole> ROLES_ANNUAIRE = Set.copyOf(EnumSet.of(
+        TypeRole.ETUDIANT,
+        TypeRole.ALUMNI,
+        TypeRole.PERSONNEL,
+        TypeRole.VISITEUR,
+        TypeRole.ORGANISME
     ));
 
     private MembreVisibilite() {
@@ -23,7 +30,19 @@ public final class MembreVisibilite {
         return (racine, requete, cb) -> cb.and(
             cb.isTrue(racine.get("emailVerifie")),
             racine.get("statutCompte").in(StatutCompte.ACTIF, StatutCompte.EN_ATTENTE),
-            racine.get("role").in(ROLES_VISIBLES)
+            racine.get("role").in(ROLES_ANNUAIRE),
+            cb.or(
+                cb.notEqual(racine.get("role"), TypeRole.ORGANISME),
+                cb.isNotNull(racine.get("organisme"))
+            )
+        );
+    }
+
+    public static Specification<Utilisateur> profilPublicVisible() {
+        return (racine, requete, cb) -> cb.and(
+            cb.isTrue(racine.get("emailVerifie")),
+            racine.get("statutCompte").in(StatutCompte.ACTIF, StatutCompte.EN_ATTENTE),
+            racine.get("role").in(ROLES_PROFIL_PUBLIC)
         );
     }
 }
