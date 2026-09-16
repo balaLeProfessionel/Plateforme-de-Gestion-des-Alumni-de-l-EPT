@@ -49,7 +49,9 @@ describe('DetailParcours', () => {
     expect(contenu).toContain('Conception de services accessibles');
     expect(contenu).toContain('Fonction publique');
     expect(contenu).toContain('Parcours à l’EPT');
-    expect(fixture.nativeElement.querySelector('.modifier')).not.toBeNull();
+    const lien = fixture.nativeElement.querySelector('.modifier') as HTMLAnchorElement;
+    expect(lien).not.toBeNull();
+    expect(lien.getAttribute('href')).toBe('/completer-profil/experiences?modifier=exp-1');
   });
 
   function profil(): ProfilPublic {
