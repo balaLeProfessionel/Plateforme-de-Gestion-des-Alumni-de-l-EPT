@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, map, of } from 'rxjs';
 import { ProfilService } from '../../../../core/services/profil/profil-service';
 import { OrganismeService } from '../../../../core/services/organisme/organisme-service';
@@ -31,6 +31,7 @@ export class EtapeFormations {
   private readonly profilService = inject(ProfilService);
   private readonly organismeService = inject(OrganismeService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly formations = signal<Formation[]>([]);
   // Cartes vierges en cours de saisie. Elles vivent ici et non dans la liste :
@@ -196,7 +197,10 @@ export class EtapeFormations {
 
   private charger(): void {
     this.profilService.listerFormations().subscribe({
-      next: (liste) => this.formations.set(liste),
+      next: (liste) => {
+        this.formations.set(liste);
+        this.mettreEnAvant(liste);
+      },
       error: () =>
         this.etat.set({
           clesEnCours: [],
@@ -206,6 +210,23 @@ export class EtapeFormations {
             texte: 'Impossible de charger vos formations.'
           }
         })
+    });
+  }
+
+  private mettreEnAvant(liste: Formation[]): void {
+    const id = this.route.snapshot.queryParamMap.get('modifier');
+    if (!id) return;
+    if (!liste.some((formation) => formation.id === id)) {
+      this.etat.update((etat) => ({
+        ...etat,
+        messageGlobal: { type: 'erreur', texte: 'Cette formation n’existe plus.' }
+      }));
+      return;
+    }
+    requestAnimationFrame(() => {
+      const element = document.getElementById(`formation-${id}`);
+      element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element?.focus({ preventScroll: true });
     });
   }
 

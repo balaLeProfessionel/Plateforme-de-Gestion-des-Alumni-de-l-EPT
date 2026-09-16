@@ -47,12 +47,13 @@ export interface ProfilPublic {
 
 // Le backend fait une mise a jour partielle : tous les champs sont optionnels.
 export interface ProfilRequest {
+  nom?: string;
+  prenom?: string;
   bio?: string;
   villeResidence?: string;
   posteActuel?: string;
   lienLinkedin?: string;
   lienPortfolio?: string;
-  urlPhoto?: string;
   telephone?: string;
   dateNaissance?: string;
   effacerDateNaissance?: boolean;

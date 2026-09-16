@@ -51,6 +51,7 @@ export class DetailParcours {
   protected readonly lienModification = computed(() => [
     '/completer-profil', this.type === 'experience' ? 'experiences' : 'formations'
   ]);
+  protected readonly parametresModification = computed(() => ({ modifier: this.parcoursId() }));
   protected readonly titre = computed(() =>
     this.experience()?.poste ?? this.formation()?.libelle ?? ''
   );

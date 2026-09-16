@@ -60,13 +60,14 @@ public class ProfilMapper {
 
     // Applique uniquement les champs non-null : permet une mise a jour partielle
     public void appliquer(Utilisateur u, ProfilRequest request) {
-        if (request.bio() != null) u.setBio(request.bio());
-        if (request.villeResidence() != null) u.setVilleResidence(request.villeResidence());
-        if (request.posteActuel() != null) u.setPosteActuel(request.posteActuel());
-        if (request.lienLinkedin() != null) u.setLienLinkedin(request.lienLinkedin());
-        if (request.lienPortfolio() != null) u.setLienPortfolio(request.lienPortfolio());
-        if (request.urlPhoto() != null) u.setUrlPhoto(request.urlPhoto());
-        if (request.telephone() != null) u.setTelephone(request.telephone());
+        if (request.nom() != null) u.setNom(request.nom().trim());
+        if (request.prenom() != null) u.setPrenom(request.prenom().trim());
+        if (request.bio() != null) u.setBio(request.bio().trim());
+        if (request.villeResidence() != null) u.setVilleResidence(request.villeResidence().trim());
+        if (request.posteActuel() != null) u.setPosteActuel(request.posteActuel().trim());
+        if (request.lienLinkedin() != null) u.setLienLinkedin(request.lienLinkedin().trim());
+        if (request.lienPortfolio() != null) u.setLienPortfolio(request.lienPortfolio().trim());
+        if (request.telephone() != null) u.setTelephone(request.telephone().trim());
         if (Boolean.TRUE.equals(request.effacerDateNaissance())) {
             u.setDateNaissance(null);
         } else if (request.dateNaissance() != null) {

@@ -1,0 +1,101 @@
+<main class="page-parametres">
+  <header class="entete-page">
+    <div>
+      <p class="sur-titre">Mon profil</p>
+      <h1>Paramètres du profil</h1>
+      <p>Gérez les informations visibles sur votre profil et la sécurité de votre compte.</p>
+    </div>
+    <a routerLink="/profil"><i class="pi pi-arrow-left" aria-hidden="true"></i>Retour au profil</a>
+  </header>
+
+  @if (enChargement()) {
+    <div class="squelette" aria-label="Chargement des paramètres"></div>
+  } @else if (erreurChargement()) {
+    <section class="etat-erreur" aria-live="polite">
+      <p>{{ erreurChargement() }}</p>
+      <button type="button" (click)="charger()">Réessayer</button>
+    </section>
+  } @else if (profil(); as membre) {
+    <nav class="navigation-sections" aria-label="Sections des paramètres">
+      <a href="#photo">Photo</a><a href="#informations">Informations</a><a href="#securite">Sécurité</a>
+    </nav>
+
+    <section class="carte-parametres" id="photo" aria-labelledby="titre-photo">
+      <div class="titre-section"><div><h2 id="titre-photo">Photo de profil</h2><p>JPEG ou PNG, 5 Mo maximum.</p></div></div>
+      <div class="gestion-photo">
+        <div class="avatar">
+          @if (sourcePhoto() && !imageInvalide()) {
+            <img [src]="sourcePhoto()" alt="Aperçu de la photo de profil" (error)="imageInvalide.set(true)" />
+          } @else { <span aria-hidden="true">{{ initiales() }}</span> }
+        </div>
+        <div class="actions-photo">
+          <label class="bouton-principal" for="photo-profil">Choisir une photo</label>
+          <input id="photo-profil" class="fichier-cache" type="file" accept="image/jpeg,image/png"
+            (change)="choisirPhoto($event)" />
+          @if (fichierPhoto()) {
+            <button type="button" class="bouton-principal" (click)="enregistrerPhoto()" [disabled]="envoiPhoto()">
+              {{ envoiPhoto() ? 'Enregistrement…' : 'Enregistrer la photo' }}
+            </button>
+            <button type="button" class="bouton-secondaire" (click)="annulerPhoto()">Annuler</button>
+          } @else if (membre.urlPhoto) {
+            <button type="button" class="bouton-danger" (click)="supprimerPhoto()" [disabled]="envoiPhoto()">
+              Supprimer la photo
+            </button>
+          }
+          <div class="zone-message" aria-live="polite">
+            @if (erreurPhoto()) { <p class="message erreur">{{ erreurPhoto() }}</p> }
+            @if (succesPhoto()) { <p class="message succes">{{ succesPhoto() }}</p> }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="carte-parametres" id="informations" aria-labelledby="titre-identite">
+      <div class="titre-section">
+        <div><h2 id="titre-identite">Identité et informations</h2><p>Les champs facultatifs peuvent rester vides.</p></div>
+      </div>
+      <div class="champs-lecture-seule" aria-label="Informations non modifiables">
+        <div><span>Email</span><strong>{{ membre.email }}</strong></div>
+        <div><span>Type de membre</span><strong>{{ typeMembre() }}</strong></div>
+        @if (membre.filiere) { <div><span>Filière</span><strong>{{ membre.filiere }}</strong></div> }
+        @if (membre.anneeSortie) { <div><span>Promotion</span><strong>{{ membre.anneeSortie }}</strong></div> }
+      </div>
+      <app-infos-personnelles [profil]="membre" [enSauvegarde]="enSauvegarde()"
+        [message]="messageInformations()" (sauvegarder)="enregistrerInformations($event)" />
+    </section>
+
+    <section class="carte-parametres" id="securite" aria-labelledby="titre-securite">
+      <div class="titre-section"><div><h2 id="titre-securite">Sécurité</h2><p>Le changement conserve cette session et déconnecte les autres appareils.</p></div></div>
+      <div class="formulaire-securite">
+        <div class="champ-mot-de-passe">
+          <label for="mot-de-passe-actuel">Mot de passe actuel</label>
+          <div class="champ-avec-action"><input pInputText id="mot-de-passe-actuel" [type]="afficherActuel() ? 'text' : 'password'"
+            [formField]="formulaireMotDePasse.actuel" autocomplete="current-password" />
+            <button type="button" (click)="afficherActuel.set(!afficherActuel())" [attr.aria-label]="afficherActuel() ? 'Masquer le mot de passe actuel' : 'Afficher le mot de passe actuel'"><i class="pi" [class.pi-eye]="!afficherActuel()" [class.pi-eye-slash]="afficherActuel()"></i></button>
+          </div>
+        </div>
+        <div class="champ-mot-de-passe">
+          <label for="nouveau-mot-de-passe">Nouveau mot de passe</label>
+          <div class="champ-avec-action"><input pInputText id="nouveau-mot-de-passe" [type]="afficherNouveau() ? 'text' : 'password'"
+            [formField]="formulaireMotDePasse.nouveau" autocomplete="new-password" />
+            <button type="button" (click)="afficherNouveau.set(!afficherNouveau())" [attr.aria-label]="afficherNouveau() ? 'Masquer le nouveau mot de passe' : 'Afficher le nouveau mot de passe'"><i class="pi" [class.pi-eye]="!afficherNouveau()" [class.pi-eye-slash]="afficherNouveau()"></i></button>
+          </div>
+          @if (formulaireMotDePasse.nouveau().touched() && formulaireMotDePasse.nouveau().invalid()) { <small>{{ formulaireMotDePasse.nouveau().errors()[0]?.message }}</small> }
+        </div>
+        <div class="champ-mot-de-passe">
+          <label for="confirmation-mot-de-passe">Confirmer le nouveau mot de passe</label>
+          <div class="champ-avec-action"><input pInputText id="confirmation-mot-de-passe" [type]="afficherConfirmation() ? 'text' : 'password'"
+            [formField]="formulaireMotDePasse.confirmation" autocomplete="new-password" />
+            <button type="button" (click)="afficherConfirmation.set(!afficherConfirmation())" [attr.aria-label]="afficherConfirmation() ? 'Masquer la confirmation' : 'Afficher la confirmation'"><i class="pi" [class.pi-eye]="!afficherConfirmation()" [class.pi-eye-slash]="afficherConfirmation()"></i></button>
+          </div>
+        </div>
+        <div class="zone-message" aria-live="polite">
+          @if (messageMotDePasse(); as message) { <p class="message" [class.erreur]="message.type === 'erreur'" [class.succes]="message.type === 'succes'">{{ message.texte }}</p> }
+        </div>
+        <button type="button" class="bouton-principal" (click)="changerMotDePasse()" [disabled]="envoiMotDePasse()">
+          {{ envoiMotDePasse() ? 'Modification…' : 'Modifier le mot de passe' }}
+        </button>
+      </div>
+    </section>
+  }
+</main>

@@ -32,6 +32,16 @@ export class ProfilService {
     return this.http.patch<Profil>('/api/profil/me', donnees);
   }
 
+  modifierPhoto(photo: File) {
+    const donnees = new FormData();
+    donnees.append('photo', photo);
+    return this.http.post<Profil>('/api/profil/me/photo', donnees);
+  }
+
+  supprimerPhoto() {
+    return this.http.delete<Profil>('/api/profil/me/photo');
+  }
+
   // ===== Experiences professionnelles =====
 
   listerExperiences() {

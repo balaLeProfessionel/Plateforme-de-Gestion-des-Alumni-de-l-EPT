@@ -1,0 +1,36 @@
+:host { display: block; }
+.page-parametres { width: min(100% - 2rem, 960px); margin: 0 auto; padding: 2.25rem 0 4rem; color: var(--ept-text); }
+.entete-page { display: flex; justify-content: space-between; gap: 2rem; align-items: flex-start; margin-bottom: 1.5rem; }
+.entete-page h1 { margin: .2rem 0 .45rem; color: var(--ept-primary); font-family: var(--ept-font-heading); font-size: clamp(1.8rem, 5vw, 2.65rem); }
+.entete-page p { margin: 0; color: var(--ept-text-muted); }
+.entete-page > a { display: inline-flex; gap: .5rem; align-items: center; color: var(--ept-primary); font-weight: 700; text-decoration: none; white-space: nowrap; }
+.sur-titre { text-transform: uppercase; letter-spacing: .09em; font-size: .78rem; font-weight: 700; }
+.navigation-sections { position: sticky; top: .75rem; z-index: 2; display: flex; gap: .35rem; width: fit-content; margin: 0 0 1rem; padding: .3rem; border: 1px solid var(--ept-border); border-radius: 999px; background: rgba(255,255,255,.96); box-shadow: 0 6px 24px rgba(15, 45, 65, .08); }
+.navigation-sections a { padding: .55rem .85rem; border-radius: 999px; color: var(--ept-primary); font-weight: 700; text-decoration: none; }
+.navigation-sections a:hover, .navigation-sections a:focus-visible { background: var(--ept-primary-soft); }
+.carte-parametres { margin-bottom: 1.25rem; padding: clamp(1.1rem, 3vw, 2rem); scroll-margin-top: 5.5rem; border: 1px solid var(--ept-border); border-radius: 1rem; background: white; box-shadow: 0 8px 30px rgba(15, 45, 65, .06); }
+.titre-section { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
+.titre-section h2 { margin: 0 0 .3rem; color: var(--ept-primary); font-family: var(--ept-font-heading); }
+.titre-section p { margin: 0; color: var(--ept-text-muted); }
+.gestion-photo { display: flex; align-items: center; gap: 1.5rem; }
+.avatar { flex: 0 0 8rem; width: 8rem; height: 8rem; overflow: hidden; display: grid; place-items: center; border: 4px solid var(--ept-primary-soft); border-radius: 50%; background: var(--ept-primary); color: white; font: 700 2rem var(--ept-font-heading); }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.actions-photo { display: flex; flex-wrap: wrap; align-items: center; gap: .65rem; }
+.fichier-cache { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
+.bouton-principal, .bouton-secondaire, .bouton-danger, .etat-erreur button { min-height: 2.65rem; padding: .65rem 1rem; border-radius: .5rem; font: 700 .92rem var(--ept-font-heading); cursor: pointer; }
+.bouton-principal, .etat-erreur button { border: 1px solid var(--ept-primary); background: var(--ept-primary); color: white; }
+.bouton-secondaire { border: 1px solid var(--ept-border); background: white; color: var(--ept-primary); }
+.bouton-danger { border: 1px solid #b42318; background: white; color: #b42318; }
+button:disabled { opacity: .6; cursor: wait; }
+.zone-message { flex-basis: 100%; min-height: 1.5rem; }
+.message { margin: .4rem 0 0; font-weight: 600; }
+.erreur { color: #b42318; }.succes { color: #147a4b; }
+.champs-lecture-seule { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-bottom: 1rem; padding: 1rem; border-radius: .7rem; background: var(--ept-primary-soft); }
+.champs-lecture-seule div { min-width: 0; }.champs-lecture-seule span { display: block; color: var(--ept-text-muted); font-size: .8rem; }.champs-lecture-seule strong { overflow-wrap: anywhere; }
+.formulaire-securite { max-width: 620px; display: grid; gap: 1rem; }
+.champ-mot-de-passe { display: grid; gap: .4rem; }.champ-mot-de-passe label { font-weight: 700; color: var(--ept-primary); }.champ-mot-de-passe small { color: #b42318; }
+.champ-avec-action { display: flex; }.champ-avec-action input { flex: 1; min-width: 0; border-radius: .5rem 0 0 .5rem; }.champ-avec-action button { width: 2.8rem; border: 1px solid var(--p-inputtext-border-color); border-left: 0; border-radius: 0 .5rem .5rem 0; background: white; color: var(--ept-primary); }
+.squelette { height: 34rem; border-radius: 1rem; background: linear-gradient(90deg, #edf1f3 25%, #f7f9fa 50%, #edf1f3 75%); background-size: 200% 100%; animation: charge 1.3s infinite; }
+.etat-erreur { padding: 2rem; text-align: center; border: 1px solid var(--ept-border); border-radius: 1rem; background: white; }
+@keyframes charge { to { background-position: -200% 0; } }
+@media (max-width: 640px) { .page-parametres { width: min(100% - 1rem, 960px); padding-top: 1rem; }.entete-page { display: grid; }.navigation-sections { width: 100%; justify-content: center; overflow-x: auto; }.gestion-photo { align-items: flex-start; }.avatar { flex-basis: 6rem; width: 6rem; height: 6rem; }.champs-lecture-seule { grid-template-columns: 1fr; } }

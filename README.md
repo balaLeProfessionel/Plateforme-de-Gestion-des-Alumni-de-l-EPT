@@ -39,8 +39,12 @@ Seul le frontend est exposé sur la machine hôte. Il transmet les appels `/api`
 | `JWT_SECRET` | Clé Base64 utilisée pour signer les jetons |
 | `JWT_EXPIRATION_MS` | Durée de validité d'un jeton d'accès en millisecondes |
 | `JWT_REFRESH_EXPIRATION_MS` | Durée de validité d'un jeton de renouvellement en millisecondes |
+| `APP_STORAGE_PHOTOS_DIR` | Répertoire persistant des photos de profil dans le conteneur backend |
+| `APP_MAX_PHOTO_SIZE` | Taille maximale acceptée pour une photo de profil |
 
 Le fichier `.env` reste local et ne doit pas être ajouté au dépôt. `.env.example` contient uniquement une configuration de développement.
+
+Les photos de profil sont conservées dans le volume Docker `profile_photos`. En production, sauvegarder ce volume avec `postgres_data` avant une mise à jour ou une restauration. Ne placez pas les photos uniquement dans le système de fichiers interne du conteneur : elles seraient perdues lors de sa reconstruction.
 
 ## CI/CD
 

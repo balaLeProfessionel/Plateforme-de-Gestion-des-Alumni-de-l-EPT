@@ -1,5 +1,5 @@
 import { Component, input, linkedSignal, output } from '@angular/core';
-import { form, FormField, pattern } from '@angular/forms/signals';
+import { form, FormField, maxLength, pattern, required } from '@angular/forms/signals';
 import { InputText } from 'primeng/inputtext';
 import { Profil, ProfilRequest } from '../../../../core/services/models/profil.model';
 import { MessageSection } from '../message-section.model';
@@ -8,6 +8,8 @@ import { MessageSection } from '../message-section.model';
 // manipulent les <input> natifs. La conversion depuis/vers le Profil de
 // l'API se fait dans les deux fonctions ci-dessous.
 interface ModeleInfos {
+  nom: string;
+  prenom: string;
   bio: string;
   villeResidence: string;
   posteActuel: string;
@@ -18,6 +20,8 @@ interface ModeleInfos {
 }
 
 const MODELE_VIDE: ModeleInfos = {
+  nom: '',
+  prenom: '',
   bio: '',
   villeResidence: '',
   posteActuel: '',
@@ -32,6 +36,8 @@ function versModele(profil: Profil | null): ModeleInfos {
     return { ...MODELE_VIDE };
   }
   return {
+    nom: profil.nom,
+    prenom: profil.prenom,
     bio: profil.bio ?? '',
     villeResidence: profil.villeResidence ?? '',
     posteActuel: profil.posteActuel ?? '',
@@ -66,9 +72,16 @@ export class InfosPersonnelles {
   // linkedSignal la resynchronise a chaque nouveau profil recu.
   protected readonly modele = linkedSignal(() => versModele(this.profil()));
 
-  // Aucun champ obligatoire : le profil se remplit librement. On controle
-  // seulement le format des liens, et uniquement s'ils sont renseignes.
+  // L'identité est obligatoire. Les autres informations restent facultatives.
   protected readonly formulaire = form(this.modele, (champ) => {
+    required(champ.nom, { message: 'Le nom est obligatoire' });
+    maxLength(champ.nom, 100, { message: '100 caractères maximum' });
+    required(champ.prenom, { message: 'Le prénom est obligatoire' });
+    maxLength(champ.prenom, 100, { message: '100 caractères maximum' });
+    maxLength(champ.bio, 1000, { message: '1000 caractères maximum' });
+    maxLength(champ.villeResidence, 255, { message: '255 caractères maximum' });
+    maxLength(champ.posteActuel, 255, { message: '255 caractères maximum' });
+    maxLength(champ.telephone, 30, { message: '30 caractères maximum' });
     pattern(champ.lienLinkedin, URL_OU_VIDE, {
       message: 'Entrez une adresse complète, commençant par https://'
     });
@@ -85,6 +98,8 @@ export class InfosPersonnelles {
     // On emet les chaines telles quelles, vide compris : une chaine vide
     // est la facon dont l'utilisateur efface un champ deja renseigne.
     this.sauvegarder.emit({
+      nom: valeurs.nom.trim(),
+      prenom: valeurs.prenom.trim(),
       bio: valeurs.bio.trim(),
       villeResidence: valeurs.villeResidence.trim(),
       posteActuel: valeurs.posteActuel.trim(),

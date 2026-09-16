@@ -8,5 +8,6 @@ export interface AuthResponse {
   role: string;
   statutCompte: 'EN_ATTENTE' | 'ACTIF' | 'SUSPENDU';
   doitChangerMotDePasse: boolean;
+  urlPhoto?: string | null;
   message?: string
 }

@@ -78,6 +78,7 @@ public class SecurityConfig {
                     "/api/auth/renvoyer-otp",
                     "/api/auth/refresh"
                 ).permitAll()
+                .requestMatchers("/api/photos/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/organisme/me").hasRole("ORGANISME")
                 .requestMatchers("/api/formations/**", "/api/experiences/**")

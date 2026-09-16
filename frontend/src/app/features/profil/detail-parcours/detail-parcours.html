@@ -54,7 +54,7 @@
 
       @if (estProprietaire()) {
         <footer class="actions">
-          <a class="modifier" [routerLink]="lienModification()">
+          <a class="modifier" [routerLink]="lienModification()" [queryParams]="parametresModification()">
             <i class="pi pi-pencil" aria-hidden="true"></i>Modifier
           </a>
           @if (confirmeSuppression()) {

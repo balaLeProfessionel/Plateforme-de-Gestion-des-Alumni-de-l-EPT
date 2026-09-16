@@ -125,6 +125,16 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'profil/parametres',
+        title: 'Paramètres du profil | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard, roleGuard],
+        data: { roles: ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'] },
+        loadComponent: () =>
+          import('./features/profil/parametres-profil/parametres-profil').then(
+            (m) => m.ParametresProfil
+          )
+      },
+      {
         path: 'profil/:id/experience/:parcoursId',
         title: 'Détail de l’expérience | EPT Alumni',
         canActivate: [authGuard, changementInitialRequisGuard],
