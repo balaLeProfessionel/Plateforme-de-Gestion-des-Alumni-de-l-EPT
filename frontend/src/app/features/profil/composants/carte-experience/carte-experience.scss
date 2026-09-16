@@ -1,6 +1,6 @@
 .carte {
   border: 1px solid var(--ept-border);
-  border-radius: var(--ept-radius);
+  border-radius: 2px;
   background: var(--ept-surface);
   padding: 1.25rem;
 }
@@ -29,6 +29,7 @@
 
   input {
     width: 100%;
+    border-radius: 2px;
   }
 }
 
@@ -58,7 +59,7 @@
   width: 100%;
   padding: 0.65rem 0.85rem;
   border: 1px solid var(--ept-border);
-  border-radius: var(--ept-radius-sm);
+  border-radius: 2px;
   font-family: var(--ept-font-body);
   font-size: 0.95rem;
   color: var(--ept-text);
@@ -75,7 +76,7 @@
   width: 100%;
   padding: 0.65rem 0.85rem;
   border: 1px solid var(--ept-border);
-  border-radius: var(--ept-radius-sm);
+  border-radius: 2px;
   background: var(--ept-surface);
   color: var(--ept-text);
   font-family: var(--ept-font-body);
@@ -121,7 +122,7 @@
   font-family: var(--ept-font-body);
   font-size: 0.9rem;
   padding: 0.6rem 1rem;
-  border-radius: var(--ept-radius-sm);
+  border-radius: 2px;
   cursor: pointer;
 
   &:hover:not(:disabled) {
@@ -148,7 +149,7 @@
   font-weight: 600;
   font-size: 0.9rem;
   padding: 0.6rem 1rem;
-  border-radius: var(--ept-radius-sm);
+  border-radius: 2px;
   cursor: pointer;
 
   &:hover:not(:disabled) {
