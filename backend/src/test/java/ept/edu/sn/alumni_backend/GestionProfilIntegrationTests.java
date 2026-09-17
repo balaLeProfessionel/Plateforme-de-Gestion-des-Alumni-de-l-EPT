@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -10,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.time.LocalDate;
 
 import javax.imageio.ImageIO;
 
@@ -29,6 +31,8 @@ import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
+import ept.edu.sn.alumni_backend.utilisateur.photo.PhotoIntrouvableException;
+import ept.edu.sn.alumni_backend.utilisateur.photo.StockagePhotoProfil;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -38,6 +42,8 @@ class GestionProfilIntegrationTests {
     private MockMvc mockMvc;
     @Autowired
     private UtilisateurRepository utilisateurRepository;
+    @Autowired
+    private StockagePhotoProfil stockagePhoto;
 
     private Utilisateur utilisateur;
 
@@ -80,6 +86,35 @@ class GestionProfilIntegrationTests {
     }
 
     @Test
+    void refuseLesValeursTropLonguesLesUrlsInvalidesEtLaDateFuture() throws Exception {
+        mockMvc.perform(patch("/api/profil/me")
+                .with(authentication(authentification()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nom\":\"" + "N".repeat(101) + "\",\"prenom\":\"Awa\"}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.nom").value("Le nom ne peut pas dépasser 100 caractères"));
+
+        mockMvc.perform(patch("/api/profil/me")
+                .with(authentication(authentification()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"nom":"Diop","prenom":"Awa","lienLinkedin":"linkedin.com/awa"}
+                    """))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.lienLinkedin").value(
+                "Le lien LinkedIn doit commencer par http:// ou https://"
+            ));
+
+        mockMvc.perform(patch("/api/profil/me")
+                .with(authentication(authentification()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nom\":\"Diop\",\"prenom\":\"Awa\",\"dateNaissance\":\""
+                    + LocalDate.now().plusDays(1) + "\"}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.dateNaissance").value("La date de naissance doit être dans le passé"));
+    }
+
+    @Test
     void ajoutePuisSupprimeUnePhotoValide() throws Exception {
         MockMultipartFile photo = new MockMultipartFile(
             "photo", "portrait.png", "image/png", imagePng()
@@ -111,6 +146,34 @@ class GestionProfilIntegrationTests {
             .andExpect(jsonPath("$.message").value("Le contenu du fichier ne correspond pas à son format."));
     }
 
+    @Test
+    void remplaceLaPhotoSansConserverLAncienFichier() throws Exception {
+        MockMultipartFile premiere = new MockMultipartFile(
+            "photo", "premiere.png", "image/png", imagePng()
+        );
+        String premiereReponse = mockMvc.perform(multipart("/api/profil/me/photo")
+                .file(premiere)
+                .with(authentication(authentification())))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
+        String premiereUrl = extraireUrlPhoto(premiereReponse);
+
+        MockMultipartFile seconde = new MockMultipartFile(
+            "photo", "seconde.png", "image/png", imagePng()
+        );
+        mockMvc.perform(multipart("/api/profil/me/photo")
+                .file(seconde)
+                .with(authentication(authentification())))
+            .andExpect(status().isOk());
+
+        assertThrows(
+            PhotoIntrouvableException.class,
+            () -> stockagePhoto.lire(premiereUrl.substring("/api/photos/".length()))
+        );
+        mockMvc.perform(delete("/api/profil/me/photo").with(authentication(authentification())))
+            .andExpect(status().isOk());
+    }
+
     private UsernamePasswordAuthenticationToken authentification() {
         UtilisateurPrincipal principal = new UtilisateurPrincipal(utilisateur);
         return new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
@@ -125,5 +188,10 @@ class GestionProfilIntegrationTests {
         ByteArrayOutputStream sortie = new ByteArrayOutputStream();
         ImageIO.write(image, "png", sortie);
         return sortie.toByteArray();
+    }
+
+    private String extraireUrlPhoto(String json) {
+        int debut = json.indexOf("\"urlPhoto\":\"") + "\"urlPhoto\":\"".length();
+        return json.substring(debut, json.indexOf('"', debut));
     }
 }

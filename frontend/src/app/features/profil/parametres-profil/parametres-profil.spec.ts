@@ -23,6 +23,12 @@ describe('ParametresProfil', () => {
   };
 
   beforeEach(async () => {
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true, value: vi.fn().mockReturnValue('blob:apercu-photo')
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true, value: vi.fn()
+    });
     profilService = {
       obtenirProfil: vi.fn().mockReturnValue(of(profil())),
       majProfil: vi.fn().mockReturnValue(of({ ...profil(), prenom: 'Aminata' })),
@@ -71,6 +77,71 @@ describe('ParametresProfil', () => {
 
     expect(composant['erreurPhoto']()).toContain('JPEG ou PNG');
     expect(profilService.modifierPhoto).not.toHaveBeenCalled();
+  });
+
+  it('affiche puis libère l aperçu local d une photo valide', () => {
+    const fichier = new File(['image'], 'profil.png', { type: 'image/png' });
+
+    composant['choisirPhoto']({ target: { files: [fichier], value: 'profil.png' } } as unknown as Event);
+
+    expect(composant['sourcePhoto']()).toBe('blob:apercu-photo');
+    expect(composant['fichierPhoto']()).toBe(fichier);
+    composant['annulerPhoto']();
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:apercu-photo');
+    expect(composant['sourcePhoto']()).toBeNull();
+  });
+
+  it('refuse une photo dépassant cinq mégaoctets avant l appel réseau', () => {
+    const fichier = new File(
+      [new Uint8Array(5 * 1024 * 1024 + 1)], 'profil.jpg', { type: 'image/jpeg' }
+    );
+
+    composant['choisirPhoto']({ target: { files: [fichier], value: 'profil.jpg' } } as unknown as Event);
+
+    expect(composant['erreurPhoto']()).toContain('5 Mo');
+    expect(profilService.modifierPhoto).not.toHaveBeenCalled();
+  });
+
+  it('enregistre puis supprime la photo et synchronise la session', () => {
+    const fichier = new File(['image'], 'profil.png', { type: 'image/png' });
+    composant['choisirPhoto']({ target: { files: [fichier], value: 'profil.png' } } as unknown as Event);
+
+    composant['enregistrerPhoto']();
+
+    expect(profilService.modifierPhoto).toHaveBeenCalledWith(fichier);
+    expect(authService.synchroniserProfil).toHaveBeenCalledWith(
+      expect.objectContaining({ urlPhoto: '/api/photos/photo.png' })
+    );
+    composant['supprimerPhoto']();
+    expect(profilService.supprimerPhoto).toHaveBeenCalled();
+    expect(composant['profil']()?.urlPhoto).toBeNull();
+    expect(composant['succesPhoto']()).toBe('Photo de profil supprimée.');
+  });
+
+  it('revient aux initiales quand l image du profil ne charge pas', () => {
+    composant['profil'].set({ ...profil(), urlPhoto: '/api/photos/introuvable.png' });
+    fixture.detectChanges();
+    const image = fixture.nativeElement.querySelector('.avatar img') as HTMLImageElement;
+
+    image.dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.avatar img')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.avatar').textContent).toContain('AD');
+  });
+
+  it('affiche une erreur de chargement puis permet de réessayer', () => {
+    profilService.obtenirProfil.mockReturnValueOnce(throwError(() => new Error('indisponible')));
+
+    composant['charger']();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Impossible de charger les paramètres du profil.');
+    expect(fixture.nativeElement.textContent).toContain('Réessayer');
+    profilService.obtenirProfil.mockReturnValueOnce(of(profil()));
+    composant['charger']();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Identité et informations');
   });
 
   it('change le mot de passe et conserve les nouveaux jetons gérés par AuthService', () => {
