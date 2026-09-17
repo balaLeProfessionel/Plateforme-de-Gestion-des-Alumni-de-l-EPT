@@ -53,6 +53,20 @@ class StockagePhotoProfilTests {
     }
 
     @Test
+    void accepteUnJpegEtRefuseUneExtensionIncoherente() throws Exception {
+        StockagePhotoProfil stockage = stockage();
+        String url = stockage.stocker(new MockMultipartFile(
+            "photo", "portrait.jpeg", "image/jpeg", imageJpeg(30, 20)
+        ));
+
+        assertTrue(url.endsWith(".jpg"));
+        assertThrows(IllegalArgumentException.class, () -> stockage.stocker(new MockMultipartFile(
+            "photo", "portrait.txt", "image/jpeg", imageJpeg(30, 20)
+        )));
+        stockage.supprimerSiGeree(url);
+    }
+
+    @Test
     void refuseUnFichierTropGrand() {
         MockMultipartFile fichier = new MockMultipartFile(
             "photo", "grande.jpg", "image/jpeg", new byte[1025]
@@ -89,6 +103,17 @@ class StockagePhotoProfilTests {
         graphics.dispose();
         ByteArrayOutputStream sortie = new ByteArrayOutputStream();
         ImageIO.write(image, "png", sortie);
+        return sortie.toByteArray();
+    }
+
+    private byte[] imageJpeg(int largeur, int hauteur) throws Exception {
+        BufferedImage image = new BufferedImage(largeur, hauteur, BufferedImage.TYPE_INT_RGB);
+        var graphics = image.createGraphics();
+        graphics.setColor(Color.BLUE);
+        graphics.fillRect(0, 0, largeur, hauteur);
+        graphics.dispose();
+        ByteArrayOutputStream sortie = new ByteArrayOutputStream();
+        ImageIO.write(image, "jpg", sortie);
         return sortie.toByteArray();
     }
 }

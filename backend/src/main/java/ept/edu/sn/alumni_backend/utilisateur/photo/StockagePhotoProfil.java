@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
@@ -47,6 +48,14 @@ public class StockagePhotoProfil {
         String type = fichier.getContentType();
         if (!TYPES_ACCEPTES.contains(type)) {
             throw new IllegalArgumentException("Seules les images JPEG et PNG sont acceptées.");
+        }
+        String nomOriginal = fichier.getOriginalFilename() == null
+            ? "" : fichier.getOriginalFilename().toLowerCase(Locale.ROOT);
+        boolean extensionValide = type.equals("image/png")
+            ? nomOriginal.endsWith(".png")
+            : nomOriginal.endsWith(".jpg") || nomOriginal.endsWith(".jpeg");
+        if (!extensionValide) {
+            throw new IllegalArgumentException("L’extension du fichier ne correspond pas à son format.");
         }
 
         try {
