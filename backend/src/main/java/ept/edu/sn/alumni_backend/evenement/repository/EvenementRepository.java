@@ -1,6 +1,7 @@
 package ept.edu.sn.alumni_backend.evenement.repository;
 
 import java.util.UUID;
+import java.time.Instant;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +12,8 @@ import ept.edu.sn.alumni_backend.evenement.entity.Evenement;
 
 @Repository
 public interface EvenementRepository extends JpaRepository<Evenement, UUID>, JpaSpecificationExecutor<Evenement> {
+    long countByOrganisateur_IdAndCreeLeGreaterThanEqual(UUID organisateurId, Instant creeLe);
+
     @Override
     @EntityGraph(attributePaths = {"organisateur", "organisateur.organisme"})
     org.springframework.data.domain.Page<Evenement> findAll(

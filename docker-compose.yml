@@ -37,6 +37,7 @@ services:
       JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS:-2592000000}
       APP_STORAGE_PHOTOS_DIR: ${APP_STORAGE_PHOTOS_DIR:-/data/alumni/photos}
       APP_MAX_PHOTO_SIZE: ${APP_MAX_PHOTO_SIZE:-5MB}
+      APP_EVENT_CREATION_LIMIT_24H: ${APP_EVENT_CREATION_LIMIT_24H:-10}
     volumes:
       - profile_photos:/data/alumni/photos
     develop:

@@ -18,6 +18,7 @@ import ept.edu.sn.alumni_backend.auth.exception.NomOrganismeManquantException;
 import ept.edu.sn.alumni_backend.auth.exception.RoleNonAutoriseException;
 import ept.edu.sn.alumni_backend.auth.exception.TokenInvalideException;
 import ept.edu.sn.alumni_backend.evenement.exception.EvenementIntrouvableException;
+import ept.edu.sn.alumni_backend.evenement.exception.LimiteCreationEvenementAtteinteException;
 import ept.edu.sn.alumni_backend.organisme.exception.OrganismeIntrouvableException;
 import ept.edu.sn.alumni_backend.utilisateur.exception.ProfilIntrouvableException;
 import ept.edu.sn.alumni_backend.utilisateur.photo.PhotoIntrouvableException;
@@ -97,6 +98,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EvenementIntrouvableException.class)
     public ResponseEntity<Map<String, String>> handleEvenementIntrouvable(EvenementIntrouvableException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(LimiteCreationEvenementAtteinteException.class)
+    public ResponseEntity<Map<String, String>> handleLimiteCreationEvenement(
+            LimiteCreationEvenementAtteinteException e) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of("message", e.getMessage()));
     }
 
     @ExceptionHandler(PhotoIntrouvableException.class)
