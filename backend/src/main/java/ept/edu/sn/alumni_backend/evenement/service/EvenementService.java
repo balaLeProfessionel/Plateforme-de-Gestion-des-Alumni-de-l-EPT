@@ -3,6 +3,7 @@ package ept.edu.sn.alumni_backend.evenement.service;
 import java.time.Instant;
 import java.time.Duration;
 import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -21,11 +22,16 @@ import ept.edu.sn.alumni_backend.evenement.ReponseParticipation;
 import ept.edu.sn.alumni_backend.evenement.StatutEvenement;
 import ept.edu.sn.alumni_backend.evenement.dto.EvenementRequest;
 import ept.edu.sn.alumni_backend.evenement.dto.EvenementResponse;
+import ept.edu.sn.alumni_backend.evenement.dto.PageParticipantsResponse;
 import ept.edu.sn.alumni_backend.evenement.dto.PageEvenementsResponse;
+import ept.edu.sn.alumni_backend.evenement.dto.ParticipantEvenementResponse;
+import ept.edu.sn.alumni_backend.evenement.dto.ReponseParticipationRequest;
 import ept.edu.sn.alumni_backend.evenement.dto.StatutOfficielRequest;
 import ept.edu.sn.alumni_backend.evenement.entity.Evenement;
+import ept.edu.sn.alumni_backend.evenement.entity.ParticipationEvenement;
 import ept.edu.sn.alumni_backend.evenement.exception.EvenementIntrouvableException;
 import ept.edu.sn.alumni_backend.evenement.exception.LimiteCreationEvenementAtteinteException;
+import ept.edu.sn.alumni_backend.evenement.exception.CapaciteEvenementAtteinteException;
 import ept.edu.sn.alumni_backend.evenement.repository.EvenementRepository;
 import ept.edu.sn.alumni_backend.evenement.repository.ParticipationEvenementRepository;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
@@ -63,9 +69,13 @@ public class EvenementService {
         Page<Evenement> evenements = evenementRepository.findAll(
             specification, PageRequest.of(page, taille, tri));
         Map<UUID, Long> nombresParticipants = compterParticipants(evenements);
+        Map<UUID, ReponseParticipation> mesReponses = trouverMesReponses(evenements, principal);
 
         return PageEvenementsResponse.depuis(evenements.map(evenement ->
-            evenementMapper.versResponse(evenement, nombresParticipants.getOrDefault(evenement.getId(), 0L))));
+            evenementMapper.versResponse(
+                evenement,
+                nombresParticipants.getOrDefault(evenement.getId(), 0L),
+                mesReponses.get(evenement.getId()))));
     }
 
     @Transactional(readOnly = true)
@@ -76,7 +86,11 @@ public class EvenementService {
             .orElseThrow(EvenementIntrouvableException::new);
         long nombreParticipants = participationRepository.countByEvenement_IdAndReponse(
             evenementId, ReponseParticipation.PARTICIPERA);
-        return evenementMapper.versResponse(evenement, nombreParticipants);
+        ReponseParticipation maReponse = participationRepository
+            .findByEvenement_IdAndUtilisateur_Id(evenementId, principal.getUtilisateur().getId())
+            .map(participation -> participation.getReponse())
+            .orElse(null);
+        return evenementMapper.versResponse(evenement, nombreParticipants, maReponse);
     }
 
     @Transactional
@@ -102,21 +116,21 @@ public class EvenementService {
     @Transactional
     public EvenementResponse modifier(UUID evenementId, EvenementRequest request, UtilisateurPrincipal principal) {
         Evenement evenement = trouverPourGestion(evenementId, principal);
+        if (request.nombrePlaces() != null
+                && request.nombrePlaces() < participationRepository.countByEvenement_IdAndReponse(
+                    evenementId, ReponseParticipation.PARTICIPERA)) {
+            throw new CapaciteEvenementAtteinteException(
+                "Le nombre de places ne peut pas être inférieur au nombre de participants déjà inscrits.");
+        }
         appliquer(evenement, request);
-        Evenement actualise = evenementRepository.save(evenement);
-        long nombreParticipants = participationRepository.countByEvenement_IdAndReponse(
-            evenementId, ReponseParticipation.PARTICIPERA);
-        return evenementMapper.versResponse(actualise, nombreParticipants);
+        return reponsePourUtilisateur(evenementRepository.save(evenement), principal);
     }
 
     @Transactional
     public EvenementResponse annuler(UUID evenementId, UtilisateurPrincipal principal) {
         Evenement evenement = trouverPourGestion(evenementId, principal);
         evenement.setStatut(StatutEvenement.ANNULE);
-        Evenement annule = evenementRepository.save(evenement);
-        long nombreParticipants = participationRepository.countByEvenement_IdAndReponse(
-            evenementId, ReponseParticipation.PARTICIPERA);
-        return evenementMapper.versResponse(annule, nombreParticipants);
+        return reponsePourUtilisateur(evenementRepository.save(evenement), principal);
     }
 
     @Transactional
@@ -131,13 +145,78 @@ public class EvenementService {
             .orElseThrow(EvenementIntrouvableException::new);
         evenement.setOfficielEpt(request.officielEpt());
         Evenement actualise = evenementRepository.save(evenement);
-        long nombreParticipants = participationRepository.countByEvenement_IdAndReponse(
-            evenementId, ReponseParticipation.PARTICIPERA);
-        return evenementMapper.versResponse(actualise, nombreParticipants);
+        return reponsePourUtilisateur(actualise, principal);
+    }
+
+    @Transactional
+    public EvenementResponse repondre(
+            UUID evenementId,
+            ReponseParticipationRequest request,
+            UtilisateurPrincipal principal) {
+        Evenement evenement = evenementRepository.findByIdAvecVerrou(evenementId)
+            .orElseThrow(EvenementIntrouvableException::new);
+        TypeRole role = principal.getUtilisateur().getRole();
+        if (evenement.getStatut() != StatutEvenement.PUBLIE
+                || !evenement.getDateFin().isAfter(Instant.now())
+                || !estDansAudience(evenement.getAudience(), role)) {
+            throw new EvenementIntrouvableException();
+        }
+
+        UUID utilisateurId = principal.getUtilisateur().getId();
+        ParticipationEvenement participation = participationRepository
+            .findByEvenement_IdAndUtilisateur_Id(evenementId, utilisateurId)
+            .orElse(null);
+        boolean participeDeja = participation != null
+            && participation.getReponse() == ReponseParticipation.PARTICIPERA;
+        if (request.reponse() == ReponseParticipation.PARTICIPERA
+                && !participeDeja
+                && evenement.getNombrePlaces() != null
+                && participationRepository.countByEvenement_IdAndReponse(
+                    evenementId, ReponseParticipation.PARTICIPERA) >= evenement.getNombrePlaces()) {
+            throw new CapaciteEvenementAtteinteException();
+        }
+
+        if (participation == null) {
+            participation = new ParticipationEvenement();
+            participation.setEvenement(evenement);
+            participation.setUtilisateur(principal.getUtilisateur());
+        }
+        participation.setReponse(request.reponse());
+        participation.setReponduLe(Instant.now());
+        participationRepository.saveAndFlush(participation);
+        return reponsePourUtilisateur(evenement, principal);
+    }
+
+    @Transactional(readOnly = true)
+    public PageParticipantsResponse listerParticipants(
+            UUID evenementId,
+            int page,
+            int taille,
+            UtilisateurPrincipal principal) {
+        Evenement evenement = evenementRepository.findById(evenementId)
+            .orElseThrow(EvenementIntrouvableException::new);
+        Utilisateur utilisateurCourant = principal.getUtilisateur();
+        boolean estAdministrateur = utilisateurCourant.getRole() == TypeRole.ADMIN;
+        boolean estOrganisateur = evenement.getOrganisateur().getId().equals(utilisateurCourant.getId());
+        if (!estAdministrateur && !estOrganisateur) {
+            throw new EvenementIntrouvableException();
+        }
+
+        Page<ParticipantEvenementResponse> participants = participationRepository.listerParticipants(
+                evenementId,
+                ReponseParticipation.PARTICIPERA,
+                PageRequest.of(page, taille))
+            .map(participant -> new ParticipantEvenementResponse(
+                participant.getId(),
+                participant.getNom(),
+                participant.getPrenom(),
+                participant.getRole(),
+                participant.getUrlPhoto()));
+        return PageParticipantsResponse.depuis(participants);
     }
 
     private Evenement trouverPourGestion(UUID evenementId, UtilisateurPrincipal principal) {
-        Evenement evenement = evenementRepository.findById(evenementId)
+        Evenement evenement = evenementRepository.findByIdAvecVerrou(evenementId)
             .orElseThrow(EvenementIntrouvableException::new);
         Utilisateur utilisateurCourant = principal.getUtilisateur();
         boolean estAdministrateur = utilisateurCourant.getRole() == TypeRole.ADMIN;
@@ -180,6 +259,10 @@ public class EvenementService {
             || evenement.getAudience() == audiencePour(role);
     }
 
+    private boolean estDansAudience(AudienceEvenement audience, TypeRole role) {
+        return audience == AudienceEvenement.TOUS || audience == audiencePour(role);
+    }
+
     private AudienceEvenement audiencePour(TypeRole role) {
         return switch (role) {
             case ETUDIANT -> AudienceEvenement.ETUDIANTS;
@@ -200,5 +283,30 @@ public class EvenementService {
                 ParticipationEvenementRepository.NombreParticipantsProjection::getEvenementId,
                 ParticipationEvenementRepository.NombreParticipantsProjection::getNombre
             ));
+    }
+
+    private Map<UUID, ReponseParticipation> trouverMesReponses(
+            Page<Evenement> evenements,
+            UtilisateurPrincipal principal) {
+        if (evenements.isEmpty()) {
+            return Map.of();
+        }
+        return participationRepository.trouverReponsesUtilisateur(
+                evenements.getContent().stream().map(Evenement::getId).toList(),
+                principal.getUtilisateur().getId())
+            .stream()
+            .collect(Collectors.toMap(
+                ParticipationEvenementRepository.ReponseUtilisateurProjection::getEvenementId,
+                ParticipationEvenementRepository.ReponseUtilisateurProjection::getReponse));
+    }
+
+    private EvenementResponse reponsePourUtilisateur(Evenement evenement, UtilisateurPrincipal principal) {
+        long nombreParticipants = participationRepository.countByEvenement_IdAndReponse(
+            evenement.getId(), ReponseParticipation.PARTICIPERA);
+        ReponseParticipation maReponse = participationRepository
+            .findByEvenement_IdAndUtilisateur_Id(evenement.getId(), principal.getUtilisateur().getId())
+            .map(ParticipationEvenement::getReponse)
+            .orElse(null);
+        return evenementMapper.versResponse(evenement, nombreParticipants, maReponse);
     }
 }

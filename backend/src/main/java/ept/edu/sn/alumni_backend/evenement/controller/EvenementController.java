@@ -21,6 +21,8 @@ import ept.edu.sn.alumni_backend.evenement.PeriodeEvenement;
 import ept.edu.sn.alumni_backend.evenement.dto.EvenementRequest;
 import ept.edu.sn.alumni_backend.evenement.dto.EvenementResponse;
 import ept.edu.sn.alumni_backend.evenement.dto.PageEvenementsResponse;
+import ept.edu.sn.alumni_backend.evenement.dto.PageParticipantsResponse;
+import ept.edu.sn.alumni_backend.evenement.dto.ReponseParticipationRequest;
 import ept.edu.sn.alumni_backend.evenement.dto.StatutOfficielRequest;
 import ept.edu.sn.alumni_backend.evenement.service.EvenementService;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
@@ -50,6 +52,23 @@ public class EvenementController {
             @PathVariable UUID id,
             @AuthenticationPrincipal UtilisateurPrincipal principal) {
         return ResponseEntity.ok(evenementService.obtenir(id, principal));
+    }
+
+    @PutMapping("/{id}/participation")
+    public ResponseEntity<EvenementResponse> repondre(
+            @PathVariable UUID id,
+            @Valid @RequestBody ReponseParticipationRequest request,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(evenementService.repondre(id, request, principal));
+    }
+
+    @GetMapping("/{id}/participants")
+    public ResponseEntity<PageParticipantsResponse> listerParticipants(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "12") @Min(1) @Max(48) int taille,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(evenementService.listerParticipants(id, page, taille, principal));
     }
 
     @PostMapping

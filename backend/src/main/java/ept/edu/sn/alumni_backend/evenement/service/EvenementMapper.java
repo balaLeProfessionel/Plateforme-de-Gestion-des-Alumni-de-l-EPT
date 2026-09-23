@@ -3,6 +3,7 @@ package ept.edu.sn.alumni_backend.evenement.service;
 import org.springframework.stereotype.Component;
 
 import ept.edu.sn.alumni_backend.evenement.dto.EvenementResponse;
+import ept.edu.sn.alumni_backend.evenement.ReponseParticipation;
 import ept.edu.sn.alumni_backend.evenement.entity.Evenement;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
@@ -10,6 +11,13 @@ import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 @Component
 public class EvenementMapper {
     public EvenementResponse versResponse(Evenement evenement, long nombreParticipants) {
+        return versResponse(evenement, nombreParticipants, null);
+    }
+
+    public EvenementResponse versResponse(
+            Evenement evenement,
+            long nombreParticipants,
+            ReponseParticipation maReponse) {
         Utilisateur organisateur = evenement.getOrganisateur();
         boolean estOrganisme = organisateur.getRole() == TypeRole.ORGANISME;
         String nom = estOrganisme && organisateur.getOrganisme() != null
@@ -31,7 +39,8 @@ public class EvenementMapper {
             organisateur.getId(),
             nom,
             prenom,
-            nombreParticipants
+            nombreParticipants,
+            maReponse
         );
     }
 }

@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import ept.edu.sn.alumni_backend.evenement.AudienceEvenement;
+import ept.edu.sn.alumni_backend.evenement.ReponseParticipation;
 import ept.edu.sn.alumni_backend.evenement.StatutEvenement;
 
 public record EvenementResponse(
@@ -20,5 +21,6 @@ public record EvenementResponse(
     UUID organisateurId,
     String organisateurNom,
     String organisateurPrenom,
-    long nombreParticipants
+    long nombreParticipants,
+    ReponseParticipation maReponse
 ) {}
