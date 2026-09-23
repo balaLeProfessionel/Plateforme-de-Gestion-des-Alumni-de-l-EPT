@@ -29,8 +29,8 @@ describe('Navigation de l’espace membre', () => {
     const liens = [...racine.querySelectorAll('.navigation-principale a')]
       .map((lien) => lien.getAttribute('href'));
 
-    expect(liens).toEqual(['/accueil', '/annuaire', '/profil', '/profil/parametres']);
-    expect(racine.querySelectorAll('.navigation-principale .a-venir')).toHaveLength(4);
+    expect(liens).toEqual(['/accueil', '/annuaire', '/profil', '/evenements', '/profil/parametres']);
+    expect(racine.querySelectorAll('.navigation-principale .a-venir')).toHaveLength(3);
     expect(racine.querySelector('.navigation-principale .a-venir a')).toBeNull();
     expect(racine.querySelector('.compte-lateral .lien-avatar')?.getAttribute('href')).toBe('/profil');
     expect(racine.querySelector('.entete-mobile .lien-avatar')?.getAttribute('href')).toBe('/profil');
@@ -46,8 +46,10 @@ describe('Navigation de l’espace membre', () => {
     fixture.detectChanges();
 
     expect(plus.getAttribute('aria-expanded')).toBe('true');
-    expect(racine.querySelectorAll('.panneau-plus .rubrique-a-venir')).toHaveLength(4);
-    expect(racine.querySelector('.panneau-plus a')?.getAttribute('href'))
+    expect(racine.querySelectorAll('.panneau-plus .rubrique-a-venir')).toHaveLength(3);
+    expect(racine.querySelector('.panneau-plus a[href="/evenements"]')?.textContent)
+      .toContain('Événements');
+    expect(racine.querySelector('.panneau-plus a[href="/profil/parametres"]')?.getAttribute('href'))
       .toBe('/profil/parametres');
     expect(racine.querySelectorAll('.navigation-mobile a')).toHaveLength(3);
 

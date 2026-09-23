@@ -1,0 +1,82 @@
+<main class="detail-evenement-page">
+  <button class="bouton-retour" type="button" (click)="retourner()">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>Retour
+  </button>
+
+  @if (enChargement()) {
+    <div class="chargement-detail" aria-label="Chargement de l’événement" aria-busy="true">
+      <div class="squelette-titre"></div><div class="squelette-corps"></div>
+    </div>
+  } @else if (messageErreur()) {
+    <section class="etat-detail erreur" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h1>Événement indisponible</h1>
+      <p>{{ messageErreur() }}</p>
+      <button type="button" (click)="actualiser()">Réessayer</button>
+    </section>
+  } @else if (evenement(); as item) {
+    <article class="fiche-evenement" [class.officiel]="item.officielEpt">
+      @if (item.officielEpt) {
+        <div class="bandeau-officiel"><i class="pi pi-verified" aria-hidden="true"></i>
+          Événement officiel de l’École Polytechnique de Thiès</div>
+      }
+      <header class="entete-detail">
+        <div class="badges-detail">
+          @if (item.statut === 'ANNULE') {
+            <span class="badge-statut annule">Annulé</span>
+          } @else if (item.officielEpt) {
+            <span class="badge-officiel"><i class="pi pi-verified" aria-hidden="true"></i> EPT officiel</span>
+          } @else {
+            <span class="badge-communaute">Communauté</span>
+          }
+          <span class="audience">{{ libelleAudience(item.audience) }}</span>
+        </div>
+        <h1>{{ item.titre }}</h1>
+        <p class="resume-detail">Une rencontre de la communauté EPT</p>
+      </header>
+
+      <section class="informations-evenement" aria-label="Informations pratiques">
+        <div class="information">
+          <i class="pi pi-calendar" aria-hidden="true"></i>
+          <div><h2>Date et heure</h2>
+            <p><time [attr.datetime]="item.dateDebut">{{ formaterDate(item.dateDebut) }}</time></p>
+            <p class="fin-evenement">Fin : <time [attr.datetime]="item.dateFin">{{ formaterDate(item.dateFin) }}</time></p>
+          </div>
+        </div>
+        <div class="information">
+          <i class="pi pi-map-marker" aria-hidden="true"></i>
+          <div><h2>Lieu</h2><p>{{ item.lieu }}</p></div>
+        </div>
+        <div class="information">
+          <i class="pi pi-users" aria-hidden="true"></i>
+          <div><h2>Participants</h2>
+            <p>{{ item.nombreParticipants }} {{ item.nombreParticipants === 1 ? 'participant' : 'participants' }}</p>
+            @if (placesRestantes(item); as places) {
+              <p class="fin-evenement">{{ places }} {{ places === 1 ? 'place restante' : 'places restantes' }}</p>
+            } @else if (item.nombrePlaces !== null) {
+              <p class="fin-evenement">Complet</p>
+            } @else {
+              <p class="fin-evenement">Places non limitées</p>
+            }
+          </div>
+        </div>
+        <div class="information">
+          <i class="pi pi-user" aria-hidden="true"></i>
+          <div><h2>Organisé par</h2><p>{{ organisateur(item) }}</p></div>
+        </div>
+      </section>
+
+      <section class="description-detail">
+        <h2>À propos de cet événement</h2>
+        <p>{{ item.description }}</p>
+      </section>
+
+      @if (item.maReponse) {
+        <p class="reponse-actuelle" aria-live="polite">
+          <i class="pi pi-info-circle" aria-hidden="true"></i>
+          Votre réponse enregistrée : {{ item.maReponse === 'PARTICIPERA' ? 'vous participez' : 'vous ne participez pas' }}.
+        </p>
+      }
+    </article>
+  }
+</main>

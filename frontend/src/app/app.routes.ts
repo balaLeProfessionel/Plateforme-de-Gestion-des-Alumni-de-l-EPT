@@ -125,6 +125,24 @@ export const routes: Routes = [
           import('./features/annuaire/annuaire').then((m) => m.Annuaire)
       },
       {
+        path: 'evenements',
+        title: 'Événements | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/evenements/liste-evenements/liste-evenements').then(
+            (m) => m.ListeEvenements
+          )
+      },
+      {
+        path: 'evenements/:id',
+        title: 'Détail de l’événement | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/evenements/detail-evenement/detail-evenement').then(
+            (m) => m.DetailEvenement
+          )
+      },
+      {
         path: 'organismes/:id',
         title: 'Organisme | EPT Alumni',
         canActivate: [authGuard, changementInitialRequisGuard],

@@ -1,0 +1,55 @@
+.evenements-page { width: min(100% - 3rem, 1240px); margin: 0 auto; padding: clamp(2.5rem, 6vw, 5rem) 0; }
+.entete-evenements { display: flex; align-items: end; justify-content: space-between; gap: 2rem; margin-bottom: 2.5rem;
+  .sur-titre { margin: 0 0 .5rem; color: var(--ept-gold-dark); font-size: .75rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  h1 { margin: 0; color: var(--ept-primary-dark); font-size: clamp(2.35rem, 5vw, 3.75rem); line-height: 1.05; letter-spacing: -.035em; }
+  .introduction { max-width: 690px; margin: .9rem 0 0; color: var(--ept-text-secondary); font-size: 1.05rem; line-height: 1.65; }
+}
+.compteur { flex: 0 0 auto; min-width: 8.5rem; padding: 1rem 1.25rem; border-left: 3px solid var(--ept-sky); background: var(--ept-primary); color: white;
+  strong { display: block; font-size: 1.6rem; } span { font-size: .75rem; text-transform: uppercase; }
+}
+.onglets-periode { display: flex; gap: .25rem; margin-bottom: 1.6rem; border-bottom: 1px solid var(--ept-border);
+  button { min-height: 3rem; padding: .7rem 1.2rem; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--ept-text-secondary); font: inherit; font-weight: 700; cursor: pointer; }
+  button.actif { border-bottom-color: var(--ept-primary); color: var(--ept-primary); }
+  button:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+}
+.resultats-evenements { min-height: 16rem; }
+.grille-evenements { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin: 0; padding: 0; list-style: none; }
+.carte-evenement { display: flex; min-width: 0; min-height: 18rem; flex-direction: column; padding: 1.35rem; border: 1px solid var(--ept-border); border-left: 4px solid transparent; background: white; color: inherit; text-decoration: none; transition: border-color 140ms ease, background 140ms ease;
+  &:hover { border-color: var(--ept-primary); }
+  &:focus-visible { outline: 3px solid var(--ept-sky); outline-offset: 3px; }
+  &.officiel { border-left-color: var(--ept-primary); background: #f2f8fb; }
+  h2 { display: -webkit-box; overflow: hidden; margin: .8rem 0 .7rem; color: var(--ept-primary-dark); font-size: 1.35rem; line-height: 1.3; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+}
+.entete-carte { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .55rem; }
+.badge-officiel, .badge-communaute, .audience { display: inline-flex; align-items: center; gap: .35rem; min-height: 1.7rem; padding: .25rem .5rem; border: 1px solid transparent; font-size: .72rem; font-weight: 700; }
+.badge-officiel { border-color: #b6dce9; background: #d8edf5; color: var(--ept-primary); }
+.badge-communaute { border-color: var(--ept-border); background: #f5f7f8; color: var(--ept-text-secondary); }
+.audience { border-color: var(--ept-border); color: var(--ept-text-secondary); font-weight: 500; }
+.date-evenement, .lieu-evenement { display: flex; align-items: start; gap: .6rem; margin: .25rem 0; color: var(--ept-text-secondary); font-size: .88rem; line-height: 1.45;
+  i { flex: 0 0 auto; margin-top: .15rem; color: var(--ept-primary); }
+}
+.description-evenement { display: -webkit-box; overflow: hidden; margin: .8rem 0 1rem; color: var(--ept-text-secondary); line-height: 1.55; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.pied-carte { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-top: auto; padding-top: .85rem; border-top: 1px solid var(--ept-border); color: var(--ept-text-secondary); font-size: .82rem;
+  > span:first-child { display: inline-flex; align-items: center; gap: .4rem; }
+  .lien-detail { color: var(--ept-primary); font-weight: 700; }
+}
+.squelette-evenement { min-height: 18rem; border: 1px solid var(--ept-border); background: #edf1f3; }
+.etat-evenements { display: grid; justify-items: center; gap: .5rem; padding: 4rem 1rem; border: 1px dashed var(--ept-border); text-align: center;
+  > i { color: var(--ept-primary); font-size: 1.7rem; }
+  h2, p { margin: 0; } p { color: var(--ept-text-secondary); }
+  button { min-height: 2.8rem; margin-top: .75rem; padding: .65rem 1.1rem; border: 1px solid var(--ept-primary); background: var(--ept-primary); color: white; font: inherit; font-weight: 700; cursor: pointer; }
+}
+.pagination-evenements { display: flex; align-items: center; justify-content: center; gap: .45rem; margin-top: 2.5rem;
+  button { min-width: 2.75rem; min-height: 2.75rem; padding: .5rem; border: 1px solid #cbd5dc; background: white; color: var(--ept-primary); font: inherit; font-weight: 700; cursor: pointer; }
+  button:hover:not(:disabled), button.page-active { border-color: var(--ept-primary); background: var(--ept-primary); color: white; }
+  button:disabled { opacity: .4; cursor: default; }
+  .ellipse { padding: 0 .35rem; color: var(--ept-text-secondary); }
+}
+@media (max-width: 760px) { .grille-evenements { grid-template-columns: 1fr; } }
+@media (max-width: 600px) {
+  .evenements-page { width: min(100% - 2rem, 1240px); padding-top: 2rem; }
+  .entete-evenements { display: block; margin-bottom: 1.75rem; }
+  .entete-evenements h1 { font-size: 2.25rem; }
+  .compteur { display: inline-flex; align-items: baseline; gap: .5rem; min-width: 0; margin-top: 1.25rem; padding: .7rem 1rem; }
+  .carte-evenement { min-height: 0; padding: 1.05rem; }
+}

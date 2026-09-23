@@ -1,0 +1,43 @@
+.detail-evenement-page { width: min(100% - 3rem, 980px); margin: 0 auto; padding: clamp(2rem, 5vw, 4rem) 0; }
+.bouton-retour { display: inline-flex; align-items: center; gap: .55rem; min-height: 2.8rem; margin-bottom: 1.2rem; padding: .55rem .8rem; border: 1px solid var(--ept-border); background: white; color: var(--ept-primary); font: inherit; font-weight: 700; cursor: pointer;
+  &:hover { border-color: var(--ept-primary); background: #f2f8fb; }
+  &:focus-visible { outline: 3px solid var(--ept-sky); outline-offset: 2px; }
+}
+.fiche-evenement { overflow: hidden; border: 1px solid var(--ept-border); background: white;
+  &.officiel { border-top: 4px solid var(--ept-primary); }
+}
+.bandeau-officiel { display: flex; align-items: center; gap: .55rem; padding: .75rem 1.5rem; border-bottom: 1px solid #b6dce9; background: #e7f4f8; color: var(--ept-primary); font-size: .85rem; font-weight: 700; }
+.entete-detail { padding: clamp(1.5rem, 4vw, 3rem); border-bottom: 1px solid var(--ept-border);
+  h1 { margin: 1rem 0 .5rem; color: var(--ept-primary-dark); font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.12; overflow-wrap: anywhere; }
+  .resume-detail { margin: 0; color: var(--ept-text-secondary); }
+}
+.badges-detail { display: flex; flex-wrap: wrap; gap: .55rem; }
+.badge-officiel, .badge-communaute, .badge-statut, .audience { display: inline-flex; align-items: center; gap: .35rem; min-height: 1.8rem; padding: .3rem .55rem; border: 1px solid var(--ept-border); font-size: .75rem; font-weight: 700; }
+.badge-officiel { border-color: #b6dce9; background: #d8edf5; color: var(--ept-primary); }
+.badge-communaute, .audience { background: #f5f7f8; color: var(--ept-text-secondary); }
+.badge-statut.annule { border-color: #efc7c2; background: #fff0ed; color: #8d2f25; }
+.informations-evenement { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; padding: 0 clamp(1.5rem, 4vw, 3rem); }
+.information { display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: .85rem; min-width: 0; padding: 1.4rem 1rem 1.4rem 0; border-bottom: 1px solid var(--ept-border);
+  > i { margin-top: .15rem; color: var(--ept-primary); font-size: 1.2rem; }
+  h2 { margin: 0 0 .45rem; color: var(--ept-text-secondary); font-size: .73rem; letter-spacing: .07em; text-transform: uppercase; }
+  p { margin: .15rem 0; color: var(--ept-primary-dark); line-height: 1.5; overflow-wrap: anywhere; }
+  .fin-evenement { color: var(--ept-text-secondary); font-size: .88rem; }
+}
+.description-detail { padding: 1.5rem clamp(1.5rem, 4vw, 3rem) 2rem;
+  h2 { margin: 0 0 .8rem; color: var(--ept-primary-dark); font-size: 1.25rem; }
+  p { margin: 0; color: var(--ept-text-secondary); line-height: 1.75; white-space: pre-line; overflow-wrap: anywhere; }
+}
+.reponse-actuelle { display: flex; gap: .55rem; margin: 0 clamp(1.5rem, 4vw, 3rem) 1.5rem; padding: .8rem 1rem; border-left: 3px solid var(--ept-sky); background: #f2f8fb; color: var(--ept-primary); font-size: .9rem; }
+.chargement-detail { display: grid; gap: 1rem; }
+.squelette-titre, .squelette-corps { border: 1px solid var(--ept-border); background: #edf1f3; }
+.squelette-titre { height: 7rem; }.squelette-corps { height: 22rem; }
+.etat-detail { display: grid; justify-items: center; gap: .55rem; padding: 4rem 1rem; border: 1px dashed var(--ept-border); text-align: center;
+  > i { color: var(--ept-error); font-size: 1.7rem; } h1, p { margin: 0; } p { color: var(--ept-text-secondary); }
+  button { min-height: 2.8rem; margin-top: .75rem; padding: .65rem 1.1rem; border: 1px solid var(--ept-primary); background: var(--ept-primary); color: white; font: inherit; font-weight: 700; cursor: pointer; }
+}
+@media (max-width: 640px) {
+  .detail-evenement-page { width: min(100% - 2rem, 980px); padding-top: 1.5rem; }
+  .informations-evenement { grid-template-columns: 1fr; }
+  .information { padding: 1.1rem 0; }
+  .bandeau-officiel { padding-inline: 1rem; }
+}

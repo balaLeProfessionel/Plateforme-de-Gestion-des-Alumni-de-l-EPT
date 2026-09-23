@@ -19,7 +19,6 @@ export class EspaceMembre {
     { libelle: 'Mentorat', icone: 'pi-sitemap' },
     { libelle: 'Offres d’emploi', icone: 'pi-briefcase' },
     { libelle: 'Actualités', icone: 'pi-megaphone' },
-    { libelle: 'Événements', icone: 'pi-calendar' },
   ];
 
   protected readonly lienProfil = computed(() => {
