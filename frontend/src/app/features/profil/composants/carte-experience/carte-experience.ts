@@ -1,5 +1,5 @@
 import { Component, computed, input, linkedSignal, output, signal } from '@angular/core';
-import { disabled, form, FormField, required } from '@angular/forms/signals';
+import { disabled, form, FormField, maxLength, required } from '@angular/forms/signals';
 import { InputText } from 'primeng/inputtext';
 import { TYPES_CONTRAT } from '../../../../core/data/types-contrat';
 import {
@@ -20,6 +20,7 @@ import { AutocompleteOrganisme } from '../autocomplete-organisme/autocomplete-or
 // choisi, ce que le type TypeContrat n'autorise pas a lui seul.
 interface ModeleExperience {
   poste: string;
+  description: string;
   typeContrat: TypeContrat | '';
   dateDebut: string;
   dateFin: string;
@@ -31,6 +32,7 @@ function versModele(experience: Experience | null): ModeleExperience {
   if (!experience) {
     return {
       poste: '',
+      description: '',
       typeContrat: '',
       dateDebut: '',
       dateFin: '',
@@ -40,6 +42,7 @@ function versModele(experience: Experience | null): ModeleExperience {
   }
   return {
     poste: experience.poste,
+    description: experience.description ?? '',
     typeContrat: experience.typeContrat,
     dateDebut: experience.dateDebut,
     dateFin: experience.dateFin ?? '',
@@ -86,6 +89,8 @@ export class CarteExperience {
 
   protected readonly formulaire = form(this.modele, (champ) => {
     required(champ.poste, { message: 'Le poste est obligatoire' });
+    maxLength(champ.poste, 255, { message: 'Le poste ne peut pas dépasser 255 caractères' });
+    maxLength(champ.description, 2000, { message: 'La description ne peut pas dépasser 2 000 caractères' });
     required(champ.typeContrat, { message: 'Le type de contrat est obligatoire' });
     required(champ.dateDebut, { message: 'La date de début est obligatoire' });
     // Une experience toujours en cours n'a pas de date de fin a saisir
@@ -176,6 +181,7 @@ export class CarteExperience {
 
     return {
       poste: m.poste.trim(),
+      description: m.description.trim() || null,
       typeContrat: m.typeContrat as TypeContrat,
       dateDebut: m.dateDebut,
       // Une experience en cours n'a pas de date de fin
@@ -188,6 +194,7 @@ export class CarteExperience {
   private empreinte(modele: ModeleExperience, lien: LienOrganisme): string {
     return JSON.stringify([
       modele.poste,
+      modele.description,
       modele.typeContrat,
       modele.dateDebut,
       modele.dateFin,

@@ -1,0 +1,115 @@
+<div class="espace-membre" [class.barre-repliee]="barreLateraleRepliee()">
+  <aside class="barre-laterale" aria-label="Navigation de l’espace membre">
+    <a class="marque" routerLink="/accueil" aria-label="EPT Alumni, accueil">
+      <span class="symbole-marque" aria-hidden="true"><i class="pi pi-graduation-cap"></i></span>
+      <span class="texte-marque"><strong>EPT Alumni</strong><small>Excellence & réseau</small></span>
+    </a>
+
+    <button type="button" class="bouton-basculer-navigation"
+      [attr.aria-expanded]="!barreLateraleRepliee()"
+      [attr.aria-label]="barreLateraleRepliee() ? 'Déplier la navigation' : 'Replier la navigation'"
+      [attr.title]="barreLateraleRepliee() ? 'Déplier la navigation' : 'Replier la navigation'"
+      aria-controls="navigation-principale" (click)="basculerBarreLaterale()">
+      <i class="pi" [class.pi-angle-right]="barreLateraleRepliee()"
+        [class.pi-angle-left]="!barreLateraleRepliee()" aria-hidden="true"></i>
+      <span>Réduire</span>
+    </button>
+
+    <nav id="navigation-principale" class="navigation-principale" aria-label="Navigation principale">
+      <a class="lien-navigation" routerLink="/accueil" routerLinkActive="actif" ariaCurrentWhenActive="page"
+         [routerLinkActiveOptions]="{ exact: true }" aria-label="Accueil">
+        <i class="pi pi-home" aria-hidden="true"></i><span class="libelle">Accueil</span>
+      </a>
+      <a class="lien-navigation" routerLink="/annuaire" routerLinkActive="actif" ariaCurrentWhenActive="page" aria-label="Annuaire">
+        <i class="pi pi-users" aria-hidden="true"></i><span class="libelle">Annuaire</span>
+      </a>
+      @if (lienProfil(); as destination) {
+        <a class="lien-navigation" [routerLink]="destination" routerLinkActive="actif" ariaCurrentWhenActive="page"
+           [routerLinkActiveOptions]="{ exact: true }" aria-label="Mon profil">
+          <i class="pi pi-user" aria-hidden="true"></i><span class="libelle">Mon profil</span>
+        </a>
+      }
+
+      <span class="separateur-navigation" aria-hidden="true"></span>
+      @for (rubrique of rubriquesAVenir; track rubrique.libelle) {
+        <span class="lien-navigation a-venir" [attr.aria-label]="rubrique.libelle + ', à venir'">
+          <i class="pi" [class]="'pi ' + rubrique.icone" aria-hidden="true"></i>
+          <span class="libelle">{{ rubrique.libelle }}</span><small>À venir</small>
+        </span>
+      }
+      @if (lienParametres(); as destination) {
+        <span class="separateur-navigation" aria-hidden="true"></span>
+        <a class="lien-navigation" [routerLink]="destination" routerLinkActive="actif" ariaCurrentWhenActive="page"
+           aria-label="Paramètres du profil">
+          <i class="pi pi-cog" aria-hidden="true"></i><span class="libelle">Paramètres</span>
+        </a>
+      }
+    </nav>
+
+    <div class="compte-lateral" [attr.aria-label]="'Compte de ' + nomAffiche() + ', ' + typeMembre()">
+      @if (lienProfil(); as destination) {
+        <a class="avatar lien-avatar" [routerLink]="destination"
+          [attr.aria-label]="'Ouvrir le profil de ' + nomAffiche()" title="Ouvrir mon profil">
+          {{ initiales() }}
+        </a>
+      } @else {
+        <span class="avatar" aria-hidden="true">{{ initiales() }}</span>
+      }
+      <span class="identite-compte"><strong>{{ nomAffiche() }}</strong><small>{{ typeMembre() }}</small></span>
+      <button type="button" class="bouton-deconnexion" (click)="seDeconnecter()"
+              aria-label="Déconnexion" title="Déconnexion">
+        <i class="pi pi-sign-out" aria-hidden="true"></i>
+      </button>
+    </div>
+  </aside>
+
+  <header class="entete-mobile">
+    <a class="marque" routerLink="/accueil" aria-label="EPT Alumni, accueil">
+      <span class="symbole-marque" aria-hidden="true"><i class="pi pi-graduation-cap"></i></span>
+      <span class="texte-marque"><strong>EPT Alumni</strong></span>
+    </a>
+    @if (lienProfil(); as destination) {
+      <a class="avatar lien-avatar" [routerLink]="destination"
+        [attr.aria-label]="'Ouvrir le profil de ' + nomAffiche()" title="Ouvrir mon profil">
+        {{ initiales() }}
+      </a>
+    } @else {
+      <span class="avatar" [attr.aria-label]="'Compte de ' + nomAffiche()">{{ initiales() }}</span>
+    }
+  </header>
+
+  <main class="contenu-membre"><router-outlet /></main>
+
+    <div class="panneau-plus" id="menu-plus-mobile" [hidden]="!menuPlusOuvert()">
+      <p class="titre-panneau">À découvrir bientôt</p>
+      @for (rubrique of rubriquesAVenir; track rubrique.libelle) {
+        <span class="rubrique-a-venir"><i class="pi" [class]="'pi ' + rubrique.icone" aria-hidden="true"></i>{{ rubrique.libelle }}</span>
+      }
+      @if (lienParametres(); as destination) {
+        <a [routerLink]="destination" (click)="fermerMenuPlus()">
+          <i class="pi pi-cog" aria-hidden="true"></i>Paramètres du profil
+        </a>
+      }
+      <button type="button" (click)="seDeconnecter()">
+        <i class="pi pi-sign-out" aria-hidden="true"></i>Déconnexion
+      </button>
+    </div>
+
+  <nav class="navigation-mobile" aria-label="Navigation mobile">
+    <a routerLink="/accueil" routerLinkActive="actif" ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{ exact: true }"
+       (click)="fermerMenuPlus()"><i class="pi pi-home" aria-hidden="true"></i><span>Accueil</span></a>
+    <a routerLink="/annuaire" routerLinkActive="actif" ariaCurrentWhenActive="page" (click)="fermerMenuPlus()">
+      <i class="pi pi-users" aria-hidden="true"></i><span>Annuaire</span>
+    </a>
+    @if (lienProfil(); as destination) {
+      <a [routerLink]="destination" routerLinkActive="actif" ariaCurrentWhenActive="page"
+         [routerLinkActiveOptions]="{ exact: true }" (click)="fermerMenuPlus()">
+        <i class="pi pi-user" aria-hidden="true"></i><span>Profil</span>
+      </a>
+    }
+    <button type="button" [class.actif]="menuPlusOuvert()" [attr.aria-expanded]="menuPlusOuvert()"
+            aria-controls="menu-plus-mobile" (click)="basculerMenuPlus()">
+      <i class="pi pi-ellipsis-h" aria-hidden="true"></i><span>Plus</span>
+    </button>
+  </nav>
+</div>

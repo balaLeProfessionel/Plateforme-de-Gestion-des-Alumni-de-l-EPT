@@ -22,4 +22,19 @@ describe('Formulaire', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('rend le nom de l’organisme obligatoire uniquement pour ce type de compte', () => {
+    component['role'].set('ORGANISME');
+    component['modele'].set({
+      nom: 'Contact', prenom: 'Test', nomOrganisme: '', email: 'test@example.invalid',
+      password: 'MotDePasse123', filiere: '', anneeSortie: '', telephone: ''
+    });
+    component['formulaire']().markAsTouched();
+    fixture.detectChanges();
+
+    expect(component['formulaire'].nomOrganisme().invalid()).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain('Nom de l\'organisme');
+    expect(fixture.nativeElement.querySelector('#nomOrganisme + small')?.textContent)
+      .toContain("Le nom de l'organisme est obligatoire");
+  });
 });

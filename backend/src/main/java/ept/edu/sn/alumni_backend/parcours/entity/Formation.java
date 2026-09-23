@@ -8,6 +8,7 @@ import ept.edu.sn.alumni_backend.enums.TypeFormation;
 import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -27,6 +28,7 @@ public class Formation {
     private UUID id;
 
     private String libelle;
+    @Column(length = 2000)
     private String description;
     @Enumerated(EnumType.STRING)
     private TypeFormation typeFormation;

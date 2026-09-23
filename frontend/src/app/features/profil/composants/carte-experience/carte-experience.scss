@@ -1,6 +1,6 @@
 .carte {
   border: 1px solid var(--ept-border);
-  border-radius: var(--ept-radius);
+  border-radius: 2px;
   background: var(--ept-surface);
   padding: 1.25rem;
 }
@@ -29,6 +29,7 @@
 
   input {
     width: 100%;
+    border-radius: 2px;
   }
 }
 
@@ -58,7 +59,7 @@
   width: 100%;
   padding: 0.65rem 0.85rem;
   border: 1px solid var(--ept-border);
-  border-radius: var(--ept-radius-sm);
+  border-radius: 2px;
   font-family: var(--ept-font-body);
   font-size: 0.95rem;
   color: var(--ept-text);
@@ -69,6 +70,29 @@
     outline-offset: 1px;
     border-color: var(--ept-primary);
   }
+}
+
+.textarea-ept {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--ept-border);
+  border-radius: 2px;
+  background: var(--ept-surface);
+  color: var(--ept-text);
+  font-family: var(--ept-font-body);
+  font-size: 0.95rem;
+  resize: vertical;
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-primary);
+    outline-offset: 1px;
+    border-color: var(--ept-primary);
+  }
+}
+
+.optionnel {
+  color: var(--ept-text-secondary);
+  font-weight: 400;
 }
 
 .erreur-champ {
@@ -98,7 +122,7 @@
   font-family: var(--ept-font-body);
   font-size: 0.9rem;
   padding: 0.6rem 1rem;
-  border-radius: var(--ept-radius-sm);
+  border-radius: 2px;
   cursor: pointer;
 
   &:hover:not(:disabled) {
@@ -125,7 +149,7 @@
   font-weight: 600;
   font-size: 0.9rem;
   padding: 0.6rem 1rem;
-  border-radius: var(--ept-radius-sm);
+  border-radius: 2px;
   cursor: pointer;
 
   &:hover:not(:disabled) {

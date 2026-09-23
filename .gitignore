@@ -12,6 +12,7 @@
 /backend/build/
 /backend/bin/
 /backend/target/
+/backend/data/
 /backend/.settings/
 /backend/.classpath
 /backend/.project

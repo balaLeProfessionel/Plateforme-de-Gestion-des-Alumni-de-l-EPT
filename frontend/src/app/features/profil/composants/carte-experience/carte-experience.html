@@ -1,11 +1,26 @@
 <article class="carte">
 
   <div class="champ">
-    <label [attr.for]="cle() + '-poste'">Poste occupé</label>
+    <label [attr.for]="cle() + '-poste'">Poste occupé <span class="marque-obligatoire" aria-hidden="true">*</span></label>
     <input pInputText [id]="cle() + '-poste'" [formField]="formulaire.poste"
            placeholder="Ex : Ingénieur logiciel" fluid />
     @if ((formulaire.poste().touched() || soumis()) && formulaire.poste().invalid()) {
       <small class="erreur-champ">{{ formulaire.poste().errors()[0]?.message }}</small>
+    }
+  </div>
+
+  <div class="champ">
+    <label [attr.for]="cle() + '-description'">
+      Missions et réalisations <span class="optionnel">(facultatif)</span>
+    </label>
+    <textarea
+      [id]="cle() + '-description'"
+      [formField]="formulaire.description"
+      rows="4"
+      class="textarea-ept"
+      placeholder="Décrivez vos principales missions, responsabilités ou réalisations…"></textarea>
+    @if ((formulaire.description().touched() || soumis()) && formulaire.description().invalid()) {
+      <small class="erreur-champ">{{ formulaire.description().errors()[0]?.message }}</small>
     }
   </div>
 
@@ -25,7 +40,7 @@
 
   <div class="ligne-double">
     <div class="champ">
-      <label [attr.for]="cle() + '-contrat'">Type de contrat</label>
+      <label [attr.for]="cle() + '-contrat'">Type de contrat <span class="marque-obligatoire" aria-hidden="true">*</span></label>
       <select [id]="cle() + '-contrat'" class="select-ept" [formField]="formulaire.typeContrat">
         <option value="" disabled>Choisissez un type</option>
         @for (t of typesContrat; track t.value) {
@@ -45,7 +60,7 @@
 
   <div class="ligne-double">
     <div class="champ">
-      <label [attr.for]="cle() + '-debut'">Date de début</label>
+      <label [attr.for]="cle() + '-debut'">Date de début <span class="marque-obligatoire" aria-hidden="true">*</span></label>
       <input pInputText type="date" [id]="cle() + '-debut'" [formField]="formulaire.dateDebut" fluid />
       @if ((formulaire.dateDebut().touched() || soumis()) && formulaire.dateDebut().invalid()) {
         <small class="erreur-champ">{{ formulaire.dateDebut().errors()[0]?.message }}</small>

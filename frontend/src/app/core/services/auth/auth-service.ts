@@ -3,6 +3,7 @@ import { computed, inject, Service, signal } from '@angular/core';
 import { AuthResponse } from '../models/auth-response.model';
 import { tap } from 'rxjs';
 import { InscriptionResponse } from '../models/InscriptionResponse';
+import { Profil } from '../models/profil.model';
 
 @Service()
 export class AuthService {
@@ -81,6 +82,26 @@ export class AuthService {
       nouveauMotDePasse,
       refreshToken: this.getRefreshToken() ?? ''
     }).pipe(tap((response) => this.stocker(response)));
+  }
+
+  changerMotDePasse(motDePasseActuel: string, nouveauMotDePasse: string) {
+    return this.http.post<AuthResponse>('/api/auth/changer-mot-de-passe', {
+      motDePasseActuel,
+      nouveauMotDePasse
+    }).pipe(tap((response) => this.stocker(response)));
+  }
+
+  synchroniserProfil(profil: Pick<Profil, 'nom' | 'prenom' | 'urlPhoto'>): void {
+    const courant = this.utilisateurSignal();
+    if (!courant) return;
+    const actualise = {
+      ...courant,
+      nom: profil.nom,
+      prenom: profil.prenom,
+      urlPhoto: profil.urlPhoto
+    };
+    localStorage.setItem(this.USER_KEY, JSON.stringify(actualise));
+    this.utilisateurSignal.set(actualise);
   }
 
   private lireUtilsateur(): AuthResponse | null {

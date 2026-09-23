@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { OrganismeService } from '../../../core/services/organisme/organisme-service';
 import { form, FormField, required } from '@angular/forms/signals';
 import { InputText } from 'primeng/inputtext';
+import { OrganismePublic } from '../../../core/services/models/organisme.model';
 
 @Component({
   selector: 'app-completer-organisme',
@@ -33,11 +34,34 @@ export class CompleterOrganisme {
   });
 
   protected readonly enChargement = signal(false);
+  protected readonly chargementProfil = signal(true);
+  protected readonly profilCharge = signal(false);
   protected readonly messageErreur = signal<string | null>(null);
+
+  constructor() {
+    this.chargerProfil();
+  }
+
+  protected chargerProfil(): void {
+    this.chargementProfil.set(true);
+    this.messageErreur.set(null);
+    this.organismeService.obtenirMonProfil().subscribe({
+      next: (profil) => {
+        this.appliquerProfil(profil);
+        this.profilCharge.set(true);
+        this.chargementProfil.set(false);
+      },
+      error: (erreur) => {
+        this.chargementProfil.set(false);
+        this.messageErreur.set(erreur?.error?.message ?? 'Impossible de charger le profil de l’organisme.');
+      }
+    });
+  }
 
   valider(): void {
     if (this.formulaire().invalid()) {
-        this.messageErreur.set('Merci de compléter les champs obligatoires ci-dessous.');
+      this.formulaire().markAsTouched();
+      this.messageErreur.set('Merci de compléter les champs obligatoires ci-dessous.');
       return;
     }
 
@@ -45,7 +69,9 @@ export class CompleterOrganisme {
     this.messageErreur.set(null);
 
     this.organismeService.completerMonProfilOrganisme(this.modele()).subscribe({
-      next: () => {
+      next: (profil) => {
+        this.appliquerProfil(profil);
+        this.profilCharge.set(true);
         this.enChargement.set(false);
         this.router.navigate(['/accueil']);
       },
@@ -59,5 +85,16 @@ export class CompleterOrganisme {
   passer(): void {
     // L'utilisateur peut différer la complétion, il pourra y revenir plus tard
     this.router.navigate(['/accueil']);
+  }
+
+  private appliquerProfil(profil: OrganismePublic): void {
+    this.modele.set({
+      description: profil.description ?? '',
+      secteurActivite: profil.secteurActivite ?? '',
+      typeOrganisme: profil.typeOrganisme ?? '',
+      adresse: profil.adresse ?? '',
+      siteWeb: profil.siteWeb ?? '',
+      pays: profil.pays ?? ''
+    });
   }
 }

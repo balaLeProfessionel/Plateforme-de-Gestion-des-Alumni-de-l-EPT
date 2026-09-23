@@ -27,14 +27,33 @@ export interface Profil {
   anneeSortie: number | null;
 }
 
+export interface ProfilPublic {
+  id: string;
+  nom: string;
+  prenom: string;
+  role: string;
+  statutCompte: string;
+  bio: string | null;
+  villeResidence: string | null;
+  posteActuel: string | null;
+  lienLinkedin: string | null;
+  lienPortfolio: string | null;
+  urlPhoto: string | null;
+  filiere: string | null;
+  anneeSortie: number | null;
+  experiences: Experience[];
+  formations: Formation[];
+}
+
 // Le backend fait une mise a jour partielle : tous les champs sont optionnels.
 export interface ProfilRequest {
+  nom?: string;
+  prenom?: string;
   bio?: string;
   villeResidence?: string;
   posteActuel?: string;
   lienLinkedin?: string;
   lienPortfolio?: string;
-  urlPhoto?: string;
   telephone?: string;
   dateNaissance?: string;
   effacerDateNaissance?: boolean;
@@ -53,6 +72,7 @@ export interface LienOrganisme {
 export interface Experience {
   id: string;
   poste: string;
+  description: string | null;
   typeContrat: TypeContrat;
   dateDebut: string;
   dateFin: string | null;
@@ -60,10 +80,12 @@ export interface Experience {
   enCours: boolean;
   organismeId: string;
   nomOrganisme: string;
+  etablissementEpt: boolean;
 }
 
 export interface ExperienceRequest extends LienOrganisme {
   poste: string;
+  description?: string | null;
   typeContrat: TypeContrat;
   dateDebut: string;
   dateFin?: string | null;
@@ -83,6 +105,7 @@ export interface Formation {
   enCours: boolean;
   organismeId: string;
   nomOrganisme: string;
+  etablissementEpt: boolean;
 }
 
 export interface FormationRequest extends LienOrganisme {

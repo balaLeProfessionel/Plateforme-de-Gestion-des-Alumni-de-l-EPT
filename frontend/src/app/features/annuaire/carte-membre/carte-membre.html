@@ -1,0 +1,67 @@
+@if (estOrganisme()) {
+  @if (membre().organismeId; as organismeId) {
+    <a class="carte-lien" [routerLink]="['/organismes', organismeId]"
+      [attr.aria-label]="'Voir les détails de ' + nomAffiche()">
+      <article class="carte carte-organisme">
+        <ng-container [ngTemplateOutlet]="contenuCarte" />
+      </article>
+    </a>
+  } @else {
+    <article class="carte carte-organisme">
+      <ng-container [ngTemplateOutlet]="contenuCarte" />
+    </article>
+  }
+} @else {
+  <a class="carte-lien" [routerLink]="['/profil', membre().id]"
+    [attr.aria-label]="'Consulter le profil de ' + nomAffiche()">
+    <article class="carte">
+      <ng-container [ngTemplateOutlet]="contenuCarte" />
+    </article>
+  </a>
+}
+
+<ng-template #contenuCarte>
+  <div class="identite">
+    <div class="avatar" aria-hidden="true">
+      @if (membre().urlPhoto && !imageInvalide()) {
+        <img [src]="membre().urlPhoto" alt="" (error)="imageInvalide.set(true)" />
+      } @else {
+        <span>{{ initiales() }}</span>
+      }
+    </div>
+
+    <div class="nom-et-badge">
+      <h2 [attr.title]="nomAffiche()">{{ nomAffiche() }}</h2>
+      @if (membre().anneeSortie || membre().filiere) {
+        <p class="parcours" [attr.title]="membre().filiere || null">
+          <i class="pi pi-graduation-cap" aria-hidden="true"></i>
+          @if (membre().anneeSortie) { <span>Promo {{ membre().anneeSortie }}</span> }
+          @if (membre().anneeSortie && membre().filiere) { <span aria-hidden="true">—</span> }
+          @if (membre().filiere) { <span>{{ membre().filiere }}</span> }
+        </p>
+      }
+      @if (badge(); as libelle) {
+        <span class="badge" [class.attente]="membre().statutCompte === 'EN_ATTENTE'">
+          {{ libelle }}
+        </span>
+      }
+    </div>
+  </div>
+
+  <dl>
+    <div>
+      <dt>{{ estOrganisme() ? 'Secteur' : 'Poste' }}</dt>
+      <dd [class.non-renseigne]="!membre().posteActuel"
+          [attr.title]="membre().posteActuel || null">
+        {{ membre().posteActuel || 'Non renseigné' }}
+      </dd>
+    </div>
+    <div>
+      <dt>Localisation</dt>
+      <dd [class.non-renseigne]="!membre().villeResidence"
+          [attr.title]="membre().villeResidence || null">
+        {{ membre().villeResidence || 'Non renseignée' }}
+      </dd>
+    </div>
+  </dl>
+</ng-template>

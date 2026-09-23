@@ -83,7 +83,7 @@ class CorrectifsSecuriteEtValidationTests {
         OrganismeService organismeService = mock(OrganismeService.class);
         ExperienceService service = new ExperienceService(repository, organismeService, mock(ExperienceMapper.class));
         ExperienceRequest request = new ExperienceRequest(
-            "Ingénieur", TypeContrat.CDI,
+            "Ingénieur", null, TypeContrat.CDI,
             LocalDate.of(2026, 2, 1), LocalDate.of(2026, 1, 1), false, null, "EPT");
 
         assertThrows(IllegalArgumentException.class, () -> service.creer(null, request));

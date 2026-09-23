@@ -11,11 +11,17 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import ept.edu.sn.alumni_backend.auth.exception.EmailDejaUtiliseException;
 import ept.edu.sn.alumni_backend.auth.exception.NomOrganismeManquantException;
 import ept.edu.sn.alumni_backend.auth.exception.RoleNonAutoriseException;
 import ept.edu.sn.alumni_backend.auth.exception.TokenInvalideException;
+import ept.edu.sn.alumni_backend.organisme.exception.OrganismeIntrouvableException;
+import ept.edu.sn.alumni_backend.utilisateur.exception.ProfilIntrouvableException;
+import ept.edu.sn.alumni_backend.utilisateur.photo.PhotoIntrouvableException;
+import ept.edu.sn.alumni_backend.utilisateur.photo.StockagePhotoException;
+import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -46,6 +52,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(erreurs);
     }
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, String>> handleConstraintViolation(ConstraintViolationException e) {
+        return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+    }
+
     @ExceptionHandler(TokenInvalideException.class)
     public ResponseEntity<Map<String, String>> handleTokenInvalide(TokenInvalideException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -69,6 +80,33 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleNomOrganismeManquant(NomOrganismeManquantException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ProfilIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> handleProfilIntrouvable(ProfilIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(OrganismeIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> handleOrganismeIntrouvable(OrganismeIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(PhotoIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> handlePhotoIntrouvable(PhotoIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(StockagePhotoException.class)
+    public ResponseEntity<Map<String, String>> handleStockagePhoto(StockagePhotoException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, String>> handlePhotoTropGrande() {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+            .body(Map.of("message", "La photo ne doit pas dépasser 5 Mo."));
     }
 
     @ExceptionHandler(SecurityException.class)

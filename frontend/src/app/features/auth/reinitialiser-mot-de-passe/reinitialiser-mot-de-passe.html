@@ -9,7 +9,7 @@
     }
 
     <div class="champ">
-      <label for="codeReinitialisation">Code à 6 chiffres</label>
+      <label for="codeReinitialisation">Code à 6 chiffres <span class="marque-obligatoire" aria-hidden="true">*</span></label>
       <input pInputText id="codeReinitialisation" inputmode="numeric"
         [formField]="formulaire.code" autocomplete="one-time-code" fluid />
       @if (formulaire.code().touched() && formulaire.code().invalid()) {
@@ -18,7 +18,7 @@
     </div>
 
     <div class="champ">
-      <label for="nouveauMotDePasse">Nouveau mot de passe</label>
+      <label for="nouveauMotDePasse">Nouveau mot de passe <span class="marque-obligatoire" aria-hidden="true">*</span></label>
       <div class="champ-mdp">
         <input pInputText id="nouveauMotDePasse" [type]="afficherNouveau() ? 'text' : 'password'"
           [formField]="formulaire.nouveauMotDePasse" autocomplete="new-password" fluid />
@@ -33,7 +33,7 @@
     </div>
 
     <div class="champ">
-      <label for="confirmation">Confirmer le mot de passe</label>
+      <label for="confirmation">Confirmer le mot de passe <span class="marque-obligatoire" aria-hidden="true">*</span></label>
       <div class="champ-mdp">
         <input pInputText id="confirmation" [type]="afficherConfirmation() ? 'text' : 'password'"
           [formField]="formulaire.confirmation" autocomplete="new-password" fluid />

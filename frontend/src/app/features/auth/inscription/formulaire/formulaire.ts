@@ -58,6 +58,10 @@ export class Formulaire {
     email(champ.email, { message: "Format d'email invalide" });
     required(champ.password, { message: 'Le mot de passe est obligatoire' });
     minLength(champ.password, 8, { message: 'Au moins 8 caractères' });
+    required(champ.nomOrganisme, {
+      message: "Le nom de l'organisme est obligatoire",
+      when: () => this.estOrganisme()
+    });
   });
 
   protected readonly enChargement = signal(false);

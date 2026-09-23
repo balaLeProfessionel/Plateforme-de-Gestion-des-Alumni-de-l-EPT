@@ -75,4 +75,26 @@ describe('AuthService', () => {
     });
     requete.flush({ message: 'Mot de passe réinitialisé' });
   });
+
+  it('remplace la session après un changement volontaire du mot de passe', () => {
+    service.stocker(utilisateur);
+    service.changerMotDePasse('AncienPass2026!', 'NouveauPass2026!').subscribe();
+
+    const requete = http.expectOne('/api/auth/changer-mot-de-passe');
+    expect(requete.request.body).toEqual({
+      motDePasseActuel: 'AncienPass2026!', nouveauMotDePasse: 'NouveauPass2026!'
+    });
+    requete.flush({ ...utilisateur, accessToken: 'nouvel-access', refreshToken: 'nouveau-refresh' });
+    expect(service.getToken()).toBe('nouvel-access');
+    expect(service.getRefreshToken()).toBe('nouveau-refresh');
+  });
+
+  it('synchronise l identité et la photo dans la session locale', () => {
+    service.stocker(utilisateur);
+    service.synchroniserProfil({ nom: 'Ndiaye', prenom: 'Aminata', urlPhoto: '/api/photos/photo.png' });
+
+    expect(service.utilisateur()).toEqual(expect.objectContaining({
+      nom: 'Ndiaye', prenom: 'Aminata', urlPhoto: '/api/photos/photo.png'
+    }));
+  });
 });

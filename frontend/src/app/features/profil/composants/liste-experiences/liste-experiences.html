@@ -18,6 +18,8 @@
   <div class="cartes">
     @for (experience of experiences(); track experience.id) {
       <app-carte-experience
+        [attr.id]="'experience-' + experience.id"
+        tabindex="-1"
         [cle]="experience.id"
         [experience]="experience"
         [modeEnregistrement]="modeEnregistrement()"

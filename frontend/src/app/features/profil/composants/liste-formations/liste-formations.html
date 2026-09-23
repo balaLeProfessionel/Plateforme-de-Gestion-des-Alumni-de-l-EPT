@@ -18,6 +18,8 @@
   <div class="cartes">
     @for (formation of formations(); track formation.id) {
       <app-carte-formation
+        [attr.id]="'formation-' + formation.id"
+        tabindex="-1"
         [cle]="formation.id"
         [formation]="formation"
         [modeEnregistrement]="modeEnregistrement()"

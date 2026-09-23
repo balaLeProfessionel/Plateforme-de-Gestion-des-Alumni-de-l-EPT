@@ -323,6 +323,31 @@ public class AuthService {
         );
     }
 
+    @Transactional
+    public AuthResponse changerMotDePasse(
+            Utilisateur utilisateur,
+            ChangerMotDePasseRequest request) {
+        Utilisateur gere = utilisateurRepository.findById(utilisateur.getId())
+            .orElseThrow(() -> new IllegalStateException("Utilisateur introuvable"));
+        if (!passwordEncoder.matches(request.motDePasseActuel(), gere.getPassword())) {
+            throw new org.springframework.security.authentication.BadCredentialsException(
+                "Mot de passe actuel incorrect"
+            );
+        }
+        if (passwordEncoder.matches(request.nouveauMotDePasse(), gere.getPassword())) {
+            throw new IllegalArgumentException("Le nouveau mot de passe doit être différent de l’ancien.");
+        }
+
+        gere.setPassword(passwordEncoder.encode(request.nouveauMotDePasse()));
+        gere = utilisateurRepository.save(gere);
+        refreshTokenService.supprimerTousPour(gere);
+        String accessToken = jwtService.genererToken(new UtilisateurPrincipal(gere));
+        String refreshToken = refreshTokenService.creerRefreshToken(gere);
+        return construireReponse(
+            accessToken, refreshToken, gere, "Mot de passe modifié. Les autres sessions ont été déconnectées."
+        );
+    }
+
     // ==================== OUTILS ====================
 
     private void genererEtEnvoyerCode(Utilisateur utilisateur) {

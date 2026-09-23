@@ -1,6 +1,7 @@
 package ept.edu.sn.alumni_backend;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -9,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.UUID;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +26,7 @@ import ept.edu.sn.alumni_backend.auth.AuthService;
 import ept.edu.sn.alumni_backend.auth.EmailService;
 import ept.edu.sn.alumni_backend.auth.dto.AuthResponse;
 import ept.edu.sn.alumni_backend.auth.dto.ChangerMotDePasseInitialRequest;
+import ept.edu.sn.alumni_backend.auth.dto.ChangerMotDePasseRequest;
 import ept.edu.sn.alumni_backend.auth.dto.CompteCreeResponse;
 import ept.edu.sn.alumni_backend.auth.dto.CreerCompteRequest;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
@@ -145,5 +148,70 @@ class PremiereConnexionTests {
 
         assertTrue(response.getStatus() == 403);
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void changeLeMotDePasseEtConserveLaSessionCourante() {
+        Utilisateur utilisateur = utilisateurActif();
+        when(utilisateurRepository.findById(utilisateur.getId())).thenReturn(Optional.of(utilisateur));
+        when(passwordEncoder.matches("AncienPass2026!", "ancien-hash")).thenReturn(true);
+        when(passwordEncoder.matches("NouveauPass2026!", "ancien-hash")).thenReturn(false);
+        when(passwordEncoder.encode("NouveauPass2026!")).thenReturn("nouveau-hash");
+        when(utilisateurRepository.save(utilisateur)).thenReturn(utilisateur);
+        when(jwtService.genererToken(any())).thenReturn("nouvel-access-token");
+        when(refreshTokenService.creerRefreshToken(utilisateur)).thenReturn("nouveau-refresh-token");
+
+        AuthResponse reponse = authService.changerMotDePasse(
+            utilisateur,
+            new ChangerMotDePasseRequest("AncienPass2026!", "NouveauPass2026!")
+        );
+
+        assertEquals("nouveau-hash", utilisateur.getPassword());
+        assertEquals("nouvel-access-token", reponse.accessToken());
+        assertEquals("nouveau-refresh-token", reponse.refreshToken());
+        verify(refreshTokenService).supprimerTousPour(utilisateur);
+    }
+
+    @Test
+    void refuseUnMotDePasseActuelIncorrect() {
+        Utilisateur utilisateur = utilisateurActif();
+        when(utilisateurRepository.findById(utilisateur.getId())).thenReturn(Optional.of(utilisateur));
+        when(passwordEncoder.matches("Incorrect2026!", "ancien-hash")).thenReturn(false);
+
+        assertThrows(
+            org.springframework.security.authentication.BadCredentialsException.class,
+            () -> authService.changerMotDePasse(
+                utilisateur,
+                new ChangerMotDePasseRequest("Incorrect2026!", "NouveauPass2026!")
+            )
+        );
+    }
+
+    @Test
+    void refuseDeReutiliserLeMotDePasseActuel() {
+        Utilisateur utilisateur = utilisateurActif();
+        when(utilisateurRepository.findById(utilisateur.getId())).thenReturn(Optional.of(utilisateur));
+        when(passwordEncoder.matches("AncienPass2026!", "ancien-hash")).thenReturn(true);
+
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> authService.changerMotDePasse(
+                utilisateur,
+                new ChangerMotDePasseRequest("AncienPass2026!", "AncienPass2026!")
+            )
+        );
+    }
+
+    private Utilisateur utilisateurActif() {
+        Utilisateur utilisateur = new Utilisateur();
+        utilisateur.setId(UUID.randomUUID());
+        utilisateur.setEmail("awa.diop@example.com");
+        utilisateur.setNom("Diop");
+        utilisateur.setPrenom("Awa");
+        utilisateur.setPassword("ancien-hash");
+        utilisateur.setRole(TypeRole.ALUMNI);
+        utilisateur.setStatutCompte(StatutCompte.ACTIF);
+        utilisateur.setEmailVerifie(true);
+        return utilisateur;
     }
 }

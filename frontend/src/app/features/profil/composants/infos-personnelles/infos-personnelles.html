@@ -3,9 +3,26 @@
   <header class="section-entete">
     <h2 id="titre-infos">Informations personnelles</h2>
     <p class="section-aide">
-      Ces informations apparaîtront sur votre profil. Tous les champs sont facultatifs.
+      Ces informations apparaîtront sur votre profil. Les informations de présentation sont facultatives.
     </p>
   </header>
+
+  <div class="ligne-double">
+    <div class="champ">
+      <label for="prenom">Prénom <span class="marque-obligatoire" aria-hidden="true">*</span></label>
+      <input pInputText id="prenom" [formField]="formulaire.prenom" fluid />
+      @if (formulaire.prenom().touched() && formulaire.prenom().invalid()) {
+        <small class="erreur-champ">{{ formulaire.prenom().errors()[0]?.message }}</small>
+      }
+    </div>
+    <div class="champ">
+      <label for="nom">Nom <span class="marque-obligatoire" aria-hidden="true">*</span></label>
+      <input pInputText id="nom" [formField]="formulaire.nom" fluid />
+      @if (formulaire.nom().touched() && formulaire.nom().invalid()) {
+        <small class="erreur-champ">{{ formulaire.nom().errors()[0]?.message }}</small>
+      }
+    </div>
+  </div>
 
   <div class="champ">
     <label for="bio">Biographie</label>

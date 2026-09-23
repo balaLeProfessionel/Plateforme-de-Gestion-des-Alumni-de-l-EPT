@@ -1,0 +1,42 @@
+.page-organisme { width: min(100% - 3rem, 1180px); margin: 0 auto; padding: 2rem 0 5rem; color: var(--ept-primary-dark); }
+.retour { display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; color: var(--ept-primary); font-weight: 700; text-decoration: none; }
+.retour:hover, .site-web:hover { text-decoration: underline; }
+.retour:focus-visible, .site-web:focus-visible, button:focus-visible { outline: 2px solid var(--ept-primary); outline-offset: 3px; }
+.entete-organisme { display: flex; align-items: center; gap: 1.5rem; min-width: 0; padding: 1.75rem; border: 1px solid var(--ept-border); border-top: 4px solid var(--ept-primary); background: linear-gradient(110deg, #fff 0%, #fff 70%, #eef7fa 100%); }
+.logo { display: grid; flex: 0 0 8rem; place-items: center; width: 8rem; height: 8rem; overflow: hidden; border: 1px solid var(--ept-border); border-radius: 3px; background: var(--ept-primary-light); color: var(--ept-primary); font-family: var(--ept-font-heading); font-size: 1.75rem; font-weight: 700; }
+.logo img { width: 100%; height: 100%; object-fit: contain; }
+.identite { min-width: 0; }
+.sur-titre { margin: 0 0 0.5rem; color: var(--ept-primary); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.ligne-nom { display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; }
+.ligne-nom h1 { margin: 0; overflow-wrap: anywhere; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.05; letter-spacing: -0.03em; }
+.badge-attente { padding: 0.3rem 0.65rem; border-radius: 999px; background: var(--ept-gold-light); color: var(--ept-gold-dark); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; }
+.resume { display: flex; flex-wrap: wrap; gap: 0.55rem 1.2rem; margin: 0.9rem 0 0; padding: 0; color: var(--ept-text-secondary); list-style: none; }
+.resume li { display: inline-flex; align-items: center; gap: 0.4rem; min-width: 0; overflow-wrap: anywhere; }
+.grille-detail { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 0.85fr); align-items: start; gap: 1.5rem; margin-top: 1.5rem; }
+.colonne-principale, .colonne-laterale { display: grid; min-width: 0; gap: 1.5rem; }
+.section-detail { min-width: 0; padding: 1.5rem; border: 1px solid var(--ept-border); background: white; }
+.section-detail h2 { margin: 0; font-size: 1.25rem; }
+.description { margin: 1rem 0 0; overflow-wrap: anywhere; color: var(--ept-text-secondary); line-height: 1.7; white-space: pre-line; }
+.non-renseigne { margin: 1rem 0 0; color: var(--ept-text-secondary); font-style: italic; }
+dl { display: grid; gap: 0.9rem; margin: 1rem 0 0; }
+dl div { display: grid; gap: 0.2rem; }
+dt { color: var(--ept-text-secondary); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; }
+dd { margin: 0; overflow-wrap: anywhere; font-weight: 600; }
+.site-web { display: inline-flex; align-items: center; gap: 0.6rem; margin-top: 1rem; color: var(--ept-primary); font-weight: 700; text-decoration: none; }
+.squelette { border: 1px solid var(--ept-border); background: #edf1f3; animation: pulsation 1.4s ease-in-out infinite alternate; }
+.entete-squelette { min-height: 190px; }
+.contenu-squelette, .lateral-squelette { min-height: 300px; }
+.etat-centre { display: grid; justify-items: center; gap: 0.75rem; padding: 5rem 1rem; border: 1px dashed var(--ept-border); text-align: center; }
+.etat-centre i { font-size: 2rem; }
+.etat-centre h1, .etat-centre p { margin: 0; }
+.etat-centre button { margin-top: 0.5rem; padding: 0.65rem 1rem; border: 1px solid var(--ept-primary); background: white; color: var(--ept-primary); font: inherit; font-weight: 700; cursor: pointer; }
+@keyframes pulsation { to { opacity: 0.55; } }
+@media (max-width: 800px) { .grille-detail { grid-template-columns: 1fr; } }
+@media (max-width: 520px) {
+  .page-organisme { width: min(100% - 2rem, 1180px); padding-top: 1.5rem; }
+  .entete-organisme { flex-direction: column; align-items: flex-start; padding: 1.25rem; }
+  .logo { flex-basis: 6rem; width: 6rem; height: 6rem; }
+  .ligne-nom h1 { font-size: 2rem; }
+  .section-detail { padding: 1.2rem; }
+}
+@media (prefers-reduced-motion: reduce) { .squelette { animation: none; } }

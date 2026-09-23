@@ -35,6 +35,10 @@ services:
       JWT_SECRET: ${JWT_SECRET:-VGhpc0lzQVNlY3JldEtlZUZvckpXVFNpZ25pbmdEb05vdFVzZUluUHJvZA==}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-900000}
       JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS:-2592000000}
+      APP_STORAGE_PHOTOS_DIR: ${APP_STORAGE_PHOTOS_DIR:-/data/alumni/photos}
+      APP_MAX_PHOTO_SIZE: ${APP_MAX_PHOTO_SIZE:-5MB}
+    volumes:
+      - profile_photos:/data/alumni/photos
     develop:
       watch:
         - action: sync+restart
@@ -63,3 +67,4 @@ services:
 
 volumes:
   postgres_data:
+  profile_photos:

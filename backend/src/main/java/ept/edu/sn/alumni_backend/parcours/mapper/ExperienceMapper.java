@@ -13,18 +13,21 @@ public class ExperienceMapper {
         return new ExperienceResponse(
             exp.getId(),
             exp.getPoste(),
+            exp.getDescription(),
             exp.getTypeContrat(),
             exp.getDateDebut(),
             exp.getDateFin(),
             exp.isEstStage(),
             exp.getDateFin() == null,
             exp.getOrganisme().getId(),
-            exp.getOrganisme().getNom()
+            exp.getOrganisme().getNom(),
+            exp.getOrganisme().isEtablissementEpt()
         );
     }
 
     public void appliquer(ExperienceProfessionelle exp, ExperienceRequest request) {
         exp.setPoste(request.poste());
+        exp.setDescription(request.description());
         exp.setTypeContrat(request.typeContrat());
         exp.setDateDebut(request.dateDebut());
         exp.setDateFin(request.dateFin());

@@ -1,0 +1,91 @@
+<main class="page-organisme" aria-live="polite" [attr.aria-busy]="enChargement()">
+  <button type="button" class="retour" (click)="retourner()">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>Retour
+  </button>
+
+  @if (enChargement()) {
+    <div class="squelette entete-squelette" aria-hidden="true"></div>
+    <div class="grille-detail" aria-hidden="true">
+      <div class="squelette contenu-squelette"></div>
+      <div class="squelette lateral-squelette"></div>
+    </div>
+  } @else if (messageErreur()) {
+    <section class="etat-centre">
+      <i class="pi pi-building" aria-hidden="true"></i>
+      <h1>Organisme indisponible</h1>
+      <p>{{ messageErreur() }}</p>
+      <button type="button" (click)="actualiser()">Réessayer</button>
+    </section>
+  } @else if (organisme(); as fiche) {
+    <header class="entete-organisme">
+      <div class="logo" aria-hidden="true">
+        @if (fiche.logoUrl && !imageInvalide()) {
+          <img [src]="fiche.logoUrl" alt="" (error)="imageInvalide.set(true)" />
+        } @else {
+          <span>{{ initiales() }}</span>
+        }
+      </div>
+      <div class="identite">
+        <p class="sur-titre">{{ typeOrganisme() }}</p>
+        <div class="ligne-nom">
+          <h1>{{ fiche.nom }}</h1>
+          @if (fiche.statutCompte === 'EN_ATTENTE') {
+            <span class="badge-attente">En attente</span>
+          }
+        </div>
+        @if (fiche.secteurActivite || fiche.adresse || fiche.pays) {
+          <ul class="resume">
+            @if (fiche.secteurActivite) {
+              <li><i class="pi pi-briefcase" aria-hidden="true"></i>{{ fiche.secteurActivite }}</li>
+            }
+            @if (fiche.adresse) {
+              <li><i class="pi pi-map-marker" aria-hidden="true"></i>{{ fiche.adresse }}</li>
+            }
+            @if (fiche.pays) {
+              <li><i class="pi pi-globe" aria-hidden="true"></i>{{ fiche.pays }}</li>
+            }
+          </ul>
+        }
+      </div>
+    </header>
+
+    <div class="grille-detail">
+      <div class="colonne-principale">
+        <section class="section-detail">
+          <h2>À propos</h2>
+          @if (fiche.description) {
+            <p class="description">{{ fiche.description }}</p>
+          } @else {
+            <p class="non-renseigne">Cet organisme n’a pas encore ajouté de présentation.</p>
+          }
+        </section>
+      </div>
+
+      <aside class="colonne-laterale" aria-label="Informations sur l’organisme">
+        <section class="section-detail">
+          <h2>Informations</h2>
+          <dl>
+            <div><dt>Type</dt><dd>{{ typeOrganisme() }}</dd></div>
+            @if (fiche.secteurActivite) { <div><dt>Secteur</dt><dd>{{ fiche.secteurActivite }}</dd></div> }
+            @if (fiche.adresse) { <div><dt>Adresse</dt><dd>{{ fiche.adresse }}</dd></div> }
+            @if (fiche.pays) { <div><dt>Pays</dt><dd>{{ fiche.pays }}</dd></div> }
+            @if (fiche.statutJuridique) { <div><dt>Statut juridique</dt><dd>{{ fiche.statutJuridique }}</dd></div> }
+            @if (fiche.trancheEffectif) { <div><dt>Effectif</dt><dd>{{ fiche.trancheEffectif }}</dd></div> }
+            @if (fiche.dateCreation) {
+              <div><dt>Date de création</dt><dd>{{ fiche.dateCreation | date:'dd/MM/yyyy':'UTC' }}</dd></div>
+            }
+          </dl>
+        </section>
+
+        @if (siteWebValide(); as siteWeb) {
+          <section class="section-detail">
+            <h2>Site web</h2>
+            <a class="site-web" [href]="siteWeb" target="_blank" rel="noopener noreferrer">
+              <i class="pi pi-external-link" aria-hidden="true"></i>Visiter le site de l’organisme
+            </a>
+          </section>
+        }
+      </aside>
+    </div>
+  }
+</main>

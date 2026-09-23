@@ -1,0 +1,244 @@
+<main class="page-profil" aria-live="polite" [attr.aria-busy]="enChargement()">
+  <button class="retour" type="button" (click)="retourner()">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    Retour
+  </button>
+
+  @if (enChargement()) {
+    <div class="squelette entete-squelette" aria-hidden="true"></div>
+    <div class="grille-profil" aria-hidden="true">
+      <div class="squelette contenu-squelette"></div>
+      <div class="squelette lateral-squelette"></div>
+    </div>
+  } @else if (messageErreur()) {
+    <section class="etat-centre">
+      <i class="pi pi-user-minus" aria-hidden="true"></i>
+      <h1>Profil indisponible</h1>
+      <p>{{ messageErreur() }}</p>
+    </section>
+  } @else if (profil(); as membre) {
+    <header class="entete-profil">
+      <div class="avatar">
+        @if (membre.urlPhoto && !imageInvalide()) {
+          <img [src]="membre.urlPhoto" [alt]="'Photo de ' + membre.prenom + ' ' + membre.nom"
+            (error)="imageInvalide.set(true)" />
+        } @else {
+          <span aria-hidden="true">{{ initiales() }}</span>
+        }
+      </div>
+
+      <div class="identite">
+        <div class="ligne-nom">
+          <h1>{{ membre.prenom }} {{ membre.nom }}</h1>
+          @if (badgeRole(); as badge) { <span class="badge-role">{{ badge }}</span> }
+          @if (membre.statutCompte === 'EN_ATTENTE') { <span class="badge-attente">En attente</span> }
+        </div>
+        @if (membre.posteActuel) {
+          <p class="poste" [attr.title]="membre.posteActuel">{{ membre.posteActuel }}</p>
+        }
+
+        @if (membre.villeResidence || membre.anneeSortie || membre.filiere) {
+          <ul class="resume-identite">
+            @if (membre.villeResidence) {
+              <li><i class="pi pi-map-marker" aria-hidden="true"></i>{{ membre.villeResidence }}</li>
+            }
+            @if (membre.anneeSortie) {
+              <li><i class="pi pi-graduation-cap" aria-hidden="true"></i>Promotion {{ membre.anneeSortie }}</li>
+            }
+            @if (membre.filiere) {
+              <li><i class="pi pi-building-columns" aria-hidden="true"></i>{{ membre.filiere }}</li>
+            }
+          </ul>
+        }
+      </div>
+
+      @if (estMonProfil()) {
+        <a class="modifier" routerLink="/profil/parametres">
+          <i class="pi pi-pencil" aria-hidden="true"></i>Modifier mon profil
+        </a>
+      }
+    </header>
+
+    <div class="grille-profil">
+      <div class="colonne-principale">
+        @if (membre.bio) {
+          <section class="section-profil">
+            <h2>À propos</h2>
+            <p class="bio">{{ membre.bio }}</p>
+          </section>
+        }
+
+        @if (aParcoursEpt()) {
+          <section class="section-profil parcours-ept">
+            <div class="titre-parcours-ept">
+              <div>
+                <p class="sur-titre-ept">École Polytechnique de Thiès</p>
+                <h2>Parcours à l’EPT</h2>
+              </div>
+              <img
+                class="logo-ept"
+                src="/images/logo-ept.png"
+                alt="Logo de l’École Polytechnique de Thiès"
+                width="400"
+                height="400"
+              />
+            </div>
+
+            @if (experiencesEpt().length > 0) {
+              <h3 class="sous-titre-parcours">Expériences</h3>
+              <ul class="liste-parcours">
+                @for (experience of experiencesEpt(); track experience.id) {
+                  <li>
+                    <a class="lien-parcours" [routerLink]="['/profil', membre.id, 'experience', experience.id]"
+                      [attr.aria-label]="'Voir les détails de l’expérience ' + experience.poste">
+                      <div class="icone-parcours"><i class="pi pi-briefcase" aria-hidden="true"></i></div>
+                      <div>
+                        <h4 [attr.title]="experience.poste">{{ experience.poste }}</h4>
+                        <p class="organisme" [attr.title]="experience.nomOrganisme">{{ experience.nomOrganisme }}</p>
+                        <p class="meta">{{ libelleContrat(experience.typeContrat) }} · {{ periode(experience) }}</p>
+                      </div>
+                      <i class="pi pi-chevron-right indicateur-detail" aria-hidden="true"></i>
+                    </a>
+                  </li>
+                }
+              </ul>
+            }
+
+            @if (formationsEpt().length > 0) {
+              <h3 class="sous-titre-parcours">Formations</h3>
+              <ul class="liste-parcours">
+                @for (formation of formationsEpt(); track formation.id) {
+                  <li>
+                    <a class="lien-parcours" [routerLink]="['/profil', membre.id, 'formation', formation.id]"
+                      [attr.aria-label]="'Voir les détails de la formation ' + formation.libelle">
+                      <div class="icone-parcours"><i class="pi pi-graduation-cap" aria-hidden="true"></i></div>
+                      <div>
+                        <h4 [attr.title]="formation.libelle">{{ formation.libelle }}</h4>
+                        <p class="organisme" [attr.title]="formation.nomOrganisme">{{ formation.nomOrganisme }}</p>
+                        <p class="meta">{{ libelleFormation(formation.typeFormation) }} · {{ periode(formation) }}</p>
+                        @if (formation.description) {
+                          <p class="description" [attr.title]="formation.description">{{ formation.description }}</p>
+                        }
+                      </div>
+                      <i class="pi pi-chevron-right indicateur-detail" aria-hidden="true"></i>
+                    </a>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+        }
+
+        @if (experiencesHorsEpt().length > 0 || estMonProfil()) {
+          <section class="section-profil">
+            <div class="titre-section">
+              <h2>Expériences professionnelles</h2>
+              @if (estMonProfil()) { <a routerLink="/completer-profil/experiences">Gérer</a> }
+            </div>
+            @if (experiencesHorsEpt().length > 0) {
+              <ul class="liste-parcours">
+                @for (experience of experiencesHorsEpt(); track experience.id) {
+                  <li>
+                    <a class="lien-parcours" [routerLink]="['/profil', membre.id, 'experience', experience.id]"
+                      [attr.aria-label]="'Voir les détails de l’expérience ' + experience.poste">
+                      <div class="icone-parcours"><i class="pi pi-briefcase" aria-hidden="true"></i></div>
+                      <div>
+                        <h3 [attr.title]="experience.poste">{{ experience.poste }}</h3>
+                        <p class="organisme" [attr.title]="experience.nomOrganisme">{{ experience.nomOrganisme }}</p>
+                        <p class="meta">{{ libelleContrat(experience.typeContrat) }} · {{ periode(experience) }}</p>
+                      </div>
+                      <i class="pi pi-chevron-right indicateur-detail" aria-hidden="true"></i>
+                    </a>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="etat-vide">Aucune expérience renseignée.</p>
+            }
+          </section>
+        }
+
+        @if (formationsHorsEpt().length > 0 || estMonProfil()) {
+          <section class="section-profil">
+            <div class="titre-section">
+              <h2>Formations</h2>
+              @if (estMonProfil()) { <a routerLink="/completer-profil/formations">Gérer</a> }
+            </div>
+            @if (formationsHorsEpt().length > 0) {
+              <ul class="liste-parcours">
+                @for (formation of formationsHorsEpt(); track formation.id) {
+                  <li>
+                    <a class="lien-parcours" [routerLink]="['/profil', membre.id, 'formation', formation.id]"
+                      [attr.aria-label]="'Voir les détails de la formation ' + formation.libelle">
+                      <div class="icone-parcours"><i class="pi pi-graduation-cap" aria-hidden="true"></i></div>
+                      <div>
+                        <h3 [attr.title]="formation.libelle">{{ formation.libelle }}</h3>
+                        <p class="organisme" [attr.title]="formation.nomOrganisme">{{ formation.nomOrganisme }}</p>
+                        <p class="meta">{{ libelleFormation(formation.typeFormation) }} · {{ periode(formation) }}</p>
+                        @if (formation.description) {
+                          <p class="description" [attr.title]="formation.description">{{ formation.description }}</p>
+                        }
+                      </div>
+                      <i class="pi pi-chevron-right indicateur-detail" aria-hidden="true"></i>
+                    </a>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="etat-vide">Aucune formation renseignée.</p>
+            }
+          </section>
+        }
+
+        @if (!membre.bio && membre.experiences.length === 0 && membre.formations.length === 0 && !estMonProfil()) {
+          <section class="section-profil etat-vide-public">
+            <i class="pi pi-id-card" aria-hidden="true"></i>
+            <p>Ce membre n’a pas encore complété son parcours.</p>
+          </section>
+        }
+      </div>
+
+      <aside class="colonne-laterale" aria-label="Informations complémentaires">
+        <section class="section-profil informations">
+          <h2>Informations</h2>
+          <dl>
+            <div><dt>Type de membre</dt><dd>{{ badgeRole() }}</dd></div>
+            @if (membre.villeResidence) { <div><dt>Ville</dt><dd>{{ membre.villeResidence }}</dd></div> }
+            @if (membre.filiere) { <div><dt>Filière</dt><dd>{{ membre.filiere }}</dd></div> }
+            @if (membre.anneeSortie) { <div><dt>Promotion</dt><dd>{{ membre.anneeSortie }}</dd></div> }
+          </dl>
+        </section>
+
+        @if (aLiens()) {
+          <section class="section-profil liens">
+            <h2>Liens</h2>
+            @if (membre.lienLinkedin) {
+              <a [href]="membre.lienLinkedin" target="_blank" rel="noopener noreferrer">
+                <i class="pi pi-linkedin" aria-hidden="true"></i>LinkedIn
+              </a>
+            }
+            @if (membre.lienPortfolio) {
+              <a [href]="membre.lienPortfolio" target="_blank" rel="noopener noreferrer">
+                <i class="pi pi-globe" aria-hidden="true"></i>Portfolio
+              </a>
+            }
+          </section>
+        }
+
+        @if (estMonProfil()) {
+          <section class="section-profil prive">
+            <div class="titre-prive"><i class="pi pi-lock" aria-hidden="true"></i><h2>Informations privées</h2></div>
+            <p>Visibles uniquement par vous</p>
+            <dl>
+              <div><dt>Email</dt><dd>{{ membre.email }}</dd></div>
+              @if (membre.telephone) { <div><dt>Téléphone</dt><dd>{{ membre.telephone }}</dd></div> }
+              @if (membre.dateNaissance) {
+                <div><dt>Date de naissance</dt><dd>{{ membre.dateNaissance | date:'dd/MM/yyyy':'UTC' }}</dd></div>
+              }
+            </dl>
+          </section>
+        }
+      </aside>
+    </div>
+  }
+</main>

@@ -1,7 +1,7 @@
 .section-profil {
   background: var(--ept-surface);
   border: 1px solid var(--ept-border);
-  border-radius: var(--ept-radius);
+  border-radius: 2px;
   box-shadow: var(--ept-shadow);
   padding: 1.75rem;
 }
@@ -48,7 +48,7 @@
   font-weight: 600;
   font-size: 0.9rem;
   padding: 0.7rem 1.2rem;
-  border-radius: var(--ept-radius-sm);
+  border-radius: 2px;
   cursor: pointer;
 
   &:hover {
