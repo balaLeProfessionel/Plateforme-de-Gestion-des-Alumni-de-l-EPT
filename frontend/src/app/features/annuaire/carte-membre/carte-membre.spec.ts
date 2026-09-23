@@ -65,15 +65,17 @@ describe('CarteMembre', () => {
     expect(fixture.nativeElement.querySelector('dd')?.getAttribute('title')).toBe(poste);
   });
 
-  it('affiche un organisme sans créer de lien vers un profil personnel', async () => {
+  it('ouvre la fiche de l’organisme au lieu d’un profil personnel', async () => {
     fixture.componentRef.setInput('membre', membre({
-      nom: 'SunuTech', prenom: null, role: 'ORGANISME', posteActuel: 'Numérique'
+      id: 'compte-sunu', organismeId: 'sunu-42', nom: 'SunuTech', prenom: null,
+      role: 'ORGANISME', posteActuel: 'Numérique'
     }));
     await fixture.whenStable();
 
     expect(fixture.nativeElement.textContent).toContain('SunuTech');
     expect(fixture.nativeElement.textContent).toContain('Secteur');
-    expect(fixture.nativeElement.querySelector('.carte-lien')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.carte-lien')?.getAttribute('href'))
+      .toBe('/organismes/sunu-42');
   });
 
   function membre(modifications: Partial<AnnuaireMembre>): AnnuaireMembre {
@@ -88,6 +90,7 @@ describe('CarteMembre', () => {
       villeResidence: 'Thiès',
       filiere: 'Génie Informatique et Télécommunications',
       anneeSortie: 2025,
+      organismeId: null,
       ...modifications
     };
   }

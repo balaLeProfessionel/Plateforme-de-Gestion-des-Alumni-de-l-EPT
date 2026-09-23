@@ -13,6 +13,7 @@ export interface AnnuaireMembre {
   villeResidence: string | null;
   filiere: string | null;
   anneeSortie: number | null;
+  organismeId: string | null;
 }
 
 export interface PageAnnuaire {

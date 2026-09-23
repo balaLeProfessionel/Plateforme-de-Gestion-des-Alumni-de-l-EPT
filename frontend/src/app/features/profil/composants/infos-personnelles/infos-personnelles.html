@@ -9,14 +9,14 @@
 
   <div class="ligne-double">
     <div class="champ">
-      <label for="prenom">Prénom</label>
+      <label for="prenom">Prénom <span class="marque-obligatoire" aria-hidden="true">*</span></label>
       <input pInputText id="prenom" [formField]="formulaire.prenom" fluid />
       @if (formulaire.prenom().touched() && formulaire.prenom().invalid()) {
         <small class="erreur-champ">{{ formulaire.prenom().errors()[0]?.message }}</small>
       }
     </div>
     <div class="champ">
-      <label for="nom">Nom</label>
+      <label for="nom">Nom <span class="marque-obligatoire" aria-hidden="true">*</span></label>
       <input pInputText id="nom" [formField]="formulaire.nom" fluid />
       @if (formulaire.nom().touched() && formulaire.nom().invalid()) {
         <small class="erreur-champ">{{ formulaire.nom().errors()[0]?.message }}</small>

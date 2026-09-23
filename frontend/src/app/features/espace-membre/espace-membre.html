@@ -1,11 +1,21 @@
-<div class="espace-membre">
+<div class="espace-membre" [class.barre-repliee]="barreLateraleRepliee()">
   <aside class="barre-laterale" aria-label="Navigation de l’espace membre">
     <a class="marque" routerLink="/accueil" aria-label="EPT Alumni, accueil">
       <span class="symbole-marque" aria-hidden="true"><i class="pi pi-graduation-cap"></i></span>
       <span class="texte-marque"><strong>EPT Alumni</strong><small>Excellence & réseau</small></span>
     </a>
 
-    <nav class="navigation-principale" aria-label="Navigation principale">
+    <button type="button" class="bouton-basculer-navigation"
+      [attr.aria-expanded]="!barreLateraleRepliee()"
+      [attr.aria-label]="barreLateraleRepliee() ? 'Déplier la navigation' : 'Replier la navigation'"
+      [attr.title]="barreLateraleRepliee() ? 'Déplier la navigation' : 'Replier la navigation'"
+      aria-controls="navigation-principale" (click)="basculerBarreLaterale()">
+      <i class="pi" [class.pi-angle-right]="barreLateraleRepliee()"
+        [class.pi-angle-left]="!barreLateraleRepliee()" aria-hidden="true"></i>
+      <span>Réduire</span>
+    </button>
+
+    <nav id="navigation-principale" class="navigation-principale" aria-label="Navigation principale">
       <a class="lien-navigation" routerLink="/accueil" routerLinkActive="actif" ariaCurrentWhenActive="page"
          [routerLinkActiveOptions]="{ exact: true }" aria-label="Accueil">
         <i class="pi pi-home" aria-hidden="true"></i><span class="libelle">Accueil</span>
@@ -36,8 +46,15 @@
       }
     </nav>
 
-    <div class="compte-lateral">
-      <span class="avatar" aria-hidden="true">{{ initiales() }}</span>
+    <div class="compte-lateral" [attr.aria-label]="'Compte de ' + nomAffiche() + ', ' + typeMembre()">
+      @if (lienProfil(); as destination) {
+        <a class="avatar lien-avatar" [routerLink]="destination"
+          [attr.aria-label]="'Ouvrir le profil de ' + nomAffiche()" title="Ouvrir mon profil">
+          {{ initiales() }}
+        </a>
+      } @else {
+        <span class="avatar" aria-hidden="true">{{ initiales() }}</span>
+      }
       <span class="identite-compte"><strong>{{ nomAffiche() }}</strong><small>{{ typeMembre() }}</small></span>
       <button type="button" class="bouton-deconnexion" (click)="seDeconnecter()"
               aria-label="Déconnexion" title="Déconnexion">
@@ -51,7 +68,14 @@
       <span class="symbole-marque" aria-hidden="true"><i class="pi pi-graduation-cap"></i></span>
       <span class="texte-marque"><strong>EPT Alumni</strong></span>
     </a>
-    <span class="avatar" [attr.aria-label]="'Compte de ' + nomAffiche()">{{ initiales() }}</span>
+    @if (lienProfil(); as destination) {
+      <a class="avatar lien-avatar" [routerLink]="destination"
+        [attr.aria-label]="'Ouvrir le profil de ' + nomAffiche()" title="Ouvrir mon profil">
+        {{ initiales() }}
+      </a>
+    } @else {
+      <span class="avatar" [attr.aria-label]="'Compte de ' + nomAffiche()">{{ initiales() }}</span>
+    }
   </header>
 
   <main class="contenu-membre"><router-outlet /></main>

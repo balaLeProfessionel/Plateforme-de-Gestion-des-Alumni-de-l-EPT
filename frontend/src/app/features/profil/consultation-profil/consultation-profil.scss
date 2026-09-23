@@ -1,4 +1,7 @@
 .page-profil { width: min(100% - 3rem, 1180px); margin: 0 auto; padding: 3rem 0 5rem; color: var(--ept-primary-dark); }
+.retour { display: inline-flex; align-items: center; gap: 0.55rem; min-height: 2.75rem; margin: 0 0 1rem; padding: 0.55rem 0.8rem; border: 1px solid var(--ept-border); background: white; color: var(--ept-primary); font: inherit; font-weight: 700; cursor: pointer; }
+.retour:hover, .retour:focus-visible { border-color: var(--ept-primary); background: var(--ept-primary-light); }
+.retour:focus-visible { outline: 2px solid var(--ept-primary); outline-offset: 2px; }
 
 .entete-profil {
   display: grid;

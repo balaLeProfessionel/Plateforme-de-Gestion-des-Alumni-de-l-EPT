@@ -17,6 +17,7 @@ import ept.edu.sn.alumni_backend.auth.exception.EmailDejaUtiliseException;
 import ept.edu.sn.alumni_backend.auth.exception.NomOrganismeManquantException;
 import ept.edu.sn.alumni_backend.auth.exception.RoleNonAutoriseException;
 import ept.edu.sn.alumni_backend.auth.exception.TokenInvalideException;
+import ept.edu.sn.alumni_backend.organisme.exception.OrganismeIntrouvableException;
 import ept.edu.sn.alumni_backend.utilisateur.exception.ProfilIntrouvableException;
 import ept.edu.sn.alumni_backend.utilisateur.photo.PhotoIntrouvableException;
 import ept.edu.sn.alumni_backend.utilisateur.photo.StockagePhotoException;
@@ -85,6 +86,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleProfilIntrouvable(ProfilIntrouvableException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(OrganismeIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> handleOrganismeIntrouvable(OrganismeIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
     }
 
     @ExceptionHandler(PhotoIntrouvableException.class)

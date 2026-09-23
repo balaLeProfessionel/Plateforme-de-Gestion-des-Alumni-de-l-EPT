@@ -17,7 +17,9 @@
     </section>
   } @else if (profil(); as membre) {
     <nav class="navigation-sections" aria-label="Sections des paramètres">
-      <a href="#photo">Photo</a><a href="#informations">Informations</a><a href="#securite">Sécurité</a>
+      <a routerLink="/profil/parametres" fragment="photo">Photo</a>
+      <a routerLink="/profil/parametres" fragment="informations">Informations</a>
+      <a routerLink="/profil/parametres" fragment="securite">Sécurité</a>
     </nav>
 
     <section class="carte-parametres" id="photo" aria-labelledby="titre-photo">
@@ -68,14 +70,17 @@
       <div class="titre-section"><div><h2 id="titre-securite">Sécurité</h2><p>Le changement conserve cette session et déconnecte les autres appareils.</p></div></div>
       <div class="formulaire-securite">
         <div class="champ-mot-de-passe">
-          <label for="mot-de-passe-actuel">Mot de passe actuel</label>
+          <label for="mot-de-passe-actuel">Mot de passe actuel <span class="marque-obligatoire" aria-hidden="true">*</span></label>
           <div class="champ-avec-action"><input pInputText id="mot-de-passe-actuel" [type]="afficherActuel() ? 'text' : 'password'"
             [formField]="formulaireMotDePasse.actuel" autocomplete="current-password" />
             <button type="button" (click)="afficherActuel.set(!afficherActuel())" [attr.aria-label]="afficherActuel() ? 'Masquer le mot de passe actuel' : 'Afficher le mot de passe actuel'"><i class="pi" [class.pi-eye]="!afficherActuel()" [class.pi-eye-slash]="afficherActuel()"></i></button>
           </div>
+          @if (formulaireMotDePasse.actuel().touched() && formulaireMotDePasse.actuel().invalid()) {
+            <small>{{ formulaireMotDePasse.actuel().errors()[0]?.message }}</small>
+          }
         </div>
         <div class="champ-mot-de-passe">
-          <label for="nouveau-mot-de-passe">Nouveau mot de passe</label>
+          <label for="nouveau-mot-de-passe">Nouveau mot de passe <span class="marque-obligatoire" aria-hidden="true">*</span></label>
           <div class="champ-avec-action"><input pInputText id="nouveau-mot-de-passe" [type]="afficherNouveau() ? 'text' : 'password'"
             [formField]="formulaireMotDePasse.nouveau" autocomplete="new-password" />
             <button type="button" (click)="afficherNouveau.set(!afficherNouveau())" [attr.aria-label]="afficherNouveau() ? 'Masquer le nouveau mot de passe' : 'Afficher le nouveau mot de passe'"><i class="pi" [class.pi-eye]="!afficherNouveau()" [class.pi-eye-slash]="afficherNouveau()"></i></button>
@@ -83,11 +88,14 @@
           @if (formulaireMotDePasse.nouveau().touched() && formulaireMotDePasse.nouveau().invalid()) { <small>{{ formulaireMotDePasse.nouveau().errors()[0]?.message }}</small> }
         </div>
         <div class="champ-mot-de-passe">
-          <label for="confirmation-mot-de-passe">Confirmer le nouveau mot de passe</label>
+          <label for="confirmation-mot-de-passe">Confirmer le nouveau mot de passe <span class="marque-obligatoire" aria-hidden="true">*</span></label>
           <div class="champ-avec-action"><input pInputText id="confirmation-mot-de-passe" [type]="afficherConfirmation() ? 'text' : 'password'"
             [formField]="formulaireMotDePasse.confirmation" autocomplete="new-password" />
             <button type="button" (click)="afficherConfirmation.set(!afficherConfirmation())" [attr.aria-label]="afficherConfirmation() ? 'Masquer la confirmation' : 'Afficher la confirmation'"><i class="pi" [class.pi-eye]="!afficherConfirmation()" [class.pi-eye-slash]="afficherConfirmation()"></i></button>
           </div>
+          @if (formulaireMotDePasse.confirmation().touched() && formulaireMotDePasse.confirmation().invalid()) {
+            <small>{{ formulaireMotDePasse.confirmation().errors()[0]?.message }}</small>
+          }
         </div>
         <div class="zone-message" aria-live="polite">
           @if (messageMotDePasse(); as message) { <p class="message" [class.erreur]="message.type === 'erreur'" [class.succes]="message.type === 'succes'">{{ message.texte }}</p> }

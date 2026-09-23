@@ -1,6 +1,6 @@
 <div class="autocomplete">
 
-  <label [attr.for]="idChamp()">{{ libelle() }}</label>
+  <label [attr.for]="idChamp()">{{ libelle() }} <span class="marque-obligatoire" aria-hidden="true">*</span></label>
 
   <!-- Motif combobox : l'input decrit la liste qu'il pilote, et signale
        via aria-activedescendant l'option survolee au clavier. -->

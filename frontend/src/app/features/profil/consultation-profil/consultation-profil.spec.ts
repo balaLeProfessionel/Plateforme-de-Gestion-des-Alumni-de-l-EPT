@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { Location } from '@angular/common';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { BehaviorSubject, of } from 'rxjs';
 import { vi } from 'vitest';
 
@@ -50,6 +51,7 @@ describe('ConsultationProfil', () => {
     expect(contenu).not.toContain('Informations privées');
     expect(contenu).not.toContain('awa@example.com');
     expect(fixture.nativeElement.querySelector('.modifier')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.retour')?.textContent).toContain('Retour');
   });
 
   it('affiche les coordonnées privées et les états vides sur son propre profil', async () => {
@@ -64,6 +66,39 @@ describe('ConsultationProfil', () => {
     expect(contenu).toContain('Aucune expérience renseignée.');
     expect(contenu).toContain('Aucune formation renseignée.');
     expect(fixture.nativeElement.querySelector('.modifier')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.retour')?.textContent).toContain('Retour');
+  });
+
+  it('revient à l’écran précédent en conservant ses filtres', async () => {
+    const location = TestBed.inject(Location);
+    const descripteurHistorique = Object.getOwnPropertyDescriptor(window.history, 'length');
+    Object.defineProperty(window.history, 'length', { configurable: true, value: 3 });
+    const retourNavigateur = vi.spyOn(location, 'back');
+
+    try {
+      creerComposant();
+      await fixture.whenStable();
+      fixture.nativeElement.querySelector('.retour').click();
+
+      expect(retourNavigateur).toHaveBeenCalledOnce();
+    } finally {
+      if (descripteurHistorique) {
+        Object.defineProperty(window.history, 'length', descripteurHistorique);
+      } else {
+        Reflect.deleteProperty(window.history, 'length');
+      }
+    }
+  });
+
+  it('propose une destination de secours lorsque le profil est ouvert directement', async () => {
+    const router = TestBed.inject(Router);
+    const navigationSecours = vi.spyOn(router, 'navigateByUrl');
+
+    creerComposant();
+    await fixture.whenStable();
+    fixture.nativeElement.querySelector('.retour').click();
+
+    expect(navigationSecours).toHaveBeenCalledWith('/annuaire');
   });
 
   it('met les expériences et formations de l EPT dans une section dédiée', async () => {

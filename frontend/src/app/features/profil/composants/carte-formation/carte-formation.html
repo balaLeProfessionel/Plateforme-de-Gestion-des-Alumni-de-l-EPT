@@ -1,7 +1,7 @@
 <article class="carte">
 
   <div class="champ">
-    <label [attr.for]="cle() + '-libelle'">Intitulé de la formation</label>
+    <label [attr.for]="cle() + '-libelle'">Intitulé de la formation <span class="marque-obligatoire" aria-hidden="true">*</span></label>
     <input pInputText [id]="cle() + '-libelle'" [formField]="formulaire.libelle"
            placeholder="Ex : Diplôme d'ingénieur en informatique" fluid />
     @if ((formulaire.libelle().touched() || soumis()) && formulaire.libelle().invalid()) {
@@ -25,7 +25,7 @@
 
   <div class="ligne-double">
     <div class="champ">
-      <label [attr.for]="cle() + '-type'">Type de formation</label>
+      <label [attr.for]="cle() + '-type'">Type de formation <span class="marque-obligatoire" aria-hidden="true">*</span></label>
       <select [id]="cle() + '-type'" class="select-ept" [formField]="formulaire.typeFormation">
         <option value="" disabled>Choisissez un type</option>
         @for (t of typesFormation; track t.value) {
@@ -45,7 +45,7 @@
 
   <div class="ligne-double">
     <div class="champ">
-      <label [attr.for]="cle() + '-debut'">Date de début</label>
+      <label [attr.for]="cle() + '-debut'">Date de début <span class="marque-obligatoire" aria-hidden="true">*</span></label>
       <input pInputText type="date" [id]="cle() + '-debut'" [formField]="formulaire.dateDebut" fluid />
       @if ((formulaire.dateDebut().touched() || soumis()) && formulaire.dateDebut().invalid()) {
         <small class="erreur-champ">{{ formulaire.dateDebut().errors()[0]?.message }}</small>

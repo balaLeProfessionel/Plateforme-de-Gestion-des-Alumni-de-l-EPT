@@ -101,6 +101,16 @@ export const routes: Routes = [
       import('./features/espace-membre/espace-membre').then((m) => m.EspaceMembre),
     children: [
       {
+        path: 'organisme/parametres',
+        title: 'Profil de mon organisme | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard, roleGuard],
+        data: { roles: ['ORGANISME'] },
+        loadComponent: () =>
+          import('./features/organisme/completer-organisme/completer-organisme').then(
+            (m) => m.CompleterOrganisme
+          )
+      },
+      {
         path: 'accueil',
         title: 'Accueil | EPT Alumni',
         canActivate: [authGuard, changementInitialRequisGuard],
@@ -113,6 +123,15 @@ export const routes: Routes = [
         canActivate: [authGuard, changementInitialRequisGuard],
         loadComponent: () =>
           import('./features/annuaire/annuaire').then((m) => m.Annuaire)
+      },
+      {
+        path: 'organismes/:id',
+        title: 'Organisme | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/organisme/consultation-organisme/consultation-organisme').then(
+            (m) => m.ConsultationOrganisme
+          )
       },
       {
         path: 'profil',

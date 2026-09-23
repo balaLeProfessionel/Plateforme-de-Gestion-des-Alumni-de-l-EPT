@@ -104,6 +104,8 @@ class AnnuaireIntegrationTests {
         assertEquals(1, resultat.totalElements());
         assertEquals("Entreprise Démonstration", resultat.contenu().getFirst().nom());
         assertNull(resultat.contenu().getFirst().prenom());
+        assertEquals(organismeRepository.findByNomIgnoreCase("Entreprise Démonstration").orElseThrow().getId(),
+            resultat.contenu().getFirst().organismeId());
     }
 
     @Test
@@ -154,6 +156,52 @@ class AnnuaireIntegrationTests {
     @Test
     void refuseLAnnuaireSansAuthentification() throws Exception {
         mockMvc.perform(get("/api/annuaire"))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ALUMNI")
+    void afficheLesInformationsPubliquesDUnOrganismeSansCoordonnees() throws Exception {
+        Organisme organisme = organismeRepository.findByNomIgnoreCase("Entreprise Démonstration").orElseThrow();
+        organisme.setDescription("Conception de logiciels pour les entreprises.");
+        organisme.setSiteWeb("https://example.com");
+        organisme.setEmail("contact-prive@example.com");
+        organisme.setTelephone("770000000");
+        organismeRepository.save(organisme);
+
+        mockMvc.perform(get("/api/organisme/{id}", organisme.getId()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(organisme.getId().toString()))
+            .andExpect(jsonPath("$.nom").value("Entreprise Démonstration"))
+            .andExpect(jsonPath("$.description").value("Conception de logiciels pour les entreprises."))
+            .andExpect(jsonPath("$.siteWeb").value("https://example.com"))
+            .andExpect(jsonPath("$.email").doesNotExist())
+            .andExpect(jsonPath("$.telephone").doesNotExist());
+    }
+
+    @Test
+    @WithMockUser(roles = "ALUMNI")
+    void masqueLeDetailQuandLeCompteOrganismeNEstPlusVisible() throws Exception {
+        Organisme organisme = organismeRepository.findByNomIgnoreCase("Entreprise Démonstration").orElseThrow();
+        Utilisateur contact = utilisateurRepository.findByEmail("ORGANISME.Contact@example.com").orElseThrow();
+        contact.setEmailVerifie(false);
+        utilisateurRepository.saveAndFlush(contact);
+
+        mockMvc.perform(get("/api/organisme/{id}", organisme.getId()))
+            .andExpect(status().isNotFound());
+
+        contact.setEmailVerifie(true);
+        contact.setStatutCompte(StatutCompte.SUSPENDU);
+        utilisateurRepository.saveAndFlush(contact);
+
+        mockMvc.perform(get("/api/organisme/{id}", organisme.getId()))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void refuseLeDetailOrganismeSansAuthentification() throws Exception {
+        Organisme organisme = organismeRepository.findByNomIgnoreCase("Entreprise Démonstration").orElseThrow();
+        mockMvc.perform(get("/api/organisme/{id}", organisme.getId()))
             .andExpect(status().isForbidden());
     }
 

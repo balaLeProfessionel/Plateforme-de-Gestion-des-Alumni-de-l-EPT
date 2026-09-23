@@ -32,6 +32,8 @@ describe('Navigation de l’espace membre', () => {
     expect(liens).toEqual(['/accueil', '/annuaire', '/profil', '/profil/parametres']);
     expect(racine.querySelectorAll('.navigation-principale .a-venir')).toHaveLength(4);
     expect(racine.querySelector('.navigation-principale .a-venir a')).toBeNull();
+    expect(racine.querySelector('.compte-lateral .lien-avatar')?.getAttribute('href')).toBe('/profil');
+    expect(racine.querySelector('.entete-mobile .lien-avatar')?.getAttribute('href')).toBe('/profil');
   });
 
   it('ouvre le menu mobile et n’y rend cliquables que les actions disponibles', () => {
@@ -54,6 +56,23 @@ describe('Navigation de l’espace membre', () => {
     expect(racine.querySelector('.panneau-plus')?.hasAttribute('hidden')).toBe(true);
   });
 
+  it('permet de replier et déplier la barre latérale avec un contrôle accessible', () => {
+    const fixture = TestBed.createComponent(EspaceMembre);
+    fixture.detectChanges();
+    const racine = fixture.nativeElement as HTMLElement;
+    const bascule = racine.querySelector('.bouton-basculer-navigation') as HTMLButtonElement;
+    const etatInitial = bascule.getAttribute('aria-expanded');
+
+    bascule.click();
+    fixture.detectChanges();
+
+    expect(bascule.getAttribute('aria-expanded')).not.toBe(etatInitial);
+    expect(racine.querySelector('.espace-membre')?.classList.contains('barre-repliee'))
+      .toBe(bascule.getAttribute('aria-expanded') === 'false');
+    expect(bascule.getAttribute('aria-label')).toMatch(/navigation/);
+    expect(racine.querySelector('#navigation-principale')).not.toBeNull();
+  });
+
   it('adapte les liens au type de compte', () => {
     utilisateur.set({ role: 'ORGANISME', nom: 'EPT', prenom: '' });
     const fixture = TestBed.createComponent(EspaceMembre);
@@ -61,7 +80,11 @@ describe('Navigation de l’espace membre', () => {
     const racine = fixture.nativeElement as HTMLElement;
 
     expect(racine.querySelector('a[aria-label="Mon profil"]')?.getAttribute('href'))
-      .toBe('/completer-organisme');
+      .toBe('/organisme/parametres');
     expect(racine.querySelector('a[aria-label="Paramètres du profil"]')).toBeNull();
+    expect(racine.querySelector('.compte-lateral .lien-avatar')?.getAttribute('href'))
+      .toBe('/organisme/parametres');
+    expect(racine.querySelector('.entete-mobile .lien-avatar')?.getAttribute('href'))
+      .toBe('/organisme/parametres');
   });
 });

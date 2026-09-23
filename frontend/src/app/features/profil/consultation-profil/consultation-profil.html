@@ -1,4 +1,9 @@
 <main class="page-profil" aria-live="polite" [attr.aria-busy]="enChargement()">
+  <button class="retour" type="button" (click)="retourner()">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    Retour
+  </button>
+
   @if (enChargement()) {
     <div class="squelette entete-squelette" aria-hidden="true"></div>
     <div class="grille-profil" aria-hidden="true">
@@ -10,7 +15,6 @@
       <i class="pi pi-user-minus" aria-hidden="true"></i>
       <h1>Profil indisponible</h1>
       <p>{{ messageErreur() }}</p>
-      <a routerLink="/annuaire">Retourner à l’annuaire</a>
     </section>
   } @else if (profil(); as membre) {
     <header class="entete-profil">

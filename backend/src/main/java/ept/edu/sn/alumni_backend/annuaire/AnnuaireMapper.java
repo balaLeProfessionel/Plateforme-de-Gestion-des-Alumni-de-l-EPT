@@ -22,7 +22,8 @@ public class AnnuaireMapper {
                 organisme.getSecteurActivite(),
                 organisme.getAdresse() != null ? organisme.getAdresse() : organisme.getPays(),
                 null,
-                null
+                null,
+                organisme.getId()
             );
         }
         return new AnnuaireMembreResponse(
@@ -35,7 +36,8 @@ public class AnnuaireMapper {
             utilisateur.getPosteActuel(),
             utilisateur.getVilleResidence(),
             utilisateur.getFiliere(),
-            utilisateur.getAnneeSortie()
+            utilisateur.getAnneeSortie(),
+            null
         );
     }
 }

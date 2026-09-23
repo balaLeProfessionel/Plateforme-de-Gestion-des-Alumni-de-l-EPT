@@ -16,23 +16,26 @@
     <!-- Nom de l'organisme (organisme uniquement) -->
     @if (estOrganisme()) {
       <div class="champ">
-        <label for="nomOrganisme">Nom de l'organisme</label>
+      <label for="nomOrganisme">Nom de l'organisme <span class="marque-obligatoire" aria-hidden="true">*</span></label>
         <input pInputText id="nomOrganisme" [formField]="formulaire.nomOrganisme"
               placeholder="Ex : Sonatel" fluid />
+        @if (formulaire.nomOrganisme().touched() && formulaire.nomOrganisme().invalid()) {
+          <small class="erreur-champ">{{ formulaire.nomOrganisme().errors()[0]?.message }}</small>
+        }
       </div>
     }
 
     <!-- Nom et prénom (contact pour l'organisme, personne sinon) -->
     <div class="ligne-double">
       <div class="champ">
-        <label for="prenom">{{ estOrganisme() ? 'Prénom du contact' : 'Prénom' }}</label>
+        <label for="prenom">{{ estOrganisme() ? 'Prénom du contact' : 'Prénom' }} <span class="marque-obligatoire" aria-hidden="true">*</span></label>
         <input pInputText id="prenom" [formField]="formulaire.prenom" fluid />
         @if (formulaire.prenom().touched() && formulaire.prenom().invalid()) {
           <small class="erreur-champ">{{ formulaire.prenom().errors()[0]?.message }}</small>
         }
       </div>
       <div class="champ">
-        <label for="nom">{{ estOrganisme() ? 'Nom du contact' : 'Nom' }}</label>
+        <label for="nom">{{ estOrganisme() ? 'Nom du contact' : 'Nom' }} <span class="marque-obligatoire" aria-hidden="true">*</span></label>
         <input pInputText id="nom" [formField]="formulaire.nom" fluid />
         @if (formulaire.nom().touched() && formulaire.nom().invalid()) {
           <small class="erreur-champ">{{ formulaire.nom().errors()[0]?.message }}</small>
@@ -42,7 +45,7 @@
 
     <!-- Email -->
     <div class="champ">
-      <label for="email">Email</label>
+      <label for="email">Email <span class="marque-obligatoire" aria-hidden="true">*</span></label>
       <input pInputText id="email" type="email" [formField]="formulaire.email"
             placeholder="vous@exemple.com" autocomplete="email" fluid />
       @if (formulaire.email().touched() && formulaire.email().invalid()) {
@@ -83,7 +86,7 @@
 
     <!-- Mot de passe -->
     <div class="champ">
-      <label for="password">Mot de passe</label>
+        <label for="password">Mot de passe <span class="marque-obligatoire" aria-hidden="true">*</span></label>
       <div class="champ-mdp">
         <input pInputText id="password"
               [type]="afficherMdp() ? 'text' : 'password'"

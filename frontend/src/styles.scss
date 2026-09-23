@@ -51,6 +51,12 @@
   box-sizing: border-box;
 }
 
+.marque-obligatoire {
+  color: var(--ept-error);
+  font-weight: 700;
+  margin-left: 0.15rem;
+}
+
 body {
   margin: 0;
   background: var(--ept-bg);

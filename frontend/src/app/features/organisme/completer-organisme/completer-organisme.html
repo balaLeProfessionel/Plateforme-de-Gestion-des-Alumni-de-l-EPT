@@ -2,18 +2,22 @@
   <div class="completion-carte">
 
     <header class="entete">
-      <h1>Complétez le profil de votre organisme</h1>
+      <h1>{{ profilCharge() ? 'Profil de mon organisme' : 'Complétez le profil de votre organisme' }}</h1>
       <p class="sous-titre">
         Ces informations seront visibles par les alumni et renforceront votre présence sur la plateforme.
       </p>
     </header>
+
+    @if (chargementProfil()) {
+      <p role="status">Chargement du profil…</p>
+    }
 
     @if (messageErreur()) {
       <div class="alerte alerte-erreur" role="alert">{{ messageErreur() }}</div>
     }
 
     <div class="champ">
-      <label for="description">Description de l'organisme</label>
+      <label for="description">Description de l'organisme <span class="marque-obligatoire" aria-hidden="true">*</span></label>
       <textarea
         [formField]="formulaire.description"
         id="description"
@@ -26,7 +30,7 @@
     </div>
 
     <div class="champ">
-      <label for="secteur">Secteur d'activité</label>
+      <label for="secteur">Secteur d'activité <span class="marque-obligatoire" aria-hidden="true">*</span></label>
       <input pInputText id="secteur" [formField]="formulaire.secteurActivite"
               placeholder="Ex : Télécommunications" fluid />
       @if (formulaire.secteurActivite().touched() && formulaire.secteurActivite().invalid()) {
@@ -35,7 +39,7 @@
     </div>
 
     <div class="champ">
-      <label for="type">Type d'organisme</label>
+      <label for="type">Type d'organisme <span class="marque-obligatoire" aria-hidden="true">*</span></label>
       <select id="type" class="select-ept" [formField]="formulaire.typeOrganisme">
         <option value="" disabled>Choisissez un type</option>
         @for (t of types; track t.value) {
@@ -61,8 +65,8 @@
               placeholder="https://..." fluid />
     </div>
 
-    <button type="button" (click)="valider()" [disabled]="enChargement()" class="btn-ept">
-      {{ enChargement() ? 'Enregistrement…' : 'Enregistrer et continuer' }}
+    <button type="button" (click)="valider()" [disabled]="enChargement() || chargementProfil()" class="btn-ept">
+      {{ enChargement() ? 'Enregistrement…' : (profilCharge() ? 'Enregistrer les modifications' : 'Enregistrer et continuer') }}
     </button>
 
     <button type="button" (click)="passer()" class="btn-passer">

@@ -164,6 +164,26 @@ describe('ParametresProfil', () => {
     expect(composant['messageMotDePasse']()?.texte).toBe('Le mot de passe actuel est incorrect.');
   });
 
+  it('signale les champs obligatoires après une tentative vide de changement du mot de passe', () => {
+    composant['changerMotDePasse']();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Le mot de passe actuel est obligatoire');
+    expect(fixture.nativeElement.textContent).toContain('Le nouveau mot de passe est obligatoire');
+    expect(fixture.nativeElement.textContent).toContain('Confirmez le nouveau mot de passe');
+    expect(authService.changerMotDePasse).not.toHaveBeenCalled();
+  });
+
+  it('garde les liens de section sur la route des paramètres', () => {
+    fixture.detectChanges();
+    const liens = [...fixture.nativeElement.querySelectorAll('.navigation-sections a')]
+      .map((lien: HTMLAnchorElement) => lien.getAttribute('href'));
+
+    expect(liens).toEqual([
+      '/profil/parametres#photo', '/profil/parametres#informations', '/profil/parametres#securite'
+    ]);
+  });
+
   function profil(): Profil {
     return {
       id: 'membre-1', nom: 'Diop', prenom: 'Awa', email: 'awa.diop@example.com',

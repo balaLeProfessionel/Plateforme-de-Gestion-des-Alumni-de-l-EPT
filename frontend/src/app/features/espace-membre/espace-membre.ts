@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/services/auth/auth-service';
@@ -10,8 +11,10 @@ import { AuthService } from '../../core/services/auth/auth-service';
 })
 export class EspaceMembre {
   protected readonly authService = inject(AuthService);
+  private readonly document = inject(DOCUMENT);
   private readonly router = inject(Router);
   protected readonly menuPlusOuvert = signal(false);
+  protected readonly barreLateraleRepliee = signal(false);
   protected readonly rubriquesAVenir = [
     { libelle: 'Mentorat', icone: 'pi-sitemap' },
     { libelle: 'Offres d’emploi', icone: 'pi-briefcase' },
@@ -22,7 +25,7 @@ export class EspaceMembre {
   protected readonly lienProfil = computed(() => {
     const role = this.authService.utilisateur()?.role;
     if (role === 'ORGANISME') {
-      return '/completer-organisme';
+      return '/organisme/parametres';
     }
     if (role && ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'].includes(role)) {
       return '/profil';
@@ -53,6 +56,14 @@ export class EspaceMembre {
       VISITEUR: 'Visiteur', ORGANISME: 'Organisme', ADMIN: 'Administration'
     } as Record<string, string>)[role ?? ''] ?? 'Membre';
   });
+
+  constructor() {
+    this.barreLateraleRepliee.set((this.document.defaultView?.innerWidth ?? 1200) <= 1100);
+  }
+
+  protected basculerBarreLaterale(): void {
+    this.barreLateraleRepliee.update((repliee) => !repliee);
+  }
 
   protected basculerMenuPlus(): void {
     this.menuPlusOuvert.update((ouvert) => !ouvert);

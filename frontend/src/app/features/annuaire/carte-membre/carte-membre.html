@@ -1,7 +1,16 @@
 @if (estOrganisme()) {
-  <article class="carte carte-organisme">
-    <ng-container [ngTemplateOutlet]="contenuCarte" />
-  </article>
+  @if (membre().organismeId; as organismeId) {
+    <a class="carte-lien" [routerLink]="['/organismes', organismeId]"
+      [attr.aria-label]="'Voir les détails de ' + nomAffiche()">
+      <article class="carte carte-organisme">
+        <ng-container [ngTemplateOutlet]="contenuCarte" />
+      </article>
+    </a>
+  } @else {
+    <article class="carte carte-organisme">
+      <ng-container [ngTemplateOutlet]="contenuCarte" />
+    </article>
+  }
 } @else {
   <a class="carte-lien" [routerLink]="['/profil', membre().id]"
     [attr.aria-label]="'Consulter le profil de ' + nomAffiche()">

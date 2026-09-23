@@ -50,7 +50,7 @@ describe('Annuaire', () => {
       contenu: [{
         id: '1', nom: 'Diop', prenom: 'Awa', role: 'ETUDIANT', statutCompte: 'ACTIF',
         urlPhoto: null, posteActuel: 'Élève ingénieure', villeResidence: 'Thiès', filiere: 'GIT',
-        anneeSortie: 2025,
+        anneeSortie: 2025, organismeId: null,
         email: 'awa@example.com', telephone: '770000000', dateNaissance: '2000-01-01'
       } as never],
       page: 2,
@@ -149,7 +149,8 @@ describe('Annuaire', () => {
     http.expectOne((req) => req.url === '/api/annuaire').flush(page({
       contenu: [{
         id: '1', nom: 'Sow', prenom: 'Ibrahima', role: 'ALUMNI', statutCompte: 'ACTIF',
-        urlPhoto: null, posteActuel: null, villeResidence: null, filiere: null, anneeSortie: 2024
+        urlPhoto: null, posteActuel: null, villeResidence: null, filiere: null, anneeSortie: 2024,
+        organismeId: null
       }],
       totalElements: 13,
       totalPages: 2
@@ -174,7 +175,8 @@ describe('Annuaire', () => {
     http.expectOne((req) => req.url === '/api/annuaire').flush(page({
       contenu: [{
         id: '1', nom: 'Sow', prenom: 'Ibrahima', role: 'ALUMNI', statutCompte: 'ACTIF',
-        urlPhoto: null, posteActuel: null, villeResidence: null, filiere: null, anneeSortie: 2024
+        urlPhoto: null, posteActuel: null, villeResidence: null, filiere: null, anneeSortie: 2024,
+        organismeId: null
       }],
       page: 20,
       totalElements: 500,

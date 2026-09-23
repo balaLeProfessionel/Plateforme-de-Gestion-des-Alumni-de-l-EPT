@@ -12,5 +12,6 @@ public record AnnuaireMembreResponse(
     String posteActuel,
     String villeResidence,
     String filiere,
-    Integer anneeSortie
+    Integer anneeSortie,
+    UUID organismeId
 ) {}

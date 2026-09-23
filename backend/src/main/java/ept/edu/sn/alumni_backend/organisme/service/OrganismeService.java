@@ -12,9 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.organisme.dto.CompleterOrganismeRequest;
 import ept.edu.sn.alumni_backend.organisme.dto.OrganismeRechercheResponse;
+import ept.edu.sn.alumni_backend.organisme.dto.OrganismePublicResponse;
 import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
+import ept.edu.sn.alumni_backend.organisme.exception.OrganismeIntrouvableException;
 import ept.edu.sn.alumni_backend.organisme.repository.OrganismeRepository;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
+import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.utilisateur.MembreVisibilite;
+import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -28,9 +33,60 @@ public class OrganismeService {
     );
 
     private final OrganismeRepository organismeRepository;
+    private final UtilisateurRepository utilisateurRepository;
+
+    @Transactional(readOnly = true)
+    public OrganismePublicResponse obtenirMonProfil(UtilisateurPrincipal principal) {
+        var utilisateur = utilisateurRepository.findById(principal.getUtilisateur().getId())
+            .orElseThrow(OrganismeIntrouvableException::new);
+        Organisme organisme = utilisateur.getOrganisme();
+        if (organisme == null) {
+            throw new OrganismeIntrouvableException();
+        }
+        return new OrganismePublicResponse(
+            organisme.getId(),
+            organisme.getNom(),
+            organisme.getDescription(),
+            organisme.getSecteurActivite(),
+            organisme.getTypeOrganisme() == null ? null : organisme.getTypeOrganisme().name(),
+            organisme.getAdresse(),
+            organisme.getPays(),
+            organisme.getSiteWeb(),
+            organisme.getLogoUrl(),
+            organisme.getStatutJuridique(),
+            organisme.getTrancheEffectif(),
+            organisme.getDateCreation(),
+            utilisateur.getStatutCompte().name()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public OrganismePublicResponse obtenirProfilPublic(UUID id) {
+        var utilisateur = utilisateurRepository.findOne(
+            MembreVisibilite.visibleDansAnnuaire()
+                .and((racine, requete, cb) -> cb.equal(racine.get("role"), TypeRole.ORGANISME))
+                .and((racine, requete, cb) -> cb.equal(racine.get("organisme").get("id"), id))
+        ).orElseThrow(OrganismeIntrouvableException::new);
+        Organisme organisme = utilisateur.getOrganisme();
+        return new OrganismePublicResponse(
+            organisme.getId(),
+            organisme.getNom(),
+            organisme.getDescription(),
+            organisme.getSecteurActivite(),
+            organisme.getTypeOrganisme() == null ? null : organisme.getTypeOrganisme().name(),
+            organisme.getAdresse(),
+            organisme.getPays(),
+            organisme.getSiteWeb(),
+            organisme.getLogoUrl(),
+            organisme.getStatutJuridique(),
+            organisme.getTrancheEffectif(),
+            organisme.getDateCreation(),
+            utilisateur.getStatutCompte().name()
+        );
+    }
 
     @Transactional
-    public void completerProfil(UtilisateurPrincipal principal, CompleterOrganismeRequest request) {
+    public OrganismePublicResponse completerProfil(UtilisateurPrincipal principal, CompleterOrganismeRequest request) {
         UUID organismeId = principal.getUtilisateur().getOrganisme() != null
         ? principal.getUtilisateur().getOrganisme().getId()
         : null;
@@ -51,7 +107,20 @@ public class OrganismeService {
         organisme.setStatutJuridique(request.statutJuridique());
         organisme.setPays(request.pays());
 
-        organismeRepository.save(organisme);
+        organisme = organismeRepository.save(organisme);
+        var utilisateur = utilisateurRepository.findById(principal.getUtilisateur().getId())
+            .orElseThrow(OrganismeIntrouvableException::new);
+        return versResponse(utilisateur, organisme);
+    }
+
+    private OrganismePublicResponse versResponse(ept.edu.sn.alumni_backend.utilisateur.Utilisateur utilisateur,
+                                                  Organisme organisme) {
+        return new OrganismePublicResponse(
+            organisme.getId(), organisme.getNom(), organisme.getDescription(), organisme.getSecteurActivite(),
+            organisme.getTypeOrganisme() == null ? null : organisme.getTypeOrganisme().name(), organisme.getAdresse(),
+            organisme.getPays(), organisme.getSiteWeb(), organisme.getLogoUrl(), organisme.getStatutJuridique(),
+            organisme.getTrancheEffectif(), organisme.getDateCreation(), utilisateur.getStatutCompte().name()
+        );
     }
 
     public List<OrganismeRechercheResponse> rechercherParNom(String q) {

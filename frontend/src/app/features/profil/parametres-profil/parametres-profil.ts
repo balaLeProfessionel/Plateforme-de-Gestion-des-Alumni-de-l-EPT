@@ -175,7 +175,10 @@ export class ParametresProfil implements OnDestroy {
 
   protected changerMotDePasse(): void {
     this.messageMotDePasse.set(null);
-    if (this.formulaireMotDePasse().invalid()) return;
+    if (this.formulaireMotDePasse().invalid()) {
+      this.formulaireMotDePasse().markAsTouched();
+      return;
+    }
     const valeurs = this.modeleMotDePasse();
     if (valeurs.nouveau !== valeurs.confirmation) {
       this.messageMotDePasse.set({ type: 'erreur', texte: 'Les deux nouveaux mots de passe diffèrent.' });
