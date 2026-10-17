@@ -29,6 +29,8 @@ test('le Compose personnel préserve watch et isole les ports et le stockage', (
   assert.equal(codespaces.services.web.ports.length, 1);
   assert.equal(codespaces.services.web.ports[0].published, '4200');
   assert.equal(codespaces.services.api.environment.APP_STORAGE_PHOTOS_DIR, '/data/alumni/photos');
+  assert.equal(codespaces.services.api.environment.APP_CORS_ALLOWED_ORIGINS,
+    'http://localhost:4200,https://validation-alumni-123-4200.app.github.dev');
   for (const [service, target, directory] of [
     ['db', '/var/lib/postgresql/data', 'postgres'],
     ['api', '/data/alumni/photos', 'photos'],

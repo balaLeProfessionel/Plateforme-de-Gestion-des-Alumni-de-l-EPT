@@ -31,6 +31,8 @@ node .devcontainer/compose.mjs up --build --watch
 
 Ouvrir **Ports → 4200 → Ouvrir dans le navigateur** et conserver sa visibilité **Private**. Cette URL HTTPS permet de tester l'application depuis ses appareils connectés au même compte GitHub. Le serveur n'autorise que le domaine exact de ce Codespace en plus des hôtes locaux. Les appels `/api` passent par le proxy Angular vers le backend ; PostgreSQL et l'API ne publient aucun port hôte dans cette configuration.
 
+Le lanceur transmet ce même domaine à l'API avec `APP_CORS_ALLOWED_ORIGINS`. Le réglage général `app.cors.allowed-origins` conserve `http://localhost:4200` par défaut.
+
 Le lanceur réutilise les services, les images et tout le `develop.watch` du Compose de développement. Une seule commande lance donc le projet avec la synchronisation des sources. Il ne lance aucune commande Git de commit ou de push.
 
 Pour consulter l'état ou arrêter les services depuis un second terminal :
@@ -82,4 +84,4 @@ Vérifier que les commandes ont réussi, puis télécharger les trois fichiers e
 
 ## Travail en binôme
 
-Créer une branche par tâche depuis `develop`, pousser son travail et ouvrir une PR vers `develop`. Avant de changer d'appareil ou d'environnement, pousser les commits à retrouver ailleurs. Le binôme continue à utiliser son clone et son propre `.env` ; il n'a pas à ouvrir de Codespace. Les quotas personnels et les clés restent indépendants.
+Une fois cette configuration fusionnée dans `develop`, créer une branche par tâche depuis `develop`, pousser son travail et ouvrir une PR vers `develop`. En attendant cette fusion, partir de `chore/codespaces-personnel` pour conserver les fichiers de configuration. Avant de changer d'appareil ou d'environnement, pousser les commits à retrouver ailleurs. Le binôme continue à utiliser son clone et son propre `.env` ; il n'a pas à ouvrir de Codespace. Les quotas personnels et les clés restent indépendants.
