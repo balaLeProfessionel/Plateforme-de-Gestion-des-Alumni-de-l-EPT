@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { catchError, combineLatest, map, of, startWith, Subject, switchMap, tap } from 'rxjs';
+import { catchError, combineLatest, firstValueFrom, map, of, startWith, Subject, switchMap, tap } from 'rxjs';
 
 import { EvenementService } from '../../../core/services/evenements/evenement';
 import { Evenement, PageEvenements, PeriodeEvenement } from '../../../core/services/models/evenement';
@@ -22,8 +22,12 @@ export class ListeEvenements {
 
   protected readonly page = signal<PageEvenements | null>(null);
   protected readonly periode = signal<PeriodeEvenement>('AVENIR');
+  protected readonly mesEvenements = signal(false);
   protected readonly enChargement = signal(true);
   protected readonly messageErreur = signal<string | null>(null);
+  protected readonly confirmationAnnulation = signal<string | null>(null);
+  protected readonly actionEnCours = signal<string | null>(null);
+  protected readonly messageErreurAction = signal<string | null>(null);
   protected readonly pagesVisibles = computed<(number | 'ellipsis')[]>(() => {
     const resultat = this.page();
     if (!resultat || resultat.totalPages <= 1) return [];
@@ -46,19 +50,26 @@ export class ListeEvenements {
     ]).pipe(
       map(([params]) => ({
         periode: params.get('periode') === 'PASSES' ? 'PASSES' as const : 'AVENIR' as const,
+        mesEvenements: params.get('vue') === 'mes',
         page: this.lirePage(params.get('page'))
       })),
-      tap(({ periode, page }) => {
+      tap(({ periode, mesEvenements, page }) => {
         this.periode.set(periode);
+        this.mesEvenements.set(mesEvenements);
         this.enChargement.set(true);
         this.messageErreur.set(null);
+        this.messageErreurAction.set(null);
         this.page.update((courante) => courante ? { ...courante, page } : null);
       }),
-      switchMap(({ periode, page }) => this.evenementService.lister(periode, page).pipe(
+      switchMap(({ periode, mesEvenements, page }) => (mesEvenements
+        ? this.evenementService.listerMesEvenements(periode, page)
+        : this.evenementService.lister(periode, page)).pipe(
         map((resultat) => ({ resultat, erreur: null })),
         catchError((erreur: HttpErrorResponse) => of({
           resultat: null,
-          erreur: erreur.error?.message ?? 'Impossible de charger les événements.'
+          erreur: erreur.status === 403 && mesEvenements
+            ? 'Connectez-vous pour consulter vos événements.'
+            : erreur.error?.message ?? 'Impossible de charger les événements.'
         }))
       )),
       takeUntilDestroyed(this.destroyRef)
@@ -71,6 +82,7 @@ export class ListeEvenements {
 
   protected changerPeriode(periode: PeriodeEvenement): void {
     if (periode === this.periode()) return;
+    this.confirmationAnnulation.set(null);
     void this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { periode, page: 0 },
@@ -88,8 +100,53 @@ export class ListeEvenements {
     });
   }
 
+  protected changerVue(mesEvenements: boolean): void {
+    if (mesEvenements === this.mesEvenements()) return;
+    this.confirmationAnnulation.set(null);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { vue: mesEvenements ? 'mes' : null, page: 0 },
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  protected demanderConfirmation(evenement: Evenement): void {
+    this.messageErreurAction.set(null);
+    this.confirmationAnnulation.set(evenement.id);
+  }
+
+  protected abandonnerAnnulation(): void {
+    this.confirmationAnnulation.set(null);
+    this.messageErreurAction.set(null);
+  }
+
+  protected async confirmerAnnulation(evenement: Evenement): Promise<void> {
+    if (this.actionEnCours()) return;
+    this.actionEnCours.set(evenement.id);
+    this.messageErreurAction.set(null);
+    try {
+      await firstValueFrom(this.evenementService.annuler(evenement.id));
+      this.confirmationAnnulation.set(null);
+      this.actualiserSujet.next();
+    } catch (erreur) {
+      this.messageErreurAction.set(erreur instanceof HttpErrorResponse && erreur.status === 404
+        ? 'Cet événement n’est plus disponible ou vous ne pouvez pas le gérer.'
+        : 'L’annulation a échoué. Réessayez.');
+    } finally {
+      this.actionEnCours.set(null);
+    }
+  }
+
   protected actualiser(): void {
     this.actualiserSujet.next();
+  }
+
+  protected urlCourante(): string {
+    return this.router.url;
+  }
+
+  protected urlDetails(evenement: Evenement): (string | number)[] {
+    return ['/evenements', evenement.id];
   }
 
   protected formaterPeriode(evenement: Evenement): string {

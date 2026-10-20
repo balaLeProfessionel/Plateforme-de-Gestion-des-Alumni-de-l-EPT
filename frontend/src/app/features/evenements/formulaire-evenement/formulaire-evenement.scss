@@ -1,0 +1,36 @@
+.formulaire-evenement-page { width: min(100% - 3rem, 900px); margin: 0 auto; padding: clamp(1.5rem, 5vw, 3.5rem) 0; }
+.bouton-retour { display: inline-flex; min-height: 2.8rem; align-items: center; gap: .55rem; margin-bottom: 1.1rem; padding: .55rem .8rem; border: 1px solid var(--ept-border); background: white; color: var(--ept-primary); font: inherit; font-weight: 700; cursor: pointer; &:hover { border-color: var(--ept-primary); background: #f2f8fb; } &:focus-visible { outline: 3px solid var(--ept-sky); outline-offset: 2px; } }
+.entete-formulaire { margin-bottom: 1.5rem; .sur-titre { margin: 0 0 .45rem; color: var(--ept-gold-dark); font-size: .75rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; } h1 { margin: 0; color: var(--ept-primary-dark); font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.12; } p:last-child { max-width: 650px; color: var(--ept-text-secondary); line-height: 1.6; } }
+.carte-formulaire { display: grid; gap: 1.2rem; padding: clamp(1rem, 3vw, 2rem); border: 1px solid var(--ept-border); background: white; }
+.grille-champs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem; }
+.champ { display: grid; align-content: start; gap: .45rem; min-width: 0;
+  label { color: var(--ept-primary-dark); font-size: .94rem; font-weight: 700; }
+  input, textarea, select { width: 100%; min-width: 0; min-height: 2.9rem; padding: .7rem .8rem; border: 1px solid var(--ept-border); border-radius: 0; background: white; color: var(--ept-primary-dark); font: inherit; }
+  textarea { min-height: 9rem; resize: vertical; line-height: 1.55; }
+  input:focus-visible, textarea:focus-visible, select:focus-visible { border-color: var(--ept-primary); outline: 3px solid #b6dce9; outline-offset: 1px; }
+  small, .optionnel { color: var(--ept-text-secondary); font-size: .82rem; font-weight: 400; }
+  .optionnel { margin-left: .3rem; }
+}
+.bloc-image { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 1.2rem; padding: 1rem; border: 1px solid var(--ept-border); background: #fbfcfc; }
+.apercu-image { display: grid; min-height: 8.5rem; max-height: 12rem; aspect-ratio: 16 / 7; place-items: center; overflow: hidden; border: 1px solid var(--ept-border); background: #edf4f7;
+  img { display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: contain; }
+  span { display: flex; align-items: center; justify-content: center; gap: .55rem; width: 100%; height: 100%; background: linear-gradient(135deg, #e7f4f8, #f3f6f7); color: var(--ept-primary); font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; i { font-size: 1.15rem; } }
+}
+.apercu-image.sans-image { border-style: dashed; }
+.champ input[type='file'] { padding: .45rem; }
+.actions-image { display: flex; flex-wrap: wrap; gap: .5rem; }
+.actions-image button { min-height: 2.4rem; padding: .5rem .7rem; border: 1px solid var(--ept-primary); background: white; color: var(--ept-primary); font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; }
+.aide-suppression { color: #923128 !important; }
+.obligatoire, .note-obligatoire span { color: #a33a2f; }
+.erreur-champ { color: #a33a2f; font-size: .82rem; }
+.note-obligatoire { margin: 0; color: var(--ept-text-secondary); font-size: .82rem; }
+.actions-formulaire { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: .65rem; padding-top: 1rem; border-top: 1px solid var(--ept-border); }
+.action-principale, .action-secondaire, .etat-formulaire button { display: inline-flex; min-height: 2.9rem; align-items: center; justify-content: center; padding: .7rem 1rem; border: 1px solid var(--ept-primary); font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+.action-principale { background: var(--ept-primary); color: white; &:hover:not(:disabled) { background: var(--ept-primary-dark); } &:disabled { opacity: .6; cursor: wait; } }
+.action-secondaire { background: white; color: var(--ept-primary); &:hover { background: #f2f8fb; } }
+.message-erreur-api { margin: 0; padding: .8rem 1rem; border-left: 3px solid #a33a2f; background: #fff3f1; color: #842d24; }
+.etat-formulaire { display: flex; min-height: 8rem; align-items: center; justify-content: center; gap: .7rem; padding: 1.5rem; border: 1px solid var(--ept-border); background: white; color: var(--ept-text-secondary); text-align: center; p { margin: 0; } &.erreur { flex-direction: column; color: #842d24; } }
+.indicateur-chargement { width: 1rem; height: 1rem; border: 2px solid var(--ept-border); border-top-color: var(--ept-primary); border-radius: 50%; animation: rotation .8s linear infinite; }
+@keyframes rotation { to { transform: rotate(360deg); } }
+@media (max-width: 680px) { .formulaire-evenement-page { width: min(100% - 2rem, 900px); } .grille-champs, .bloc-image { grid-template-columns: 1fr; } .apercu-image { order: 0; } .actions-formulaire > button { flex: 1 1 auto; } }
+@media (prefers-reduced-motion: reduce) { .indicateur-chargement { animation-duration: 1.8s; } }

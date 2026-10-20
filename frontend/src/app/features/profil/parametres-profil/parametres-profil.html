@@ -72,29 +72,38 @@
         <div class="champ-mot-de-passe">
           <label for="mot-de-passe-actuel">Mot de passe actuel <span class="marque-obligatoire" aria-hidden="true">*</span></label>
           <div class="champ-avec-action"><input pInputText id="mot-de-passe-actuel" [type]="afficherActuel() ? 'text' : 'password'"
-            [formField]="formulaireMotDePasse.actuel" autocomplete="current-password" />
+            [formField]="formulaireMotDePasse.actuel" [class.p-invalid]="formulaireMotDePasse.actuel().touched() && formulaireMotDePasse.actuel().invalid()"
+            [attr.aria-invalid]="formulaireMotDePasse.actuel().touched() && formulaireMotDePasse.actuel().invalid() ? 'true' : null"
+            [attr.aria-describedby]="formulaireMotDePasse.actuel().touched() && formulaireMotDePasse.actuel().invalid() ? 'erreur-mot-de-passe-actuel' : null"
+            autocomplete="current-password" />
             <button type="button" (click)="afficherActuel.set(!afficherActuel())" [attr.aria-label]="afficherActuel() ? 'Masquer le mot de passe actuel' : 'Afficher le mot de passe actuel'"><i class="pi" [class.pi-eye]="!afficherActuel()" [class.pi-eye-slash]="afficherActuel()"></i></button>
           </div>
           @if (formulaireMotDePasse.actuel().touched() && formulaireMotDePasse.actuel().invalid()) {
-            <small>{{ formulaireMotDePasse.actuel().errors()[0]?.message }}</small>
+            <small id="erreur-mot-de-passe-actuel">{{ formulaireMotDePasse.actuel().errors()[0]?.message }}</small>
           }
         </div>
         <div class="champ-mot-de-passe">
           <label for="nouveau-mot-de-passe">Nouveau mot de passe <span class="marque-obligatoire" aria-hidden="true">*</span></label>
           <div class="champ-avec-action"><input pInputText id="nouveau-mot-de-passe" [type]="afficherNouveau() ? 'text' : 'password'"
-            [formField]="formulaireMotDePasse.nouveau" autocomplete="new-password" />
+            [formField]="formulaireMotDePasse.nouveau" [class.p-invalid]="formulaireMotDePasse.nouveau().touched() && formulaireMotDePasse.nouveau().invalid()"
+            [attr.aria-invalid]="formulaireMotDePasse.nouveau().touched() && formulaireMotDePasse.nouveau().invalid() ? 'true' : null"
+            [attr.aria-describedby]="formulaireMotDePasse.nouveau().touched() && formulaireMotDePasse.nouveau().invalid() ? 'erreur-nouveau-mot-de-passe' : null"
+            autocomplete="new-password" />
             <button type="button" (click)="afficherNouveau.set(!afficherNouveau())" [attr.aria-label]="afficherNouveau() ? 'Masquer le nouveau mot de passe' : 'Afficher le nouveau mot de passe'"><i class="pi" [class.pi-eye]="!afficherNouveau()" [class.pi-eye-slash]="afficherNouveau()"></i></button>
           </div>
-          @if (formulaireMotDePasse.nouveau().touched() && formulaireMotDePasse.nouveau().invalid()) { <small>{{ formulaireMotDePasse.nouveau().errors()[0]?.message }}</small> }
+          @if (formulaireMotDePasse.nouveau().touched() && formulaireMotDePasse.nouveau().invalid()) { <small id="erreur-nouveau-mot-de-passe">{{ formulaireMotDePasse.nouveau().errors()[0]?.message }}</small> }
         </div>
         <div class="champ-mot-de-passe">
           <label for="confirmation-mot-de-passe">Confirmer le nouveau mot de passe <span class="marque-obligatoire" aria-hidden="true">*</span></label>
           <div class="champ-avec-action"><input pInputText id="confirmation-mot-de-passe" [type]="afficherConfirmation() ? 'text' : 'password'"
-            [formField]="formulaireMotDePasse.confirmation" autocomplete="new-password" />
+            [formField]="formulaireMotDePasse.confirmation" [class.p-invalid]="formulaireMotDePasse.confirmation().touched() && formulaireMotDePasse.confirmation().invalid()"
+            [attr.aria-invalid]="formulaireMotDePasse.confirmation().touched() && formulaireMotDePasse.confirmation().invalid() ? 'true' : null"
+            [attr.aria-describedby]="formulaireMotDePasse.confirmation().touched() && formulaireMotDePasse.confirmation().invalid() ? 'erreur-confirmation-mot-de-passe' : null"
+            autocomplete="new-password" />
             <button type="button" (click)="afficherConfirmation.set(!afficherConfirmation())" [attr.aria-label]="afficherConfirmation() ? 'Masquer la confirmation' : 'Afficher la confirmation'"><i class="pi" [class.pi-eye]="!afficherConfirmation()" [class.pi-eye-slash]="afficherConfirmation()"></i></button>
           </div>
           @if (formulaireMotDePasse.confirmation().touched() && formulaireMotDePasse.confirmation().invalid()) {
-            <small>{{ formulaireMotDePasse.confirmation().errors()[0]?.message }}</small>
+            <small id="erreur-confirmation-mot-de-passe">{{ formulaireMotDePasse.confirmation().errors()[0]?.message }}</small>
           }
         </div>
         <div class="zone-message" aria-live="polite">

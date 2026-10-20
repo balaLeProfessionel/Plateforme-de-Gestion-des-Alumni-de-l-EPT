@@ -15,6 +15,10 @@ L'application est ensuite accessible sur `http://localhost:4200`. L'API est expo
 
 Le mode `watch` synchronise les sources frontend et redémarre le backend lorsque ses sources changent. Une modification de `pom.xml` ou de `package.json` reconstruit le conteneur concerné.
 
+## Developpement avec GitHub Codespaces
+
+Un environnement personnel est disponible dans `.devcontainer`, avec Java 25, Node.js 24 et Docker. Il réutilise le Compose de développement et son `watch`, sans changer le fonctionnement local du binôme. Consulter le [guide Codespaces](docs/codespaces.md) pour créer l'environnement, lancer l'application et sauvegarder ses données.
+
 ## Execution proche de la production
 
 Créer un fichier `.env` à partir de `.env.example`, puis remplacer au minimum `POSTGRES_PASSWORD` et `JWT_SECRET` par des valeurs propres à l'environnement.

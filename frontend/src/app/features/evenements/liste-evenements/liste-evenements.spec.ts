@@ -11,17 +11,21 @@ describe('ListeEvenements', () => {
   let fixture: ComponentFixture<ListeEvenements>;
   let parametres: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
   let lister: ReturnType<typeof vi.fn>;
+  let listerMesEvenements: ReturnType<typeof vi.fn>;
+  let annuler: ReturnType<typeof vi.fn>;
   let router: Router;
 
   beforeEach(async () => {
     parametres = new BehaviorSubject(convertToParamMap({}));
     lister = vi.fn().mockImplementation(() => of(page()));
+    listerMesEvenements = vi.fn().mockImplementation(() => of(page()));
+    annuler = vi.fn().mockImplementation(() => of(evenement({ statut: 'ANNULE' })));
     await TestBed.configureTestingModule({
       imports: [ListeEvenements],
       providers: [
         provideRouter([]),
         { provide: ActivatedRoute, useValue: { queryParamMap: parametres } },
-        { provide: EvenementService, useValue: { lister, obtenir: vi.fn() } }
+        { provide: EvenementService, useValue: { lister, listerMesEvenements, annuler, obtenir: vi.fn() } }
       ]
     }).compileComponents();
     router = TestBed.inject(Router);
@@ -43,8 +47,24 @@ describe('ListeEvenements', () => {
       .toContain('EPT officiel');
     expect(fixture.nativeElement.querySelector('.carte-evenement:not(.officiel) .badge-communaute'))
       .not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.carte-evenement')?.getAttribute('href'))
+    expect(fixture.nativeElement.querySelector('.carte-evenement h2 a')?.getAttribute('href'))
       .toContain('/evenements/event-1');
+  });
+
+  it('garde une zone d’illustration commune pour les cartes avec ou sans image', async () => {
+    lister.mockReturnValueOnce(of(page({ contenu: [
+      evenement({ urlImage: null }),
+      evenement({ id: 'event-2', urlImage: '/api/evenement-images/affiche.png' }),
+    ], totalElements: 2, totalPages: 1 })));
+    parametres.next(convertToParamMap({}));
+    await fixture.whenStable();
+
+    const visuels = [...fixture.nativeElement.querySelectorAll('.visuel-evenement')] as HTMLElement[];
+    expect(visuels).toHaveLength(2);
+    expect(visuels[0].classList).toContain('sans-image');
+    expect(visuels[0].querySelector('span')?.textContent).toContain('EPT Alumni');
+    expect(visuels[1].classList).not.toContain('sans-image');
+    expect(visuels[1].querySelector('img')?.getAttribute('src')).toBe('/api/evenement-images/affiche.png');
   });
 
   it('synchronise la période et la page depuis l’URL', async () => {
@@ -52,8 +72,57 @@ describe('ListeEvenements', () => {
     await fixture.whenStable();
 
     expect(lister).toHaveBeenLastCalledWith('PASSES', 3);
-    expect(fixture.nativeElement.querySelector('button[aria-pressed="true"]')?.textContent)
+    expect(fixture.nativeElement.querySelector('.onglets-periode button[aria-pressed="true"]')?.textContent)
       .toContain('Passés');
+  });
+
+  it('charge ses événements depuis le filtre et conserve période et page dans l’URL', async () => {
+    parametres.next(convertToParamMap({ vue: 'mes', periode: 'PASSES', page: '2' }));
+    await fixture.whenStable();
+
+    expect(listerMesEvenements).toHaveBeenLastCalledWith('PASSES', 2);
+    expect(fixture.nativeElement.querySelector('button[aria-pressed="true"]')?.textContent)
+      .toContain('Mes événements');
+  });
+
+  it('change le filtre vers ses événements sans perdre la période et remet la page à zéro', () => {
+    const navigation = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    parametres.next(convertToParamMap({ periode: 'PASSES', page: '3' }));
+
+    fixture.componentInstance['changerVue'](true);
+
+    expect(navigation).toHaveBeenCalledWith([], {
+      relativeTo: TestBed.inject(ActivatedRoute),
+      queryParams: { vue: 'mes', page: 0 },
+      queryParamsHandling: 'merge'
+    });
+  });
+
+  it('affiche les actions de gestion uniquement dans le filtre personnel et annule après confirmation', async () => {
+    listerMesEvenements.mockReturnValue(of(page({
+      contenu: [evenement()], totalElements: 1, totalPages: 1
+    })));
+    parametres.next(convertToParamMap({ vue: 'mes' }));
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('.actions-carte')).not.toBeNull();
+    (fixture.nativeElement.querySelector('.actions-carte .action-danger') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('les réponses seront conservées');
+    (fixture.nativeElement.querySelector('.confirmation-annulation .action-danger') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(annuler).toHaveBeenCalledWith('event-1');
+    expect(listerMesEvenements).toHaveBeenCalledTimes(2);
+  });
+
+  it('affiche un état vide avec une action de création dans le filtre personnel', async () => {
+    parametres.next(convertToParamMap({ vue: 'mes' }));
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain('Les événements que vous organiserez apparaîtront ici.');
+    expect(fixture.nativeElement.querySelector('.etat-evenements a')?.getAttribute('href'))
+      .toContain('/evenements/creer');
   });
 
   it('conserve les critères de retour vers le détail et remet la page à zéro au changement de période', async () => {
@@ -61,7 +130,7 @@ describe('ListeEvenements', () => {
     lister.mockReturnValue(of(page({ contenu: [evenement()] })));
     parametres.next(convertToParamMap({ periode: 'AVENIR', page: '2' }));
     await fixture.whenStable();
-    const carte = fixture.nativeElement.querySelector('.carte-evenement') as HTMLAnchorElement;
+    const carte = fixture.nativeElement.querySelector('.carte-evenement h2 a') as HTMLAnchorElement;
     expect(carte.getAttribute('href')).toContain('periode=AVENIR');
     fixture.componentInstance['changerPeriode']('PASSES');
 
@@ -118,7 +187,7 @@ describe('ListeEvenements', () => {
     return {
       id: 'event-1', titre: 'Rencontre des diplômés',
       description: 'Un temps fort organisé pour la communauté EPT.',
-      lieu: 'École Polytechnique de Thiès',
+      lieu: 'École Polytechnique de Thiès', urlImage: null,
       dateDebut: '2026-10-15T09:00:00Z', dateFin: '2026-10-15T12:00:00Z',
       audience: 'TOUS', nombrePlaces: null, officielEpt: true, statut: 'PUBLIE',
       organisateurId: 'organisateur-1', organisateurNom: 'Diop', organisateurPrenom: 'Awa',

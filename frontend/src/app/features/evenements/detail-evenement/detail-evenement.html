@@ -20,6 +20,13 @@
         <div class="bandeau-officiel"><i class="pi pi-verified" aria-hidden="true"></i>
           Événement officiel de l’École Polytechnique de Thiès</div>
       }
+      <figure class="visuel-detail" [class.sans-image]="!item.urlImage">
+        @if (item.urlImage) {
+          <img [src]="item.urlImage" [alt]="'Illustration de ' + item.titre" />
+        } @else {
+          <span aria-hidden="true"><i class="pi pi-calendar"></i>EPT Alumni</span>
+        }
+      </figure>
       <header class="entete-detail">
         <div class="badges-detail">
           @if (item.statut === 'ANNULE') {
@@ -71,12 +78,130 @@
         <p>{{ item.description }}</p>
       </section>
 
-      @if (item.maReponse) {
-        <p class="reponse-actuelle" aria-live="polite">
-          <i class="pi pi-info-circle" aria-hidden="true"></i>
-          Votre réponse enregistrée : {{ item.maReponse === 'PARTICIPERA' ? 'vous participez' : 'vous ne participez pas' }}.
-        </p>
+      @if (peutRepondre(item)) {
+        <section class="reponse-evenement" aria-labelledby="titre-reponse">
+          <h2 id="titre-reponse">Votre participation</h2>
+          @if (item.maReponse) {
+            <p aria-live="polite">Votre réponse enregistrée :
+              {{ item.maReponse === 'PARTICIPERA' ? 'vous participez' : 'vous ne participez pas' }}.
+            </p>
+          } @else {
+            <p>Indiquez si vous souhaitez participer à cet événement.</p>
+          }
+          @if (capaciteAtteinte(item)) {
+            <p class="message-places">L’événement est complet. Vous pouvez toujours indiquer que vous ne participez pas.</p>
+          }
+          @if (erreurReponse()) {
+            <div class="erreur-reponse" role="alert">
+              <p>{{ erreurReponse() }}</p>
+              <button type="button" class="action-secondaire" (click)="actualiser()">Actualiser la fiche</button>
+            </div>
+          }
+          <div class="actions-reponse" aria-label="Votre réponse à l’événement">
+            <button type="button" class="action-secondaire"
+              [class.selectionnee]="item.maReponse === 'PARTICIPERA'"
+              [attr.aria-pressed]="item.maReponse === 'PARTICIPERA'"
+              [disabled]="reponseEnCours() !== null || (capaciteAtteinte(item) && item.maReponse !== 'PARTICIPERA')"
+              (click)="enregistrerReponse('PARTICIPERA')">
+              <i class="pi pi-check" aria-hidden="true"></i>
+              {{ reponseEnCours() === 'PARTICIPERA' ? 'Enregistrement…' : 'Je participe' }}
+            </button>
+            <button type="button" class="action-secondaire"
+              [class.selectionnee]="item.maReponse === 'NE_PARTICIPERA_PAS'"
+              [attr.aria-pressed]="item.maReponse === 'NE_PARTICIPERA_PAS'"
+              [disabled]="reponseEnCours() !== null"
+              (click)="enregistrerReponse('NE_PARTICIPERA_PAS')">
+              <i class="pi pi-times" aria-hidden="true"></i>
+              {{ reponseEnCours() === 'NE_PARTICIPERA_PAS' ? 'Enregistrement…' : 'Je ne participe pas' }}
+            </button>
+          </div>
+        </section>
       }
+
+      @if (peutGerer()) {
+        <section class="gestion-evenement" aria-label="Gestion de l’événement">
+          <h2>Gestion</h2>
+          <div class="actions-gestion">
+            <a class="action-secondaire" [routerLink]="['/evenements', item.id, 'modifier']"
+              [state]="{ returnUrl: router.url, originReturnUrl: urlRetour() }">
+              <i class="pi pi-pencil" aria-hidden="true"></i>Modifier
+            </a>
+            @if (item.statut === 'PUBLIE') {
+              <button class="action-danger" type="button" (click)="demanderConfirmationAnnulation()">
+                <i class="pi pi-ban" aria-hidden="true"></i>Annuler l’événement
+              </button>
+            }
+            @if (estAdmin()) {
+              <button class="action-secondaire" type="button" [disabled]="actionEnCours()"
+                (click)="basculerStatutOfficiel()">
+                <i class="pi pi-verified" aria-hidden="true"></i>
+                {{ item.officielEpt ? 'Retirer le statut officiel' : 'Marquer officiel EPT' }}
+              </button>
+            }
+          </div>
+          @if (confirmationAnnulation()) {
+            <div class="confirmation-detail" role="group" aria-label="Confirmation d’annulation">
+              <p>Annuler cet événement ? Il restera dans votre historique et ses réponses seront conservées.</p>
+              @if (erreurAction()) { <p class="erreur-action" role="alert">{{ erreurAction() }}</p> }
+              <button class="action-danger" type="button" [disabled]="actionEnCours()"
+                (click)="confirmerAnnulation()">{{ actionEnCours() ? 'Annulation…' : 'Confirmer l’annulation' }}</button>
+              <button class="action-secondaire" type="button" (click)="abandonnerAnnulation()">Garder l’événement</button>
+            </div>
+          } @else if (erreurAction()) {
+            <p class="erreur-action" role="alert">{{ erreurAction() }}</p>
+          }
+        </section>
+
+        <section class="liste-participants" aria-labelledby="titre-participants">
+          <div class="entete-participants">
+            <div><p class="sur-titre">Organisation</p><h2 id="titre-participants">Participants inscrits</h2></div>
+            <span>{{ item.nombreParticipants }} {{ item.nombreParticipants === 1 ? 'personne' : 'personnes' }}</span>
+          </div>
+          @if (chargementParticipants()) {
+            <p class="etat-participants" aria-live="polite">Chargement des participants…</p>
+          } @else if (erreurParticipants()) {
+            <div class="etat-participants erreur" role="alert">
+              <p>{{ erreurParticipants() }}</p>
+              <button type="button" (click)="chargerParticipants()">Réessayer</button>
+            </div>
+          } @else if (participants(); as resultat) {
+            @if (resultat.contenu.length === 0) {
+              <p class="etat-participants">Aucune participation confirmée pour le moment.</p>
+            } @else {
+              <ul class="grille-participants">
+                @for (participant of resultat.contenu; track participant.id) {
+                  <li>
+                    @if (participant.urlPhoto) {
+                      <img [src]="participant.urlPhoto" alt="" loading="lazy" />
+                    } @else {
+                      <span class="initiales-participant" aria-hidden="true">{{ participant.prenom.slice(0, 1) }}{{ participant.nom.slice(0, 1) }}</span>
+                    }
+                    <span class="identite-participant"><strong>{{ participant.prenom }} {{ participant.nom }}</strong>
+                      <small>{{ libelleRole(participant.role) }}</small></span>
+                  </li>
+                }
+              </ul>
+              @if (resultat.totalPages > 1) {
+                <nav class="pagination-participants" aria-label="Pagination des participants">
+                  <button type="button" (click)="chargerParticipants(item.id, resultat.page - 1)"
+                    [disabled]="resultat.page === 0" aria-label="Page précédente"><i class="pi pi-chevron-left" aria-hidden="true"></i></button>
+                  @for (pageParticipant of pagesParticipants(); track pageParticipant) {
+                    @if (pageParticipant === resultat.page - 1 && pageParticipant > 0) { <span aria-hidden="true">…</span> }
+                    <button type="button" (click)="chargerParticipants(item.id, pageParticipant)"
+                      [class.page-active]="pageParticipant === resultat.page"
+                      [attr.aria-current]="pageParticipant === resultat.page ? 'page' : null"
+                      [attr.aria-label]="'Page ' + (pageParticipant + 1)">{{ pageParticipant + 1 }}</button>
+                    @if (pageParticipant === resultat.page + 1 && pageParticipant < resultat.totalPages - 1) { <span aria-hidden="true">…</span> }
+                  }
+                  <button type="button" (click)="chargerParticipants(item.id, resultat.page + 1)"
+                    [disabled]="resultat.page + 1 >= resultat.totalPages" aria-label="Page suivante"><i class="pi pi-chevron-right" aria-hidden="true"></i></button>
+                </nav>
+              }
+            }
+          }
+        </section>
+      }
+
     </article>
   }
 </main>

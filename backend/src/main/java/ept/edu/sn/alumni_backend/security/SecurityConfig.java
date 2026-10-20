@@ -79,6 +79,7 @@ public class SecurityConfig {
                     "/api/auth/refresh"
                 ).permitAll()
                 .requestMatchers("/api/photos/**").permitAll()
+                .requestMatchers("/api/evenement-images/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/organisme/me").hasRole("ORGANISME")
                 .requestMatchers("/api/formations/**", "/api/experiences/**")

@@ -1,0 +1,137 @@
+<main class="formulaire-evenement-page">
+  <button class="bouton-retour" type="button" (click)="retourner()">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>Retour
+  </button>
+
+  <header class="entete-formulaire">
+    <p class="sur-titre">La vie du réseau</p>
+    <h1>{{ modeEdition() ? 'Modifier l’événement' : 'Créer un événement' }}</h1>
+    <p>Partagez une rencontre avec les membres concernés de la communauté EPT.</p>
+  </header>
+
+  @if (enChargement()) {
+    <div class="etat-formulaire" aria-busy="true" aria-label="Chargement de l’événement">
+      <span class="indicateur-chargement" aria-hidden="true"></span>Chargement…
+    </div>
+  } @else if (modeEdition() && !chargementReussi()) {
+    <section class="etat-formulaire erreur" role="alert">
+      <p>{{ messageErreur() }}</p>
+      <button type="button" (click)="reessayerChargement()">Réessayer</button>
+    </section>
+  } @else {
+    <form class="carte-formulaire" (submit)="soumettre($event)" novalidate>
+      @if (messageErreur()) {
+        <p class="message-erreur-api" role="alert">{{ messageErreur() }}</p>
+      }
+
+      <div class="champ">
+        <label for="evenement-titre">Titre <span class="obligatoire" aria-hidden="true">*</span></label>
+        <input id="evenement-titre" type="text" autocomplete="off" [formField]="formulaire.titre"
+          aria-describedby="erreur-titre" />
+        @if (formulaire.titre().touched() && libelleErreur('titre'); as erreur) {
+          <span class="erreur-champ" id="erreur-titre">{{ erreur }}</span>
+        }
+      </div>
+
+      <div class="champ">
+        <label for="evenement-description">Description <span class="obligatoire" aria-hidden="true">*</span></label>
+        <textarea id="evenement-description" rows="6" [formField]="formulaire.description"
+          aria-describedby="erreur-description"></textarea>
+        @if (formulaire.description().touched() && libelleErreur('description'); as erreur) {
+          <span class="erreur-champ" id="erreur-description">{{ erreur }}</span>
+        }
+      </div>
+
+      <section class="bloc-image" aria-labelledby="titre-image-evenement">
+        <div class="apercu-image" [class.sans-image]="!apercuImage()">
+          @if (apercuImage()) {
+            <img [src]="apercuImage()" alt="Aperçu de l’illustration de l’événement" />
+          } @else {
+            <span aria-hidden="true"><i class="pi pi-image"></i>EPT Alumni</span>
+          }
+        </div>
+        <div class="champ">
+          <label id="titre-image-evenement" for="evenement-image">Image de l’événement <span class="optionnel">Facultatif</span></label>
+          <input #champImage id="evenement-image" type="file" accept="image/jpeg,image/png"
+            aria-describedby="aide-image erreur-image" (change)="selectionnerImage($event)" />
+          <small id="aide-image">JPEG ou PNG, 5 Mo maximum. L’image s’adapte au cadre sans être rognée.</small>
+          @if (erreurImage(); as erreur) {
+            <span class="erreur-champ" id="erreur-image" role="alert">{{ erreur }}</span>
+          }
+          <div class="actions-image">
+            @if (fichierImage()) {
+              <button type="button" class="action-secondaire" (click)="annulerSelectionImage(champImage)">Annuler le choix</button>
+            } @else if (imageActuelle() && !suppressionImage()) {
+              <button type="button" class="action-secondaire" (click)="basculerSuppressionImage()">Retirer l’image actuelle</button>
+            } @else if (suppressionImage()) {
+              <button type="button" class="action-secondaire" (click)="basculerSuppressionImage()">Conserver l’image actuelle</button>
+            }
+          </div>
+          @if (suppressionImage()) {
+            <small class="aide-suppression">L’image actuelle sera retirée après l’enregistrement.</small>
+          }
+        </div>
+      </section>
+
+      <div class="grille-champs">
+        <div class="champ">
+          <label for="evenement-lieu">Lieu <span class="obligatoire" aria-hidden="true">*</span></label>
+          <input id="evenement-lieu" type="text" autocomplete="street-address" [formField]="formulaire.lieu"
+            aria-describedby="erreur-lieu" />
+          @if (formulaire.lieu().touched() && libelleErreur('lieu'); as erreur) {
+            <span class="erreur-champ" id="erreur-lieu">{{ erreur }}</span>
+          }
+        </div>
+        <div class="champ">
+          <label for="evenement-audience">Qui peut voir cet événement ? <span class="obligatoire" aria-hidden="true">*</span></label>
+          <select id="evenement-audience" [formField]="formulaire.audience" aria-describedby="erreur-audience">
+            <option value="TOUS">Tous les membres</option>
+            <option value="ETUDIANTS">Étudiants</option>
+            <option value="ALUMNI">Alumni</option>
+          </select>
+          @if (formulaire.audience().touched() && libelleErreur('audience'); as erreur) {
+            <span class="erreur-champ" id="erreur-audience">{{ erreur }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="grille-champs">
+        <div class="champ">
+          <label for="evenement-debut">Date et heure de début <span class="obligatoire" aria-hidden="true">*</span></label>
+          <input id="evenement-debut" type="datetime-local" [formField]="formulaire.dateDebut"
+            aria-describedby="erreur-debut" />
+          @if (formulaire.dateDebut().touched() && libelleErreur('dateDebut'); as erreur) {
+            <span class="erreur-champ" id="erreur-debut">{{ erreur }}</span>
+          }
+        </div>
+        <div class="champ">
+          <label for="evenement-fin">Date et heure de fin <span class="obligatoire" aria-hidden="true">*</span></label>
+          <input id="evenement-fin" type="datetime-local" [formField]="formulaire.dateFin"
+            aria-describedby="erreur-fin" />
+          @if (formulaire.dateFin().touched() && libelleErreur('dateFin'); as erreur) {
+            <span class="erreur-champ" id="erreur-fin">{{ erreur }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="champ capacite">
+        <label for="evenement-places">Nombre de places <span class="optionnel">Facultatif</span></label>
+        <input id="evenement-places" type="number" inputmode="numeric" [formField]="formulaire.nombrePlaces"
+          aria-describedby="aide-places erreur-places" />
+        <small id="aide-places">Laissez vide pour ne pas limiter les participations.</small>
+        @if (formulaire.nombrePlaces().touched() && libelleErreur('nombrePlaces'); as erreur) {
+          <span class="erreur-champ" id="erreur-places">{{ erreur }}</span>
+        }
+      </div>
+
+      <p class="note-obligatoire"><span aria-hidden="true">*</span> Champ obligatoire</p>
+      <div class="actions-formulaire">
+        <button class="action-secondaire" type="button" (click)="retourner()">Annuler</button>
+        <button class="action-principale" type="submit" [disabled]="envoiEnCours()">
+          @if (envoiEnCours()) { Enregistrement… }
+          @else { {{ modeEdition() ? 'Enregistrer les modifications' : 'Publier l’événement' }} }
+        </button>
+      </div>
+    </form>
+  }
+</main>

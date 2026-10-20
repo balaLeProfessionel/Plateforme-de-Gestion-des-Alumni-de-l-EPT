@@ -30,15 +30,17 @@
 
 .symbole-marque {
   display: grid;
-  flex: 0 0 2.25rem;
+  flex: 0 0 3rem;
   place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 3rem;
+  height: 3rem;
+  overflow: hidden;
   border-radius: 0.35rem;
-  background: var(--ept-primary);
-  color: white;
-  font-size: 1.1rem;
+  border: 1px solid var(--ept-border);
+  background: white;
 }
+
+.symbole-marque img { display: block; width: 100%; height: 100%; padding: 0.15rem; object-fit: contain; }
 
 .texte-marque {
   display: grid;
@@ -162,8 +164,7 @@ a.lien-navigation:hover,
 }
 
 .contenu-membre { min-width: 0; }
-.entete-mobile, .navigation-mobile, .panneau-plus { display: none; }
-.panneau-plus[hidden] { display: none; }
+.entete-mobile, .navigation-mobile, .menu-mobile { display: none; }
 
 a:focus-visible, button:focus-visible {
   outline: 2px solid var(--ept-primary);
@@ -171,7 +172,7 @@ a:focus-visible, button:focus-visible {
 }
 
 @media (max-width: 760px) {
-  .espace-membre { display: block; padding-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
+  .espace-membre { display: block; padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
   .barre-laterale { display: none; }
 
   .entete-mobile {
@@ -181,77 +182,100 @@ a:focus-visible, button:focus-visible {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-height: 3.75rem;
+    min-height: 4rem;
+    gap: 0.5rem;
     padding: 0.6rem 1rem;
     border-bottom: 1px solid var(--ept-border);
     background: var(--ept-surface);
   }
   .entete-mobile .marque { padding: 0; }
+  .entete-mobile .symbole-marque { width: 2.5rem; height: 2.5rem; flex-basis: 2.5rem; }
+  .entete-mobile .texte-marque { display: grid; }
+  .entete-mobile .texte-marque strong { font-size: clamp(1rem, 4.5vw, 1.2rem); }
+  .bouton-compte { display: flex; align-items: center; gap: 0.45rem; min-height: 2.75rem; padding: 0; border: 0; background: transparent; color: var(--ept-primary); cursor: pointer; }
+  .bouton-compte .avatar { width: 2.5rem; height: 2.5rem; flex-basis: 2.5rem; font-size: 0.85rem; }
+  .bouton-compte > i { font-size: 0.85rem; }
 
   .navigation-mobile {
     position: fixed;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    right: max(0.75rem, env(safe-area-inset-right));
+    bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    left: max(0.75rem, env(safe-area-inset-left));
     z-index: 30;
-    display: flex;
-    justify-content: space-around;
-    min-height: calc(4.5rem + env(safe-area-inset-bottom));
-    padding: 0.3rem max(0.35rem, env(safe-area-inset-right)) env(safe-area-inset-bottom);
-    border-top: 1px solid var(--ept-border);
-    background: var(--ept-surface);
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    max-width: 28rem;
+    margin-inline: auto;
+    padding: 0.25rem;
+    border-radius: 0.45rem;
+    background: var(--ept-primary);
+    box-shadow: 0 5px 18px rgba(1, 67, 101, 0.18);
   }
 
   .navigation-mobile a,
   .navigation-mobile button {
     display: flex;
-    flex: 1 1 0;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 0.25rem;
-    max-width: 8rem;
-    min-height: 3.8rem;
+    min-width: 0;
+    min-height: 3.6rem;
+    padding: 0.2rem;
     border: 0;
-    border-top: 3px solid transparent;
+    border-radius: 2px;
     background: transparent;
-    color: var(--ept-text-secondary);
+    color: var(--ept-text-on-dark);
     font: inherit;
-    font-size: 0.72rem;
-    font-weight: 600;
+    font-size: clamp(0.6875rem, 3.05vw, 0.75rem);
+    font-weight: 500;
     text-decoration: none;
     cursor: pointer;
 
-    i { font-size: 1.2rem; }
+    i { font-size: 1.45rem; }
+    span { white-space: nowrap; }
+    &:focus-visible { outline-color: var(--ept-sky); outline-offset: -2px; }
   }
 
   .navigation-mobile .actif {
-    border-top-color: var(--ept-primary);
-    background: var(--ept-primary-light);
+    background: color-mix(in srgb, var(--ept-sky) 55%, white);
     color: var(--ept-primary);
+    font-weight: 700;
+    &:focus-visible { outline-color: var(--ept-primary); }
   }
 
-  .panneau-plus {
+  .navigation-mobile.menu-ouvert a.actif {
+    background: transparent;
+    color: white;
+    font-weight: 500;
+  }
+
+  .menu-mobile[open] {
     position: fixed;
-    right: 0.6rem;
-    bottom: calc(4.9rem + env(safe-area-inset-bottom));
-    left: 0.6rem;
-    z-index: 29;
-    display: grid;
-    max-width: 28rem;
-    margin-left: auto;
-    padding: 0.7rem;
+    inset: auto 0.75rem calc(5.5rem + env(safe-area-inset-bottom));
+    display: block;
+    width: min(28rem, calc(100% - 1.5rem));
+    max-height: calc(100dvh - 7rem - env(safe-area-inset-bottom));
+    margin: 0 auto;
+    padding: 1rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     border: 1px solid var(--ept-border);
+    border-radius: 0.45rem;
     background: var(--ept-surface);
+    color: var(--ept-primary);
     box-shadow: 0 8px 24px rgba(1, 67, 101, 0.16);
   }
-
-  .titre-panneau { margin: 0.35rem 0.6rem; color: var(--ept-text-secondary); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
-  .panneau-plus a, .panneau-plus button, .rubrique-a-venir {
+  .menu-mobile::backdrop { background: rgba(1, 46, 69, 0.28); }
+  .entete-menu { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem; }
+  .entete-menu h2 { margin: 0; font-size: 1.15rem; }
+  .fermer-menu { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; padding: 0; border: 0; background: transparent; color: inherit; font-size: 1.15rem; cursor: pointer; }
+  .titre-panneau { margin: 0.75rem 0 0.35rem; padding-top: 0.9rem; border-top: 1px solid var(--ept-border); color: var(--ept-text-secondary); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+  .menu-mobile > a, .deconnexion-menu, .rubrique-a-venir {
     display: flex;
     align-items: center;
     gap: 0.85rem;
-    min-height: 2.75rem;
+    min-height: 3rem;
     padding: 0.55rem 0.6rem;
     border: 0;
     background: transparent;
@@ -261,7 +285,8 @@ a:focus-visible, button:focus-visible {
     text-align: left;
     text-decoration: none;
   }
-  .panneau-plus button { cursor: pointer; }
+  .menu-mobile > a:hover, .menu-mobile > a.actif { background: var(--ept-primary-light); }
+  .deconnexion-menu { width: 100%; margin-top: 0.65rem; border-top: 1px solid var(--ept-border); cursor: pointer; }
   .rubrique-a-venir { color: var(--ept-text-secondary); }
   .rubrique-a-venir::after { content: 'À venir'; margin-left: auto; font-size: 0.7rem; }
 }

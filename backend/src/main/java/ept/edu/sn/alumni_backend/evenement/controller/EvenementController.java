@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -13,9 +14,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import ept.edu.sn.alumni_backend.evenement.PeriodeEvenement;
 import ept.edu.sn.alumni_backend.evenement.dto.EvenementRequest;
@@ -45,6 +48,15 @@ public class EvenementController {
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "12") @Min(1) @Max(48) int taille) {
         return ResponseEntity.ok(evenementService.lister(principal, periode, page, taille));
+    }
+
+    @GetMapping("/mes-evenements")
+    public ResponseEntity<PageEvenementsResponse> listerMesEvenements(
+            @AuthenticationPrincipal UtilisateurPrincipal principal,
+            @RequestParam(defaultValue = "AVENIR") PeriodeEvenement periode,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "12") @Min(1) @Max(48) int taille) {
+        return ResponseEntity.ok(evenementService.listerMesEvenements(principal, periode, page, taille));
     }
 
     @GetMapping("/{id}")
@@ -85,6 +97,21 @@ public class EvenementController {
             @Valid @RequestBody EvenementRequest request,
             @AuthenticationPrincipal UtilisateurPrincipal principal) {
         return ResponseEntity.ok(evenementService.modifier(id, request, principal));
+    }
+
+    @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<EvenementResponse> joindreImage(
+            @PathVariable UUID id,
+            @RequestPart("image") MultipartFile image,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(evenementService.joindreImage(id, image, principal));
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{id}/image")
+    public ResponseEntity<EvenementResponse> supprimerImage(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(evenementService.supprimerImage(id, principal));
     }
 
     @PatchMapping("/{id}/annuler")

@@ -1,0 +1,20 @@
+services:
+  db:
+    ports: !reset []
+    volumes:
+      - type: bind
+        source: ${ALUMNI_CODESPACE_DATA_DIR:?Utiliser le lanceur .devcontainer/compose.mjs}/postgres
+        target: /var/lib/postgresql/data
+
+  api:
+    ports: !reset []
+    environment:
+      APP_STORAGE_PHOTOS_DIR: /data/alumni/photos
+    volumes:
+      - type: bind
+        source: ${ALUMNI_CODESPACE_DATA_DIR:?Utiliser le lanceur .devcontainer/compose.mjs}/photos
+        target: /data/alumni/photos
+
+  web:
+    environment:
+      __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS: ${ALUMNI_PREVIEW_HOST:-localhost}

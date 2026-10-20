@@ -40,6 +40,9 @@ public class Evenement {
     @Column(nullable = false, length = 200)
     private String lieu;
 
+    @Column(name = "url_image", length = 160)
+    private String urlImage;
+
     @Column(nullable = false)
     private Instant dateDebut;
 

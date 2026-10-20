@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Routes, Router } from '@angular/router';
 import {
   authGuard,
   changementInitialRequisGuard,
@@ -131,6 +132,30 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/evenements/liste-evenements/liste-evenements').then(
             (m) => m.ListeEvenements
+          )
+      },
+      {
+        path: 'evenements/creer',
+        title: 'Créer un événement | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/evenements/formulaire-evenement/formulaire-evenement').then(
+            (m) => m.FormulaireEvenement
+          )
+      },
+      {
+        path: 'evenements/mes-evenements',
+        redirectTo: (route) => inject(Router).createUrlTree(['/evenements'], {
+          queryParams: { ...route.queryParams, vue: 'mes' }
+        })
+      },
+      {
+        path: 'evenements/:id/modifier',
+        title: 'Modifier un événement | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/evenements/formulaire-evenement/formulaire-evenement').then(
+            (m) => m.FormulaireEvenement
           )
       },
       {

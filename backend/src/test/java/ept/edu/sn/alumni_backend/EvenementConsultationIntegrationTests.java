@@ -103,8 +103,9 @@ class EvenementConsultationIntegrationTests {
 
     @Test
     void refuseLeDetailDUnEvenementHorsAudienceSansRevelerSonExistence() throws Exception {
+        Utilisateur organisateur = creerUtilisateur(TypeRole.PERSONNEL, StatutCompte.ACTIF, true);
         Evenement evenement = creerEvenement(
-            AudienceEvenement.ETUDIANTS, StatutEvenement.PUBLIE, Instant.now().plusSeconds(7200));
+            organisateur, AudienceEvenement.ETUDIANTS, StatutEvenement.PUBLIE, Instant.now().plusSeconds(7200));
 
         mockMvc.perform(requeteAuthentifie("/api/evenements/{id}", alumni, evenement.getId()))
             .andExpect(status().isNotFound());
@@ -112,7 +113,7 @@ class EvenementConsultationIntegrationTests {
         mockMvc.perform(requeteAuthentifie("/api/evenements/{id}", etudiant, evenement.getId()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(evenement.getId().toString()))
-            .andExpect(jsonPath("$.organisateurId").value(alumni.getId().toString()))
+            .andExpect(jsonPath("$.organisateurId").value(organisateur.getId().toString()))
             .andExpect(jsonPath("$.nombreParticipants").value(0))
             .andExpect(jsonPath("$.email").doesNotExist())
             .andExpect(jsonPath("$.telephone").doesNotExist());
@@ -210,6 +211,14 @@ class EvenementConsultationIntegrationTests {
     }
 
     private Evenement creerEvenement(AudienceEvenement audience, StatutEvenement statut, Instant dateFin) {
+        return creerEvenement(alumni, audience, statut, dateFin);
+    }
+
+    private Evenement creerEvenement(
+            Utilisateur organisateur,
+            AudienceEvenement audience,
+            StatutEvenement statut,
+            Instant dateFin) {
         Evenement evenement = new Evenement();
         evenement.setTitre("Rencontre de la communauté");
         evenement.setDescription("Un événement de test.");
@@ -219,7 +228,7 @@ class EvenementConsultationIntegrationTests {
         evenement.setAudience(audience);
         evenement.setOfficielEpt(false);
         evenement.setStatut(statut);
-        evenement.setOrganisateur(alumni);
+        evenement.setOrganisateur(organisateur);
         return evenementRepository.saveAndFlush(evenement);
     }
 

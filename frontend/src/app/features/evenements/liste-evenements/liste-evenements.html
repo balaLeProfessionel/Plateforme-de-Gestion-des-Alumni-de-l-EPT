@@ -3,15 +3,32 @@
     <div>
       <p class="sur-titre">La vie du réseau</p>
       <h1>Événements</h1>
-      <p class="introduction">Retrouvez les rencontres et temps forts de la communauté EPT.</p>
+      <p class="introduction introduction-longue">Retrouvez les rencontres et temps forts de la communauté EPT.</p>
+      <p class="introduction introduction-mobile">Les prochains rendez-vous de la communauté.</p>
     </div>
-    @if (page(); as resultat) {
-      <div class="compteur" aria-label="Nombre d’événements trouvés">
-        <strong>{{ resultat.totalElements }}</strong>
-        <span>{{ resultat.totalElements === 1 ? 'événement' : 'événements' }}</span>
-      </div>
-    }
+    <div class="actions-entete">
+      <a class="action-principale" routerLink="/evenements/creer" [state]="{ returnUrl: urlCourante() }">
+        <i class="pi pi-plus" aria-hidden="true"></i>Créer un événement
+      </a>
+      @if (page(); as resultat) {
+        <div class="compteur" aria-label="Nombre d’événements trouvés">
+          <strong>{{ resultat.totalElements }}</strong>
+          <span>{{ resultat.totalElements === 1 ? 'événement' : 'événements' }}</span>
+        </div>
+      }
+    </div>
   </header>
+
+  <nav class="filtre-proprietaire" aria-label="Afficher les événements">
+    <button type="button" [class.actif]="!mesEvenements()"
+      [attr.aria-pressed]="!mesEvenements()" (click)="changerVue(false)">
+      Tous les événements
+    </button>
+    <button type="button" [class.actif]="mesEvenements()"
+      [attr.aria-pressed]="mesEvenements()" (click)="changerVue(true)">
+      <i class="pi pi-user" aria-hidden="true"></i>Mes événements
+    </button>
+  </nav>
 
   <nav class="onglets-periode" aria-label="Période des événements">
     <button type="button" [class.actif]="periode() === 'AVENIR'"
@@ -42,26 +59,48 @@
       <div class="etat-evenements">
         <i class="pi pi-calendar" aria-hidden="true"></i>
         <h2>{{ periode() === 'AVENIR' ? 'Aucun événement à venir' : 'Aucun événement passé' }}</h2>
-        <p>{{ periode() === 'AVENIR'
-          ? 'Les prochaines rencontres publiées apparaîtront ici.'
-          : 'Les événements terminés apparaîtront ici.' }}</p>
+        <p>{{ mesEvenements()
+          ? (periode() === 'AVENIR'
+            ? 'Les événements que vous organiserez apparaîtront ici.'
+            : 'Vos événements terminés apparaîtront ici.')
+          : (periode() === 'AVENIR'
+            ? 'Les prochaines rencontres publiées apparaîtront ici.'
+            : 'Les événements terminés apparaîtront ici.') }}</p>
+        @if (mesEvenements()) {
+          <a class="action-principale" routerLink="/evenements/creer" [state]="{ returnUrl: urlCourante() }">
+            <i class="pi pi-plus" aria-hidden="true"></i>Créer un événement
+          </a>
+        }
       </div>
     } @else if (page(); as resultat) {
       <ul class="grille-evenements">
         @for (evenement of resultat.contenu; track evenement.id) {
           <li>
-            <a class="carte-evenement" [class.officiel]="evenement.officielEpt"
-              [routerLink]="['/evenements', evenement.id]"
-              [queryParams]="{ periode: periode(), page: resultat.page }">
+            <article class="carte-evenement" [class.officiel]="evenement.officielEpt">
               <div class="entete-carte">
-                @if (evenement.officielEpt) {
+                @if (evenement.statut === 'ANNULE' && mesEvenements()) {
+                  <span class="badge-annule">Annulé</span>
+                } @else if (evenement.officielEpt) {
                   <span class="badge-officiel"><i class="pi pi-verified" aria-hidden="true"></i> EPT officiel</span>
                 } @else {
                   <span class="badge-communaute">Communauté</span>
                 }
                 <span class="audience">{{ libelleAudience(evenement.audience) }}</span>
               </div>
-              <h2>{{ evenement.titre }}</h2>
+              <a class="visuel-evenement" [class.sans-image]="!evenement.urlImage"
+                [routerLink]="urlDetails(evenement)"
+                [queryParams]="{ periode: periode(), page: resultat.page, vue: mesEvenements() ? 'mes' : null }"
+                [state]="{ returnUrl: urlCourante() }"
+                [attr.aria-label]="'Voir le détail de ' + evenement.titre">
+                @if (evenement.urlImage) {
+                  <img [src]="evenement.urlImage" alt="" aria-hidden="true" loading="lazy" />
+                } @else {
+                  <span aria-hidden="true"><i class="pi pi-calendar"></i>EPT Alumni</span>
+                }
+              </a>
+              <h2><a [routerLink]="urlDetails(evenement)"
+                [queryParams]="{ periode: periode(), page: resultat.page, vue: mesEvenements() ? 'mes' : null }"
+                [state]="{ returnUrl: urlCourante() }">{{ evenement.titre }}</a></h2>
               <p class="date-evenement"><i class="pi pi-calendar" aria-hidden="true"></i>
                 <time [attr.datetime]="evenement.dateDebut">{{ formaterPeriode(evenement) }}</time>
               </p>
@@ -71,9 +110,42 @@
                 <span><i class="pi pi-users" aria-hidden="true"></i>
                   {{ evenement.nombreParticipants }} {{ evenement.nombreParticipants === 1 ? 'participant' : 'participants' }}
                 </span>
-                <span class="lien-detail">Voir le détail <i class="pi pi-arrow-right" aria-hidden="true"></i></span>
+                <a class="lien-detail" [routerLink]="urlDetails(evenement)"
+                  [queryParams]="{ periode: periode(), page: resultat.page, vue: mesEvenements() ? 'mes' : null }"
+                  [state]="{ returnUrl: urlCourante() }">Voir le détail <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
               </div>
-            </a>
+              @if (mesEvenements()) {
+                <div class="actions-carte" aria-label="Actions de gestion">
+                  @if (evenement.statut === 'PUBLIE') {
+                    <a class="action-secondaire" [routerLink]="['/evenements', evenement.id, 'modifier']"
+                      [queryParams]="{ periode: periode(), page: resultat.page, vue: 'mes' }"
+                      [state]="{ returnUrl: urlCourante(), originReturnUrl: urlCourante() }">
+                      <i class="pi pi-pencil" aria-hidden="true"></i>Modifier
+                    </a>
+                    <button class="action-danger" type="button" (click)="demanderConfirmation(evenement)">
+                      <i class="pi pi-ban" aria-hidden="true"></i>Annuler
+                    </button>
+                  }
+                </div>
+                @if (confirmationAnnulation() === evenement.id) {
+                  <section class="confirmation-annulation" [attr.aria-label]="'Confirmer l’annulation de ' + evenement.titre">
+                    <p>Annuler cet événement ? Il restera dans votre historique et les réponses seront conservées.</p>
+                    @if (messageErreurAction()) {
+                      <p class="erreur-action" role="alert">{{ messageErreurAction() }}</p>
+                    }
+                    <div>
+                      <button type="button" class="action-danger" [disabled]="actionEnCours() === evenement.id"
+                        (click)="confirmerAnnulation(evenement)">
+                        {{ actionEnCours() === evenement.id ? 'Annulation…' : 'Confirmer l’annulation' }}
+                      </button>
+                      <button type="button" class="action-secondaire" (click)="abandonnerAnnulation()">
+                        Garder l’événement
+                      </button>
+                    </div>
+                  </section>
+                }
+              }
+            </article>
           </li>
         }
       </ul>

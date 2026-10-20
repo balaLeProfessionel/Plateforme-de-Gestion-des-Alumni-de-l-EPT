@@ -1,0 +1,49 @@
+{
+  "name": "EPT Alumni",
+  "image": "maven:3.9-eclipse-temurin-25",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "username": "vscode",
+      "installZsh": false
+    },
+    "ghcr.io/devcontainers/features/node:2": {
+      "version": "24",
+      "npmVersion": "11.13.0",
+      "pnpmVersion": "none"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "remoteUser": "vscode",
+  "containerEnv": {
+    "MAVEN_CONFIG": "/home/vscode/.m2"
+  },
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+  "forwardPorts": [4200],
+  "portsAttributes": {
+    "4200": {
+      "label": "EPT Alumni",
+      "onAutoForward": "notify"
+    }
+  },
+  "otherPortsAttributes": {
+    "onAutoForward": "ignore"
+  },
+  "postCreateCommand": "node .devcontainer/setup.mjs && npm --prefix frontend ci",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Angular.ng-template",
+        "vscjava.vscode-java-pack",
+        "GitHub.vscode-pull-request-github"
+      ]
+    },
+    "codespaces": {
+      "openFiles": ["docs/codespaces.md"]
+    }
+  }
+}

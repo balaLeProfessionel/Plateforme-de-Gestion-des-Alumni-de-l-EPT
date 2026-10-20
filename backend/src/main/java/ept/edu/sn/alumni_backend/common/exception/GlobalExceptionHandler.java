@@ -18,6 +18,8 @@ import ept.edu.sn.alumni_backend.auth.exception.NomOrganismeManquantException;
 import ept.edu.sn.alumni_backend.auth.exception.RoleNonAutoriseException;
 import ept.edu.sn.alumni_backend.auth.exception.TokenInvalideException;
 import ept.edu.sn.alumni_backend.evenement.exception.EvenementIntrouvableException;
+import ept.edu.sn.alumni_backend.evenement.exception.ImageEvenementIntrouvableException;
+import ept.edu.sn.alumni_backend.evenement.exception.StockageImageEvenementException;
 import ept.edu.sn.alumni_backend.evenement.exception.CapaciteEvenementAtteinteException;
 import ept.edu.sn.alumni_backend.evenement.exception.LimiteCreationEvenementAtteinteException;
 import ept.edu.sn.alumni_backend.organisme.exception.OrganismeIntrouvableException;
@@ -101,6 +103,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
     }
 
+    @ExceptionHandler(ImageEvenementIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> handleImageEvenementIntrouvable(ImageEvenementIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(StockageImageEvenementException.class)
+    public ResponseEntity<Map<String, String>> handleStockageImageEvenement(StockageImageEvenementException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", e.getMessage()));
+    }
+
     @ExceptionHandler(LimiteCreationEvenementAtteinteException.class)
     public ResponseEntity<Map<String, String>> handleLimiteCreationEvenement(
             LimiteCreationEvenementAtteinteException e) {
@@ -126,7 +138,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Map<String, String>> handlePhotoTropGrande() {
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
-            .body(Map.of("message", "La photo ne doit pas dépasser 5 Mo."));
+            .body(Map.of("message", "Le fichier ne doit pas dépasser la taille maximale autorisée."));
     }
 
     @ExceptionHandler(SecurityException.class)

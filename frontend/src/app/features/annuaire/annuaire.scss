@@ -111,17 +111,3 @@
   .grille { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .grille-filtres { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-
-@media (max-width: 600px) {
-  .annuaire-page { width: min(100% - 2rem, 1240px); padding-top: 2rem; }
-  .entete-page { display: block; margin-bottom: 1.75rem; }
-  .entete-page h1 { font-size: 2.25rem; }
-  .compteur { display: inline-flex; align-items: baseline; gap: 0.5rem; min-width: 0; margin-top: 1.25rem; padding: 0.7rem 1rem; }
-  .grille { grid-template-columns: 1fr; }
-  .ligne-recherche { align-items: stretch; flex-direction: column; }
-  .grille-filtres { grid-template-columns: 1fr; }
-  .filtres .actions-filtres { align-items: stretch; }
-  .actions-filtres button { flex: 1; }
-  .panneau-filtres summary { grid-template-columns: 1fr auto; }
-  .panneau-filtres .resume-filtres { grid-column: 1 / -1; grid-row: 2; }
-}

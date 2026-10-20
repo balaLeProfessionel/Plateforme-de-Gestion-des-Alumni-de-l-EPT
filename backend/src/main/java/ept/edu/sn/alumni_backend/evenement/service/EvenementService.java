@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,6 +16,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.multipart.MultipartFile;
 
 import ept.edu.sn.alumni_backend.evenement.AudienceEvenement;
 import ept.edu.sn.alumni_backend.evenement.EvenementProperties;
@@ -43,11 +48,13 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class EvenementService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EvenementService.class);
     private final EvenementRepository evenementRepository;
     private final ParticipationEvenementRepository participationRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final EvenementMapper evenementMapper;
     private final EvenementProperties evenementProperties;
+    private final StockageImageEvenement stockageImageEvenement;
 
     @Transactional(readOnly = true)
     public PageEvenementsResponse lister(
@@ -79,10 +86,40 @@ public class EvenementService {
     }
 
     @Transactional(readOnly = true)
+    public PageEvenementsResponse listerMesEvenements(
+            UtilisateurPrincipal principal,
+            PeriodeEvenement periode,
+            int page,
+            int taille) {
+        Instant maintenant = Instant.now();
+        UUID organisateurId = principal.getUtilisateur().getId();
+        Specification<Evenement> specification = (racine, requete, cb) -> cb.and(
+            cb.equal(racine.get("organisateur").get("id"), organisateurId),
+            periode == PeriodeEvenement.AVENIR
+                ? cb.greaterThanOrEqualTo(racine.get("dateFin"), maintenant)
+                : cb.lessThan(racine.get("dateFin"), maintenant));
+
+        Sort tri = periode == PeriodeEvenement.AVENIR
+            ? Sort.by(Sort.Order.asc("dateDebut"), Sort.Order.asc("id"))
+            : Sort.by(Sort.Order.desc("dateDebut"), Sort.Order.asc("id"));
+        Page<Evenement> evenements = evenementRepository.findAll(
+            specification, PageRequest.of(page, taille, tri));
+        Map<UUID, Long> nombresParticipants = compterParticipants(evenements);
+        Map<UUID, ReponseParticipation> mesReponses = trouverMesReponses(evenements, principal);
+
+        return PageEvenementsResponse.depuis(evenements.map(evenement ->
+            evenementMapper.versResponse(
+                evenement,
+                nombresParticipants.getOrDefault(evenement.getId(), 0L),
+                mesReponses.get(evenement.getId()))));
+    }
+
+    @Transactional(readOnly = true)
     public EvenementResponse obtenir(UUID evenementId, UtilisateurPrincipal principal) {
         Evenement evenement = evenementRepository.findById(evenementId)
-            .filter(e -> e.getStatut() == StatutEvenement.PUBLIE)
-            .filter(e -> estVisiblePar(e, principal.getUtilisateur().getRole()))
+            .filter(e -> peutGerer(e, principal)
+                || (e.getStatut() == StatutEvenement.PUBLIE
+                    && estVisiblePar(e, principal.getUtilisateur().getRole())))
             .orElseThrow(EvenementIntrouvableException::new);
         long nombreParticipants = participationRepository.countByEvenement_IdAndReponse(
             evenementId, ReponseParticipation.PARTICIPERA);
@@ -124,6 +161,32 @@ public class EvenementService {
         }
         appliquer(evenement, request);
         return reponsePourUtilisateur(evenementRepository.save(evenement), principal);
+    }
+
+    @Transactional
+    public EvenementResponse joindreImage(UUID evenementId, MultipartFile image, UtilisateurPrincipal principal) {
+        Evenement evenement = trouverPourGestion(evenementId, principal);
+        String ancienneUrl = evenement.getUrlImage();
+        String nouvelleUrl = stockageImageEvenement.stocker(image);
+        try {
+            evenement.setUrlImage(nouvelleUrl);
+            Evenement actualise = evenementRepository.saveAndFlush(evenement);
+            nettoyerImagesApresTransaction(ancienneUrl, nouvelleUrl);
+            return reponsePourUtilisateur(actualise, principal);
+        } catch (RuntimeException erreur) {
+            stockageImageEvenement.supprimerSiGeree(nouvelleUrl);
+            throw erreur;
+        }
+    }
+
+    @Transactional
+    public EvenementResponse supprimerImage(UUID evenementId, UtilisateurPrincipal principal) {
+        Evenement evenement = trouverPourGestion(evenementId, principal);
+        String ancienneUrl = evenement.getUrlImage();
+        evenement.setUrlImage(null);
+        Evenement actualise = evenementRepository.saveAndFlush(evenement);
+        nettoyerImagesApresTransaction(ancienneUrl, null);
+        return reponsePourUtilisateur(actualise, principal);
     }
 
     @Transactional
@@ -219,12 +282,42 @@ public class EvenementService {
         Evenement evenement = evenementRepository.findByIdAvecVerrou(evenementId)
             .orElseThrow(EvenementIntrouvableException::new);
         Utilisateur utilisateurCourant = principal.getUtilisateur();
-        boolean estAdministrateur = utilisateurCourant.getRole() == TypeRole.ADMIN;
-        boolean estOrganisateur = evenement.getOrganisateur().getId().equals(utilisateurCourant.getId());
-        if (!estAdministrateur && !estOrganisateur) {
+        if (!peutGerer(evenement, principal)) {
             throw new EvenementIntrouvableException();
         }
         return evenement;
+    }
+
+    private void nettoyerImagesApresTransaction(String ancienneUrl, String nouvelleUrl) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            stockageImageEvenement.supprimerSiGeree(ancienneUrl);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                supprimerSansInterrompre(ancienneUrl);
+            }
+
+            @Override
+            public void afterCompletion(int statut) {
+                if (statut != STATUS_COMMITTED) supprimerSansInterrompre(nouvelleUrl);
+            }
+
+            private void supprimerSansInterrompre(String url) {
+                try {
+                    stockageImageEvenement.supprimerSiGeree(url);
+                } catch (RuntimeException erreur) {
+                    LOGGER.warn("Nettoyage d’une image d’événement impossible.", erreur);
+                }
+            }
+        });
+    }
+
+    private boolean peutGerer(Evenement evenement, UtilisateurPrincipal principal) {
+        Utilisateur utilisateurCourant = principal.getUtilisateur();
+        return utilisateurCourant.getRole() == TypeRole.ADMIN
+            || evenement.getOrganisateur().getId().equals(utilisateurCourant.getId());
     }
 
     private void appliquer(Evenement evenement, EvenementRequest request) {

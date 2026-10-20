@@ -8,6 +8,7 @@ export interface Evenement {
   titre: string;
   description: string;
   lieu: string;
+  urlImage: string | null;
   dateDebut: string;
   dateFin: string;
   audience: AudienceEvenement;
@@ -16,9 +17,35 @@ export interface Evenement {
   statut: StatutEvenement;
   organisateurId: string;
   organisateurNom: string;
-  organisateurPrenom: string;
+  organisateurPrenom: string | null;
   nombreParticipants: number;
   maReponse: ReponseParticipation | null;
+}
+
+export interface EvenementRequest {
+  titre: string;
+  description: string;
+  lieu: string;
+  dateDebut: string;
+  dateFin: string;
+  audience: AudienceEvenement;
+  nombrePlaces: number | null;
+}
+
+export interface ParticipantEvenement {
+  id: string;
+  nom: string;
+  prenom: string;
+  role: string;
+  urlPhoto: string | null;
+}
+
+export interface PageParticipants {
+  contenu: ParticipantEvenement[];
+  page: number;
+  taille: number;
+  totalElements: number;
+  totalPages: number;
 }
 
 export interface PageEvenements {

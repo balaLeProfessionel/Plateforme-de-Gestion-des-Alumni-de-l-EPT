@@ -3,11 +3,19 @@ package ept.edu.sn.alumni_backend;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.Instant;
 import java.util.UUID;
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+
+import javax.imageio.ImageIO;
 
 import ept.edu.sn.alumni_backend.evenement.AudienceEvenement;
 import ept.edu.sn.alumni_backend.evenement.ReponseParticipation;
@@ -17,6 +25,7 @@ import ept.edu.sn.alumni_backend.evenement.entity.Evenement;
 import ept.edu.sn.alumni_backend.evenement.entity.ParticipationEvenement;
 import ept.edu.sn.alumni_backend.evenement.repository.EvenementRepository;
 import ept.edu.sn.alumni_backend.evenement.repository.ParticipationEvenementRepository;
+import ept.edu.sn.alumni_backend.evenement.service.StockageImageEvenement;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.security.JwtService;
@@ -30,15 +39,19 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-@TestPropertySource(properties = "app.evenements.limite-creations-24h=10")
+@TestPropertySource(properties = {
+    "app.evenements.limite-creations-24h=10",
+    "app.storage.photos.dir=target/test-photos"
+})
 class EvenementGestionIntegrationTests {
     @Autowired
     private MockMvc mockMvc;
@@ -54,6 +67,9 @@ class EvenementGestionIntegrationTests {
 
     @Autowired
     private ParticipationEvenementRepository participationRepository;
+
+    @Autowired
+    private StockageImageEvenement stockageImageEvenement;
 
     private Utilisateur alumni;
     private Utilisateur autreAlumni;
@@ -79,6 +95,48 @@ class EvenementGestionIntegrationTests {
                 .andExpect(jsonPath("$.officielEpt").value(false))
                 .andExpect(jsonPath("$.statut").value("PUBLIE"));
         }
+    }
+
+    @Test
+    void mesEvenementsEstPagineFiltreParOrganisateurEtInclutLesEvenementsAnnules() throws Exception {
+        Evenement evenementPublie = creerEvenement(alumni);
+        evenementPublie.setAudience(AudienceEvenement.ETUDIANTS);
+        evenementRepository.saveAndFlush(evenementPublie);
+        Evenement evenementAnnule = creerEvenement(alumni);
+        evenementAnnule.setStatut(StatutEvenement.ANNULE);
+        evenementRepository.saveAndFlush(evenementAnnule);
+        Evenement evenementAutre = creerEvenement(autreAlumni);
+
+        var resultat = mockMvc.perform(requeteAuthentifie(
+                get("/api/evenements/mes-evenements").param("periode", "AVENIR"), alumni))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(2))
+            .andExpect(jsonPath("$.contenu.length()").value(2))
+            .andReturn();
+
+        org.junit.jupiter.api.Assertions.assertTrue(
+            resultat.getResponse().getContentAsString().contains(evenementPublie.getId().toString()));
+        org.junit.jupiter.api.Assertions.assertTrue(
+            resultat.getResponse().getContentAsString().contains(evenementAnnule.getId().toString()));
+        org.junit.jupiter.api.Assertions.assertFalse(
+            resultat.getResponse().getContentAsString().contains(evenementAutre.getId().toString()));
+
+        mockMvc.perform(requeteAuthentifie(get("/api/evenements/{id}", evenementAnnule.getId()), alumni))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.statut").value("ANNULE"));
+    }
+
+    @Test
+    void mesEvenementsExigeUneSessionAuthentifiee() throws Exception {
+        mockMvc.perform(get("/api/evenements/mes-evenements"))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void jetonExpireOuInvalideRenvoie401PourDeclencherLeRafraichissement() throws Exception {
+        mockMvc.perform(get("/api/evenements/mes-evenements")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer jeton-invalide"))
+            .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -295,6 +353,55 @@ class EvenementGestionIntegrationTests {
             .andExpect(jsonPath("$.officielEpt").value(false));
     }
 
+    @Test
+    void organisateurPeutJoindrePuisRetirerUneImageAccessibleParSonLienOpaque() throws Exception {
+        Evenement evenement = creerEvenement(alumni);
+        var televersement = mockMvc.perform(requeteAuthentifie(
+                multipart("/api/evenements/{id}/image", evenement.getId()).file(imageEvenement()), alumni))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.urlImage").value(org.hamcrest.Matchers.matchesPattern(
+                "/api/evenement-images/[0-9a-f-]{36}\\.png")))
+            .andReturn();
+        String url = com.jayway.jsonpath.JsonPath.read(
+            televersement.getResponse().getContentAsString(), "$.urlImage");
+
+        mockMvc.perform(get(url))
+            .andExpect(status().isOk())
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                .contentType(MediaType.IMAGE_PNG));
+        mockMvc.perform(requeteAuthentifie(delete("/api/evenements/{id}/image", evenement.getId()), alumni))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.urlImage").value(org.hamcrest.Matchers.nullValue()));
+        org.junit.jupiter.api.Assertions.assertNull(
+            evenementRepository.findById(evenement.getId()).orElseThrow().getUrlImage());
+    }
+
+    @Test
+    void refuseLeTeleversementParUnAutreMembreSansCreerDeFichier() throws Exception {
+        Evenement evenement = creerEvenement(alumni);
+
+        mockMvc.perform(requeteAuthentifie(
+                multipart("/api/evenements/{id}/image", evenement.getId()).file(imageEvenement()), autreAlumni))
+            .andExpect(status().isNotFound());
+        mockMvc.perform(multipart("/api/evenements/{id}/image", evenement.getId()).file(imageEvenement()))
+            .andExpect(status().isForbidden());
+        mockMvc.perform(requeteAuthentifie(delete("/api/evenements/{id}/image", evenement.getId()), autreAlumni))
+            .andExpect(status().isNotFound());
+        org.junit.jupiter.api.Assertions.assertNull(evenement.getUrlImage());
+    }
+
+    @Test
+    void rejetteUnFichierQuiNestPasUneImage() throws Exception {
+        Evenement evenement = creerEvenement(alumni);
+        MockMultipartFile fauxImage = new MockMultipartFile(
+            "image", "affiche.png", "image/png", "contenu texte".getBytes());
+
+        mockMvc.perform(requeteAuthentifie(
+                multipart("/api/evenements/{id}/image", evenement.getId()).file(fauxImage), alumni))
+            .andExpect(status().isBadRequest());
+        org.junit.jupiter.api.Assertions.assertNull(evenement.getUrlImage());
+    }
+
     private Utilisateur creerUtilisateur(TypeRole role, StatutCompte statut, boolean emailVerifie) {
         Utilisateur utilisateur = new Utilisateur();
         utilisateur.setEmail("gestion.evenement." + UUID.randomUUID() + "@example.invalid");
@@ -355,8 +462,19 @@ class EvenementGestionIntegrationTests {
                 request.nombrePlaces() == null ? "null" : request.nombrePlaces().toString());
     }
 
-    private MockHttpServletRequestBuilder requeteAuthentifie(
-            MockHttpServletRequestBuilder request,
+    private MockMultipartFile imageEvenement() throws Exception {
+        BufferedImage image = new BufferedImage(48, 24, BufferedImage.TYPE_INT_RGB);
+        var graphics = image.createGraphics();
+        graphics.setColor(Color.BLUE);
+        graphics.fillRect(0, 0, 48, 24);
+        graphics.dispose();
+        ByteArrayOutputStream sortie = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", sortie);
+        return new MockMultipartFile("image", "affiche.png", "image/png", sortie.toByteArray());
+    }
+
+    private <T extends AbstractMockHttpServletRequestBuilder<T>> T requeteAuthentifie(
+            T request,
             Utilisateur utilisateur) {
         String token = jwtService.genererToken(new UtilisateurPrincipal(utilisateur));
         return request.header(HttpHeaders.AUTHORIZATION, "Bearer " + token);

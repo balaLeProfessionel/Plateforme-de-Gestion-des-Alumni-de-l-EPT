@@ -18,6 +18,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  codespaces:
+    name: Configuration Codespaces
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Recuperer le depot
+        uses: actions/checkout@v6
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Verifier la configuration personnelle et Docker Compose
+        run: node --test .devcontainer/setup.test.mjs .devcontainer/compose.test.mjs
+
   backend:
     name: Backend
     runs-on: ubuntu-latest

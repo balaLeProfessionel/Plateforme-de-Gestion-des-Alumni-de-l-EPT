@@ -30,6 +30,7 @@ public class EvenementMapper {
             evenement.getTitre(),
             evenement.getDescription(),
             evenement.getLieu(),
+            evenement.getUrlImage(),
             evenement.getDateDebut(),
             evenement.getDateFin(),
             evenement.getAudience(),

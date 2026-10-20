@@ -12,6 +12,7 @@ public record EvenementResponse(
     String titre,
     String description,
     String lieu,
+    String urlImage,
     Instant dateDebut,
     Instant dateFin,
     AudienceEvenement audience,

@@ -174,6 +174,31 @@ describe('ParametresProfil', () => {
     expect(authService.changerMotDePasse).not.toHaveBeenCalled();
   });
 
+  it('garde les champs de mot de passe neutres avant interaction', () => {
+    fixture.detectChanges();
+    const champs = fixture.nativeElement.querySelectorAll('.formulaire-securite input');
+
+    expect(champs).toHaveLength(3);
+    for (const champ of champs) {
+      expect(champ.classList.contains('p-invalid')).toBe(false);
+      expect(champ.getAttribute('aria-invalid')).toBeNull();
+      expect(champ.getAttribute('aria-describedby')).toBeNull();
+    }
+  });
+
+  it('marque en erreur et relie les messages après une soumission invalide', () => {
+    composant['changerMotDePasse']();
+    fixture.detectChanges();
+    const champs = [...fixture.nativeElement.querySelectorAll('.formulaire-securite input')];
+
+    expect(champs).toHaveLength(3);
+    expect(champs.every((champ) => champ.classList.contains('p-invalid'))).toBe(true);
+    expect(champs.map((champ) => champ.getAttribute('aria-invalid'))).toEqual(['true', 'true', 'true']);
+    expect(champs.map((champ) => champ.getAttribute('aria-describedby'))).toEqual([
+      'erreur-mot-de-passe-actuel', 'erreur-nouveau-mot-de-passe', 'erreur-confirmation-mot-de-passe'
+    ]);
+  });
+
   it('garde les liens de section sur la route des paramètres', () => {
     fixture.detectChanges();
     const liens = [...fixture.nativeElement.querySelectorAll('.navigation-sections a')]
