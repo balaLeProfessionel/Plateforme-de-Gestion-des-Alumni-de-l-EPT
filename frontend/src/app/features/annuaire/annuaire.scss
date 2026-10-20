@@ -43,7 +43,6 @@
   input { flex: 1; min-width: 0; padding-left: 2.5rem; border-color: transparent; }
 }
 
-.rechercher, .appliquer { padding: 0.5rem 1rem; border: 0; border-radius: 8px; background: var(--ept-primary); color: white; font: inherit; font-weight: 600; cursor: pointer; }
 
 .bouton-filtres {
   display: inline-flex;
@@ -68,6 +67,7 @@
 
 .tri {
   display: flex;
+  min-width: 0;
   align-items: center;
   gap: 0.4rem;
   padding: 0 0.25rem 0 0.75rem;
@@ -75,7 +75,7 @@
   border-radius: 8px;
 
   label { white-space: nowrap; }
-  select { width: auto; min-height: 2.4rem; border: 0; font-weight: 600; }
+  select { flex: 1; width: auto; min-width: 0; min-height: 2.4rem; border: 0; font-weight: 600; }
 }
 
 .panneau-filtres {
@@ -90,7 +90,6 @@
   background: var(--ept-surface);
 
   > div { display: flex; flex-direction: column; gap: 0.35rem; }
-  .appliquer { min-height: 2.5rem; }
 }
 
 .ligne-resume {
@@ -125,6 +124,7 @@
 
 .reinitialiser { margin-left: auto; padding: 0; border: 0; background: none; color: var(--ept-primary); font: inherit; font-size: 0.85rem; text-decoration: underline; cursor: pointer; }
 
+.grille.actualisation { opacity: 0.55; transition: opacity 150ms ease; }
 .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); gap: 1.4rem; margin: 0; padding: 0; list-style: none; }
 
 .etat-centre { display: grid; justify-items: center; gap: 0.5rem; padding: 4rem 1rem; border: 1px dashed var(--ept-border); text-align: center; }
@@ -139,5 +139,5 @@
 .pagination .ellipse { padding: 0 0.35rem; color: var(--ept-text-secondary); }
 
 @media (max-width: 560px) {
-  .bouton-filtres, .tri { flex: 1; }
+  .bouton-filtres, .tri { flex: 1 1 100%; }
 }

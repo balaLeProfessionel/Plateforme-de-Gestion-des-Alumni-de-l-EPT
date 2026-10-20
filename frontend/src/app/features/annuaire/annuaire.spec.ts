@@ -106,11 +106,78 @@ describe('Annuaire', () => {
 
     expect(router.navigate).toHaveBeenCalledWith([], {
       relativeTo: route,
-      queryParams: { recherche: 'Awa', role: 'ETUDIANT', promotion: '2025', ville: 'Thiès' }
+      queryParams: { recherche: 'Awa', role: 'ETUDIANT', promotion: '2025', ville: 'Thiès' },
+      replaceUrl: true
     });
 
     composant['reinitialiser']();
-    expect(router.navigate).toHaveBeenLastCalledWith([], { relativeTo: route, queryParams: {} });
+    expect(router.navigate).toHaveBeenLastCalledWith([], { relativeTo: route, queryParams: {}, replaceUrl: true });
+  });
+
+  it('lance la recherche pendant la saisie sans bouton ni étape d’historique', async () => {
+    parametres.next(convertToParamMap({ role: 'TOUS', page: '2' }));
+    const composant = creerComposant();
+    http.expectOne((req) => req.url === '/api/annuaire').flush(page());
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.rechercher')).toBeNull();
+
+    composant['modele'].update((valeurs) => ({ ...valeurs, recherche: '  Awa ' }));
+    fixture.detectChanges();
+    await new Promise((fin) => setTimeout(fin, 400));
+
+    expect(router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: route,
+      queryParams: { recherche: 'Awa', role: 'TOUS' },
+      replaceUrl: true
+    });
+  });
+
+  it('ne relance ni navigation ni requête au simple chargement de la page', async () => {
+    parametres.next(convertToParamMap({ role: 'TOUS', ville: 'Dakar', page: '1' }));
+    creerComposant();
+    http.expectOne((req) => req.url === '/api/annuaire').flush(page());
+    await fixture.whenStable();
+    await new Promise((fin) => setTimeout(fin, 400));
+
+    expect(router.navigate).not.toHaveBeenCalled();
+    http.expectNone((req) => req.url === '/api/annuaire');
+  });
+
+  it('applique un filtre du panneau dès qu’il change, sans bouton Appliquer', async () => {
+    const composant = creerComposant();
+    http.expectOne((req) => req.url === '/api/annuaire').flush(page());
+    await fixture.whenStable();
+    (fixture.nativeElement.querySelector('.bouton-filtres') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.appliquer')).toBeNull();
+
+    composant['modele'].update((valeurs) => ({ ...valeurs, filiere: 'Génie Civil' }));
+    fixture.detectChanges();
+    await new Promise((fin) => setTimeout(fin, 400));
+
+    expect(router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: route,
+      queryParams: { role: 'ALUMNI', filiere: 'Génie Civil' },
+      replaceUrl: true
+    });
+  });
+
+  it('n’applique pas une promotion incomplète ou invalide', async () => {
+    const composant = creerComposant();
+    http.expectOne((req) => req.url === '/api/annuaire').flush(page());
+    await fixture.whenStable();
+
+    composant['modele'].update((valeurs) => ({ ...valeurs, promotion: '20' }));
+    fixture.detectChanges();
+    await new Promise((fin) => setTimeout(fin, 400));
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(composant['promotionEnErreur']()).toBe(false);
+
+    composant['modele'].update((valeurs) => ({ ...valeurs, promotion: '1850' }));
+    fixture.detectChanges();
+    await new Promise((fin) => setTimeout(fin, 400));
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(composant['promotionEnErreur']()).toBe(true);
   });
 
   it('ouvre les filtres avancés depuis la barre de recherche', async () => {
@@ -144,7 +211,8 @@ describe('Annuaire', () => {
     (fixture.nativeElement.querySelectorAll('.puce-filtre')[2] as HTMLButtonElement).click();
     expect(router.navigate).toHaveBeenLastCalledWith([], {
       relativeTo: route,
-      queryParams: { role: 'ORGANISME', recherche: 'tech' }
+      queryParams: { role: 'ORGANISME', recherche: 'tech' },
+      replaceUrl: true
     });
   });
 
@@ -158,7 +226,8 @@ describe('Annuaire', () => {
 
     expect(router.navigate).toHaveBeenCalledWith([], {
       relativeTo: route,
-      queryParams: { role: 'TOUS' }
+      queryParams: { role: 'TOUS' },
+      replaceUrl: true
     });
   });
 

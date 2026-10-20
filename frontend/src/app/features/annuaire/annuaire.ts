@@ -1,9 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { form, FormField, pattern } from '@angular/forms/signals';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { form, FormField, maxLength, pattern } from '@angular/forms/signals';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import { catchError, combineLatest, map, of, startWith, Subject, switchMap, tap } from 'rxjs';
+import {
+  catchError, combineLatest, debounceTime, distinctUntilChanged, filter, map, of, startWith, Subject, switchMap, tap
+} from 'rxjs';
 import { FILIERES } from '../../core/data/filieres';
 import { AnnuaireService } from '../../core/services/annuaire/annuaire';
 import {
@@ -15,6 +17,10 @@ import {
 import { FilAriane } from '../../shared/fil-ariane/fil-ariane';
 import { CarteMembre } from './carte-membre/carte-membre';
 import { CarteMembreSquelette } from './carte-membre/carte-membre-squelette';
+
+const DELAI_SAISIE_MS = 300;
+
+type CriteresSaisis = Record<'recherche' | 'role' | 'filiere' | 'promotion' | 'ville' | 'tri', string>;
 
 type CleFiltre = 'recherche' | 'role' | 'filiere' | 'promotion' | 'ville';
 
@@ -46,6 +52,7 @@ export class Annuaire {
     tri: 'ALPHABETIQUE'
   });
   protected readonly formulaire = form(this.modele, (champ) => {
+    maxLength(champ.promotion, 4);
     pattern(champ.promotion, /^$|^(19\d{2}|20\d{2}|21\d{2}|2200)$/, {
       message: 'Indiquez une année comprise entre 1900 et 2200'
     });
@@ -54,8 +61,15 @@ export class Annuaire {
   protected readonly enChargement = signal(true);
   protected readonly messageErreur = signal<string | null>(null);
   protected readonly filtresOuverts = signal(false);
+  /** Une année incomplète (« 20 ») n’est signalée qu’une fois quatre chiffres saisis ou le champ quitté. */
+  protected readonly promotionEnErreur = computed(() => {
+    const champ = this.formulaire.promotion();
+    return champ.invalid() && (champ.touched() || champ.value().length >= 4);
+  });
   /** Filtres réellement appliqués (issus de l’URL), indépendants de la saisie en cours. */
   private readonly filtresAppliques = signal<FiltresAnnuaire | null>(null);
+  /** Derniers critères envoyés à l’URL, pour ne pas écraser une saisie poursuivie entre-temps. */
+  private derniersCriteresEnvoyes: string | null = null;
   protected readonly filtresActifs = computed<{ cle: CleFiltre; libelle: string }[]>(() => {
     const filtres = this.filtresAppliques();
     if (!filtres) return [];
@@ -112,33 +126,36 @@ export class Annuaire {
       this.messageErreur.set(erreur);
       this.enChargement.set(false);
     });
+
+    // Application en temps réel : recherche et filtres s’appliquent après une courte pause,
+    // seulement quand la saisie est valide et diffère de ce qui est déjà affiché.
+    toObservable(this.modele).pipe(
+      debounceTime(DELAI_SAISIE_MS),
+      filter(() => this.formulaire().valid()),
+      map((valeurs) => this.cleCriteres(valeurs)),
+      distinctUntilChanged(),
+      filter((cle) => cle !== this.cleCriteresAppliques()),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => this.appliquerFiltres());
   }
 
+  /** Applique tout de suite la saisie (Entrée), sans attendre la pause de frappe. */
   protected appliquerFiltres(): void {
     if (this.formulaire().invalid()) {
       this.formulaire().markAsTouched();
       return;
     }
     const valeurs = this.modele();
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: this.parametresNonVides({ ...valeurs, page: 0 })
-    });
+    this.derniersCriteresEnvoyes = this.cleCriteres(valeurs);
+    this.naviguerVers(this.parametresNonVides({ ...valeurs, page: 0 }));
   }
 
   protected reinitialiser(): void {
-    this.router.navigate([], { relativeTo: this.route, queryParams: {} });
+    this.naviguerVers({});
   }
 
   protected changerPortee(role: 'ALUMNI' | 'TOUS'): void {
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: this.parametresNonVides({
-        ...this.modele(),
-        role,
-        page: 0
-      })
-    });
+    this.naviguerVers(this.parametresNonVides({ ...this.modele(), role, page: 0 }));
   }
 
   protected retirerFiltre(cle: CleFiltre): void {
@@ -149,7 +166,25 @@ export class Annuaire {
     } else {
       delete params[cle];
     }
-    this.router.navigate([], { relativeTo: this.route, queryParams: params });
+    this.naviguerVers(params);
+  }
+
+  /**
+   * Les critères vivent dans l’URL (partageable, conservée au retour), mais remplacent l’entrée
+   * courante de l’historique : le bouton « Retour » quitte l’annuaire au lieu de rejouer chaque filtre.
+   */
+  private naviguerVers(queryParams: Record<string, string | number>): void {
+    this.router.navigate([], { relativeTo: this.route, queryParams, replaceUrl: true });
+  }
+
+  /** Empreinte des seuls critères de recherche (sans page ni taille), pour comparer saisie et URL. */
+  private cleCriteres({ recherche, role, filiere, promotion, ville, tri }: CriteresSaisis): string {
+    return JSON.stringify(this.parametresNonVides({ recherche, role, filiere, promotion, ville, tri, page: 0 }));
+  }
+
+  private cleCriteresAppliques(): string | null {
+    const filtres = this.filtresAppliques();
+    return filtres ? this.cleCriteres(filtres) : null;
   }
 
   protected changerPage(page: number): void {
@@ -183,6 +218,9 @@ export class Annuaire {
   }
 
   private synchroniserFormulaire(filtres: FiltresAnnuaire): void {
+    // L’URL reflète ce qu’on vient d’envoyer mais la saisie a continué : on la garde telle quelle.
+    const cle = this.cleCriteres(filtres);
+    if (cle === this.derniersCriteresEnvoyes && this.cleCriteres(this.modele()) !== cle) return;
     this.modele.set({
       recherche: filtres.recherche,
       role: filtres.role,

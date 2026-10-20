@@ -12,8 +12,9 @@
         <i class="pi pi-search" aria-hidden="true"></i>
         <label for="recherche" class="sr-only">Rechercher par nom, prénom ou organisme</label>
         <input id="recherche" type="search" [formField]="formulaire.recherche"
-          placeholder="Rechercher par nom, prénom ou organisme…" />
-        <button type="submit" class="rechercher">Rechercher</button>
+          placeholder="Nom, prénom ou organisme…" autocomplete="off"
+          aria-describedby="aide-filtres" (keydown.enter)="$event.preventDefault(); appliquerFiltres()" />
+        <span id="aide-filtres" class="sr-only">Les résultats se mettent à jour automatiquement.</span>
       </div>
 
       <button type="button" class="bouton-filtres" (click)="filtresOuverts.update((ouvert) => !ouvert)"
@@ -28,9 +29,9 @@
 
       <div class="tri">
         <label for="tri">Trier par</label>
-        <select id="tri" [formField]="formulaire.tri" (change)="appliquerFiltres()">
+        <select id="tri" [formField]="formulaire.tri" aria-describedby="aide-filtres">
           <option value="ALPHABETIQUE">Nom</option>
-          <option value="PROMOTION_DESC">Promotion récente</option>
+          <option value="PROMOTION_DESC">Promo récente</option>
         </select>
       </div>
     </div>
@@ -39,7 +40,7 @@
       <div id="panneau-filtres" class="panneau-filtres">
         <div>
           <label for="role">Type de membre</label>
-          <select id="role" [formField]="formulaire.role">
+          <select id="role" [formField]="formulaire.role" aria-describedby="aide-filtres">
             <option value="ALUMNI">Alumni</option>
             <option value="TOUS">Tous les membres</option>
             <option value="ORGANISME">Organismes</option>
@@ -51,7 +52,7 @@
 
         <div>
           <label for="filiere">Filière</label>
-          <select id="filiere" [formField]="formulaire.filiere">
+          <select id="filiere" [formField]="formulaire.filiere" aria-describedby="aide-filtres">
             <option value="">Toutes les filières</option>
             @for (filiere of filieres; track filiere) {
               <option [value]="filiere">{{ filiere }}</option>
@@ -61,19 +62,22 @@
 
         <div>
           <label for="promotion">Promotion</label>
-          <input id="promotion" type="text" inputmode="numeric"
-            [formField]="formulaire.promotion" placeholder="Ex. 2025" />
-          @if (formulaire.promotion().touched() && formulaire.promotion().invalid()) {
-            <small class="erreur-champ">{{ formulaire.promotion().errors()[0]?.message }}</small>
+          <input id="promotion" type="text" inputmode="numeric" autocomplete="off"
+            [formField]="formulaire.promotion" placeholder="Ex. 2025"
+            [attr.aria-invalid]="promotionEnErreur()"
+            [attr.aria-describedby]="promotionEnErreur() ? 'aide-filtres erreur-promotion' : 'aide-filtres'"
+            (keydown.enter)="$event.preventDefault(); appliquerFiltres()" />
+          @if (promotionEnErreur()) {
+            <small id="erreur-promotion" class="erreur-champ" role="alert">{{ formulaire.promotion().errors()[0]?.message }}</small>
           }
         </div>
 
         <div>
           <label for="ville">Ville</label>
-          <input id="ville" type="text" [formField]="formulaire.ville" placeholder="Ex. Thiès" />
+          <input id="ville" type="text" [formField]="formulaire.ville" placeholder="Ex. Thiès" autocomplete="off"
+            aria-describedby="aide-filtres" (keydown.enter)="$event.preventDefault(); appliquerFiltres()" />
         </div>
 
-        <button type="submit" class="appliquer">Appliquer</button>
       </div>
     }
   </form>
@@ -110,7 +114,7 @@
   </div>
 
   <section class="resultats" aria-live="polite" [attr.aria-busy]="enChargement()">
-    @if (enChargement()) {
+    @if (enChargement() && !resultat()) {
       <div class="grille" aria-label="Chargement des membres">
         @for (item of [1, 2, 3, 4, 5, 6]; track item) {
           <app-carte-membre-squelette class="squelette" />
@@ -130,7 +134,7 @@
         <p>Modifiez vos critères ou réinitialisez les filtres.</p>
       </div>
     } @else if (resultat(); as pageAnnuaire) {
-      <ul class="grille">
+      <ul class="grille" [class.actualisation]="enChargement()">
         @for (membre of pageAnnuaire.contenu; track membre.id) {
           <li><app-carte-membre [membre]="membre" /></li>
         }
