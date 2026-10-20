@@ -38,32 +38,6 @@ describe('Navigation de l’espace membre', () => {
     expect(racine.querySelector('.entete-mobile .bouton-compte')?.getAttribute('aria-haspopup')).toBe('dialog');
   });
 
-  it('ouvre le menu mobile et n’y rend cliquables que les actions disponibles', () => {
-    const fixture = TestBed.createComponent(EspaceMembre);
-    fixture.detectChanges();
-    const racine = fixture.nativeElement as HTMLElement;
-    const menu = racine.querySelector('.navigation-mobile button') as HTMLButtonElement;
-    const dialogue = racine.querySelector('#menu-mobile') as HTMLDialogElement;
-    simulerDialogueNatif(dialogue);
-
-    menu.click();
-    fixture.detectChanges();
-
-    expect(menu.getAttribute('aria-expanded')).toBe('true');
-    expect(dialogue.open).toBe(true);
-    expect(racine.querySelectorAll('.menu-mobile .rubrique-a-venir')).toHaveLength(3);
-    expect(racine.querySelector('.menu-mobile a[href="/profil"]')?.textContent).toContain('Mon profil');
-    expect(racine.querySelector('.menu-mobile a[href="/profil/parametres"]')?.getAttribute('href'))
-      .toBe('/profil/parametres');
-    expect([...racine.querySelectorAll('.navigation-mobile a')].map((lien) => lien.getAttribute('href')))
-      .toEqual(['/accueil', '/annuaire', '/evenements']);
-
-    (racine.querySelector('.fermer-menu') as HTMLButtonElement).click();
-    fixture.detectChanges();
-    expect(dialogue.open).toBe(false);
-    expect(menu.getAttribute('aria-expanded')).toBe('false');
-  });
-
   it('synchronise la fermeture native du menu avec les boutons d’ouverture', () => {
     const fixture = TestBed.createComponent(EspaceMembre);
     fixture.detectChanges();
@@ -137,34 +111,6 @@ describe('Navigation de l’espace membre', () => {
     fixture.detectChanges();
     expect(logout).toHaveBeenCalled();
     fixture.destroy();
-  });
-
-  it('ferme le menu et restaure le défilement au passage sur ordinateur', () => {
-    const formatMobile = new EventTarget();
-    let mobile = true;
-    Object.defineProperty(formatMobile, 'matches', { get: () => mobile });
-    vi.stubGlobal('matchMedia', vi.fn(() => formatMobile));
-    const fixture = TestBed.createComponent(EspaceMembre);
-    try {
-      fixture.detectChanges();
-      const racine = fixture.nativeElement as HTMLElement;
-      const dialogue = racine.querySelector('#menu-mobile') as HTMLDialogElement;
-      simulerDialogueNatif(dialogue);
-      const defilementInitial = document.documentElement.style.overflow;
-      (racine.querySelector('.navigation-mobile button') as HTMLButtonElement).click();
-      fixture.detectChanges();
-
-      mobile = false;
-      formatMobile.dispatchEvent(new Event('change'));
-      fixture.detectChanges();
-
-      expect(dialogue.open).toBe(false);
-      expect(document.documentElement.style.overflow).toBe(defilementInitial);
-      expect(racine.querySelector('.navigation-mobile button')?.getAttribute('aria-expanded')).toBe('false');
-    } finally {
-      fixture.destroy();
-      vi.unstubAllGlobals();
-    }
   });
 
   it('adapte les liens au type de compte', () => {

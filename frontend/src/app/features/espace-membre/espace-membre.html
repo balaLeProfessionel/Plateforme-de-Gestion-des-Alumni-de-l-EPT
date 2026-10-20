@@ -118,46 +118,7 @@
     </p-sidebar-main>
   </p-sidebar-layout>
 
-  <dialog #dialogueMenu class="menu-mobile" id="menu-mobile" aria-labelledby="titre-menu-mobile"
-    (cancel)="fermerMenu()" (close)="synchroniserFermetureMenu()" (click)="fermerMenuSurFond($event)"
-    (keydown)="garderFocusDansMenu($event)">
-    <header class="entete-menu">
-      <h2 id="titre-menu-mobile">Mon espace</h2>
-      <button type="button" class="fermer-menu" aria-label="Fermer le menu" autofocus (click)="fermerMenu()">
-        <i class="pi pi-times" aria-hidden="true"></i>
-      </button>
-    </header>
-    @if (lienProfil(); as destination) {
-      <a [routerLink]="destination" routerLinkActive="actif" [routerLinkActiveOptions]="{ exact: true }"
-        (click)="fermerMenu()"><i class="pi pi-user" aria-hidden="true"></i>Mon profil</a>
-    }
-    @if (lienParametres(); as destination) {
-      <a [routerLink]="destination" routerLinkActive="actif" (click)="fermerMenu()">
-        <i class="pi pi-cog" aria-hidden="true"></i>Paramètres du profil
-      </a>
-    }
-    <p class="titre-panneau">À découvrir bientôt</p>
-    @for (rubrique of rubriquesAVenir; track rubrique.libelle) {
-      <span class="rubrique-a-venir"><i class="pi" [class]="'pi ' + rubrique.icone" aria-hidden="true"></i>{{ rubrique.libelle }}</span>
-    }
-    <button type="button" class="deconnexion-menu" (click)="seDeconnecter()">
-      <i class="pi pi-sign-out" aria-hidden="true"></i>Déconnexion
-    </button>
-  </dialog>
-
-  <nav class="navigation-mobile" [class.menu-ouvert]="menuOuvert()" aria-label="Navigation mobile">
-    <a routerLink="/accueil" routerLinkActive="actif" ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{ exact: true }"
-       (click)="fermerMenu()"><i class="pi pi-home" aria-hidden="true"></i><span>Accueil</span></a>
-    <a routerLink="/annuaire" routerLinkActive="actif" ariaCurrentWhenActive="page" (click)="fermerMenu()">
-      <i class="pi pi-users" aria-hidden="true"></i><span>Annuaire</span>
-    </a>
-    <a routerLink="/evenements" routerLinkActive="actif" ariaCurrentWhenActive="page" (click)="fermerMenu()">
-      <i class="pi pi-calendar" aria-hidden="true"></i><span>Événements</span>
-    </a>
-    <button type="button" [class.actif]="menuOuvert() || pageDuMenu()" [attr.aria-expanded]="menuOuvert()"
-            [attr.aria-current]="pageDuMenu() ? 'page' : null" aria-controls="menu-mobile"
-            aria-haspopup="dialog" (click)="basculerMenu()">
-      <i class="pi pi-bars" aria-hidden="true"></i><span>Menu</span>
-    </button>
-  </nav>
+  <app-menu-mobile [(ouvert)]="menuOuvert" [lienProfil]="lienProfil()" [lienParametres]="lienParametres()"
+    [rubriques]="rubriquesAVenir" (deconnexion)="seDeconnecter()" />
+  <app-navigation-mobile [(menuOuvert)]="menuOuvert" />
 </div>

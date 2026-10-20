@@ -170,7 +170,7 @@
 }
 
 .contenu-membre { min-width: 0; }
-.entete-mobile, .navigation-mobile, .menu-mobile { display: none; }
+.entete-mobile { display: none; }
 
 a:focus-visible, button:focus-visible {
   outline: 2px solid var(--ept-primary);
@@ -200,98 +200,4 @@ a:focus-visible, button:focus-visible {
   .bouton-compte { display: flex; align-items: center; gap: 0.45rem; min-height: 2.75rem; padding: 0; border: 0; background: transparent; color: var(--ept-primary); cursor: pointer; }
   .bouton-compte .avatar { width: 2.5rem; height: 2.5rem; flex-basis: 2.5rem; font-size: 0.85rem; }
   .bouton-compte > i { font-size: 0.85rem; }
-
-  .navigation-mobile {
-    position: fixed;
-    right: max(0.75rem, env(safe-area-inset-right));
-    bottom: calc(0.75rem + env(safe-area-inset-bottom));
-    left: max(0.75rem, env(safe-area-inset-left));
-    z-index: 30;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    max-width: 28rem;
-    margin-inline: auto;
-    padding: 0.25rem;
-    border-radius: 0.45rem;
-    background: var(--ept-primary);
-    box-shadow: 0 5px 18px rgba(1, 67, 101, 0.18);
-  }
-
-  .navigation-mobile a,
-  .navigation-mobile button {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem;
-    min-width: 0;
-    min-height: 3.6rem;
-    padding: 0.2rem;
-    border: 0;
-    border-radius: 2px;
-    background: transparent;
-    color: var(--ept-text-on-dark);
-    font: inherit;
-    font-size: clamp(0.6875rem, 3.05vw, 0.75rem);
-    font-weight: 500;
-    text-decoration: none;
-    cursor: pointer;
-
-    i { font-size: 1.45rem; }
-    span { white-space: nowrap; }
-    &:focus-visible { outline-color: var(--ept-sky); outline-offset: -2px; }
-  }
-
-  .navigation-mobile .actif {
-    background: color-mix(in srgb, var(--ept-sky) 55%, white);
-    color: var(--ept-primary);
-    font-weight: 700;
-    &:focus-visible { outline-color: var(--ept-primary); }
-  }
-
-  .navigation-mobile.menu-ouvert a.actif {
-    background: transparent;
-    color: white;
-    font-weight: 500;
-  }
-
-  .menu-mobile[open] {
-    position: fixed;
-    inset: auto 0.75rem calc(5.5rem + env(safe-area-inset-bottom));
-    display: block;
-    width: min(28rem, calc(100% - 1.5rem));
-    max-height: calc(100dvh - 7rem - env(safe-area-inset-bottom));
-    margin: 0 auto;
-    padding: 1rem;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    border: 1px solid var(--ept-border);
-    border-radius: 0.45rem;
-    background: var(--ept-surface);
-    color: var(--ept-primary);
-    box-shadow: 0 8px 24px rgba(1, 67, 101, 0.16);
-  }
-  .menu-mobile::backdrop { background: rgba(1, 46, 69, 0.28); }
-  .entete-menu { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem; }
-  .entete-menu h2 { margin: 0; font-size: 1.15rem; }
-  .fermer-menu { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; padding: 0; border: 0; background: transparent; color: inherit; font-size: 1.15rem; cursor: pointer; }
-  .titre-panneau { margin: 0.75rem 0 0.35rem; padding-top: 0.9rem; border-top: 1px solid var(--ept-border); color: var(--ept-text-secondary); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
-  .menu-mobile > a, .deconnexion-menu, .rubrique-a-venir {
-    display: flex;
-    align-items: center;
-    gap: 0.85rem;
-    min-height: 3rem;
-    padding: 0.55rem 0.6rem;
-    border: 0;
-    background: transparent;
-    color: var(--ept-primary-dark);
-    font: inherit;
-    font-size: 0.9rem;
-    text-align: left;
-    text-decoration: none;
-  }
-  .menu-mobile > a:hover, .menu-mobile > a.actif { background: var(--ept-primary-light); }
-  .deconnexion-menu { width: 100%; margin-top: 0.65rem; border-top: 1px solid var(--ept-border); cursor: pointer; }
-  .rubrique-a-venir { color: var(--ept-text-secondary); }
-  .rubrique-a-venir::after { content: 'À venir'; margin-left: auto; font-size: 0.7rem; }
 }
