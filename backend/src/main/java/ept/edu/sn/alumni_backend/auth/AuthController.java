@@ -79,7 +79,7 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(null,
             null, u.getId(), u.getEmail(), u.getNom(), u.getPrenom(),
             u.getRole().name(), u.getStatutCompte().name(),
-            u.isDoitChangerMotDePasse(), null));
+            u.isDoitChangerMotDePasse(), u.getUrlPhoto(), null));
     }
 
     @PostMapping("/refresh")

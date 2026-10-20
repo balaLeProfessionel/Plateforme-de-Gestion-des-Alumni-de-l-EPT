@@ -293,6 +293,7 @@ public class AuthService {
             utilisateur.getRole().name(),
             utilisateur.getStatutCompte().name(),
             utilisateur.isDoitChangerMotDePasse(),
+            utilisateur.getUrlPhoto(),
             null
         );
     }
@@ -382,7 +383,7 @@ public class AuthService {
 
     private AuthResponse construireReponse(String accessToken, String refreshToken, Utilisateur u, String message) {
         return new AuthResponse(accessToken, refreshToken, u.getId(), u.getEmail(), u.getNom(), u.getPrenom(),
-                u.getRole().name(), u.getStatutCompte().name(), u.isDoitChangerMotDePasse(), message);
+                u.getRole().name(), u.getStatutCompte().name(), u.isDoitChangerMotDePasse(), u.getUrlPhoto(), message);
     }
 
     public void deconnecter(String refreshToken) {

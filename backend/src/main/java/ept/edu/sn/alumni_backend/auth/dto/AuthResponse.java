@@ -12,5 +12,6 @@ public record AuthResponse(
     String role,
     String statutCompte,
     boolean doitChangerMotDePasse,
+    String urlPhoto,
     String message
 ) { }
