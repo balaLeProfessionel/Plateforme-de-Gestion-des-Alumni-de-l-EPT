@@ -1,7 +1,5 @@
 :host { display: block; }
 
-.espace-membre { min-height: 100dvh; }
-
 .cadre-espace {
   min-height: 100dvh;
   background: var(--ept-bg);
@@ -9,7 +7,6 @@
 
 /* Mêmes couleurs que la navigation mobile : fond bleu EPT, texte blanc, élément actif ciel. */
 .barre-laterale {
-  --nav-fond: var(--ept-primary);
   --nav-texte: var(--ept-text-on-dark);
   --nav-attenue: color-mix(in srgb, var(--ept-text-on-dark) 78%, var(--ept-primary));
   --nav-survol: color-mix(in srgb, var(--ept-text-on-dark) 12%, transparent);
@@ -26,7 +23,7 @@
 
 .barre-laterale .p-sidebar-panel {
   border-color: var(--ept-primary-dark);
-  background: var(--nav-fond);
+  background: var(--ept-primary);
   color: var(--nav-texte);
 }
 
@@ -59,7 +56,7 @@
 
   i { flex-shrink: 0; width: 1rem; color: currentColor; font-size: 1rem; text-align: center; }
 
-  &:hover, &:active { background: var(--nav-survol); color: var(--nav-texte); }
+  &:hover, &:active { background: var(--nav-survol); }
 
   &[data-active='true'] {
     background: var(--nav-actif);
@@ -70,8 +67,6 @@
   &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: -2px; box-shadow: none; }
   &[data-active='true']:focus-visible { outline-color: var(--ept-primary); }
 }
-
-.barre-laterale .p-sidebar-menu-button[aria-disabled='true'] { cursor: not-allowed; }
 
 .barre-laterale .p-sidebar-menu-badge {
   border: 0;
@@ -142,11 +137,10 @@
   border-radius: 50%;
   background: var(--ept-primary-light);
   color: var(--ept-primary);
+  overflow: hidden;
   font-size: 0.75rem;
   font-weight: 700;
 }
-
-.avatar { overflow: hidden; }
 
 /* L’image est rendue par p-avatar, hors du gabarit de ce composant. */
 .avatar ::ng-deep img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
@@ -202,7 +196,6 @@ a:focus-visible, button:focus-visible {
   }
   .entete-mobile .marque { display: flex; align-items: center; gap: 0.7rem; color: var(--ept-primary-dark); text-decoration: none; }
   .entete-mobile .symbole-marque { width: 2.5rem; height: 2.5rem; flex-basis: 2.5rem; }
-  .entete-mobile .texte-marque { display: grid; }
   .entete-mobile .texte-marque strong { font-size: clamp(1rem, 4.5vw, 1.2rem); }
   .bouton-compte { display: flex; align-items: center; gap: 0.45rem; min-height: 2.75rem; padding: 0; border: 0; background: transparent; color: var(--ept-primary); cursor: pointer; }
   .bouton-compte .avatar { width: 2.5rem; height: 2.5rem; flex-basis: 2.5rem; font-size: 0.85rem; }
