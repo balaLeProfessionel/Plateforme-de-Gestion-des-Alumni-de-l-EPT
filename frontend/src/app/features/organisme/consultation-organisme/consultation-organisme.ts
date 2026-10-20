@@ -1,4 +1,4 @@
-import { DatePipe, DOCUMENT, Location } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -7,10 +7,11 @@ import { catchError, combineLatest, map, of, startWith, Subject, switchMap, tap 
 
 import { OrganismePublic } from '../../../core/services/models/organisme.model';
 import { OrganismeService } from '../../../core/services/organisme/organisme-service';
+import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 
 @Component({
   selector: 'app-consultation-organisme',
-  imports: [DatePipe],
+  imports: [DatePipe, BoutonRetour],
   templateUrl: './consultation-organisme.html',
   styleUrl: './consultation-organisme.scss',
 })
@@ -18,8 +19,6 @@ export class ConsultationOrganisme {
   private readonly organismeService = inject(OrganismeService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly location = inject(Location);
-  private readonly document = inject(DOCUMENT);
   private readonly destroyRef = inject(DestroyRef);
   private readonly actualiserSujet = new Subject<void>();
 
@@ -87,11 +86,4 @@ export class ConsultationOrganisme {
     this.actualiserSujet.next();
   }
 
-  protected retourner(): void {
-    if ((this.document.defaultView?.history.length ?? 0) > 1) {
-      this.location.back();
-      return;
-    }
-    void this.router.navigateByUrl('/annuaire');
-  }
 }

@@ -1,6 +1,4 @@
 .page-detail { width: min(100% - 3rem, 920px); margin: 0 auto; padding: 3rem 0 5rem; color: var(--ept-primary-dark); }
-.retour { display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; color: var(--ept-primary); font-weight: 700; text-decoration: none; }
-.retour:hover { text-decoration: underline; }
 .fiche { border: 1px solid var(--ept-border); border-top: 4px solid var(--ept-primary); background: white; }
 .fiche-ept { border-color: #b9dce8; background: #f8fcfd; }
 .entete-detail { display: flex; align-items: flex-start; justify-content: space-between; gap: 2rem; padding: 2rem; border-bottom: 1px solid var(--ept-border); }

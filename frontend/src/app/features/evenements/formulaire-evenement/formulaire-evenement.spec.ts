@@ -30,7 +30,7 @@ describe('FormulaireEvenement', () => {
       imports: [FormulaireEvenement],
       providers: [
         provideRouter([]),
-        { provide: Location, useValue: { back: vi.fn() } },
+        { provide: Location, useValue: { back: vi.fn(), getState: vi.fn(() => null) } },
         { provide: ActivatedRoute, useValue: { paramMap: routeParams } },
         { provide: EvenementService, useValue: { creer, modifier, obtenir, joindreImage, supprimerImage } },
       ],
@@ -112,6 +112,7 @@ describe('FormulaireEvenement', () => {
     expect(creer).toHaveBeenCalledOnce();
     expect(joindreImage).toHaveBeenCalledWith('event-1', image);
     expect(navigation).toHaveBeenCalledWith(['/evenements', 'event-1'], {
+      replaceUrl: true,
       state: { returnUrl: '/evenements' },
     });
   });

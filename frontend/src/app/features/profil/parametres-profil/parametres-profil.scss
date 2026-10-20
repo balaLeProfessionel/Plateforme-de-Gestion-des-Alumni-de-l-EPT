@@ -3,7 +3,6 @@
 .entete-page { display: flex; justify-content: space-between; gap: 2rem; align-items: flex-start; margin-bottom: 1.5rem; }
 .entete-page h1 { margin: .2rem 0 .45rem; color: var(--ept-primary); font-family: var(--ept-font-heading); font-size: clamp(1.8rem, 5vw, 2.65rem); }
 .entete-page p { margin: 0; color: var(--ept-text-muted); }
-.entete-page > a { display: inline-flex; gap: .5rem; align-items: center; color: var(--ept-primary); font-weight: 700; text-decoration: none; white-space: nowrap; }
 .sur-titre { text-transform: uppercase; letter-spacing: .09em; font-size: .78rem; font-weight: 700; }
 .navigation-sections { position: sticky; top: .75rem; z-index: 2; display: flex; gap: .35rem; width: fit-content; margin: 0 0 1rem; padding: .3rem; border: 1px solid var(--ept-border); border-radius: 2px; background: rgba(255,255,255,.96); box-shadow: 0 6px 24px rgba(15, 45, 65, .08); }
 .navigation-sections a { padding: .55rem .85rem; border-radius: 2px; color: var(--ept-primary); font-weight: 700; text-decoration: none; }

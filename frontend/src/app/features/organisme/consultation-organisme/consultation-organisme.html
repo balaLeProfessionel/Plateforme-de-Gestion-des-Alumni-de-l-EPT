@@ -1,7 +1,5 @@
 <main class="page-organisme" aria-live="polite" [attr.aria-busy]="enChargement()">
-  <button type="button" class="retour" (click)="retourner()">
-    <i class="pi pi-arrow-left" aria-hidden="true"></i>Retour
-  </button>
+  <app-bouton-retour secours="/annuaire" />
 
   @if (enChargement()) {
     <div class="squelette entete-squelette" aria-hidden="true"></div>

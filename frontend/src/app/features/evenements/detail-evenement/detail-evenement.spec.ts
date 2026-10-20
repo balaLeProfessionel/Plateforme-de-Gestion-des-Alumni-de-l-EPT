@@ -165,23 +165,14 @@ describe('DetailEvenement', () => {
     expect(visuel.querySelector('img')?.getAttribute('alt')).toBe('Illustration de Rencontre des diplômés');
   });
 
-  it('retourne exactement à la page d’origine avec ses filtres', () => {
-    const navigation = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+  it('propose la page d’origine avec ses filtres comme secours du retour', () => {
     fixture.componentInstance['urlRetour'].set('/evenements?periode=PASSES&page=3');
 
-    fixture.componentInstance['retourner']();
-
-    expect(navigation).toHaveBeenCalledWith('/evenements?periode=PASSES&page=3');
+    expect(fixture.componentInstance['urlSecours']()).toBe('/evenements?periode=PASSES&page=3');
   });
 
   it('revient au filtre personnel même après un accès direct au détail', () => {
-    const navigation = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-
-    fixture.componentInstance['retourner']();
-
-    expect(navigation).toHaveBeenCalledWith(['/evenements'], {
-      queryParams: { periode: 'PASSES', page: 2, vue: 'mes' }
-    });
+    expect(fixture.componentInstance['urlSecours']()).toBe('/evenements?periode=PASSES&page=2&vue=mes');
   });
 
   it('gère l’absence de détail et propose une nouvelle tentative', async () => {

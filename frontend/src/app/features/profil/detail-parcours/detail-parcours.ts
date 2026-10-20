@@ -7,12 +7,13 @@ import { map, switchMap, tap } from 'rxjs';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { Experience, Formation, ProfilPublic } from '../../../core/services/models/profil.model';
 import { ProfilService } from '../../../core/services/profil/profil-service';
+import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 
 type TypeParcours = 'experience' | 'formation';
 
 @Component({
   selector: 'app-detail-parcours',
-  imports: [RouterLink],
+  imports: [RouterLink, BoutonRetour],
   templateUrl: './detail-parcours.html',
   styleUrl: './detail-parcours.scss'
 })
@@ -48,6 +49,7 @@ export class DetailParcours {
   protected readonly lienRetour = computed(() =>
     this.estProprietaire() ? ['/profil'] : ['/profil', this.profil()?.id]
   );
+  protected readonly urlProfil = computed(() => this.lienRetour().join('/'));
   protected readonly lienModification = computed(() => [
     '/completer-profil', this.type === 'experience' ? 'experiences' : 'formations'
   ]);

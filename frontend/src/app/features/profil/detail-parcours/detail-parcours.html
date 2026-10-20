@@ -9,9 +9,7 @@
       <a [routerLink]="lienRetour()">Retourner au profil</a>
     </section>
   } @else if (item(); as parcours) {
-    <a class="retour" [routerLink]="lienRetour()">
-      <i class="pi pi-arrow-left" aria-hidden="true"></i>Retour au profil
-    </a>
+    <app-bouton-retour [secours]="urlProfil()" />
 
     <article class="fiche" [class.fiche-ept]="estEpt()">
       <header class="entete-detail">

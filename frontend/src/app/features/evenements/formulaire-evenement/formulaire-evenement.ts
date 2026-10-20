@@ -7,6 +7,8 @@ import { firstValueFrom } from 'rxjs';
 
 import { EvenementService } from '../../../core/services/evenements/evenement';
 import { AudienceEvenement, Evenement, EvenementRequest } from '../../../core/services/models/evenement';
+import { RetourNavigation } from '../../../core/navigation/retour-navigation';
+import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { etatNavigationEvenement, urlRetourInterne } from '../navigation-evenements';
 
 interface ModeleFormulaireEvenement {
@@ -21,7 +23,7 @@ interface ModeleFormulaireEvenement {
 
 @Component({
   selector: 'app-formulaire-evenement',
-  imports: [FormField],
+  imports: [FormField, BoutonRetour],
   templateUrl: './formulaire-evenement.html',
   styleUrl: './formulaire-evenement.scss',
 })
@@ -29,6 +31,7 @@ export class FormulaireEvenement {
   private readonly evenementService = inject(EvenementService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly retour = inject(RetourNavigation);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly identifiantEvenement = signal<string | null>(null);
@@ -138,8 +141,18 @@ export class FormulaireEvenement {
         }
         this.imageActuelle.set(evenement.urlImage);
         this.reinitialiserSelectionImage();
+        // Ouvert depuis le détail : on y revient (rechargé). Sinon le détail remplace le formulaire
+        // dans l’historique, pour que son « Retour » ramène à la liste et à sa position.
+        const urlDetail = `/evenements/${evenement.id}`;
+        if (this.urlRetour()?.split('?')[0] === urlDetail) {
+          this.retour.retourner(this.urlRetour()!);
+          return;
+        }
         const destinationRetour = this.urlOrigine() ?? this.urlRetour() ?? '/evenements';
-        await this.router.navigate(['/evenements', evenement.id], { state: { returnUrl: destinationRetour } });
+        await this.router.navigate(['/evenements', evenement.id], {
+          replaceUrl: true,
+          state: { returnUrl: destinationRetour }
+        });
       } catch (erreur) {
         this.messageErreur.set(this.messageErreurApi(erreur));
       } finally {
@@ -149,20 +162,22 @@ export class FormulaireEvenement {
   }
 
   protected retourner(): void {
+    this.retour.retourner(this.urlSecours());
+  }
+
+  /** Page ouverte par « Retour » ou « Annuler » quand on arrive directement sur le formulaire. */
+  protected readonly urlSecours = (): string => {
     const urlRetour = this.urlRetour();
-    if (urlRetour) {
-      void this.router.navigateByUrl(urlRetour);
-      return;
-    }
+    if (urlRetour) return urlRetour;
     const params = this.route.snapshot.queryParamMap;
-    void this.router.navigate(['/evenements'], {
+    return this.router.serializeUrl(this.router.createUrlTree(['/evenements'], {
       queryParams: {
         periode: params.get('periode') === 'PASSES' ? 'PASSES' : 'AVENIR',
         page: this.lirePageRetour(params.get('page')),
         vue: this.modeEdition() || params.get('vue') === 'mes' ? 'mes' : null
       }
-    });
-  }
+    }));
+  };
 
   private lirePageRetour(valeur: string | null): number {
     const page = Number(valeur);

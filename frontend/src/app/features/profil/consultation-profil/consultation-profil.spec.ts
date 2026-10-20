@@ -51,7 +51,7 @@ describe('ConsultationProfil', () => {
     expect(contenu).not.toContain('Informations privées');
     expect(contenu).not.toContain('awa@example.com');
     expect(fixture.nativeElement.querySelector('.modifier')).toBeNull();
-    expect(fixture.nativeElement.querySelector('.retour')?.textContent).toContain('Retour');
+    expect(fixture.nativeElement.querySelector('app-bouton-retour')?.textContent).toContain('Retour');
   });
 
   it('affiche les coordonnées privées et les états vides sur son propre profil', async () => {
@@ -66,28 +66,19 @@ describe('ConsultationProfil', () => {
     expect(contenu).toContain('Aucune expérience renseignée.');
     expect(contenu).toContain('Aucune formation renseignée.');
     expect(fixture.nativeElement.querySelector('.modifier')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.retour')?.textContent).toContain('Retour');
+    expect(fixture.nativeElement.querySelector('app-bouton-retour')?.textContent).toContain('Retour');
   });
 
   it('revient à l’écran précédent en conservant ses filtres', async () => {
     const location = TestBed.inject(Location);
-    const descripteurHistorique = Object.getOwnPropertyDescriptor(window.history, 'length');
-    Object.defineProperty(window.history, 'length', { configurable: true, value: 3 });
-    const retourNavigateur = vi.spyOn(location, 'back');
+    vi.spyOn(location, 'getState').mockReturnValue({ navigationId: 3 });
+    const retourNavigateur = vi.spyOn(location, 'back').mockImplementation(() => undefined);
 
-    try {
-      creerComposant();
-      await fixture.whenStable();
-      fixture.nativeElement.querySelector('.retour').click();
+    creerComposant();
+    await fixture.whenStable();
+    fixture.nativeElement.querySelector('app-bouton-retour button').click();
 
-      expect(retourNavigateur).toHaveBeenCalledOnce();
-    } finally {
-      if (descripteurHistorique) {
-        Object.defineProperty(window.history, 'length', descripteurHistorique);
-      } else {
-        Reflect.deleteProperty(window.history, 'length');
-      }
-    }
+    expect(retourNavigateur).toHaveBeenCalledOnce();
   });
 
   it('propose une destination de secours lorsque le profil est ouvert directement', async () => {
@@ -96,7 +87,7 @@ describe('ConsultationProfil', () => {
 
     creerComposant();
     await fixture.whenStable();
-    fixture.nativeElement.querySelector('.retour').click();
+    fixture.nativeElement.querySelector('app-bouton-retour button').click();
 
     expect(navigationSecours).toHaveBeenCalledWith('/annuaire');
   });

@@ -1,7 +1,6 @@
 .page-organisme { width: min(100% - 3rem, 1180px); margin: 0 auto; padding: 2rem 0 5rem; color: var(--ept-primary-dark); }
-.retour { display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; color: var(--ept-primary); font-weight: 700; text-decoration: none; }
-.retour:hover, .site-web:hover { text-decoration: underline; }
-.retour:focus-visible, .site-web:focus-visible, button:focus-visible { outline: 2px solid var(--ept-primary); outline-offset: 3px; }
+.site-web:hover { text-decoration: underline; }
+.site-web:focus-visible, button:focus-visible { outline: 2px solid var(--ept-primary); outline-offset: 3px; }
 .entete-organisme { display: flex; align-items: center; gap: 1.5rem; min-width: 0; padding: 1.75rem; border: 1px solid var(--ept-border); border-top: 4px solid var(--ept-primary); background: linear-gradient(110deg, #fff 0%, #fff 70%, #eef7fa 100%); }
 .logo { display: grid; flex: 0 0 8rem; place-items: center; width: 8rem; height: 8rem; overflow: hidden; border: 1px solid var(--ept-border); border-radius: 3px; background: var(--ept-primary-light); color: var(--ept-primary); font-family: var(--ept-font-heading); font-size: 1.75rem; font-weight: 700; }
 .logo img { width: 100%; height: 100%; object-fit: contain; }

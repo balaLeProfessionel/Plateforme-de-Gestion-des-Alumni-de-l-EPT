@@ -7,11 +7,12 @@ import { catchError, combineLatest, firstValueFrom, map, of, startWith, Subject,
 import { EvenementService } from '../../../core/services/evenements/evenement';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { Evenement, PageParticipants, ReponseParticipation } from '../../../core/services/models/evenement';
+import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { etatNavigationEvenement, urlRetourInterne } from '../navigation-evenements';
 
 @Component({
   selector: 'app-detail-evenement',
-  imports: [RouterLink],
+  imports: [RouterLink, BoutonRetour],
   templateUrl: './detail-evenement.html',
   styleUrl: './detail-evenement.scss',
 })
@@ -76,23 +77,20 @@ export class DetailEvenement {
     this.actualiserSujet.next();
   }
 
-  protected retourner(): void {
+  /** Page ouverte par « Retour » quand on arrive directement sur l’événement. */
+  protected readonly urlSecours = (): string => {
     const urlRetour = this.urlRetour();
-    if (urlRetour) {
-      void this.router.navigateByUrl(urlRetour);
-      return;
-    }
+    if (urlRetour) return urlRetour;
     const params = this.route.snapshot.queryParamMap;
-    const periode = params.get('periode') === 'PASSES' ? 'PASSES' : 'AVENIR';
     const page = Number(params.get('page'));
-    void this.router.navigate(['/evenements'], {
+    return this.router.serializeUrl(this.router.createUrlTree(['/evenements'], {
       queryParams: {
-        periode,
+        periode: params.get('periode') === 'PASSES' ? 'PASSES' : 'AVENIR',
         page: Number.isSafeInteger(page) && page >= 0 ? page : 0,
         vue: params.get('vue') === 'mes' ? 'mes' : null
       }
-    });
-  }
+    }));
+  };
 
   protected formaterDate(date: string): string {
     return new Intl.DateTimeFormat('fr-FR', {

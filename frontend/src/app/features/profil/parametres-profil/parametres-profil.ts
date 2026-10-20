@@ -6,6 +6,7 @@ import { InputText } from 'primeng/inputtext';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { Profil, ProfilRequest } from '../../../core/services/models/profil.model';
 import { ProfilService } from '../../../core/services/profil/profil-service';
+import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { InfosPersonnelles } from '../composants/infos-personnelles/infos-personnelles';
 import { MessageSection } from '../composants/message-section.model';
 
@@ -17,7 +18,7 @@ interface ModeleMotDePasse {
 
 @Component({
   selector: 'app-parametres-profil',
-  imports: [FormField, InfosPersonnelles, InputText, RouterLink],
+  imports: [FormField, InfosPersonnelles, InputText, RouterLink, BoutonRetour],
   templateUrl: './parametres-profil.html',
   styleUrl: './parametres-profil.scss'
 })

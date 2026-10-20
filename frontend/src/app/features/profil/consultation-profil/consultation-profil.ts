@@ -1,4 +1,4 @@
-import { DatePipe, DOCUMENT, Location } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -12,6 +12,7 @@ import {
   ProfilPublic
 } from '../../../core/services/models/profil.model';
 import { ProfilService } from '../../../core/services/profil/profil-service';
+import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 
 interface ProfilAffiche extends ProfilPublic {
   email?: string;
@@ -21,7 +22,7 @@ interface ProfilAffiche extends ProfilPublic {
 
 @Component({
   selector: 'app-consultation-profil',
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe, RouterLink, BoutonRetour],
   templateUrl: './consultation-profil.html',
   styleUrl: './consultation-profil.scss'
 })
@@ -29,8 +30,6 @@ export class ConsultationProfil {
   private readonly profilService = inject(ProfilService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly location = inject(Location);
-  private readonly document = inject(DOCUMENT);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly profil = signal<ProfilAffiche | null>(null);
@@ -101,14 +100,6 @@ export class ConsultationProfil {
     });
   }
 
-  protected retourner(): void {
-    if ((this.document.defaultView?.history.length ?? 0) > 1) {
-      this.location.back();
-      return;
-    }
-
-    void this.router.navigateByUrl(this.estMonProfil() ? '/accueil' : '/annuaire');
-  }
 
   protected periode(item: Experience | Formation): string {
     if (item.enCours) {

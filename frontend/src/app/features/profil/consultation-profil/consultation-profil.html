@@ -1,8 +1,5 @@
 <main class="page-profil" aria-live="polite" [attr.aria-busy]="enChargement()">
-  <button class="retour" type="button" (click)="retourner()">
-    <i class="pi pi-arrow-left" aria-hidden="true"></i>
-    Retour
-  </button>
+  <app-bouton-retour [secours]="estMonProfil() ? '/accueil' : '/annuaire'" />
 
   @if (enChargement()) {
     <div class="squelette entete-squelette" aria-hidden="true"></div>
