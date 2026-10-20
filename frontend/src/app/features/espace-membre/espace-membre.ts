@@ -1,10 +1,11 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, DestroyRef, ElementRef, OnDestroy, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnDestroy, computed, inject, linkedSignal, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { Sidebar as IconeSidebar } from '@primeicons/angular/sidebar';
 import { MenuItem } from 'primeng/api';
+import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { SidebarModule } from 'primeng/sidebar';
@@ -13,7 +14,7 @@ import { AuthService } from '../../core/services/auth/auth-service';
 
 @Component({
   selector: 'app-espace-membre',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, SidebarModule, MenuModule, TooltipModule, ButtonModule, IconeSidebar],
+  imports: [AvatarModule, RouterLink, RouterLinkActive, RouterOutlet, SidebarModule, MenuModule, TooltipModule, ButtonModule, IconeSidebar],
   templateUrl: './espace-membre.html',
   styleUrl: './espace-membre.scss',
 })
@@ -67,15 +68,12 @@ export class EspaceMembre implements OnDestroy {
     const profil = this.lienProfil();
     const parametres = this.lienParametres();
     const organisme = this.authService.utilisateur()?.role === 'ORGANISME';
-    return [{
-      label: this.authService.utilisateur()?.email ?? this.nomAffiche(),
-      items: [
-        ...(profil ? [{ label: organisme ? 'Mon organisme' : 'Mon profil', icon: 'pi pi-user', routerLink: profil }] : []),
-        ...(parametres ? [{ label: 'Paramètres', icon: 'pi pi-cog', routerLink: parametres }] : []),
-        ...(profil || parametres ? [{ separator: true }] : []),
-        { label: 'Déconnexion', icon: 'pi pi-sign-out', command: () => this.seDeconnecter() },
-      ],
-    }];
+    return [
+      ...(profil ? [{ label: organisme ? 'Mon organisme' : 'Mon profil', icon: 'pi pi-user', routerLink: profil }] : []),
+      ...(parametres ? [{ label: 'Paramètres', icon: 'pi pi-cog', routerLink: parametres }] : []),
+      ...(profil || parametres ? [{ separator: true }] : []),
+      { label: 'Déconnexion', icon: 'pi pi-sign-out', command: () => this.seDeconnecter() },
+    ];
   });
 
   protected readonly nomAffiche = computed(() => {
@@ -88,6 +86,16 @@ export class EspaceMembre implements OnDestroy {
     return [utilisateur?.prenom?.[0], utilisateur?.nom?.[0]]
       .filter(Boolean).join('').toUpperCase() || 'EPT';
   });
+
+  /** Repasse à faux à chaque nouvelle photo, pour retenter son chargement. */
+  protected readonly photoInvalide = linkedSignal({
+    source: () => this.authService.utilisateur()?.urlPhoto,
+    computation: () => false,
+  });
+
+  protected readonly photoProfil = computed(() =>
+    this.photoInvalide() ? undefined : this.authService.utilisateur()?.urlPhoto || undefined
+  );
 
   protected readonly typeMembre = computed(() => {
     const role = this.authService.utilisateur()?.role;

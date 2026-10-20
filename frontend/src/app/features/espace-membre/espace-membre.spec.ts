@@ -102,6 +102,22 @@ describe('Navigation de l’espace membre', () => {
     expect(racine.querySelector('p-sidebar-backdrop')).toBeNull();
   });
 
+  it('affiche la photo de profil dans les avatars et revient aux initiales si elle échoue', () => {
+    utilisateur.set({ role: 'ALUMNI', nom: 'Diop', prenom: 'Awa', urlPhoto: '/api/photos/awa.png' });
+    const fixture = TestBed.createComponent(EspaceMembre);
+    fixture.detectChanges();
+    const racine = fixture.nativeElement as HTMLElement;
+    const photos = [...racine.querySelectorAll<HTMLImageElement>('p-avatar img')];
+
+    expect(photos.map((photo) => photo.getAttribute('src'))).toEqual(['/api/photos/awa.png', '/api/photos/awa.png']);
+
+    photos[0].dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+
+    expect(racine.querySelector('p-avatar img')).toBeNull();
+    expect(racine.querySelector('.barre-laterale p-avatar')?.textContent?.trim()).toBe('AD');
+  });
+
   it('regroupe profil, paramètres et déconnexion dans le menu du compte', () => {
     const fixture = TestBed.createComponent(EspaceMembre);
     fixture.detectChanges();

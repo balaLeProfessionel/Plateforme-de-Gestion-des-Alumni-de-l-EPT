@@ -65,12 +65,23 @@
                   (click)="menuCompte.toggle($event)" aria-haspopup="menu" aria-controls="menu-compte"
                   [attr.aria-label]="'Menu du compte de ' + nomAffiche() + ', ' + typeMembre()"
                   [pTooltip]="nomAffiche()" tooltipPosition="right" [tooltipDisabled]="sidebarOuverte()">
-                  <span class="avatar" aria-hidden="true">{{ initiales() }}</span>
+                  <p-avatar class="avatar" shape="circle" aria-hidden="true"
+                    [image]="photoProfil()" [label]="photoProfil() ? undefined : initiales()"
+                    (onImageError)="photoInvalide.set(true)" />
                   <span class="identite-compte"><strong>{{ nomAffiche() }}</strong><small>{{ typeMembre() }}</small></span>
                   <i class="pi pi-chevron-up" aria-hidden="true"></i>
                 </button>
                 <p-menu #menuCompte id="menu-compte" [model]="elementsMenuCompte()" [popup]="true"
-                  appendTo="body" ariaLabel="Menu du compte" />
+                  appendTo="body" ariaLabel="Menu du compte" [style]="{ width: '15rem' }">
+                  <ng-template #start>
+                    <div class="entete-menu-compte">
+                      <strong>{{ nomAffiche() }}</strong>
+                      @if (authService.utilisateur()?.email; as email) {
+                        <small [title]="email">{{ email }}</small>
+                      }
+                    </div>
+                  </ng-template>
+                </p-menu>
               </p-sidebar-menu-item>
             </p-sidebar-menu>
           </p-sidebar-footer>
@@ -96,7 +107,9 @@
         <button type="button" class="bouton-compte" (click)="basculerMenu()"
           [attr.aria-expanded]="menuOuvert()" aria-controls="menu-mobile" aria-haspopup="dialog"
           [attr.aria-label]="'Ouvrir le menu du compte de ' + nomAffiche()">
-          <span class="avatar" aria-hidden="true">{{ initiales() }}</span>
+          <p-avatar class="avatar" shape="circle" aria-hidden="true"
+            [image]="photoProfil()" [label]="photoProfil() ? undefined : initiales()"
+            (onImageError)="photoInvalide.set(true)" />
           <i class="pi pi-chevron-down" aria-hidden="true"></i>
         </button>
       </header>
