@@ -12,7 +12,8 @@
       "pnpmVersion": "none"
     },
     "ghcr.io/devcontainers/features/docker-in-docker:4": {},
-    "ghcr.io/devcontainers/features/github-cli:1": {}
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/sshd:1": {}
   },
   "remoteUser": "vscode",
   "containerEnv": {
