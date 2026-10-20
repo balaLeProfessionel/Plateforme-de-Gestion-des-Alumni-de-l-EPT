@@ -3,14 +3,19 @@ import { Component, DestroyRef, ElementRef, OnDestroy, computed, inject, signal,
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
+import { Sidebar as IconeSidebar } from '@primeicons/angular/sidebar';
+import { MenuItem } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { MenuModule } from 'primeng/menu';
+import { SidebarModule } from 'primeng/sidebar';
+import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '../../core/services/auth/auth-service';
 
 @Component({
   selector: 'app-espace-membre',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, SidebarModule, MenuModule, TooltipModule, ButtonModule, IconeSidebar],
   templateUrl: './espace-membre.html',
   styleUrl: './espace-membre.scss',
-  host: { '(window:resize)': 'fermerMenuSurGrandEcran()' },
 })
 export class EspaceMembre implements OnDestroy {
   protected readonly authService = inject(AuthService);
@@ -18,6 +23,9 @@ export class EspaceMembre implements OnDestroy {
   private readonly router = inject(Router);
   private readonly dialogueMenu = viewChild<ElementRef<HTMLDialogElement>>('dialogueMenu');
   private defilementAvantMenu: { overflow: string; scrollbarGutter: string } | null = null;
+  private readonly formatNavigation = this.document.defaultView?.matchMedia?.('(max-width: 1023px)');
+  private readonly changementFormatNavigation = (evenement: MediaQueryListEvent) =>
+    this.sidebarOuverte.set(!evenement.matches);
   protected readonly menuOuvert = signal(false);
   private readonly urlCourante = toSignal(this.router.events.pipe(
     filter((evenement): evenement is NavigationEnd => evenement instanceof NavigationEnd),
@@ -26,7 +34,12 @@ export class EspaceMembre implements OnDestroy {
   protected readonly pageDuMenu = computed(() =>
     /^\/(profil|organisme|completer-profil|completer-organisme)(\/|\?|#|$)/.test(this.urlCourante())
   );
-  protected readonly barreLateraleRepliee = signal(false);
+  protected readonly sidebarOuverte = signal(!this.formatNavigation?.matches);
+  protected readonly liensNavigation = [
+    { libelle: 'Accueil', icone: 'pi-home', route: '/accueil', exact: true },
+    { libelle: 'Annuaire', icone: 'pi-users', route: '/annuaire', exact: false },
+    { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
+  ];
   protected readonly rubriquesAVenir = [
     { libelle: 'Mentorat', icone: 'pi-sitemap' },
     { libelle: 'Offres d’emploi', icone: 'pi-briefcase' },
@@ -50,6 +63,21 @@ export class EspaceMembre implements OnDestroy {
     ) ? '/profil/parametres' : null
   );
 
+  protected readonly elementsMenuCompte = computed<MenuItem[]>(() => {
+    const profil = this.lienProfil();
+    const parametres = this.lienParametres();
+    const organisme = this.authService.utilisateur()?.role === 'ORGANISME';
+    return [{
+      label: this.authService.utilisateur()?.email ?? this.nomAffiche(),
+      items: [
+        ...(profil ? [{ label: organisme ? 'Mon organisme' : 'Mon profil', icon: 'pi pi-user', routerLink: profil }] : []),
+        ...(parametres ? [{ label: 'Paramètres', icon: 'pi pi-cog', routerLink: parametres }] : []),
+        ...(profil || parametres ? [{ separator: true }] : []),
+        { label: 'Déconnexion', icon: 'pi pi-sign-out', command: () => this.seDeconnecter() },
+      ],
+    }];
+  });
+
   protected readonly nomAffiche = computed(() => {
     const utilisateur = this.authService.utilisateur();
     return [utilisateur?.prenom, utilisateur?.nom].filter(Boolean).join(' ') || 'Mon compte';
@@ -69,7 +97,7 @@ export class EspaceMembre implements OnDestroy {
   });
 
   constructor() {
-    this.barreLateraleRepliee.set((this.document.defaultView?.innerWidth ?? 1200) <= 1100);
+    this.formatNavigation?.addEventListener('change', this.changementFormatNavigation);
     const ecranMobile = this.document.defaultView?.matchMedia?.('(max-width: 760px)');
     if (ecranMobile) {
       const fermerSurOrdinateur = () => {
@@ -81,10 +109,6 @@ export class EspaceMembre implements OnDestroy {
     this.router.events.pipe(
       filter((evenement) => evenement instanceof NavigationStart), takeUntilDestroyed()
     ).subscribe(() => this.fermerMenu());
-  }
-
-  protected basculerBarreLaterale(): void {
-    this.barreLateraleRepliee.update((repliee) => !repliee);
   }
 
   protected basculerMenu(): void {
@@ -132,6 +156,7 @@ export class EspaceMembre implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.formatNavigation?.removeEventListener('change', this.changementFormatNavigation);
     this.fermerMenu();
   }
 
@@ -141,12 +166,6 @@ export class EspaceMembre implements OnDestroy {
     const cadre = dialogue.getBoundingClientRect();
     if (evenement.clientX < cadre.left || evenement.clientX > cadre.right ||
         evenement.clientY < cadre.top || evenement.clientY > cadre.bottom) {
-      this.fermerMenu();
-    }
-  }
-
-  protected fermerMenuSurGrandEcran(): void {
-    if ((this.document.defaultView?.innerWidth ?? 1200) > 760 && this.menuOuvert()) {
       this.fermerMenu();
     }
   }

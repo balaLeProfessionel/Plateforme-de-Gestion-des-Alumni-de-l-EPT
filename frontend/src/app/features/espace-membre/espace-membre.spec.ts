@@ -16,7 +16,7 @@ describe('Navigation de l’espace membre', () => {
     TestBed.configureTestingModule({
       imports: [EspaceMembre],
       providers: [
-        provideRouter([]),
+        provideRouter([{ path: '**', children: [] }]),
         { provide: AuthService, useValue: { utilisateur, logout } }
       ]
     });
@@ -26,13 +26,15 @@ describe('Navigation de l’espace membre', () => {
     const fixture = TestBed.createComponent(EspaceMembre);
     fixture.detectChanges();
     const racine = fixture.nativeElement as HTMLElement;
-    const liens = [...racine.querySelectorAll('.navigation-principale a')]
+    const liens = [...racine.querySelectorAll('.barre-laterale nav a')]
       .map((lien) => lien.getAttribute('href'));
 
-    expect(liens).toEqual(['/accueil', '/annuaire', '/profil', '/evenements', '/profil/parametres']);
-    expect(racine.querySelectorAll('.navigation-principale .a-venir')).toHaveLength(3);
-    expect(racine.querySelector('.navigation-principale .a-venir a')).toBeNull();
-    expect(racine.querySelector('.compte-lateral .lien-avatar')?.getAttribute('href')).toBe('/profil');
+    expect(liens).toEqual(['/accueil', '/annuaire', '/evenements']);
+    expect(racine.querySelector('.barre-laterale .marque')?.getAttribute('href')).toBe('/accueil');
+    expect([...racine.querySelectorAll('.barre-laterale nav button[aria-disabled="true"]')]
+      .map((lien) => lien.getAttribute('aria-label')))
+      .toEqual(['Mentorat, à venir', 'Offres d’emploi, à venir', 'Actualités, à venir']);
+    expect(racine.querySelector('.barre-laterale nav button[aria-disabled="true"] a')).toBeNull();
     expect(racine.querySelector('.entete-mobile .bouton-compte')?.getAttribute('aria-haspopup')).toBe('dialog');
   });
 
@@ -87,17 +89,38 @@ describe('Navigation de l’espace membre', () => {
     const fixture = TestBed.createComponent(EspaceMembre);
     fixture.detectChanges();
     const racine = fixture.nativeElement as HTMLElement;
-    const bascule = racine.querySelector('.bouton-basculer-navigation') as HTMLButtonElement;
-    const etatInitial = bascule.getAttribute('aria-expanded');
+    const bascule = racine.querySelector('.barre-outils button') as HTMLButtonElement;
+    const sidebar = racine.querySelector('.barre-laterale') as HTMLElement;
+    const etatInitial = sidebar.getAttribute('data-state');
 
     bascule.click();
     fixture.detectChanges();
 
-    expect(bascule.getAttribute('aria-expanded')).not.toBe(etatInitial);
-    expect(racine.querySelector('.espace-membre')?.classList.contains('barre-repliee'))
-      .toBe(bascule.getAttribute('aria-expanded') === 'false');
+    expect(sidebar.getAttribute('data-state')).not.toBe(etatInitial);
     expect(bascule.getAttribute('aria-label')).toMatch(/navigation/);
-    expect(racine.querySelector('#navigation-principale')).not.toBeNull();
+    expect(sidebar.hasAttribute('data-overlay')).toBe(false);
+    expect(racine.querySelector('p-sidebar-backdrop')).toBeNull();
+  });
+
+  it('regroupe profil, paramètres et déconnexion dans le menu du compte', () => {
+    const fixture = TestBed.createComponent(EspaceMembre);
+    fixture.detectChanges();
+    const racine = fixture.nativeElement as HTMLElement;
+    const compte = racine.querySelector('.bouton-compte-lateral') as HTMLButtonElement;
+
+    expect(compte.getAttribute('aria-label')).toBe('Menu du compte de Awa Diop, Alumni');
+    compte.click();
+    fixture.detectChanges();
+
+    const entrees = [...document.querySelectorAll('#menu-compte [role="menuitem"]')];
+    expect(entrees.map((entree) => entree.textContent?.trim())).toEqual(['Mon profil', 'Paramètres', 'Déconnexion']);
+    expect(document.querySelector('#menu-compte a[href="/profil"]')).not.toBeNull();
+    expect(document.querySelector('#menu-compte a[href="/profil/parametres"]')).not.toBeNull();
+
+    (document.querySelector('#menu-compte [role="menuitem"]:last-child a') as HTMLElement | null)?.click();
+    fixture.detectChanges();
+    expect(logout).toHaveBeenCalled();
+    fixture.destroy();
   });
 
   it('ferme le menu et restaure le défilement au passage sur ordinateur', () => {
@@ -134,13 +157,15 @@ describe('Navigation de l’espace membre', () => {
     fixture.detectChanges();
     const racine = fixture.nativeElement as HTMLElement;
 
-    expect(racine.querySelector('a[aria-label="Mon profil"]')?.getAttribute('href'))
-      .toBe('/organisme/parametres');
-    expect(racine.querySelector('a[aria-label="Paramètres du profil"]')).toBeNull();
-    expect(racine.querySelector('.compte-lateral .lien-avatar')?.getAttribute('href'))
-      .toBe('/organisme/parametres');
     expect(racine.querySelector('.menu-mobile a')?.getAttribute('href'))
       .toBe('/organisme/parametres');
+    expect(racine.querySelector('.menu-mobile a[aria-label="Paramètres du profil"]')).toBeNull();
+    (racine.querySelector('.bouton-compte-lateral') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect([...document.querySelectorAll('#menu-compte [role="menuitem"]')].map((entree) => entree.textContent?.trim()))
+      .toEqual(['Mon organisme', 'Déconnexion']);
+    expect(document.querySelector('#menu-compte a[href="/organisme/parametres"]')).not.toBeNull();
+    fixture.destroy();
   });
 
   it('n’affiche pas de lien de profil indisponible pour l’administration', () => {
