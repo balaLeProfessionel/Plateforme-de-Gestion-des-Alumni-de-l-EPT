@@ -14,6 +14,7 @@ export interface AnnuaireMembre {
   filiere: string | null;
   anneeSortie: number | null;
   organismeId: string | null;
+  typeOrganisme: string | null;
 }
 
 export interface PageAnnuaire {

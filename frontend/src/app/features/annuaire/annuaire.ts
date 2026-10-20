@@ -12,11 +12,20 @@ import {
   TypeMembreAnnuaire,
   TriAnnuaire
 } from '../../core/services/models/annuaire.model';
+import { FilAriane } from '../../shared/fil-ariane/fil-ariane';
 import { CarteMembre } from './carte-membre/carte-membre';
+import { CarteMembreSquelette } from './carte-membre/carte-membre-squelette';
+
+type CleFiltre = 'recherche' | 'role' | 'filiere' | 'promotion' | 'ville';
+
+const LIBELLES_TYPES: Record<TypeMembreAnnuaire, string> = {
+  TOUS: 'Tous', ALUMNI: 'Alumni', ETUDIANT: 'Étudiants', PERSONNEL: 'Personnel',
+  VISITEUR: 'Visiteurs', ORGANISME: 'Organismes'
+};
 
 @Component({
   selector: 'app-annuaire',
-  imports: [FormField, CarteMembre],
+  imports: [FormField, FilAriane, CarteMembre, CarteMembreSquelette],
   templateUrl: './annuaire.html',
   styleUrl: './annuaire.scss',
 })
@@ -44,12 +53,25 @@ export class Annuaire {
   protected readonly resultat = signal<PageAnnuaire | null>(null);
   protected readonly enChargement = signal(true);
   protected readonly messageErreur = signal<string | null>(null);
-  protected readonly nombreFiltresActifs = computed(() => {
-    const valeurs = this.modele();
-    return [valeurs.role !== 'ALUMNI' ? valeurs.role : '', valeurs.filiere, valeurs.promotion, valeurs.ville]
-      .filter((valeur) => valeur.trim() !== '').length
-      + (valeurs.tri === 'PROMOTION_DESC' ? 1 : 0);
+  protected readonly filtresOuverts = signal(false);
+  /** Filtres réellement appliqués (issus de l’URL), indépendants de la saisie en cours. */
+  private readonly filtresAppliques = signal<FiltresAnnuaire | null>(null);
+  protected readonly filtresActifs = computed<{ cle: CleFiltre; libelle: string }[]>(() => {
+    const filtres = this.filtresAppliques();
+    if (!filtres) return [];
+    const actifs: { cle: CleFiltre; libelle: string }[] = [];
+    if (filtres.recherche) actifs.push({ cle: 'recherche', libelle: `« ${filtres.recherche} »` });
+    if (filtres.role !== 'ALUMNI' && filtres.role !== 'TOUS') {
+      actifs.push({ cle: 'role', libelle: `Type : ${LIBELLES_TYPES[filtres.role]}` });
+    }
+    if (filtres.filiere) actifs.push({ cle: 'filiere', libelle: `Filière : ${filtres.filiere}` });
+    if (filtres.promotion) actifs.push({ cle: 'promotion', libelle: `Promotion : ${filtres.promotion}` });
+    if (filtres.ville) actifs.push({ cle: 'ville', libelle: `Ville : ${filtres.ville}` });
+    return actifs;
   });
+  protected readonly nombreFiltresActifs = computed(() =>
+    this.filtresActifs().filter((filtre) => filtre.cle !== 'recherche').length
+  );
   protected readonly pagesVisibles = computed<(number | 'ellipsis')[]>(() => {
     const resultat = this.resultat();
     if (!resultat || resultat.totalPages <= 1) {
@@ -73,6 +95,7 @@ export class Annuaire {
       map(([params]) => this.filtresDepuis(params)),
       tap((filtres) => {
         this.synchroniserFormulaire(filtres);
+        this.filtresAppliques.set(filtres);
         this.enChargement.set(true);
         this.messageErreur.set(null);
       }),
@@ -116,6 +139,17 @@ export class Annuaire {
         page: 0
       })
     });
+  }
+
+  protected retirerFiltre(cle: CleFiltre): void {
+    const params: Record<string, string> = { ...this.route.snapshot.queryParams };
+    delete params['page'];
+    if (cle === 'role') {
+      params['role'] = 'TOUS';
+    } else {
+      delete params[cle];
+    }
+    this.router.navigate([], { relativeTo: this.route, queryParams: params });
   }
 
   protected changerPage(page: number): void {

@@ -1,58 +1,42 @@
 <main class="annuaire-page">
+  <app-fil-ariane [etapes]="[{ libelle: 'Accueil', lien: '/accueil' }, { libelle: 'Annuaire' }]" />
+
   <header class="entete-page">
-    <div>
-      <p class="sur-titre">Réseau EPT</p>
-      <h1>Annuaire des membres</h1>
-      <p class="introduction introduction-longue">Découvrez en priorité les alumni de l’EPT, puis élargissez votre recherche
-        à l’ensemble du réseau.</p>
-      <p class="introduction introduction-mobile">Les diplômés de l’EPT et leur réseau.</p>
-    </div>
-    @if (resultat(); as pageAnnuaire) {
-      <div class="compteur" aria-label="Nombre de membres trouvés">
-        <strong>{{ pageAnnuaire.totalElements }}</strong>
-        <span>{{ pageAnnuaire.totalElements > 1 ? 'membres' : 'membre' }}</span>
-      </div>
-    }
+    <h1>Annuaire des membres</h1>
+    <p class="introduction">Retrouvez les diplômés, étudiants, personnels et partenaires du réseau EPT.</p>
   </header>
 
-  <nav class="portee-annuaire" aria-label="Choisir les personnes affichées">
-    <button type="button" [class.active]="modele().role === 'ALUMNI'"
-      [attr.aria-pressed]="modele().role === 'ALUMNI'" (click)="changerPortee('ALUMNI')">
-      Alumni
-    </button>
-    <button type="button" [class.active]="modele().role === 'TOUS'"
-      [attr.aria-pressed]="modele().role === 'TOUS'" (click)="changerPortee('TOUS')">
-      Tous les membres
-    </button>
-  </nav>
-
   <form class="filtres" role="search" (submit)="$event.preventDefault(); appliquerFiltres()">
-    <div class="ligne-recherche">
-      <div class="recherche filtre-recherche">
-        <label for="recherche">Nom, prénom ou organisme</label>
-        <div class="champ-avec-icone">
-          <i class="pi pi-search" aria-hidden="true"></i>
-          <input id="recherche" type="search" [formField]="formulaire.recherche"
-            placeholder="Rechercher dans le réseau" />
-        </div>
+    <div class="barre-recherche">
+      <div class="champ-recherche">
+        <i class="pi pi-search" aria-hidden="true"></i>
+        <label for="recherche" class="sr-only">Rechercher par nom, prénom ou organisme</label>
+        <input id="recherche" type="search" [formField]="formulaire.recherche"
+          placeholder="Rechercher par nom, prénom ou organisme…" />
+        <button type="submit" class="rechercher">Rechercher</button>
       </div>
-      <button type="submit" class="rechercher">Rechercher</button>
+
+      <button type="button" class="bouton-filtres" (click)="filtresOuverts.update((ouvert) => !ouvert)"
+        [attr.aria-expanded]="filtresOuverts()" aria-controls="panneau-filtres">
+        <i class="pi pi-sliders-h" aria-hidden="true"></i>
+        Filtres avancés
+        @if (nombreFiltresActifs() > 0) {
+          <span class="compte-filtres" [attr.aria-label]="nombreFiltresActifs() + ' actifs'">{{ nombreFiltresActifs() }}</span>
+        }
+        <i class="pi pi-chevron-down chevron" aria-hidden="true"></i>
+      </button>
+
+      <div class="tri">
+        <label for="tri">Trier par</label>
+        <select id="tri" [formField]="formulaire.tri" (change)="appliquerFiltres()">
+          <option value="ALPHABETIQUE">Nom</option>
+          <option value="PROMOTION_DESC">Promotion récente</option>
+        </select>
+      </div>
     </div>
 
-    <details class="panneau-filtres">
-      <summary>
-        <span class="libelle-filtres"><i class="pi pi-filter" aria-hidden="true"></i> Filtres avancés</span>
-        <span class="resume-filtres">
-          @if (nombreFiltresActifs() > 0) {
-            {{ nombreFiltresActifs() }} {{ nombreFiltresActifs() > 1 ? 'filtres actifs' : 'filtre actif' }}
-          } @else {
-            Type de membre, filière, promotion, ville et tri
-          }
-        </span>
-        <i class="pi pi-chevron-down chevron" aria-hidden="true"></i>
-      </summary>
-
-      <div class="grille-filtres">
+    @if (filtresOuverts()) {
+      <div id="panneau-filtres" class="panneau-filtres">
         <div>
           <label for="role">Type de membre</label>
           <select id="role" [formField]="formulaire.role">
@@ -89,27 +73,47 @@
           <input id="ville" type="text" [formField]="formulaire.ville" placeholder="Ex. Thiès" />
         </div>
 
-        <div>
-          <label for="tri">Trier par</label>
-          <select id="tri" [formField]="formulaire.tri">
-            <option value="ALPHABETIQUE">Ordre alphabétique</option>
-            <option value="PROMOTION_DESC">Promotion récente</option>
-          </select>
-        </div>
-
-        <div class="actions-filtres">
-          <button type="submit" class="appliquer">Appliquer</button>
-          <button type="button" class="reinitialiser" (click)="reinitialiser()">Réinitialiser</button>
-        </div>
+        <button type="submit" class="appliquer">Appliquer</button>
       </div>
-    </details>
+    }
   </form>
+
+  <div class="ligne-resume">
+    <p class="resume" role="status">
+      @if (resultat(); as pageAnnuaire) {
+        <strong>{{ pageAnnuaire.totalElements }}</strong>
+        {{ pageAnnuaire.totalElements > 1 ? 'membres trouvés' : 'membre trouvé' }}
+      } @else if (enChargement()) {
+        Recherche en cours…
+      }
+    </p>
+
+    <div class="portee-annuaire" role="group" aria-label="Choisir les personnes affichées">
+      <button type="button" [attr.aria-pressed]="modele().role === 'ALUMNI'" (click)="changerPortee('ALUMNI')">
+        Alumni
+      </button>
+      <button type="button" [attr.aria-pressed]="modele().role === 'TOUS'" (click)="changerPortee('TOUS')">
+        Tous les membres
+      </button>
+    </div>
+
+    @for (filtre of filtresActifs(); track filtre.cle) {
+      <button type="button" class="puce-filtre" (click)="retirerFiltre(filtre.cle)"
+        [attr.aria-label]="'Retirer le filtre ' + filtre.libelle">
+        {{ filtre.libelle }}<i class="pi pi-times" aria-hidden="true"></i>
+      </button>
+    }
+
+    @if (filtresActifs().length > 0) {
+      <button type="button" class="reinitialiser" (click)="reinitialiser()">Réinitialiser les critères</button>
+    }
+  </div>
 
   <section class="resultats" aria-live="polite" [attr.aria-busy]="enChargement()">
     @if (enChargement()) {
       <div class="grille" aria-label="Chargement des membres">
         @for (item of [1, 2, 3, 4, 5, 6]; track item) {
-          <div class="squelette" aria-hidden="true"></div>
+          <app-carte-membre-squelette class="squelette" />
         }
       </div>
     } @else if (messageErreur()) {
@@ -126,11 +130,6 @@
         <p>Modifiez vos critères ou réinitialisez les filtres.</p>
       </div>
     } @else if (resultat(); as pageAnnuaire) {
-      <div class="resume">
-        <strong>{{ pageAnnuaire.totalElements }}</strong>
-        {{ pageAnnuaire.totalElements > 1 ? 'membres trouvés' : 'membre trouvé' }}
-      </div>
-
       <ul class="grille">
         @for (membre of pageAnnuaire.contenu; track membre.id) {
           <li><app-carte-membre [membre]="membre" /></li>

@@ -50,7 +50,7 @@ describe('Annuaire', () => {
       contenu: [{
         id: '1', nom: 'Diop', prenom: 'Awa', role: 'ETUDIANT', statutCompte: 'ACTIF',
         urlPhoto: null, posteActuel: 'Élève ingénieure', villeResidence: 'Thiès', filiere: 'GIT',
-        anneeSortie: 2025, organismeId: null,
+        anneeSortie: 2025, organismeId: null, typeOrganisme: null,
         email: 'awa@example.com', telephone: '770000000', dateNaissance: '2000-01-01'
       } as never],
       page: 2,
@@ -113,20 +113,39 @@ describe('Annuaire', () => {
     expect(router.navigate).toHaveBeenLastCalledWith([], { relativeTo: route, queryParams: {} });
   });
 
-  it('regroupe les filtres avancés dans un panneau pliable', () => {
-    const composant = creerComposant();
+  it('ouvre les filtres avancés depuis la barre de recherche', async () => {
+    creerComposant();
     http.expectOne((req) => req.url === '/api/annuaire').flush(page());
+    await fixture.whenStable();
 
-    const panneau = fixture.nativeElement.querySelector('.panneau-filtres') as HTMLDetailsElement;
-    expect(panneau.open).toBe(false);
-    expect(panneau.querySelector('summary')?.textContent).toContain('Filtres avancés');
+    const bouton = fixture.nativeElement.querySelector('.bouton-filtres') as HTMLButtonElement;
+    expect(bouton.getAttribute('aria-expanded')).toBe('false');
+    expect(fixture.nativeElement.querySelector('#panneau-filtres')).toBeNull();
 
-    panneau.open = true;
-    composant['modele'].update((valeurs) => ({ ...valeurs, role: 'ORGANISME', ville: 'Thiès' }));
-    fixture.detectChanges();
+    bouton.click();
+    await fixture.whenStable();
 
-    expect(panneau.open).toBe(true);
-    expect(panneau.querySelector('.resume-filtres')?.textContent).toContain('2 filtres actifs');
+    expect(bouton.getAttribute('aria-expanded')).toBe('true');
+    expect(fixture.nativeElement.querySelector('#panneau-filtres #filiere')).not.toBeNull();
+  });
+
+  it('affiche les filtres appliqués en puces retirables', async () => {
+    parametres.next(convertToParamMap({ role: 'ORGANISME', ville: 'Thiès', recherche: 'tech' }));
+    route.snapshot.queryParams = { role: 'ORGANISME', ville: 'Thiès', recherche: 'tech', page: '2' };
+    creerComposant();
+    http.expectOne((req) => req.url === '/api/annuaire').flush(page());
+    await fixture.whenStable();
+
+    const puces = [...fixture.nativeElement.querySelectorAll('.puce-filtre')]
+      .map((puce) => (puce as HTMLElement).textContent?.trim());
+    expect(puces).toEqual(['« tech »', 'Type : Organismes', 'Ville : Thiès']);
+    expect(fixture.nativeElement.querySelector('.compte-filtres')?.textContent?.trim()).toBe('2');
+
+    (fixture.nativeElement.querySelectorAll('.puce-filtre')[2] as HTMLButtonElement).click();
+    expect(router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: route,
+      queryParams: { role: 'ORGANISME', recherche: 'tech' }
+    });
   });
 
   it('affiche les alumni par défaut et permet d élargir à tous les membres', () => {
@@ -150,7 +169,7 @@ describe('Annuaire', () => {
       contenu: [{
         id: '1', nom: 'Sow', prenom: 'Ibrahima', role: 'ALUMNI', statutCompte: 'ACTIF',
         urlPhoto: null, posteActuel: null, villeResidence: null, filiere: null, anneeSortie: 2024,
-        organismeId: null
+        organismeId: null, typeOrganisme: null
       }],
       totalElements: 13,
       totalPages: 2
@@ -176,7 +195,7 @@ describe('Annuaire', () => {
       contenu: [{
         id: '1', nom: 'Sow', prenom: 'Ibrahima', role: 'ALUMNI', statutCompte: 'ACTIF',
         urlPhoto: null, posteActuel: null, villeResidence: null, filiere: null, anneeSortie: 2024,
-        organismeId: null
+        organismeId: null, typeOrganisme: null
       }],
       page: 20,
       totalElements: 500,
@@ -187,7 +206,7 @@ describe('Annuaire', () => {
     const pages = [...fixture.nativeElement.querySelectorAll('.pagination button:not([aria-label*="précédente"]):not([aria-label*="suivante"])')]
       .map((bouton) => (bouton as HTMLButtonElement).textContent?.trim());
     expect(pages).toEqual(['1', '20', '21', '22', '42']);
-    expect(fixture.nativeElement.querySelector('[aria-current="page"]')?.textContent.trim()).toBe('21');
+    expect(fixture.nativeElement.querySelector('.pagination [aria-current="page"]')?.textContent.trim()).toBe('21');
     expect(fixture.nativeElement.querySelectorAll('.pagination .ellipse')).toHaveLength(2);
   });
 
