@@ -25,6 +25,7 @@ import ept.edu.sn.alumni_backend.annuaire.AnnuaireTri;
 import ept.edu.sn.alumni_backend.annuaire.dto.AnnuaireMembreResponse;
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
+import ept.edu.sn.alumni_backend.enums.TypeOrganisme;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
 import ept.edu.sn.alumni_backend.organisme.repository.OrganismeRepository;
@@ -70,6 +71,7 @@ class AnnuaireIntegrationTests {
         organisme.setNom("Entreprise Démonstration");
         organisme.setSecteurActivite("Numérique");
         organisme.setAdresse("Dakar");
+        organisme.setTypeOrganisme(TypeOrganisme.ENTREPRISE);
         organisme = organismeRepository.save(organisme);
         Utilisateur contact = utilisateur(null, "Contact", TypeRole.ORGANISME, StatutCompte.ACTIF, true, null, null, null);
         contact.setOrganisme(organisme);
@@ -106,6 +108,7 @@ class AnnuaireIntegrationTests {
         assertNull(resultat.contenu().getFirst().prenom());
         assertEquals(organismeRepository.findByNomIgnoreCase("Entreprise Démonstration").orElseThrow().getId(),
             resultat.contenu().getFirst().organismeId());
+        assertEquals("ENTREPRISE", resultat.contenu().getFirst().typeOrganisme());
     }
 
     @Test

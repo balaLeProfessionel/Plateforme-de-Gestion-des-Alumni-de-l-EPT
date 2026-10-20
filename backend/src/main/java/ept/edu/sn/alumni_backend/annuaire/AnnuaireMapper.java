@@ -23,7 +23,8 @@ public class AnnuaireMapper {
                 organisme.getAdresse() != null ? organisme.getAdresse() : organisme.getPays(),
                 null,
                 null,
-                organisme.getId()
+                organisme.getId(),
+                organisme.getTypeOrganisme() != null ? organisme.getTypeOrganisme().name() : null
             );
         }
         return new AnnuaireMembreResponse(
@@ -37,6 +38,7 @@ public class AnnuaireMapper {
             utilisateur.getVilleResidence(),
             utilisateur.getFiliere(),
             utilisateur.getAnneeSortie(),
+            null,
             null
         );
     }
