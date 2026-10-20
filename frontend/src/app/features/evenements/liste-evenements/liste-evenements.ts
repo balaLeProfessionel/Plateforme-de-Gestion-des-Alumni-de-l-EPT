@@ -5,11 +5,12 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, combineLatest, firstValueFrom, map, of, startWith, Subject, switchMap, tap } from 'rxjs';
 
 import { EvenementService } from '../../../core/services/evenements/evenement';
+import { FilAriane } from '../../../shared/fil-ariane/fil-ariane';
 import { Evenement, PageEvenements, PeriodeEvenement } from '../../../core/services/models/evenement';
 
 @Component({
   selector: 'app-liste-evenements',
-  imports: [RouterLink],
+  imports: [RouterLink, FilAriane],
   templateUrl: './liste-evenements.html',
   styleUrl: './liste-evenements.scss',
 })

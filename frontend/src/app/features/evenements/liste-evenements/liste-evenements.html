@@ -1,45 +1,46 @@
 <main class="evenements-page">
+  <app-fil-ariane [etapes]="[{ libelle: 'Accueil', lien: '/accueil' }, { libelle: 'Événements' }]" />
+
   <header class="entete-evenements">
     <div>
-      <p class="sur-titre">La vie du réseau</p>
       <h1>Événements</h1>
-      <p class="introduction introduction-longue">Retrouvez les rencontres et temps forts de la communauté EPT.</p>
-      <p class="introduction introduction-mobile">Les prochains rendez-vous de la communauté.</p>
+      <p class="introduction">Retrouvez les rencontres et temps forts de la communauté EPT.</p>
     </div>
-    <div class="actions-entete">
-      <a class="action-principale" routerLink="/evenements/creer" [state]="{ returnUrl: urlCourante() }">
-        <i class="pi pi-plus" aria-hidden="true"></i>Créer un événement
-      </a>
-      @if (page(); as resultat) {
-        <div class="compteur" aria-label="Nombre d’événements trouvés">
-          <strong>{{ resultat.totalElements }}</strong>
-          <span>{{ resultat.totalElements === 1 ? 'événement' : 'événements' }}</span>
-        </div>
-      }
-    </div>
+    <a class="action-principale" routerLink="/evenements/creer" [state]="{ returnUrl: urlCourante() }">
+      <i class="pi pi-plus" aria-hidden="true"></i>Créer un événement
+    </a>
   </header>
 
-  <nav class="filtre-proprietaire" aria-label="Afficher les événements">
-    <button type="button" [class.actif]="!mesEvenements()"
-      [attr.aria-pressed]="!mesEvenements()" (click)="changerVue(false)">
-      Tous les événements
-    </button>
-    <button type="button" [class.actif]="mesEvenements()"
-      [attr.aria-pressed]="mesEvenements()" (click)="changerVue(true)">
-      <i class="pi pi-user" aria-hidden="true"></i>Mes événements
-    </button>
-  </nav>
+  <div class="barre-evenements">
+    <div class="filtre-proprietaire" role="group" aria-label="Afficher les événements">
+      <button type="button" [attr.aria-pressed]="!mesEvenements()" (click)="changerVue(false)">
+        <i class="pi pi-globe" aria-hidden="true"></i>Tous les événements
+      </button>
+      <button type="button" [attr.aria-pressed]="mesEvenements()" (click)="changerVue(true)">
+        <i class="pi pi-user" aria-hidden="true"></i>Mes événements
+      </button>
+    </div>
 
-  <nav class="onglets-periode" aria-label="Période des événements">
-    <button type="button" [class.actif]="periode() === 'AVENIR'"
-      [attr.aria-pressed]="periode() === 'AVENIR'" (click)="changerPeriode('AVENIR')">
-      À venir
-    </button>
-    <button type="button" [class.actif]="periode() === 'PASSES'"
-      [attr.aria-pressed]="periode() === 'PASSES'" (click)="changerPeriode('PASSES')">
-      Passés
-    </button>
-  </nav>
+    <div class="onglets-periode" role="group" aria-label="Période des événements">
+      <button type="button" [attr.aria-pressed]="periode() === 'AVENIR'" (click)="changerPeriode('AVENIR')">
+        À venir
+      </button>
+      <button type="button" [attr.aria-pressed]="periode() === 'PASSES'" (click)="changerPeriode('PASSES')">
+        Passés
+      </button>
+    </div>
+  </div>
+
+  <p class="resume-evenements" role="status">
+    @if (page(); as resultat) {
+      <strong>{{ resultat.totalElements }}</strong>
+      {{ resultat.totalElements > 1 ? 'événements' : 'événement' }}
+      {{ periode() === 'AVENIR' ? 'à venir' : (resultat.totalElements > 1 ? 'passés' : 'passé') }}
+      @if (mesEvenements()) { <span>· organisés par vous</span> }
+    } @else if (enChargement()) {
+      Chargement des événements…
+    }
+  </p>
 
   <section class="resultats-evenements" aria-live="polite" [attr.aria-busy]="enChargement()">
     @if (enChargement()) {

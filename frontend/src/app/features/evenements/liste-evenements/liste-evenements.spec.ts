@@ -174,7 +174,7 @@ describe('ListeEvenements', () => {
     parametres.next(convertToParamMap({}));
     await fixture.whenStable();
 
-    expect(fixture.nativeElement.querySelector('[aria-current="page"]')?.textContent.trim()).toBe('1');
+    expect(fixture.nativeElement.querySelector('.pagination-evenements [aria-current="page"]')?.textContent.trim()).toBe('1');
     expect((fixture.nativeElement.querySelector('[aria-label="Page précédente"]') as HTMLButtonElement).disabled)
       .toBe(true);
     fixture.componentInstance['changerPage'](3);
