@@ -69,10 +69,10 @@
 }
 @media (max-width: 640px) {
   .detail-evenement-page { width: min(100% - 2rem, 980px); padding-top: 1.5rem; }
-  .informations-evenement { grid-template-columns: 1fr; }
+  .informations-evenement { grid-template-columns: minmax(0, 1fr); }
   .information { padding: 1.1rem 0; }
   .bandeau-officiel { padding-inline: 1rem; }
-  .grille-participants { grid-template-columns: 1fr; }
+  .grille-participants { grid-template-columns: minmax(0, 1fr); }
   .actions-gestion, .confirmation-detail { flex-direction: column; }
   .actions-gestion > *, .confirmation-detail > button { width: 100%; min-height: 3rem; padding: .7rem 1rem; }
 }

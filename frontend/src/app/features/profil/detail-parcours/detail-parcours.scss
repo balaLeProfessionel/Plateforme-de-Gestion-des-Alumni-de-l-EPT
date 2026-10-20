@@ -33,9 +33,9 @@ dd { margin: 0.3rem 0 0; overflow-wrap: anywhere; font-weight: 700; }
 @media (max-width: 600px) {
   .page-detail { width: min(100% - 2rem, 920px); padding-top: 2rem; }
   .entete-detail { display: grid; padding: 1.25rem; }
-  .marque-ept { grid-template-columns: auto 1fr; align-items: center; justify-items: start; }
+  .marque-ept { grid-template-columns: auto minmax(0, 1fr); align-items: center; justify-items: start; }
   .marque-ept img { width: 3.5rem; height: 3.5rem; }
-  .informations { grid-template-columns: 1fr; padding: 1.25rem; }
+  .informations { grid-template-columns: minmax(0, 1fr); padding: 1.25rem; }
   .description-detail { padding: 0 1.25rem 1.25rem; }
   .actions { align-items: stretch; padding: 1.25rem; }
   .actions a, .actions button { width: 100%; justify-content: center; }

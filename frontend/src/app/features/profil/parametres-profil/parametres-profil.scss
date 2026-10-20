@@ -33,4 +33,4 @@ button:disabled { opacity: .6; cursor: wait; }
 .squelette { height: 34rem; border-radius: 2px; background: linear-gradient(90deg, #edf1f3 25%, #f7f9fa 50%, #edf1f3 75%); background-size: 200% 100%; animation: charge 1.3s infinite; }
 .etat-erreur { padding: 2rem; text-align: center; border: 1px solid var(--ept-border); border-radius: 2px; background: white; }
 @keyframes charge { to { background-position: -200% 0; } }
-@media (max-width: 640px) { .page-parametres { width: min(100% - 1rem, 960px); padding-top: 1rem; }.entete-page { display: grid; }.navigation-sections { width: 100%; justify-content: center; overflow-x: auto; }.gestion-photo { align-items: flex-start; }.avatar { flex-basis: 6rem; width: 6rem; height: 6rem; }.champs-lecture-seule { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .page-parametres { width: min(100% - 1rem, 960px); padding-top: 1rem; }.entete-page { display: grid; }.navigation-sections { width: 100%; justify-content: center; overflow-x: auto; }.gestion-photo { align-items: flex-start; }.avatar { flex-basis: 6rem; width: 6rem; height: 6rem; }.champs-lecture-seule { grid-template-columns: minmax(0, 1fr); } }

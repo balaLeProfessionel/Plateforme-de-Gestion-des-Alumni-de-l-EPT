@@ -31,7 +31,7 @@ dd { margin: 0; overflow-wrap: anywhere; font-weight: 600; }
 .etat-centre h1, .etat-centre p { margin: 0; }
 .etat-centre button { margin-top: 0.5rem; padding: 0.65rem 1rem; border: 1px solid var(--ept-primary); background: white; color: var(--ept-primary); font: inherit; font-weight: 700; cursor: pointer; }
 @keyframes pulsation { to { opacity: 0.55; } }
-@media (max-width: 800px) { .grille-detail { grid-template-columns: 1fr; } }
+@media (max-width: 800px) { .grille-detail { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 520px) {
   .page-organisme { width: min(100% - 2rem, 1180px); padding-top: 1.5rem; }
   .entete-organisme { flex-direction: column; align-items: flex-start; padding: 1.25rem; }

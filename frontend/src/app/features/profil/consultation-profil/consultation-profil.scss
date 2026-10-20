@@ -5,7 +5,7 @@
 
 .entete-profil {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 1.5rem;
   padding: 1.75rem;
@@ -78,14 +78,14 @@ dd { margin: 0; overflow-wrap: anywhere; font-weight: 600; }
 @keyframes pulsation { to { opacity: 0.55; } }
 
 @media (max-width: 800px) {
-  .entete-profil { grid-template-columns: auto 1fr; }
+  .entete-profil { grid-template-columns: auto minmax(0, 1fr); }
   .modifier { grid-column: 1 / -1; justify-content: center; }
-  .grille-profil { grid-template-columns: 1fr; }
+  .grille-profil { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (max-width: 520px) {
   .page-profil { width: min(100% - 2rem, 1180px); padding-top: 2rem; }
-  .entete-profil { grid-template-columns: 1fr; align-items: start; padding: 1.25rem; }
+  .entete-profil { grid-template-columns: minmax(0, 1fr); align-items: start; padding: 1.25rem; }
   .avatar { width: 6rem; height: 6rem; }
   .ligne-nom h1 { font-size: 2rem; }
   .section-profil { padding: 1.2rem; }
