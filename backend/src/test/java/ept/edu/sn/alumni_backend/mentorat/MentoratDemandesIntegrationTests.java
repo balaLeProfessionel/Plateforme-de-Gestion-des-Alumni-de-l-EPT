@@ -69,10 +69,44 @@ class MentoratDemandesIntegrationTests extends MentoratTestsBase {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TypeRole.class, names = {"ALUMNI", "PERSONNEL", "VISITEUR", "ORGANISME", "ADMIN"})
-    void d02_seulUnEtudiantPeutDemanderUnMentorat(TypeRole role) throws Exception {
+    @EnumSource(value = TypeRole.class, names = {"ORGANISME", "ADMIN"})
+    void d02_lesComptesDOrganismeOuDAdministrationNeDemandentPasDeMentorat(TypeRole role) throws Exception {
         envoyer(post("/api/mentorat/mentorats"), creerUtilisateur(role, "Membre"), demande(profilId, data))
-            .andExpect(status().isForbidden());
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.message").value("Le mentorat est réservé aux membres : étudiants, alumni, personnel et visiteurs."));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = TypeRole.class, names = {"ETUDIANT", "ALUMNI", "PERSONNEL", "VISITEUR"})
+    void d11_toutMembrePeutEtreMentoreAupresDeToutMembre(TypeRole role) throws Exception {
+        // Ex. un lycéen (visiteur) auprès d'un étudiant, ou un jeune alumni auprès d'un ancien.
+        UUID profilEtudiant = creerProfil(autreEtudiant, true, 2, data);
+        envoyer(post("/api/mentorat/mentorats"), creerUtilisateur(role, "Membre"), demande(profilEtudiant, data))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.statut").value("EN_ATTENTE"))
+            .andExpect(jsonPath("$.mentor.role").value("ETUDIANT"))
+            .andExpect(jsonPath("$.mentore.role").value(role.name()));
+    }
+
+    @Test
+    void d12_auPlusTroisDemandesEnAttenteToutesMentorsConfondus() throws Exception {
+        Utilisateur[] mentors = new Utilisateur[4];
+        UUID[] profils = new UUID[4];
+        for (int i = 0; i < profils.length; i++) {
+            mentors[i] = creerUtilisateur(TypeRole.ALUMNI, "Mentor" + i);
+            profils[i] = creerProfil(mentors[i], true, 2, data);
+        }
+        UUID premiere = demander(etudiant, profils[0], data);
+        demander(etudiant, profils[1], data);
+        demander(etudiant, profils[2], data);
+        envoyer(post("/api/mentorat/mentorats"), etudiant, demande(profils[3], data))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value(
+                "Vous avez déjà 3 demandes en attente. Attendez une réponse ou annulez-en une avant d'en envoyer une autre."));
+
+        // Une demande acceptée ne compte plus : seules les demandes sans réponse sont limitées.
+        changerStatut(premiere, "accepter", mentors[0]);
+        demander(etudiant, profils[3], data);
     }
 
     @Test
@@ -201,7 +235,11 @@ class MentoratDemandesIntegrationTests extends MentoratTestsBase {
         mockMvc.perform(authentifie(get("/api/mentorat/mentorats/compteurs"), mentor))
             .andExpect(jsonPath("$.demandesRecuesEnAttente").value(1));
         mockMvc.perform(authentifie(get("/api/mentorat/mentorats/compteurs"), etudiant))
-            .andExpect(jsonPath("$.demandesRecuesEnAttente").value(0));
+            .andExpect(jsonPath("$.demandesRecuesEnAttente").value(0))
+            .andExpect(jsonPath("$.demandesEnvoyeesEnAttente").value(0))
+            .andExpect(jsonPath("$.demandesEnAttenteMax").value(3));
+        mockMvc.perform(authentifie(get("/api/mentorat/mentorats/compteurs"), autreEtudiant))
+            .andExpect(jsonPath("$.demandesEnvoyeesEnAttente").value(1));
     }
 
     // ---------- Changements de statut ----------

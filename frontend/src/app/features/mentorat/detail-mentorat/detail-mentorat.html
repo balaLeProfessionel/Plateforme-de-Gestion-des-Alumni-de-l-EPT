@@ -15,11 +15,11 @@
         @for (personne of [mentorat.mentor, mentorat.mentore]; track personne.id; let estMentor = $first) {
           <a class="personne" [routerLink]="['/profil', personne.id]">
             <app-avatar-membre [urlPhoto]="personne.urlPhoto" [prenom]="personne.prenom" [nom]="personne.nom"
-              [roleMembre]="estMentor ? 'ALUMNI' : 'ETUDIANT'" [taille]="3.25" />
+              [roleMembre]="personne.role" [taille]="3.25" />
             <span class="identite">
               <small>{{ estMentor ? 'Mentor' : 'Mentoré' }}</small>
               <strong>{{ personne.prenom }} {{ personne.nom }}</strong>
-              <span>{{ estMentor ? (personne.posteActuel ?? 'Alumni') : (personne.filiere ?? 'Étudiant') }}</span>
+              <span>{{ personne.posteActuel ?? personne.filiere ?? libellesRole[personne.role] }}</span>
             </span>
           </a>
         }

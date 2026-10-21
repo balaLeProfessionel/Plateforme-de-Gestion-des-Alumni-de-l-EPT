@@ -117,3 +117,19 @@
     button { flex: 0 0 auto; }
   }
 }
+
+.limite {
+  display: flex;
+  gap: 0.6rem;
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--ept-gold);
+  border-radius: 8px;
+  background: var(--ept-gold-light);
+  color: var(--ept-primary-dark);
+  font-size: 0.9rem;
+  line-height: 1.5;
+
+  i { margin-top: 0.2rem; color: var(--ept-gold-dark); }
+  a { color: var(--ept-primary); font-weight: 700; }
+}

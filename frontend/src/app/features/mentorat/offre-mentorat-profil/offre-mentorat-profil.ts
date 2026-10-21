@@ -3,13 +3,14 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, map, of, switchMap, tap } from 'rxjs';
 import { AuthService } from '../../../core/services/auth/auth-service';
+import { CompteurDemandesMentorat } from '../../../core/services/mentorat/compteur-demandes';
 import { MentoratService } from '../../../core/services/mentorat/mentorat';
-import { Mentor, ProfilMentor } from '../../../core/services/models/mentorat.model';
+import { Mentor, ProfilMentor, participeAuMentorat } from '../../../core/services/models/mentorat.model';
 import { DialogueDemande } from '../dialogue-demande/dialogue-demande';
 
 /**
- * Le mentorat sur le profil d'un alumni : son offre et, pour un étudiant, la demande directe ;
- * sur son propre profil, l'alumni retrouve son offre ou une invitation à en proposer une.
+ * Le mentorat sur le profil d'un membre : son offre et la demande directe ;
+ * sur son propre profil, le membre retrouve son offre ou une invitation à en proposer une.
  */
 @Component({
   selector: 'app-offre-mentorat-profil',
@@ -20,11 +21,12 @@ import { DialogueDemande } from '../dialogue-demande/dialogue-demande';
 export class OffreMentoratProfil {
   private readonly mentoratService = inject(MentoratService);
   private readonly authService = inject(AuthService);
+  private readonly compteur = inject(CompteurDemandesMentorat);
 
   readonly utilisateurId = input.required<string>();
   readonly estMonProfil = input(false);
 
-  /** Offre d'un autre alumni (null : il n'en propose pas). */
+  /** Offre d'un autre membre (null : il n'en propose pas). */
   protected readonly mentor = signal<Mentor | null>(null);
   /** Ma propre offre, sur mon profil. */
   protected readonly monOffre = signal<ProfilMentor | null>(null);
@@ -32,17 +34,21 @@ export class OffreMentoratProfil {
   protected readonly mentorSollicite = signal<Mentor | null>(null);
   protected readonly confirmation = signal<string | null>(null);
 
-  protected readonly peutDemander = computed(() => this.authService.utilisateur()?.role === 'ETUDIANT');
+  protected readonly peutDemander = computed(() => participeAuMentorat(this.authService.utilisateur()?.role));
   protected readonly blocage = computed(() => {
     const mentor = this.mentor();
     if (!mentor) return null;
     if (mentor.demandeEnCours) return 'Vous avez déjà une demande en cours avec ce mentor.';
+    if (this.compteur.limiteAtteinte()) {
+      return `Vous avez déjà ${this.compteur.envoyees()} demandes en attente : attendez une réponse ou annulez-en une.`;
+    }
     if (!mentor.disponible) return 'Ce mentor n’accepte pas de nouvelle demande pour le moment.';
-    if (mentor.placesRestantes <= 0) return 'Ce mentor accompagne déjà le nombre maximum d’étudiants.';
+    if (mentor.placesRestantes <= 0) return 'Ce mentor accompagne déjà le nombre maximum de personnes.';
     return null;
   });
 
   constructor() {
+    if (this.peutDemander()) this.compteur.actualiser();
     // switchMap : en passant d'un profil à l'autre, la réponse du précédent est ignorée.
     toObservable(computed(() => ({ id: this.utilisateurId(), moi: this.estMonProfil() }))).pipe(
       tap(() => {
@@ -68,5 +74,6 @@ export class OffreMentoratProfil {
     if (!mentor) return;
     this.mentor.set({ ...mentor, demandeEnCours: true });
     this.confirmation.set('Votre demande a été envoyée. Vous la suivez dans Mentorat › Mes demandes.');
+    this.compteur.actualiser();
   }
 }

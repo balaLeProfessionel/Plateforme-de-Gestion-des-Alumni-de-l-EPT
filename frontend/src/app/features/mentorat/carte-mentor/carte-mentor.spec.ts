@@ -33,6 +33,16 @@ describe('CarteMentor', () => {
     expect(demandes).toHaveLength(1);
   });
 
+  it('désactive la demande quand ma limite de demandes en attente est atteinte', () => {
+    const racine = afficher(unMentor());
+    fixture.componentRef.setInput('limiteAtteinte', true);
+    fixture.detectChanges();
+    const demande = racine.querySelector('.demander') as HTMLButtonElement;
+    expect(demande.disabled).toBe(true);
+    expect(demande.textContent?.trim()).toBe('Limite de demandes atteinte');
+    expect(racine.querySelector('.disponibilite')?.textContent).toContain('Disponible · 2 places');
+  });
+
   it.each([
     [{ placesRestantes: 0 }, 'Complet', 'Complet'],
     [{ disponible: false }, 'Indisponible', 'Indisponible pour le moment'],

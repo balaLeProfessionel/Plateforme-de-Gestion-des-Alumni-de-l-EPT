@@ -17,9 +17,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import ept.edu.sn.alumni_backend.mentorat.ParticipationMentorat;
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
-import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.mentorat.StatutMentor;
 import ept.edu.sn.alumni_backend.mentorat.StatutMentorat;
 import ept.edu.sn.alumni_backend.mentorat.dto.DomaineMentoratResponse;
@@ -54,7 +54,7 @@ public class ProfilMentorService {
             .toList();
     }
 
-    /** Vide quand l'alumni n'a pas encore proposé de mentorat. */
+    /** Vide quand le membre n'a pas encore proposé de mentorat. */
     @Transactional(readOnly = true)
     public Optional<ProfilMentorResponse> obtenirMonProfil(UtilisateurPrincipal principal) {
         return profilMentorRepository.findByUtilisateur_Id(principal.getUtilisateur().getId())
@@ -64,8 +64,8 @@ public class ProfilMentorService {
     @Transactional
     public ProfilMentorResponse enregistrerMonProfil(ProfilMentorRequest request, UtilisateurPrincipal principal) {
         Utilisateur utilisateur = principal.getUtilisateur();
-        if (utilisateur.getRole() != TypeRole.ALUMNI) {
-            throw new SecurityException("Seuls les alumni peuvent proposer du mentorat.");
+        if (!ParticipationMentorat.autorise(utilisateur.getRole())) {
+            throw new SecurityException("Le mentorat est réservé aux membres : étudiants, alumni, personnel et visiteurs.");
         }
         Set<DomaineMentorat> domaines = new LinkedHashSet<>(domaineRepository.findAllById(request.domaineIds()));
         if (domaines.size() != request.domaineIds().size() || domaines.stream().anyMatch(d -> !d.isActif())) {
@@ -169,7 +169,7 @@ public class ProfilMentorService {
             return cb.and(
                 cb.isTrue(utilisateur.get("emailVerifie")),
                 cb.equal(utilisateur.get("statutCompte"), StatutCompte.ACTIF),
-                cb.equal(utilisateur.get("role"), TypeRole.ALUMNI),
+                utilisateur.get("role").in(ParticipationMentorat.ROLES),
                 cb.notEqual(utilisateur.get("id"), moi));
         };
     }

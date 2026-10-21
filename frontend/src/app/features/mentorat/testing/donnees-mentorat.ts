@@ -7,7 +7,7 @@ export function unMentor(valeurs: Partial<Mentor> = {}): Mentor {
     posteActuel: 'Data Engineer', filiere: 'Génie Informatique', anneeSortie: 2016,
     presentation: 'J’aide à préparer les stages.',
     domaines: [{ id: 'd1', code: 'DATA_IA', libelle: 'Data & IA' }],
-    disponible: true, placesRestantes: 2, demandeEnCours: false,
+    disponible: true, placesRestantes: 2, demandeEnCours: false, role: 'ALUMNI',
     ...valeurs,
   };
 }
@@ -22,8 +22,8 @@ export function unMentorat(valeurs: Partial<Mentorat> = {}): Mentorat {
     creeLe: '2026-10-02T10:00:00Z',
     reponduLe: null,
     clotureLe: null,
-    mentor: { id: 'u1', nom: 'Diop', prenom: 'Awa', urlPhoto: null, posteActuel: 'Data Engineer', filiere: null, anneeSortie: 2016 },
-    mentore: { id: 'u2', nom: 'Ndiaye', prenom: 'Moussa', urlPhoto: null, posteActuel: null, filiere: 'GIT', anneeSortie: 2027 },
+    mentor: { id: 'u1', nom: 'Diop', prenom: 'Awa', urlPhoto: null, posteActuel: 'Data Engineer', filiere: null, anneeSortie: 2016, role: 'ALUMNI' },
+    mentore: { id: 'u2', nom: 'Ndiaye', prenom: 'Moussa', urlPhoto: null, posteActuel: null, filiere: 'GIT', anneeSortie: 2027, role: 'ETUDIANT' },
     monRole: 'MENTOR',
     programme: null,
     ...valeurs,

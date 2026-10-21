@@ -11,8 +11,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import ept.edu.sn.alumni_backend.mentorat.ParticipationMentorat;
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
-import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.mentorat.RoleMentorat;
 import ept.edu.sn.alumni_backend.mentorat.StatutMentorat;
 import ept.edu.sn.alumni_backend.mentorat.dto.CompteursMentoratResponse;
@@ -45,8 +45,8 @@ public class MentoratService {
     @Transactional
     public MentoratResponse demander(DemandeMentoratRequest request, UtilisateurPrincipal principal) {
         Utilisateur demandeur = principal.getUtilisateur();
-        if (demandeur.getRole() != TypeRole.ETUDIANT) {
-            throw new SecurityException("Seuls les étudiants peuvent demander un mentorat.");
+        if (!ParticipationMentorat.autorise(demandeur.getRole())) {
+            throw new SecurityException("Le mentorat est réservé aux membres : étudiants, alumni, personnel et visiteurs.");
         }
         // Un mentor absent de la recherche (compte suspendu, en attente…) ne peut pas non plus être sollicité.
         ProfilMentor profil = profilMentorRepository.findByIdForUpdate(request.profilMentorId())
@@ -65,6 +65,11 @@ public class MentoratService {
         if (mentoratRepository.existsByMentore_IdAndProfilMentor_IdAndStatutIn(
                 demandeur.getId(), profil.getId(), StatutMentorat.EN_COURS)) {
             throw new ConflitMentoratException("Vous avez déjà une demande en cours avec ce mentor.");
+        }
+        if (mentoratRepository.countByMentore_IdAndStatut(demandeur.getId(), StatutMentorat.EN_ATTENTE)
+                >= ParticipationMentorat.DEMANDES_EN_ATTENTE_MAX) {
+            throw new ConflitMentoratException("Vous avez déjà " + ParticipationMentorat.DEMANDES_EN_ATTENTE_MAX
+                + " demandes en attente. Attendez une réponse ou annulez-en une avant d'en envoyer une autre.");
         }
 
         Mentorat mentorat = new Mentorat();
@@ -96,8 +101,11 @@ public class MentoratService {
 
     @Transactional(readOnly = true)
     public CompteursMentoratResponse compter(UtilisateurPrincipal principal) {
-        return new CompteursMentoratResponse(mentoratRepository.countByProfilMentor_Utilisateur_IdAndStatut(
-            principal.getUtilisateur().getId(), StatutMentorat.EN_ATTENTE));
+        UUID moi = principal.getUtilisateur().getId();
+        return new CompteursMentoratResponse(
+            mentoratRepository.countByProfilMentor_Utilisateur_IdAndStatut(moi, StatutMentorat.EN_ATTENTE),
+            mentoratRepository.countByMentore_IdAndStatut(moi, StatutMentorat.EN_ATTENTE),
+            ParticipationMentorat.DEMANDES_EN_ATTENTE_MAX);
     }
 
     @Transactional
@@ -133,7 +141,7 @@ public class MentoratService {
     @Transactional
     public MentoratResponse annuler(UUID mentoratId, UtilisateurPrincipal principal) {
         Mentorat mentorat = acces.chargerPourParticipant(mentoratId, principal);
-        exigerRole(mentorat, principal, RoleMentorat.MENTORE, "Seul l'étudiant peut annuler sa demande.");
+        exigerRole(mentorat, principal, RoleMentorat.MENTORE, "Seule la personne qui a fait la demande peut l'annuler.");
         exigerTransition(mentorat, StatutMentorat.ANNULEE);
         mentorat.setStatut(StatutMentorat.ANNULEE);
         mentorat.setClotureLe(Instant.now());

@@ -6,6 +6,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin, map, switchMap, tap } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth/auth-service';
+import { participeAuMentorat } from '../../../core/services/models/mentorat.model';
 import {
   Experience,
   Formation,
@@ -38,6 +39,7 @@ export class ConsultationProfil {
 
   protected readonly profil = signal<ProfilAffiche | null>(null);
   protected readonly estMonProfil = signal(false);
+  protected readonly participeAuMentorat = participeAuMentorat;
   protected readonly enChargement = signal(true);
   protected readonly messageErreur = signal<string | null>(null);
 

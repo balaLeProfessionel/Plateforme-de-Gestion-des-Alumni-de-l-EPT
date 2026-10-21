@@ -101,7 +101,7 @@ describe('MonOffre', () => {
       domaines: [DOMAINES[0]] });
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(racine.querySelector('.succes')?.textContent).toContain('les étudiants peuvent vous solliciter');
+    expect(racine.querySelector('.succes')?.textContent).toContain('les membres peuvent vous solliciter');
   });
 
   it('affiche le refus du serveur', async () => {

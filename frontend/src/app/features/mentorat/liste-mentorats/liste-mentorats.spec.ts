@@ -104,8 +104,8 @@ function mentorat(): Mentorat {
     creeLe: '2026-10-02T10:00:00Z',
     reponduLe: null,
     clotureLe: null,
-    mentor: { id: 'u1', nom: 'Diop', prenom: 'Awa', urlPhoto: null, posteActuel: 'Data Engineer', filiere: null, anneeSortie: 2016 },
-    mentore: { id: 'u2', nom: 'Ndiaye', prenom: 'Moussa', urlPhoto: null, posteActuel: null, filiere: 'GIT', anneeSortie: 2027 },
+    mentor: { id: 'u1', nom: 'Diop', prenom: 'Awa', urlPhoto: null, posteActuel: 'Data Engineer', filiere: null, anneeSortie: 2016, role: 'ALUMNI' },
+    mentore: { id: 'u2', nom: 'Ndiaye', prenom: 'Moussa', urlPhoto: null, posteActuel: null, filiere: 'GIT', anneeSortie: 2027, role: 'ETUDIANT' },
     monRole: 'MENTOR',
     programme: null,
   };

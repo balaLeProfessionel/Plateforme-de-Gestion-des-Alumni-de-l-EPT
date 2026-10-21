@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 
 import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
+import { ROLES_MENTORAT } from '../../core/services/models/mentorat.model';
 import { MentoratPage } from './mentorat';
 import { MENTORAT_ROUTES } from './mentorat.routes';
 
@@ -33,36 +34,36 @@ describe('MentoratPage', () => {
     return fixture.nativeElement;
   }
 
-  const onglets = (racine: HTMLElement) =>
-    [...racine.querySelectorAll('.onglets a')].map((lien) => lien.textContent?.trim());
+  const groupes = (racine: HTMLElement) => [...racine.querySelectorAll('.onglets [role="group"]')].map((groupe) => ({
+    titre: groupe.querySelector('.titre-groupe')?.textContent?.trim(),
+    onglets: [...groupe.querySelectorAll('a')].map((lien) => lien.textContent?.trim()),
+  }));
 
-  it('propose à l’étudiant de chercher un mentor et de suivre ses demandes', () => {
-    const racine = afficher('ETUDIANT');
-    expect(onglets(racine)).toEqual(['Trouver un mentor', 'Mes demandes', 'Mes mentorats']);
-    expect((racine.querySelector('app-guide-mentorat details') as HTMLDetailsElement).open).toBe(false);
-    expect(actualiser).not.toHaveBeenCalled();
-  });
-
-  it('propose à l’alumni ses demandes reçues avec leur nombre', () => {
+  it.each(['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'])('donne les deux casquettes à tout membre (%s)', (role) => {
     nombre.set(3);
-    const racine = afficher('ALUMNI');
+    const racine = afficher(role);
+    expect(groupes(racine)).toEqual([
+      { titre: 'Être accompagné', onglets: ['Trouver un mentor', 'Mes demandes', 'Mes mentorats'] },
+      { titre: 'Accompagner', onglets: ['Demandes reçues 3 en attente', 'Mes mentorés', 'Mon offre'] },
+    ]);
     expect(actualiser).toHaveBeenCalledOnce();
-    expect(onglets(racine)[0]).toContain('Demandes reçues');
-    expect(racine.querySelector('.compteur')?.textContent).toContain('3 en attente');
-    expect(racine.querySelectorAll('.onglets a')).toHaveLength(3);
+    expect((racine.querySelector('app-guide-mentorat details') as HTMLDetailsElement).open).toBe(false);
   });
 
-  it.each(['PERSONNEL', 'VISITEUR', 'ORGANISME', 'ADMIN'])('présente le module aux autres rôles (%s)', (role) => {
+  it.each(['ORGANISME', 'ADMIN'])('présente le module aux comptes qui n’y participent pas (%s)', (role) => {
     const racine = afficher(role);
     expect(racine.querySelector('.onglets')).toBeNull();
-    expect(racine.textContent).toContain('Le mentorat relie étudiants et alumni');
+    expect(racine.textContent).toContain('Le mentorat relie les membres de l’EPT');
     expect((racine.querySelector('app-guide-mentorat details') as HTMLDetailsElement).open).toBe(true);
+    expect(actualiser).not.toHaveBeenCalled();
   });
 
   it.each([
     ['ETUDIANT', 'trouver'],
     ['ALUMNI', 'recues'],
-    ['VISITEUR', 'presentation'],
+    ['PERSONNEL', 'trouver'],
+    ['VISITEUR', 'trouver'],
+    ['ORGANISME', 'presentation'],
   ])('ouvre l’onglet adapté au rôle %s', (role, onglet) => {
     utilisateur.set({ role });
     const cadre = MENTORAT_ROUTES.find((route) => route.path === '') as Route;
@@ -72,14 +73,14 @@ describe('MentoratPage', () => {
     expect(cible).toBe(onglet);
   });
 
-  it('réserve les onglets à leur rôle', () => {
+  it('ouvre chaque onglet à tous les membres participants', () => {
     const cadre = MENTORAT_ROUTES.find((route) => route.path === '') as Route;
     const roles = Object.fromEntries((cadre.children ?? [])
       .filter((route) => route.data?.['roles'])
       .map((route) => [route.path, route.data?.['roles']]));
     expect(roles).toEqual({
-      trouver: ['ETUDIANT'], demandes: ['ETUDIANT'], suivis: ['ETUDIANT'],
-      recues: ['ALUMNI'], mentores: ['ALUMNI'], offre: ['ALUMNI'],
+      trouver: ROLES_MENTORAT, demandes: ROLES_MENTORAT, suivis: ROLES_MENTORAT,
+      recues: ROLES_MENTORAT, mentores: ROLES_MENTORAT, offre: ROLES_MENTORAT,
     });
   });
 });

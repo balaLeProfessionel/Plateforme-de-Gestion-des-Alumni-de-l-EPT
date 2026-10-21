@@ -76,12 +76,28 @@ class MentoratProfilIntegrationTests extends MentoratTestsBase {
     // ---------- Offre de mentorat ----------
 
     @ParameterizedTest
-    @EnumSource(value = TypeRole.class, names = {"ETUDIANT", "PERSONNEL", "VISITEUR", "ORGANISME", "ADMIN"})
-    void p04_seulUnAlumniPeutProposerDuMentorat(TypeRole role) throws Exception {
+    @EnumSource(value = TypeRole.class, names = {"ORGANISME", "ADMIN"})
+    void p04_lesComptesDOrganismeOuDAdministrationNeProposentPasDeMentorat(TypeRole role) throws Exception {
         Utilisateur membre = creerUtilisateur(role, "Membre");
         envoyer(put("/api/mentorat/profil"), membre, profil(true, 2, data))
             .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.message").value("Seuls les alumni peuvent proposer du mentorat."));
+            .andExpect(jsonPath("$.message").value("Le mentorat est réservé aux membres : étudiants, alumni, personnel et visiteurs."));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = TypeRole.class, names = {"ETUDIANT", "ALUMNI", "PERSONNEL", "VISITEUR"})
+    void p10_toutMembreProposeDuMentoratEtApparaitDansLaRechercheAvecSonRole(TypeRole role) throws Exception {
+        String nom = "Role" + UUID.randomUUID().toString().substring(0, 6);
+        Utilisateur membre = renommer(creerUtilisateur(role, "x"), nom);
+        envoyer(put("/api/mentorat/profil"), membre, profil(true, 2, data)).andExpect(status().isOk());
+
+        Utilisateur demandeur = creerUtilisateur(TypeRole.VISITEUR, "Lycee");
+        mockMvc.perform(authentifie(get("/api/mentorat/mentors").param("recherche", nom), demandeur))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.contenu.length()").value(1))
+            .andExpect(jsonPath("$.contenu[0].role").value(role.name()));
+        mockMvc.perform(authentifie(get("/api/annuaire").param("recherche", nom), demandeur))
+            .andExpect(jsonPath("$.contenu[0].mentor").value("DISPONIBLE"));
     }
 
     @Test

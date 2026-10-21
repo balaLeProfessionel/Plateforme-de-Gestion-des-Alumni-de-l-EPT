@@ -1,14 +1,21 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { signal } from '@angular/core';
+import { computed, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { vi } from 'vitest';
 
+import { CompteurDemandesMentorat } from '../../../core/services/mentorat/compteur-demandes';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { simulerDialogue, unMentor, unMentorat, saisir, soumettre } from '../testing/donnees-mentorat';
 import { OffreMentoratProfil } from './offre-mentorat-profil';
 
 describe('OffreMentoratProfil', () => {
+  const envoyees = signal(0);
+  const compteur = {
+    envoyees, limiteAtteinte: computed(() => envoyees() >= 3), actualiser: vi.fn(),
+  };
+
   let fixture: ComponentFixture<OffreMentoratProfil>;
   let http: HttpTestingController;
   const utilisateur = signal<{ role: string } | null>({ role: 'ETUDIANT' });
@@ -21,13 +28,16 @@ describe('OffreMentoratProfil', () => {
     return fixture.nativeElement;
   }
 
+  beforeEach(() => { envoyees.set(0); compteur.actualiser.mockClear(); });
+
   beforeEach(() => {
     simulerDialogue();
     utilisateur.set({ role: 'ETUDIANT' });
     TestBed.configureTestingModule({
       imports: [OffreMentoratProfil],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([]),
-        { provide: AuthService, useValue: { utilisateur } }],
+        { provide: AuthService, useValue: { utilisateur } },
+        { provide: CompteurDemandesMentorat, useValue: compteur }],
     });
     http = TestBed.inject(HttpTestingController);
   });
@@ -63,6 +73,16 @@ describe('OffreMentoratProfil', () => {
     expect(racine.querySelector('button.principale')).toBeNull();
   });
 
+  it('explique que ma limite de demandes en attente est atteinte', async () => {
+    envoyees.set(3);
+    const racine = afficher('u1');
+    http.expectOne('/api/mentorat/mentors/utilisateur/u1').flush(unMentor());
+    await fixture.whenStable();
+    expect(compteur.actualiser).toHaveBeenCalled();
+    expect(racine.querySelector('button.principale')).toBeNull();
+    expect(racine.querySelector('.blocage')?.textContent).toContain('Vous avez déjà 3 demandes en attente');
+  });
+
   it.each([
     [{ demandeEnCours: true }, 'déjà une demande en cours'],
     [{ disponible: false }, 'n’accepte pas de nouvelle demande'],
@@ -75,8 +95,16 @@ describe('OffreMentoratProfil', () => {
     expect(racine.querySelector('.blocage')?.textContent).toContain(raison);
   });
 
-  it('n’offre pas la demande aux visiteurs qui ne sont pas étudiants', async () => {
-    utilisateur.set({ role: 'ALUMNI' });
+  it.each(['ALUMNI', 'PERSONNEL', 'VISITEUR'])('laisse tout membre demander un mentorat (%s)', async (role) => {
+    utilisateur.set({ role });
+    const racine = afficher('u1');
+    http.expectOne('/api/mentorat/mentors/utilisateur/u1').flush(unMentor());
+    await fixture.whenStable();
+    expect(racine.querySelector('button.principale')?.textContent).toContain('Demander un mentorat');
+  });
+
+  it('n’offre pas la demande aux comptes qui ne participent pas au mentorat', async () => {
+    utilisateur.set({ role: 'ORGANISME' });
     const racine = afficher('u1');
     http.expectOne('/api/mentorat/mentors/utilisateur/u1').flush(unMentor());
     await fixture.whenStable();

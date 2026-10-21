@@ -57,18 +57,23 @@ describe('MentoratService', () => {
 });
 
 describe('CompteurDemandesMentorat', () => {
-  it('reprend le nombre du serveur et retombe à zéro en cas d’erreur', () => {
+  it('reprend les compteurs du serveur et retombe à zéro en cas d’erreur', () => {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     const compteur = TestBed.inject(CompteurDemandesMentorat);
     const http = TestBed.inject(HttpTestingController);
 
     compteur.actualiser();
-    http.expectOne('/api/mentorat/mentorats/compteurs').flush({ demandesRecuesEnAttente: 4 });
+    expect(compteur.limiteAtteinte()).toBe(false);
+    http.expectOne('/api/mentorat/mentorats/compteurs')
+      .flush({ demandesRecuesEnAttente: 4, demandesEnvoyeesEnAttente: 3, demandesEnAttenteMax: 3 });
     expect(compteur.nombre()).toBe(4);
+    expect(compteur.envoyees()).toBe(3);
+    expect(compteur.limiteAtteinte()).toBe(true);
 
     compteur.actualiser();
     http.expectOne('/api/mentorat/mentorats/compteurs').flush({}, { status: 500, statusText: 'Erreur' });
     expect(compteur.nombre()).toBe(0);
+    expect(compteur.limiteAtteinte()).toBe(false);
     http.verify();
   });
 });

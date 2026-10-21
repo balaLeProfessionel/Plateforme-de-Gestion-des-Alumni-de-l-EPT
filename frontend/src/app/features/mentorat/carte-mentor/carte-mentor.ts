@@ -13,6 +13,8 @@ const DOMAINES_VISIBLES = 3;
 })
 export class CarteMentor {
   readonly mentor = input.required<Mentor>();
+  /** Mes demandes sans réponse ont atteint la limite : je ne peux plus en envoyer. */
+  readonly limiteAtteinte = input(false);
   readonly demander = output<Mentor>();
 
   protected readonly nomAffiche = computed(() => `${this.mentor().prenom} ${this.mentor().nom}`.trim());
@@ -28,6 +30,7 @@ export class CarteMentor {
   protected readonly blocage = computed(() => {
     const { demandeEnCours, disponible, placesRestantes } = this.mentor();
     if (demandeEnCours) return 'Demande envoyée';
+    if (this.limiteAtteinte()) return 'Limite de demandes atteinte';
     if (!disponible) return 'Indisponible';
     if (placesRestantes <= 0) return 'Complet';
     return null;

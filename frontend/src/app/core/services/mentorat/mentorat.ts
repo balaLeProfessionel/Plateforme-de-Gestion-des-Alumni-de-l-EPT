@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import {
+  CompteursMentorat,
   CriteresMentors,
   DomaineMentorat,
   EvaluationMentorat,
@@ -59,7 +60,7 @@ export class MentoratService {
   }
 
   compter() {
-    return this.http.get<{ demandesRecuesEnAttente: number }>(`${API}/mentorats/compteurs`);
+    return this.http.get<CompteursMentorat>(`${API}/mentorats/compteurs`);
   }
 
   obtenir(id: string) {

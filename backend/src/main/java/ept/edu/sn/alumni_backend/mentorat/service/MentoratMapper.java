@@ -56,7 +56,8 @@ public class MentoratMapper {
             domaines(profil),
             profil.isDisponible(),
             placesRestantes,
-            demandeEnCours);
+            demandeEnCours,
+            mentor.getRole());
     }
 
     public MentoratResponse versResponse(Mentorat mentorat, UUID utilisateurConnecteId) {
@@ -112,6 +113,7 @@ public class MentoratMapper {
             utilisateur.getUrlPhoto(),
             utilisateur.getPosteActuel(),
             utilisateur.getFiliere(),
-            utilisateur.getAnneeSortie());
+            utilisateur.getAnneeSortie(),
+            utilisateur.getRole());
     }
 }

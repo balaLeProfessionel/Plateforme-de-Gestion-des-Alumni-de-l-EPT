@@ -19,6 +19,8 @@ import ept.edu.sn.alumni_backend.mentorat.entity.Mentorat;
 public interface MentoratRepository extends JpaRepository<Mentorat, UUID> {
     long countByProfilMentor_IdAndStatut(UUID profilMentorId, StatutMentorat statut);
 
+    long countByMentore_IdAndStatut(UUID mentoreId, StatutMentorat statut);
+
     boolean existsByMentore_IdAndProfilMentor_IdAndStatutIn(
         UUID mentoreId, UUID profilMentorId, Collection<StatutMentorat> statuts);
 

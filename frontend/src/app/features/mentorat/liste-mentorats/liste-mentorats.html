@@ -17,7 +17,7 @@
         @let personne = autrePersonne(mentorat);
         <li class="ligne carte-cliquable" [attr.data-statut]="mentorat.statut">
           <app-avatar-membre [urlPhoto]="personne.urlPhoto" [prenom]="personne.prenom" [nom]="personne.nom"
-            [roleMembre]="mentorat.monRole === 'MENTOR' ? 'ETUDIANT' : 'ALUMNI'" />
+            [roleMembre]="personne.role" />
 
           <div class="contenu">
             <div class="entete">

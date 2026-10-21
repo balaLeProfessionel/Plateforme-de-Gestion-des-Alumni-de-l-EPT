@@ -11,6 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import ept.edu.sn.alumni_backend.mentorat.ParticipationMentorat;
 import ept.edu.sn.alumni_backend.annuaire.dto.AnnuaireMembreResponse;
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
@@ -83,7 +84,7 @@ public class AnnuaireService {
 
         Page<Utilisateur> membres = utilisateurRepository.findAll(specification, pagination);
         Map<UUID, StatutMentor> mentors = profilMentorService.statutsMentors(
-            membres.stream().filter(m -> m.getRole() == TypeRole.ALUMNI).map(Utilisateur::getId).toList());
+            membres.stream().filter(m -> ParticipationMentorat.autorise(m.getRole())).map(Utilisateur::getId).toList());
         return PageResponse.depuis(
             membres.map(membre -> annuaireMapper.versResponse(membre, mentors.get(membre.getId())))
         );

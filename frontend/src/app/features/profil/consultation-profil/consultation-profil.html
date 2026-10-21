@@ -190,7 +190,7 @@
       </div>
 
       <aside class="colonne-laterale" aria-label="Informations complémentaires">
-        @if (membre.role === 'ALUMNI') {
+        @if (participeAuMentorat(membre.role)) {
           <app-offre-mentorat-profil [utilisateurId]="membre.id" [estMonProfil]="estMonProfil()" />
         }
         <section class="section-profil informations">

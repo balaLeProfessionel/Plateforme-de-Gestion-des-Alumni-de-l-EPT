@@ -3,29 +3,36 @@
 
   <header class="entete-mentorat">
     <h1>Mentorat</h1>
-    <p class="introduction">{{ introduction() }}</p>
+    <p class="introduction">Faites-vous accompagner par un membre de l’EPT, ou accompagnez-en un à votre tour.</p>
   </header>
 
-  <app-guide-mentorat [ouvert]="!onglets().length" />
+  <app-guide-mentorat [ouvert]="!participe()" />
 
-  @if (onglets().length) {
+  @if (participe()) {
     <nav class="onglets" aria-label="Rubriques du mentorat">
-      @for (onglet of onglets(); track onglet.lien) {
-        <a [routerLink]="onglet.lien" routerLinkActive="actif" ariaCurrentWhenActive="page">
-          <i class="pi" [class]="'pi ' + onglet.icone" aria-hidden="true"></i>{{ onglet.libelle }}
-          @if (onglet.compteur && compteur.nombre() > 0) {
-            <span class="compteur">{{ compteur.nombre() }}<span class="sr-only"> en attente</span></span>
-          }
-        </a>
+      @for (groupe of groupes(); track groupe.id) {
+        <div class="groupe" role="group" [attr.aria-labelledby]="groupe.id">
+          <span class="titre-groupe" [id]="groupe.id">{{ groupe.titre }}</span>
+          <div class="liens">
+            @for (onglet of groupe.onglets; track onglet.lien) {
+              <a [routerLink]="onglet.lien" routerLinkActive="actif" ariaCurrentWhenActive="page">
+                <i class="pi" [class]="'pi ' + onglet.icone" aria-hidden="true"></i>{{ onglet.libelle }}
+                @if (onglet.compteur && compteur.nombre() > 0) {
+                  <span class="compteur">{{ compteur.nombre() }}<span class="sr-only"> en attente</span></span>
+                }
+              </a>
+            }
+          </div>
+        </div>
       }
     </nav>
     <router-outlet />
   } @else {
     <section class="etat-mentorat">
       <i class="pi pi-sitemap" aria-hidden="true"></i>
-      <h2>Le mentorat relie étudiants et alumni</h2>
-      <p>Les étudiants y trouvent un alumni pour les accompagner, et les alumni y proposent leur aide.
-        Cet espace leur est réservé : il s’ouvre avec un compte étudiant ou alumni.</p>
+      <h2>Le mentorat relie les membres de l’EPT</h2>
+      <p>Étudiants, alumni, personnel et visiteurs s’y accompagnent les uns les autres.
+        Cet espace s’ouvre avec un compte personnel de membre.</p>
     </section>
   }
 </div>

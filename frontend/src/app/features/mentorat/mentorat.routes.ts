@@ -2,10 +2,10 @@ import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 import { AuthService } from '../../core/services/auth/auth-service';
 import { roleGuard } from '../../core/guards/auth.guard';
+import { ROLES_MENTORAT, participeAuMentorat } from '../../core/services/models/mentorat.model';
 import { VueListeMentorats } from './liste-mentorats/liste-mentorats';
 
-const ETUDIANT = { roles: ['ETUDIANT'] };
-const ALUMNI = { roles: ['ALUMNI'] };
+const PARTICIPANTS = { roles: ROLES_MENTORAT };
 
 const vue = (vue: VueListeMentorats) => ({ vue });
 
@@ -23,12 +23,11 @@ export const MENTORAT_ROUTES: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        // Chaque rôle arrive sur l’onglet qui le concerne ; les autres voient la présentation du module.
+        // Les alumni, souvent mentors, arrivent sur leurs demandes reçues ; les autres membres sur la recherche.
         redirectTo: () => {
           const role = inject(AuthService).utilisateur()?.role;
-          if (role === 'ETUDIANT') return 'trouver';
           if (role === 'ALUMNI') return 'recues';
-          return 'presentation';
+          return participeAuMentorat(role) ? 'trouver' : 'presentation';
         }
       },
       { path: 'presentation', children: [] },
@@ -36,7 +35,7 @@ export const MENTORAT_ROUTES: Routes = [
         path: 'trouver',
         title: 'Trouver un mentor | EPT Alumni',
         canActivate: [roleGuard],
-        data: ETUDIANT,
+        data: PARTICIPANTS,
         loadComponent: () => import('./trouver-mentor/trouver-mentor').then((m) => m.TrouverMentor)
       },
       {
@@ -44,7 +43,7 @@ export const MENTORAT_ROUTES: Routes = [
         title: 'Mes demandes de mentorat | EPT Alumni',
         canActivate: [roleGuard],
         data: {
-          ...ETUDIANT,
+          ...PARTICIPANTS,
           ...vue({
             role: 'MENTORE',
             statuts: ['EN_ATTENTE', 'REFUSEE', 'ANNULEE'],
@@ -59,7 +58,7 @@ export const MENTORAT_ROUTES: Routes = [
         title: 'Mes mentorats | EPT Alumni',
         canActivate: [roleGuard],
         data: {
-          ...ETUDIANT,
+          ...PARTICIPANTS,
           ...vue({
             role: 'MENTORE',
             statuts: ['ACCEPTEE', 'TERMINEE'],
@@ -74,12 +73,12 @@ export const MENTORAT_ROUTES: Routes = [
         title: 'Demandes reçues | EPT Alumni',
         canActivate: [roleGuard],
         data: {
-          ...ALUMNI,
+          ...PARTICIPANTS,
           ...vue({
             role: 'MENTOR',
             statuts: ['EN_ATTENTE'],
             titreVide: 'Aucune demande en attente',
-            texteVide: 'Les demandes des étudiants arriveront ici. Vérifiez que votre offre est disponible.',
+            texteVide: 'Les demandes qu’on vous adresse arriveront ici. Vérifiez que votre offre est disponible.',
           }),
         },
         loadComponent: () => import('./liste-mentorats/liste-mentorats').then((m) => m.ListeMentorats)
@@ -89,12 +88,12 @@ export const MENTORAT_ROUTES: Routes = [
         title: 'Mes mentorés | EPT Alumni',
         canActivate: [roleGuard],
         data: {
-          ...ALUMNI,
+          ...PARTICIPANTS,
           ...vue({
             role: 'MENTOR',
             statuts: ['ACCEPTEE', 'TERMINEE', 'REFUSEE', 'ANNULEE'],
             titreVide: 'Aucun mentoré pour l’instant',
-            texteVide: 'Les étudiants que vous accompagnez, et l’historique de vos réponses, apparaîtront ici.',
+            texteVide: 'Les personnes que vous accompagnez, et l’historique de vos réponses, apparaîtront ici.',
           }),
         },
         loadComponent: () => import('./liste-mentorats/liste-mentorats').then((m) => m.ListeMentorats)
@@ -103,7 +102,7 @@ export const MENTORAT_ROUTES: Routes = [
         path: 'offre',
         title: 'Mon offre de mentorat | EPT Alumni',
         canActivate: [roleGuard],
-        data: ALUMNI,
+        data: PARTICIPANTS,
         loadComponent: () => import('./mon-offre/mon-offre').then((m) => m.MonOffre)
       },
     ]

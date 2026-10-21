@@ -9,6 +9,7 @@ import { SidebarModule } from 'primeng/sidebar';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
+import { participeAuMentorat } from '../../core/services/models/mentorat.model';
 import { AvatarMembre } from '../../shared/images/avatar-membre';
 import { MenuMobile, RubriqueAVenir, RubriqueMenu } from './menu-mobile/menu-mobile';
 import { NavigationMobile } from './navigation-mobile/navigation-mobile';
@@ -92,7 +93,7 @@ export class EspaceMembre implements OnDestroy {
 
   constructor() {
     this.formatNavigation?.addEventListener('change', this.changementFormatNavigation);
-    if (this.authService.utilisateur()?.role === 'ALUMNI') this.compteurMentorat.actualiser();
+    if (participeAuMentorat(this.authService.utilisateur()?.role)) this.compteurMentorat.actualiser();
   }
 
   ngOnDestroy(): void {

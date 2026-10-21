@@ -93,7 +93,7 @@ export class MonOffre {
           }));
           this.appliquerProfil(profil);
           this.confirmation.set(disponible
-            ? 'Votre offre est enregistrée : les étudiants peuvent vous solliciter.'
+            ? 'Votre offre est enregistrée : les membres peuvent vous solliciter.'
             : 'Votre offre est enregistrée. Vous n’apparaissez plus comme disponible.');
         } catch (erreur) {
           this.messageErreur.set(erreur instanceof HttpErrorResponse && erreur.error?.message

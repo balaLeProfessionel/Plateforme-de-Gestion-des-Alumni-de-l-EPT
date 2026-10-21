@@ -25,6 +25,24 @@ export interface ProfilMentorRequest {
   domaineIds: string[];
 }
 
+/** Toute personne membre peut être mentor et mentoré ; les comptes d’organisme et d’administration non. */
+export const ROLES_MENTORAT: readonly string[] = ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'];
+
+export const LIBELLES_ROLE_MEMBRE: Record<string, string> = {
+  ETUDIANT: 'Étudiant', ALUMNI: 'Alumni', PERSONNEL: 'Personnel', VISITEUR: 'Visiteur',
+};
+
+export function participeAuMentorat(role: string | null | undefined): boolean {
+  return ROLES_MENTORAT.includes(role ?? '');
+}
+
+export interface CompteursMentorat {
+  demandesRecuesEnAttente: number;
+  demandesEnvoyeesEnAttente: number;
+  /** Au-delà, le serveur refuse toute nouvelle demande tant qu’aucune n’a reçu de réponse. */
+  demandesEnAttenteMax: number;
+}
+
 export interface Mentor {
   profilId: string;
   utilisateurId: string;
@@ -39,6 +57,7 @@ export interface Mentor {
   disponible: boolean;
   placesRestantes: number;
   demandeEnCours: boolean;
+  role: string;
 }
 
 export interface ParticipantMentorat {
@@ -49,6 +68,7 @@ export interface ParticipantMentorat {
   posteActuel: string | null;
   filiere: string | null;
   anneeSortie: number | null;
+  role: string;
 }
 
 export interface Mentorat {
@@ -126,19 +146,19 @@ export const LIBELLES_STATUT_MENTORAT: Record<StatutMentorat, string> = {
 export const EXPLICATIONS_STATUT_MENTORAT: Record<StatutMentorat, Record<RoleMentorat, string>> = {
   EN_ATTENTE: {
     MENTORE: 'Votre demande attend la réponse du mentor. Vous pouvez l’annuler tant qu’il n’a pas répondu.',
-    MENTOR: 'Cet étudiant attend votre réponse : acceptez sa demande, ou refusez-la en précisant un motif.',
+    MENTOR: 'Cette personne attend votre réponse : acceptez sa demande, ou refusez-la en précisant un motif.',
   },
   ACCEPTEE: {
     MENTORE: 'Le mentor a accepté. Planifiez vos séances ensemble et consignez-les au fil du mentorat.',
-    MENTOR: 'Vous accompagnez cet étudiant. Planifiez vos séances ensemble et consignez-les au fil du mentorat.',
+    MENTOR: 'Vous accompagnez cette personne. Planifiez vos séances ensemble et consignez-les au fil du mentorat.',
   },
   REFUSEE: {
     MENTORE: 'Le mentor n’a pas pu accepter votre demande. Vous pouvez solliciter un autre mentor.',
-    MENTOR: 'Vous avez refusé cette demande ; l’étudiant en a été prévenu.',
+    MENTOR: 'Vous avez refusé cette demande ; la personne en a été prévenue.',
   },
   ANNULEE: {
     MENTORE: 'Vous avez annulé cette demande avant la réponse du mentor.',
-    MENTOR: 'L’étudiant a annulé sa demande avant votre réponse.',
+    MENTOR: 'La personne a annulé sa demande avant votre réponse.',
   },
   TERMINEE: {
     MENTORE: 'Ce mentorat est clôturé. Ses séances restent consultables et vous pouvez l’évaluer.',

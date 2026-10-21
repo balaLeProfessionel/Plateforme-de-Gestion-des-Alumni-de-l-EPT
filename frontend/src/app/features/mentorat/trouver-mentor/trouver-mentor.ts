@@ -4,6 +4,7 @@ import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-i
 import { FormField, form } from '@angular/forms/signals';
 import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, map, of, skip, switchMap, tap } from 'rxjs';
+import { CompteurDemandesMentorat } from '../../../core/services/mentorat/compteur-demandes';
 import { MentoratService } from '../../../core/services/mentorat/mentorat';
 import { CriteresMentors, Mentor, Page } from '../../../core/services/models/mentorat.model';
 import { CarteMentor } from '../carte-mentor/carte-mentor';
@@ -22,6 +23,7 @@ export class TrouverMentor {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  protected readonly compteur = inject(CompteurDemandesMentorat);
 
   protected readonly domaines = toSignal(
     this.mentoratService.listerDomaines().pipe(catchError(() => of([]))), { initialValue: [] });
@@ -37,6 +39,7 @@ export class TrouverMentor {
     Array.from({ length: this.resultat()?.totalPages ?? 0 }, (_, index) => index));
 
   constructor() {
+    this.compteur.actualiser();
     // L’URL porte les critères : la recherche se partage et se retrouve au retour.
     this.route.queryParamMap.pipe(
       map((params) => this.criteresDepuis(params)),
@@ -96,6 +99,7 @@ export class TrouverMentor {
     this.mentorSollicite.set(null);
     if (!mentor) return;
     this.confirmation.set(`Votre demande a été envoyée à ${mentor.prenom} ${mentor.nom}.`);
+    this.compteur.actualiser();
     this.resultat.update((page) => page && {
       ...page,
       contenu: page.contenu.map((m) => m.profilId === mentor.profilId ? { ...m, demandeEnCours: true } : m),

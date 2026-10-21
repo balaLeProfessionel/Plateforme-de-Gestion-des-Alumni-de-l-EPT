@@ -1,18 +1,27 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { computed, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { vi } from 'vitest';
 
+import { CompteurDemandesMentorat } from '../../../core/services/mentorat/compteur-demandes';
 import { Mentor, Page } from '../../../core/services/models/mentorat.model';
 import { TrouverMentor } from './trouver-mentor';
 
 describe('TrouverMentor', () => {
+  const envoyees = signal(0);
+  const compteur = {
+    envoyees, limiteAtteinte: computed(() => envoyees() >= 3), actualiser: vi.fn(),
+  };
+
   let fixture: ComponentFixture<TrouverMentor>;
   let http: HttpTestingController;
   let parametres: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
   let navigate: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => { envoyees.set(0); compteur.actualiser.mockClear(); });
 
   beforeEach(async () => {
     parametres = new BehaviorSubject(convertToParamMap({}));
@@ -23,6 +32,7 @@ describe('TrouverMentor', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         { provide: ActivatedRoute, useValue: { queryParamMap: parametres } },
+        { provide: CompteurDemandesMentorat, useValue: compteur },
       ],
     }).compileComponents();
     http = TestBed.inject(HttpTestingController);
@@ -32,6 +42,20 @@ describe('TrouverMentor', () => {
   });
 
   afterEach(() => http.verify());
+
+  it('prévient quand la limite de demandes en attente est atteinte et bloque les cartes', async () => {
+    envoyees.set(3);
+    demarrer();
+    http.expectOne((req) => req.url === '/api/mentorat/mentors').flush(page([mentor({ profilId: 'p1' })]));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(compteur.actualiser).toHaveBeenCalled();
+    const limite = fixture.nativeElement.querySelector('.limite') as HTMLElement;
+    expect(limite.textContent).toContain('Vous avez 3 demandes en attente, le maximum.');
+    expect(limite.querySelector('a')?.getAttribute('href')).toBe('/mentorat/demandes');
+    expect((fixture.nativeElement.querySelector('.demander') as HTMLButtonElement).disabled).toBe(true);
+  });
 
   function demarrer(params: Record<string, string> = {}): void {
     parametres.next(convertToParamMap(params));
@@ -108,7 +132,7 @@ function mentor(valeurs: Partial<Mentor>): Mentor {
     profilId: 'p', utilisateurId: 'u', nom: 'Diop', prenom: 'Awa', urlPhoto: null,
     posteActuel: 'Data Engineer', filiere: 'Génie Informatique', anneeSortie: 2016,
     presentation: null, domaines: [{ id: 'd1', code: 'DATA_IA', libelle: 'Data & IA' }],
-    disponible: true, placesRestantes: 2, demandeEnCours: false,
+    disponible: true, placesRestantes: 2, demandeEnCours: false, role: 'ALUMNI',
     ...valeurs,
   };
 }

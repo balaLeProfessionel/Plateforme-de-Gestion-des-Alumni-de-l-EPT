@@ -12,8 +12,9 @@ Chaque cas indique **où il est vérifié** :
 
 | Sujet | Règle |
 |---|---|
-| Rôles | Seul un **alumni** propose du mentorat ; seul un **étudiant** en demande. |
-| Mentor visible | Compte `ACTIF`, e-mail vérifié, rôle `ALUMNI`, offre existante ; on ne se voit pas soi-même. |
+| Rôles | Tout **membre** (étudiant, alumni, personnel, visiteur) peut être mentor et mentoré ; organisme et admin non. |
+| Demandes en attente | Au plus **3** demandes sans réponse par personne, tous mentors confondus. |
+| Mentor visible | Compte `ACTIF`, e-mail vérifié, rôle membre, offre existante ; on ne se voit pas soi-même. |
 | Capacité | 1 à 10 mentorés acceptés en même temps (3 par défaut). |
 | Unicité | Une seule demande en cours (`EN_ATTENTE` ou `ACCEPTEE`) entre un étudiant et un mentor. |
 | Statuts | `EN_ATTENTE` → `ACCEPTEE` / `REFUSEE` / `ANNULEE` ; `ACCEPTEE` → `TERMINEE`. Les autres sont finaux. |
@@ -32,13 +33,14 @@ Chaque cas indique **où il est vérifié** :
 | P01 | Lister les domaines | 10 domaines actifs, ordonnés, créés une seule fois | B:MentoratProfil.p01 |
 | P02 | Domaine désactivé | Absent de la liste, refusé dans une offre (400) | B:MentoratProfil.p02 |
 | P03 | Appel sans connexion | 403 | B:MentoratProfil.p03 |
-| P04 | Offre par étudiant, personnel, visiteur, organisme, admin | 403 « Seuls les alumni… » | B:MentoratProfil.p04 (5 rôles) |
+| P04 | Offre par un organisme ou un admin | 403 « Le mentorat est réservé aux membres… » | B:MentoratProfil.p04 (2 rôles) |
 | P05 | Première offre | `GET /profil` 404 puis offre créée avec ses valeurs | B:MentoratProfil.p05 |
 | P06 | Modifier l'offre | Même identifiant, domaines remplacés | B:MentoratProfil.p06 |
 | P07 | Présentation vide | Enregistrée comme absente | B:MentoratProfil.p07 |
 | P08 | Offre invalide : aucun domaine, capacité 0 ou 11, `disponible` ou domaines absents | 400 | B:MentoratProfil.p08 (5 variantes) |
 | P09 | 6 domaines, présentation > 600 | 400 avec message | B:MentoratProfil.p09 |
 | P10 | Domaine inconnu | 400 « Un des domaines choisis n'existe pas. » | B:MentoratProfil.p10 |
+| P10 | Offre par étudiant, alumni, personnel, visiteur | 200 ; visible dans la recherche avec son rôle, badge dans l'annuaire | B:MentoratProfil.p10 (4 rôles) |
 | P11 | Capacité sous le nombre de mentorés actifs | 409 ; égale au nombre : acceptée | B:MentoratProfil.p11 |
 
 ### Recherche (R)
@@ -56,7 +58,7 @@ Chaque cas indique **où il est vérifié** :
 | ID | Cas | Attendu | Vérifié par |
 |---|---|---|---|
 | D01 | Demande valide | 201, `Location`, statut `EN_ATTENTE`, rôle `MENTORE` | B:MentoratDemandes.d01 |
-| D02 | Demande par alumni, personnel, visiteur, organisme, admin | 403 | B:MentoratDemandes.d02 (5 rôles) |
+| D02 | Demande par un organisme ou un admin | 403 | B:MentoratDemandes.d02 (2 rôles) |
 | D03 | Mentor inconnu | 404 | B:MentoratDemandes.d03 |
 | D04 | Domaine hors de l'offre | 400 | B:MentoratDemandes.d04 |
 | D05 | Mentor complet ou indisponible | 409 | B:MentoratDemandes.d05 |
@@ -65,13 +67,15 @@ Chaque cas indique **où il est vérifié** :
 | D08 | Objectif vide ou absent, identifiants absents ou mal formés | 400 | B:MentoratDemandes.d08 (5 variantes) |
 | D09 | Objectif > 1000 ; espaces autour | 400 ; texte nettoyé | B:MentoratDemandes.d09 |
 | D10 | Mentor dont le compte est suspendu ou non vérifié (appel direct à l'API) | 404, comme dans la recherche | B:MentoratDemandes.d10 |
+| D11 | Étudiant, alumni, personnel ou visiteur demande à un étudiant mentor | 201 ; rôles des deux participants exposés | B:MentoratDemandes.d11 (4 rôles) |
+| D12 | 4e demande en attente ; puis une est acceptée | 409 ; la 4e passe | B:MentoratDemandes.d12 |
 
 ### Listes et compteur (L)
 | ID | Cas | Attendu | Vérifié par |
 |---|---|---|---|
 | L01 | Listes par rôle et par statuts | Chacun ne voit que ses mentorats | B:MentoratDemandes.l01 |
 | L02 | Rôle absent ou invalide | 400 | B:MentoratDemandes.l02 |
-| L03 | Compteur de demandes en attente | Suit les acceptations ; 0 pour un étudiant | B:MentoratDemandes.l03 |
+| L03 | Compteurs : demandes reçues en attente, demandes envoyées en attente, limite | Suivent les acceptations ; limite 3 exposée | B:MentoratDemandes.l03 |
 
 ### Changements de statut (T)
 | ID | Cas | Attendu | Vérifié par |
@@ -117,11 +121,11 @@ Chaque cas indique **où il est vérifié** :
 
 | ID | Cas | Vérifié par |
 |---|---|---|
-| F01 | Onglets selon le rôle (étudiant, alumni) ; présentation pour les autres rôles | F:mentorat.spec |
-| F02 | Redirection de `/mentorat` vers l'onglet du rôle ; onglets protégés par rôle | F:mentorat.spec |
+| F01 | Tout membre voit les deux groupes d'onglets (« Être accompagné », « Accompagner ») ; présentation pour organisme et admin | F:mentorat.spec |
+| F02 | Redirection de `/mentorat` (alumni : demandes reçues ; autres membres : recherche) ; onglets ouverts aux rôles membres | F:mentorat.spec |
 | F03 | Compteur dans l'onglet et dans la barre latérale (texte lu par les lecteurs d'écran) | F:mentorat.spec, F:espace-membre.spec |
-| F04 | Recherche : critères lus dans l'URL, filtre par domaine sans étape d'historique | F:trouver-mentor.spec |
-| F05 | Carte : disponible, complet, indisponible, demande envoyée ; domaines masqués ; initiales | F:carte-mentor.spec |
+| F04 | Recherche : critères lus dans l'URL, filtre par domaine sans étape d'historique ; bandeau quand la limite de demandes en attente est atteinte | F:trouver-mentor.spec |
+| F05 | Carte : disponible, complet, indisponible, demande envoyée, limite de demandes atteinte ; domaines masqués ; initiales | F:carte-mentor.spec |
 | F06 | Fenêtre de demande : ouverture/fermeture, domaine présélectionné, objectif obligatoire, focus sur l'erreur | F:dialogue-demande.spec |
 | F07 | Fenêtre de demande : envoi nettoyé, erreur métier affichée sans perdre la saisie | F:dialogue-demande.spec, F:trouver-mentor.spec |
 | F08 | Listes : accepter, refuser avec motif, erreur « capacité atteinte », annuler | F:liste-mentorats.spec |

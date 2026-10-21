@@ -23,6 +23,14 @@
   </div>
 </section>
 
+@if (compteur.limiteAtteinte()) {
+  <p class="limite">
+    <i class="pi pi-info-circle" aria-hidden="true"></i>
+    <span>Vous avez {{ compteur.envoyees() }} demandes en attente, le maximum.
+      Attendez une réponse ou <a routerLink="/mentorat/demandes">annulez-en une</a> pour solliciter un autre mentor.</span>
+  </p>
+}
+
 <p class="resume" role="status">
   @if (confirmation(); as message) {
     <span class="confirmation"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ message }}
@@ -54,7 +62,7 @@
   } @else if (resultat(); as page) {
     <ul class="grille" [class.actualisation]="enChargement()">
       @for (mentor of page.contenu; track mentor.profilId) {
-        <li><app-carte-mentor [mentor]="mentor" (demander)="solliciter($event)" /></li>
+        <li><app-carte-mentor [mentor]="mentor" [limiteAtteinte]="compteur.limiteAtteinte()" (demander)="solliciter($event)" /></li>
       }
     </ul>
 

@@ -121,15 +121,15 @@ abstract class MentoratTestsBase {
             """.formatted(Instant.now().plusSeconds(86_400), duree);
     }
 
-    protected UUID creerProfil(Utilisateur alumni, boolean disponible, int capacite, UUID... domaineIds) throws Exception {
-        String reponse = envoyer(put("/api/mentorat/profil"), alumni, profil(disponible, capacite, domaineIds))
+    protected UUID creerProfil(Utilisateur mentor, boolean disponible, int capacite, UUID... domaineIds) throws Exception {
+        String reponse = envoyer(put("/api/mentorat/profil"), mentor, profil(disponible, capacite, domaineIds))
             .andExpect(status().isOk())
             .andReturn().getResponse().getContentAsString();
         return UUID.fromString(JsonPath.read(reponse, "$.id"));
     }
 
-    protected UUID demander(Utilisateur etudiant, UUID profilId, UUID domaineId) throws Exception {
-        String reponse = envoyer(post("/api/mentorat/mentorats"), etudiant, demande(profilId, domaineId))
+    protected UUID demander(Utilisateur mentore, UUID profilId, UUID domaineId) throws Exception {
+        String reponse = envoyer(post("/api/mentorat/mentorats"), mentore, demande(profilId, domaineId))
             .andExpect(status().isCreated())
             .andReturn().getResponse().getContentAsString();
         return UUID.fromString(JsonPath.read(reponse, "$.id"));
