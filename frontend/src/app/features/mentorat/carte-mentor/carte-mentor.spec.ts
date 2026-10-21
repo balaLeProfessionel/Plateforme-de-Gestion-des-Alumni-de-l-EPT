@@ -25,6 +25,7 @@ describe('CarteMentor', () => {
     expect(racine.querySelector('.carte')?.classList).toContain('carte-cliquable');
     expect(racine.querySelectorAll('a.lien-etire')).toHaveLength(1);
     expect(racine.textContent).toContain('Promo 2016 · Génie Informatique');
+    expect(racine.querySelector('.bandeau app-etiquette-role')?.textContent?.trim()).toBe('Alumni');
     expect(racine.querySelector('.disponibilite')?.textContent).toContain('Disponible · 1 place');
     const bouton = racine.querySelector('.demander') as HTMLButtonElement;
     expect(bouton.disabled).toBe(false);
@@ -41,6 +42,12 @@ describe('CarteMentor', () => {
     expect(demande.disabled).toBe(true);
     expect(demande.textContent?.trim()).toBe('Limite de demandes atteinte');
     expect(racine.querySelector('.disponibilite')?.textContent).toContain('Disponible · 2 places');
+  });
+
+  it('montre le type d’un mentor qui n’est pas alumni, bandeau compris', () => {
+    const racine = afficher(unMentor({ role: 'ETUDIANT' }));
+    expect(racine.querySelector('.carte')?.getAttribute('data-role')).toBe('ETUDIANT');
+    expect(racine.querySelector('.bandeau app-etiquette-role')?.textContent?.trim()).toBe('Étudiant');
   });
 
   it.each([

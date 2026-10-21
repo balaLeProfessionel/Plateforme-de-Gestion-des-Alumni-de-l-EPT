@@ -2,12 +2,13 @@ import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Mentor } from '../../../core/services/models/mentorat.model';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
+import { EtiquetteRole } from '../../../shared/roles/etiquette-role';
 
 const DOMAINES_VISIBLES = 3;
 
 @Component({
   selector: 'app-carte-mentor',
-  imports: [RouterLink, AvatarMembre],
+  imports: [RouterLink, AvatarMembre, EtiquetteRole],
   templateUrl: './carte-mentor.html',
   styleUrl: './carte-mentor.scss',
 })

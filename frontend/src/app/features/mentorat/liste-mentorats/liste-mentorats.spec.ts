@@ -85,6 +85,7 @@ describe('ListeMentorats', () => {
     const ligne = fixture.nativeElement.querySelector('.ligne') as HTMLElement;
     expect(ligne.classList).toContain('carte-cliquable');
     expect(ligne.querySelector('.explication')?.textContent).toContain('attend la réponse du mentor');
+    expect(ligne.querySelector('.entete app-etiquette-role')?.textContent?.trim()).toBe('Alumni');
     expect([...ligne.querySelectorAll('a')].map((lien) => lien.getAttribute('href'))).toEqual(['/mentorat/suivi/m1']);
     expect(ligne.querySelector('a.lien-etire')?.getAttribute('aria-label')).toBe('Mentorat avec Awa Diop, Data & IA');
     (fixture.nativeElement.querySelector('.actions button') as HTMLButtonElement).click();

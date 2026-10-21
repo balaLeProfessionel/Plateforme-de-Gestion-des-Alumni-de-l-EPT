@@ -137,3 +137,6 @@
 @media (max-width: 560px) {
   .ligne { padding: 0.85rem; }
 }
+
+/* Le type de membre suit le nom ; le statut reste à droite. */
+.entete app-etiquette-role { margin-right: auto; }

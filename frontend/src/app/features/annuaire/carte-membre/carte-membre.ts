@@ -1,20 +1,9 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AnnuaireMembre, RoleAnnuaire } from '../../../core/services/models/annuaire.model';
+import { AnnuaireMembre } from '../../../core/services/models/annuaire.model';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
-
-interface PresentationRole {
-  libelle: string;
-  icone: string;
-}
-
-const PRESENTATION_ROLES: Record<Exclude<RoleAnnuaire, 'ORGANISME'>, PresentationRole> = {
-  ALUMNI: { libelle: 'Alumni', icone: 'pi-graduation-cap' },
-  ETUDIANT: { libelle: 'Étudiant', icone: 'pi-book' },
-  PERSONNEL: { libelle: 'Personnel EPT', icone: 'pi-id-card' },
-  VISITEUR: { libelle: 'Visiteur', icone: 'pi-user' },
-};
+import { PRESENTATION_ROLES_MEMBRE, PresentationRole } from '../../../shared/roles/etiquette-role';
 
 const PRESENTATION_ORGANISMES: Record<string, PresentationRole> = {
   ENTREPRISE: { libelle: 'Entreprise', icone: 'pi-building' },
@@ -55,7 +44,7 @@ export class CarteMembre {
     if (membre.role === 'ORGANISME') {
       return PRESENTATION_ORGANISMES[membre.typeOrganisme ?? ''] ?? ORGANISME_PAR_DEFAUT;
     }
-    return PRESENTATION_ROLES[membre.role];
+    return PRESENTATION_ROLES_MEMBRE[membre.role];
   });
 
   protected readonly enAttente = computed(() => this.membre().statutCompte === 'EN_ATTENTE');

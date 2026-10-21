@@ -14,15 +14,22 @@
   &:hover h2 a { text-decoration: underline; }
 }
 
+/* Comme dans l’annuaire, le bandeau prend la couleur du rôle du mentor. */
 .bandeau {
   display: flex;
   height: 4rem;
   flex: 0 0 auto;
-  justify-content: flex-end;
+  flex-wrap: wrap;
+  justify-content: space-between;
   align-items: flex-start;
+  gap: 0.35rem;
   padding: 0.6rem 0.75rem;
-  background: var(--ept-sky);
+  background: var(--bandeau, var(--ept-sky));
 }
+
+.carte[data-role='ETUDIANT'] { --bandeau: var(--ept-gold); }
+.carte[data-role='PERSONNEL'] { --bandeau: var(--ept-primary); }
+.carte[data-role='VISITEUR'] { --bandeau: var(--ept-border); }
 
 .disponibilite {
   display: inline-flex;

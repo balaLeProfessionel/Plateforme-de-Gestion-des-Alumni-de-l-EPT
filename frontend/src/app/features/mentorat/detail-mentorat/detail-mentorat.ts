@@ -7,19 +7,19 @@ import { Observable, Subject, catchError, map, merge, of, switchMap } from 'rxjs
 import { MentoratService } from '../../../core/services/mentorat/mentorat';
 import {
   EXPLICATIONS_STATUT_MENTORAT,
-  LIBELLES_ROLE_MEMBRE,
   LIBELLES_STATUT_MENTORAT,
   Mentorat,
   MentoratDetail,
 } from '../../../core/services/models/mentorat.model';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
+import { EtiquetteRole } from '../../../shared/roles/etiquette-role';
 import { EvaluationMentoratCarte } from './evaluation-mentorat/evaluation-mentorat';
 import { SeancesMentorat } from './seances-mentorat/seances-mentorat';
 
 @Component({
   selector: 'app-detail-mentorat',
-  imports: [DatePipe, RouterLink, BoutonRetour, SeancesMentorat, EvaluationMentoratCarte, AvatarMembre],
+  imports: [DatePipe, RouterLink, BoutonRetour, SeancesMentorat, EvaluationMentoratCarte, AvatarMembre, EtiquetteRole],
   templateUrl: './detail-mentorat.html',
   styleUrl: './detail-mentorat.scss',
 })
@@ -30,7 +30,6 @@ export class DetailMentorat {
 
   protected readonly libellesStatut = LIBELLES_STATUT_MENTORAT;
   protected readonly explications = EXPLICATIONS_STATUT_MENTORAT;
-  protected readonly libellesRole = LIBELLES_ROLE_MEMBRE;
   protected readonly detail = signal<MentoratDetail | null>(null);
   protected readonly messageErreur = signal<string | null>(null);
   protected readonly erreurAction = signal<string | null>(null);

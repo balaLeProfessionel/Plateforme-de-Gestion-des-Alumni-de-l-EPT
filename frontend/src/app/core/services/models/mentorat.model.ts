@@ -28,10 +28,6 @@ export interface ProfilMentorRequest {
 /** Toute personne membre peut être mentor et mentoré ; les comptes d’organisme et d’administration non. */
 export const ROLES_MENTORAT: readonly string[] = ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'];
 
-export const LIBELLES_ROLE_MEMBRE: Record<string, string> = {
-  ETUDIANT: 'Étudiant', ALUMNI: 'Alumni', PERSONNEL: 'Personnel', VISITEUR: 'Visiteur',
-};
-
 export function participeAuMentorat(role: string | null | undefined): boolean {
   return ROLES_MENTORAT.includes(role ?? '');
 }

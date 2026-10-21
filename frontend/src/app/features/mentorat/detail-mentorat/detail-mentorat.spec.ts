@@ -54,6 +54,8 @@ describe('DetailMentorat', () => {
     expect(personnes.map((p) => p.getAttribute('href'))).toEqual(['/profil/u1', '/profil/u2']);
     expect(racine.querySelector('.statut')?.textContent).toContain('En cours');
     expect(racine.querySelector('.explication')?.textContent).toContain('Vous accompagnez cette personne');
+    expect([...racine.querySelectorAll('.personne app-etiquette-role')].map((e) => e.textContent?.trim()))
+      .toEqual(['Alumni', 'Étudiant']);
     expect(racine.querySelector('blockquote')?.textContent).toContain('Préparer mon stage');
     expect(racine.querySelectorAll('.jalons-statut li')).toHaveLength(2);
     expect(racine.querySelector('h1')?.textContent).toContain('Mentorat Data & IA');

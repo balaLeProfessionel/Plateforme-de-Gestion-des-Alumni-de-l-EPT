@@ -8,6 +8,7 @@ import { Observable, Subject, catchError, map, of, startWith, switchMap } from '
 import { CompteurDemandesMentorat } from '../../../core/services/mentorat/compteur-demandes';
 import { MentoratService } from '../../../core/services/mentorat/mentorat';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
+import { EtiquetteRole } from '../../../shared/roles/etiquette-role';
 import {
   EXPLICATIONS_STATUT_MENTORAT,
   LIBELLES_STATUT_MENTORAT,
@@ -28,7 +29,7 @@ export interface VueListeMentorats {
 
 @Component({
   selector: 'app-liste-mentorats',
-  imports: [DatePipe, FormField, RouterLink, AvatarMembre],
+  imports: [DatePipe, FormField, RouterLink, AvatarMembre, EtiquetteRole],
   templateUrl: './liste-mentorats.html',
   styleUrl: './liste-mentorats.scss',
 })

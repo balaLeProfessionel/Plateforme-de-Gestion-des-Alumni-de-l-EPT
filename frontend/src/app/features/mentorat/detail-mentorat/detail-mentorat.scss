@@ -41,6 +41,7 @@
 
   small { color: var(--ept-text-secondary); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
   strong { color: var(--ept-primary-dark); }
+  app-etiquette-role { justify-self: start; margin: 0.15rem 0; }
   span { overflow: hidden; color: var(--ept-text-secondary); font-size: 0.82rem; text-overflow: ellipsis; white-space: nowrap; }
 }
 

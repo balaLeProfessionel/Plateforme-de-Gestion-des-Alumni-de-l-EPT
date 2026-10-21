@@ -19,7 +19,8 @@
             <span class="identite">
               <small>{{ estMentor ? 'Mentor' : 'Mentoré' }}</small>
               <strong>{{ personne.prenom }} {{ personne.nom }}</strong>
-              <span>{{ personne.posteActuel ?? personne.filiere ?? libellesRole[personne.role] }}</span>
+              <app-etiquette-role [role]="personne.role" />
+              @if (personne.posteActuel ?? personne.filiere; as precision) { <span>{{ precision }}</span> }
             </span>
           </a>
         }

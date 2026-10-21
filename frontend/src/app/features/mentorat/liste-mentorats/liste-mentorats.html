@@ -23,6 +23,7 @@
             <div class="entete">
               <h2><a class="lien-etire" [routerLink]="['/mentorat/suivi', mentorat.id]"
                 [attr.aria-label]="'Mentorat avec ' + personne.prenom + ' ' + personne.nom + ', ' + mentorat.domaine.libelle">{{ personne.prenom }} {{ personne.nom }}</a></h2>
+              <app-etiquette-role [role]="personne.role" />
               <span class="statut">{{ libellesStatut[mentorat.statut] }}</span>
             </div>
             <p class="details">
