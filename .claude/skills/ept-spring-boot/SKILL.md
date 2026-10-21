@@ -84,6 +84,14 @@ Conséquences à respecter :
 - Renommer une colonne ou durcir un `NOT NULL` sur une table existante demande un script SQL
   manuel : le signaler au lieu de compter sur `ddl-auto`.
 
+## Images envoyées par les membres
+
+`common/image/FormatImage` impose le format quelle que soit l'image reçue : vérifie la taille minimale
+(`verifierTailleMinimale`, 400 sinon), recadre au centre au rapport voulu, redimensionne exactement
+(`appliquer`) et écrit un JPEG de qualité maîtrisée (`ecrireJpeg`). Formats : `EVENEMENT` 1600×900,
+`PHOTO_PROFIL` 600×600. Un nouveau type d'image = une nouvelle constante, aligné sur le frontend
+(`shared/images/recadrage.ts`).
+
 ## Concurrence
 
 - Capacité limitée (places d'événement, mentorés) : verrouiller la ligne parente

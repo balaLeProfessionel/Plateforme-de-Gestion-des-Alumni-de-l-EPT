@@ -53,6 +53,17 @@ Le fichier contient le code de référence de chaque patron :
 4. **Fenêtre modale** : `<dialog>` natif + `showModal()` piloté par un `input()`.
 5. **Action sur une ligne** (accepter/refuser/annuler) avec confirmation en ligne et erreur locale.
 6. **Bouton retour** : `<app-bouton-retour [secours]="…" />`, jamais un lien codé en dur.
+8. **Carte cliquable** : toute carte qui mène à une page est cliquable partout, avec **un seul** lien
+   « étiré » (classes globales `carte-cliquable` sur la carte, `lien-etire` sur le lien du titre,
+   dans `styles.scss`). Boutons et liens secondaires restent au-dessus ; une zone de confirmation
+   ouverte prend `position: relative; z-index: 2`. Pas de second lien vers la même page dans la carte.
+7. **Images** (`shared/images/`) : jamais d'avatar ou de visuel fait à la main.
+   - membre ou organisme : `<app-avatar-membre [urlPhoto] [prenom] [nom] [roleMembre] [taille]>`
+     (initiales aux couleurs du rôle si pas de photo ; entrée nommée `roleMembre`, pas `role`) ;
+   - événement : `<app-visuel-evenement>` (16:9, affiche datée aux couleurs EPT sans image) ;
+   - envoi d'image : `chargerImagePourRecadrage()` puis `<app-recadreur-image [format]>` ; seul le
+     fichier recadré est envoyé. Formats `FORMAT_EVENEMENT` (1600×900) et `FORMAT_PHOTO_PROFIL` (600×600),
+     identiques au serveur (`FormatImage`).
 
 ## Signal Forms — pièges déjà rencontrés
 
