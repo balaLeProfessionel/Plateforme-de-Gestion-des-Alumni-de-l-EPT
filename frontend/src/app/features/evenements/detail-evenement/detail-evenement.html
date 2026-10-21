@@ -18,12 +18,9 @@
         <div class="bandeau-officiel"><i class="pi pi-verified" aria-hidden="true"></i>
           Événement officiel de l’École Polytechnique de Thiès</div>
       }
-      <figure class="visuel-detail" [class.sans-image]="!item.urlImage">
-        @if (item.urlImage) {
-          <img [src]="item.urlImage" [alt]="'Illustration de ' + item.titre" />
-        } @else {
-          <span aria-hidden="true"><i class="pi pi-calendar"></i>EPT Alumni</span>
-        }
+      <figure class="visuel-detail">
+        <app-visuel-evenement [urlImage]="item.urlImage" [dateDebut]="item.dateDebut" [lieu]="item.lieu"
+          [officiel]="item.officielEpt" [alternative]="'Illustration de ' + item.titre" />
       </figure>
       <header class="entete-detail">
         <div class="badges-detail">

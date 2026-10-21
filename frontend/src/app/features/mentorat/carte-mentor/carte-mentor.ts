@@ -1,12 +1,13 @@
-import { Component, computed, input, linkedSignal, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Mentor } from '../../../core/services/models/mentorat.model';
+import { AvatarMembre } from '../../../shared/images/avatar-membre';
 
 const DOMAINES_VISIBLES = 3;
 
 @Component({
   selector: 'app-carte-mentor',
-  imports: [RouterLink],
+  imports: [RouterLink, AvatarMembre],
   templateUrl: './carte-mentor.html',
   styleUrl: './carte-mentor.scss',
 })
@@ -14,14 +15,7 @@ export class CarteMentor {
   readonly mentor = input.required<Mentor>();
   readonly demander = output<Mentor>();
 
-  protected readonly imageInvalide = linkedSignal({
-    source: () => this.mentor().urlPhoto,
-    computation: () => false,
-  });
-
   protected readonly nomAffiche = computed(() => `${this.mentor().prenom} ${this.mentor().nom}`.trim());
-  protected readonly initiales = computed(() =>
-    [this.mentor().prenom, this.mentor().nom].map((mot) => mot.charAt(0)).join('').toUpperCase());
   protected readonly parcours = computed(() => {
     const { anneeSortie, filiere } = this.mentor();
     return [anneeSortie ? `Promo ${anneeSortie}` : null, filiere].filter(Boolean).join(' · ') || null;

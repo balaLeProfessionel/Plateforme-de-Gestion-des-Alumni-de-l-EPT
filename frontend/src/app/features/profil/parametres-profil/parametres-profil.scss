@@ -12,8 +12,9 @@
 .titre-section h2 { margin: 0 0 .3rem; color: var(--ept-primary); font-family: var(--ept-font-heading); }
 .titre-section p { margin: 0; color: var(--ept-text-muted); }
 .gestion-photo { display: flex; align-items: center; gap: 1.5rem; }
-.avatar { flex: 0 0 8rem; width: 8rem; height: 8rem; overflow: hidden; display: grid; place-items: center; border: 4px solid var(--ept-primary-soft); border-radius: 50%; background: var(--ept-primary); color: white; font: 700 2rem var(--ept-font-heading); }
-.avatar img { width: 100%; height: 100%; object-fit: cover; }
+app-avatar-membre { border: 4px solid var(--ept-primary-light); box-sizing: content-box; }
+/* Pendant le recadrage, la photo actuelle et ses boutons s'effacent. */
+.gestion-photo[hidden] { display: none; }
 .actions-photo { display: flex; flex-wrap: wrap; align-items: center; gap: .65rem; }
 .fichier-cache { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
 .bouton-principal, .bouton-secondaire, .bouton-danger, .etat-erreur button { min-height: 2.65rem; padding: .65rem 1rem; border-radius: 2px; font: 700 .92rem var(--ept-font-heading); cursor: pointer; }
@@ -32,4 +33,4 @@ button:disabled { opacity: .6; cursor: wait; }
 .squelette { height: 34rem; border-radius: 2px; background: linear-gradient(90deg, #edf1f3 25%, #f7f9fa 50%, #edf1f3 75%); background-size: 200% 100%; animation: charge 1.3s infinite; }
 .etat-erreur { padding: 2rem; text-align: center; border: 1px solid var(--ept-border); border-radius: 2px; background: white; }
 @keyframes charge { to { background-position: -200% 0; } }
-@media (max-width: 640px) { .page-parametres { width: min(100% - 1rem, 960px); padding-top: 1rem; }.entete-page { display: grid; }.navigation-sections { width: 100%; justify-content: center; overflow-x: auto; }.gestion-photo { align-items: flex-start; }.avatar { flex-basis: 6rem; width: 6rem; height: 6rem; }.champs-lecture-seule { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) { .page-parametres { width: min(100% - 1rem, 960px); padding-top: 1rem; }.entete-page { display: grid; }.navigation-sections { width: 100%; justify-content: center; overflow-x: auto; }.gestion-photo { align-items: flex-start; }.champs-lecture-seule { grid-template-columns: minmax(0, 1fr); } }

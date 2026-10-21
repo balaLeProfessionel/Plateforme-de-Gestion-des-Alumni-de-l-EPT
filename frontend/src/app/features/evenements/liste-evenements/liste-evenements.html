@@ -77,7 +77,7 @@
       <ul class="grille-evenements">
         @for (evenement of resultat.contenu; track evenement.id) {
           <li>
-            <article class="carte-evenement" [class.officiel]="evenement.officielEpt">
+            <article class="carte-evenement carte-cliquable" [class.officiel]="evenement.officielEpt">
               <div class="entete-carte">
                 @if (evenement.statut === 'ANNULE' && mesEvenements()) {
                   <span class="badge-annule">Annulé</span>
@@ -88,18 +88,11 @@
                 }
                 <span class="audience">{{ libelleAudience(evenement.audience) }}</span>
               </div>
-              <a class="visuel-evenement" [class.sans-image]="!evenement.urlImage"
-                [routerLink]="urlDetails(evenement)"
-                [queryParams]="{ periode: periode(), page: resultat.page, vue: mesEvenements() ? 'mes' : null }"
-                [state]="{ returnUrl: urlCourante() }"
-                [attr.aria-label]="'Voir le détail de ' + evenement.titre">
-                @if (evenement.urlImage) {
-                  <img [src]="evenement.urlImage" alt="" aria-hidden="true" loading="lazy" />
-                } @else {
-                  <span aria-hidden="true"><i class="pi pi-calendar"></i>EPT Alumni</span>
-                }
-              </a>
-              <h2><a [routerLink]="urlDetails(evenement)"
+              <div class="visuel-evenement">
+                <app-visuel-evenement [urlImage]="evenement.urlImage" [dateDebut]="evenement.dateDebut"
+                  [lieu]="evenement.lieu" [officiel]="evenement.officielEpt" [chargementDiffere]="true" />
+              </div>
+              <h2><a class="lien-etire" [routerLink]="urlDetails(evenement)"
                 [queryParams]="{ periode: periode(), page: resultat.page, vue: mesEvenements() ? 'mes' : null }"
                 [state]="{ returnUrl: urlCourante() }">{{ evenement.titre }}</a></h2>
               <p class="date-evenement"><i class="pi pi-calendar" aria-hidden="true"></i>
@@ -111,9 +104,7 @@
                 <span><i class="pi pi-users" aria-hidden="true"></i>
                   {{ evenement.nombreParticipants }} {{ evenement.nombreParticipants === 1 ? 'participant' : 'participants' }}
                 </span>
-                <a class="lien-detail" [routerLink]="urlDetails(evenement)"
-                  [queryParams]="{ periode: periode(), page: resultat.page, vue: mesEvenements() ? 'mes' : null }"
-                  [state]="{ returnUrl: urlCourante() }">Voir le détail <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
+                <span class="lien-detail" aria-hidden="true">Voir le détail <i class="pi pi-arrow-right"></i></span>
               </div>
               @if (mesEvenements()) {
                 <div class="actions-carte" aria-label="Actions de gestion">

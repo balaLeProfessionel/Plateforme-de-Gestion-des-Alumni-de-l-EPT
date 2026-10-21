@@ -71,9 +71,9 @@
                   (click)="menuCompte.toggle($event)" aria-haspopup="menu" aria-controls="menu-compte"
                   [attr.aria-label]="'Menu du compte de ' + nomAffiche() + ', ' + typeMembre()"
                   [pTooltip]="nomAffiche()" tooltipPosition="right" [tooltipDisabled]="sidebarOuverte()">
-                  <p-avatar class="avatar" shape="circle" aria-hidden="true"
-                    [image]="photoProfil()" [label]="photoProfil() ? undefined : initiales()"
-                    (onImageError)="photoInvalide.set(true)" />
+                  <app-avatar-membre class="avatar" [urlPhoto]="authService.utilisateur()?.urlPhoto"
+                    [prenom]="authService.utilisateur()?.prenom" [nom]="authService.utilisateur()?.nom"
+                    [roleMembre]="authService.utilisateur()?.role" [taille]="2" />
                   <span class="identite-compte"><strong>{{ nomAffiche() }}</strong><small>{{ typeMembre() }}</small></span>
                   <i class="pi pi-chevron-up" aria-hidden="true"></i>
                 </button>
@@ -113,9 +113,9 @@
         <button type="button" class="bouton-compte" (click)="basculerMenu()"
           [attr.aria-expanded]="menuOuvert()" aria-controls="menu-mobile" aria-haspopup="dialog"
           [attr.aria-label]="'Ouvrir le menu du compte de ' + nomAffiche()">
-          <p-avatar class="avatar" shape="circle" aria-hidden="true"
-            [image]="photoProfil()" [label]="photoProfil() ? undefined : initiales()"
-            (onImageError)="photoInvalide.set(true)" />
+          <app-avatar-membre class="avatar" [urlPhoto]="authService.utilisateur()?.urlPhoto"
+            [prenom]="authService.utilisateur()?.prenom" [nom]="authService.utilisateur()?.nom"
+            [roleMembre]="authService.utilisateur()?.role" [taille]="2.5" />
           <i class="pi pi-chevron-down" aria-hidden="true"></i>
         </button>
       </header>

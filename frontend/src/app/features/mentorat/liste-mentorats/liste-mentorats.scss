@@ -10,6 +10,10 @@
   border: 1px solid var(--ept-border);
   border-radius: 12px;
   background: var(--ept-surface);
+  transition: border-color 0.18s ease;
+
+  &:hover { border-color: var(--ept-primary); }
+  &:hover h2 a { text-decoration: underline; }
 }
 
 .ligne[data-statut='EN_ATTENTE'] { --statut-fond: var(--ept-gold-light); --statut-texte: var(--ept-gold-dark); }
@@ -17,21 +21,6 @@
 .ligne[data-statut='REFUSEE'], .ligne[data-statut='ANNULEE'] { --statut-fond: var(--ept-error-light); --statut-texte: var(--ept-error-dark); }
 .ligne[data-statut='TERMINEE'] { --statut-fond: var(--ept-primary-light); --statut-texte: var(--ept-primary); }
 
-.avatar {
-  display: grid;
-  width: 3rem;
-  height: 3rem;
-  flex: 0 0 auto;
-  place-items: center;
-  overflow: hidden;
-  border-radius: 50%;
-  background: var(--ept-primary-light);
-  color: var(--ept-primary);
-  font-weight: 700;
-
-  &.etudiant { background: var(--ept-gold-light); color: var(--ept-gold-dark); box-shadow: 0 0 0 2px var(--ept-gold); }
-  img { width: 100%; height: 100%; object-fit: cover; }
-}
 
 .contenu { display: grid; flex: 1; gap: 0.4rem; min-width: 0; }
 
@@ -89,6 +78,8 @@
 }
 
 .panneau-refus {
+  position: relative;
+  z-index: 2;
   display: grid;
   gap: 0.4rem;
   margin-top: 0.35rem;
@@ -111,8 +102,6 @@
   font-size: 0.85rem;
   font-weight: 700;
   text-decoration: none;
-
-  &:hover { text-decoration: underline; }
 }
 
 .squelette { min-height: 7rem; border-radius: 12px; background: #edf1f3; }
@@ -146,5 +135,4 @@
 
 @media (max-width: 560px) {
   .ligne { padding: 0.85rem; }
-  .avatar { width: 2.5rem; height: 2.5rem; }
 }

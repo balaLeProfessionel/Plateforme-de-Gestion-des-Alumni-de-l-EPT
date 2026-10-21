@@ -6,11 +6,12 @@ import { catchError, combineLatest, firstValueFrom, map, of, startWith, Subject,
 
 import { EvenementService } from '../../../core/services/evenements/evenement';
 import { FilAriane } from '../../../shared/fil-ariane/fil-ariane';
+import { VisuelEvenement } from '../../../shared/images/visuel-evenement';
 import { Evenement, PageEvenements, PeriodeEvenement } from '../../../core/services/models/evenement';
 
 @Component({
   selector: 'app-liste-evenements',
-  imports: [RouterLink, FilAriane],
+  imports: [RouterLink, FilAriane, VisuelEvenement],
   templateUrl: './liste-evenements.html',
   styleUrl: './liste-evenements.scss',
 })

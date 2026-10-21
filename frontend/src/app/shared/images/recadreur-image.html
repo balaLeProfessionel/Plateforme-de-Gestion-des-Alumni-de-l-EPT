@@ -1,0 +1,32 @@
+<div class="recadreur" role="group" [attr.aria-label]="libelle()">
+  <div #cadre class="cadre" [class.rond]="rond()" [style.aspect-ratio]="rapport()" tabindex="0"
+    aria-roledescription="zone de recadrage" aria-describedby="aide-recadrage"
+    (pointerdown)="commencerGlissement($event)" (pointermove)="glisser($event)"
+    (pointerup)="finirGlissement()" (pointercancel)="finirGlissement()"
+    (wheel)="zoomerALaMolette($event)" (keydown)="clavier($event)">
+    <img [src]="image().src" alt="" draggable="false"
+      [style.width.%]="apercu().largeur" [style.left.%]="apercu().gauche" [style.top.%]="apercu().haut" />
+    <span class="grille" aria-hidden="true"></span>
+  </div>
+  <p id="aide-recadrage" class="aide">
+    Faites glisser l’image pour la placer dans le cadre. Au clavier : flèches pour déplacer, + et − pour zoomer, 0 pour recentrer.
+  </p>
+
+  <div class="commandes">
+    <label for="zoom-recadrage"><i class="pi pi-search-minus" aria-hidden="true"></i><span class="sr-only">Zoom</span></label>
+    <input id="zoom-recadrage" type="range" min="1" [max]="zoomMax()" step="0.01" [value]="etat().zoom"
+      [attr.aria-valuetext]="'Zoom ' + (etat().zoom * 100 | number: '1.0-0') + ' %'"
+      [disabled]="zoomMax() <= 1" (input)="zoomer($event)" />
+    <i class="pi pi-search-plus" aria-hidden="true"></i>
+    <button type="button" class="secondaire" (click)="recentrer()">Recentrer</button>
+  </div>
+
+  @if (erreur(); as message) { <p class="erreur" role="alert">{{ message }}</p> }
+
+  <div class="actions">
+    <button type="button" class="secondaire" (click)="annulee.emit()">Annuler</button>
+    <button type="button" class="principal" [disabled]="enCours()" (click)="valider()">
+      {{ enCours() ? 'Préparation…' : 'Valider le recadrage' }}
+    </button>
+  </div>
+</div>

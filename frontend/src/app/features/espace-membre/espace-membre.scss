@@ -128,24 +128,7 @@
 
 .bouton-compte-lateral > i { margin-left: auto; font-size: 0.75rem; }
 
-.avatar {
-  display: grid;
-  flex: 0 0 2rem;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  background: var(--ept-primary-light);
-  color: var(--ept-primary);
-  overflow: hidden;
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-/* L’image est rendue par p-avatar, hors du gabarit de ce composant. */
-.avatar ::ng-deep img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
-
-.barre-laterale .avatar { background: var(--nav-actif); }
+.barre-laterale .avatar { box-shadow: 0 0 0 2px var(--nav-actif); }
 
 /* En-tête du menu du compte : largeur fixe, l’email trop long est tronqué (complet au survol). */
 .entete-menu-compte {
@@ -198,7 +181,6 @@ a:focus-visible, button:focus-visible {
   .entete-mobile .symbole-marque { width: 2.5rem; height: 2.5rem; flex-basis: 2.5rem; }
   .entete-mobile .texte-marque strong { font-size: clamp(1rem, 4.5vw, 1.2rem); }
   .bouton-compte { display: flex; align-items: center; gap: 0.45rem; min-height: 2.75rem; padding: 0; border: 0; background: transparent; color: var(--ept-primary); cursor: pointer; }
-  .bouton-compte .avatar { width: 2.5rem; height: 2.5rem; flex-basis: 2.5rem; font-size: 0.85rem; }
   .bouton-compte > i { font-size: 0.85rem; }
 }
 

@@ -8,11 +8,12 @@ import { EvenementService } from '../../../core/services/evenements/evenement';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { Evenement, PageParticipants, ReponseParticipation } from '../../../core/services/models/evenement';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
+import { VisuelEvenement } from '../../../shared/images/visuel-evenement';
 import { etatNavigationEvenement, urlRetourInterne } from '../navigation-evenements';
 
 @Component({
   selector: 'app-detail-evenement',
-  imports: [RouterLink, BoutonRetour],
+  imports: [RouterLink, BoutonRetour, VisuelEvenement],
   templateUrl: './detail-evenement.html',
   styleUrl: './detail-evenement.scss',
 })

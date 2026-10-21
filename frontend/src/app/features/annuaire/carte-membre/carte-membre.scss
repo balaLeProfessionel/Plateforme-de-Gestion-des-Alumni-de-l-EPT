@@ -7,8 +7,6 @@
 .carte {
   --bandeau-fond: var(--ept-border);
   --bandeau-texte: var(--ept-primary-dark);
-  --avatar-fond: var(--ept-primary-light);
-  --avatar-texte: var(--ept-primary);
 
   height: 100%;
   min-height: 15.5rem;
@@ -25,11 +23,8 @@
 .carte[data-role='ETUDIANT'] {
   --bandeau-fond: var(--ept-gold);
   --bandeau-texte: var(--ept-gold-dark);
-  --avatar-fond: var(--ept-gold-light);
-  --avatar-texte: var(--ept-gold-dark);
 }
 .carte[data-role='PERSONNEL'] { --bandeau-fond: var(--ept-primary); --bandeau-texte: var(--ept-text-on-dark); }
-.carte[data-role='VISITEUR'] { --avatar-fond: #f1f3f5; --avatar-texte: var(--ept-text-secondary); }
 .carte[data-role='ORGANISME'] { --bandeau-fond: var(--ept-primary-dark); --bandeau-texte: var(--ept-text-on-dark); }
 
 .carte-lien:hover .carte { border-color: var(--ept-primary); box-shadow: 0 8px 24px rgba(1, 46, 69, 0.08); transform: translateY(-2px); }
@@ -61,30 +56,11 @@
 .carte[data-role='ETUDIANT'] .role { padding: 0.15rem 0.55rem; border-radius: 999px; background: white; }
 
 .avatar {
-  width: 4.5rem;
-  height: 4.5rem;
   margin: -2.5rem auto 0;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
   border: 3px solid var(--ept-surface);
-  border-radius: 50%;
-  background: var(--avatar-fond);
-  color: var(--avatar-texte);
-  font-family: var(--ept-font-heading);
-  font-size: 1.25rem;
-  font-weight: 700;
-
-  img { width: 100%; height: 100%; object-fit: cover; }
 }
 
-.avatar.logo {
-  border-radius: 12px;
-  background: white;
-  box-shadow: 0 0 0 1px var(--ept-border);
-
-  img { object-fit: contain; padding: 0.3rem; }
-}
+.avatar.logo { box-shadow: 0 0 0 1px var(--ept-border); }
 
 .corps {
   flex: 1;

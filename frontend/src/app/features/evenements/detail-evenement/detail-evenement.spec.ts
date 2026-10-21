@@ -75,7 +75,7 @@ describe('DetailEvenement', () => {
     expect(listerParticipants).toHaveBeenCalledWith('event-1', 0);
     expect(fixture.nativeElement.textContent).toContain('Participants inscrits');
     expect(fixture.nativeElement.querySelector('.actions-gestion')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.visuel-detail.sans-image')?.textContent).toContain('EPT Alumni');
+    expect(fixture.nativeElement.querySelector('.visuel-detail .affiche .officiel')?.textContent).toContain('Officiel EPT');
     expect(fixture.nativeElement.querySelector('.actions-reponse')).not.toBeNull();
   });
 

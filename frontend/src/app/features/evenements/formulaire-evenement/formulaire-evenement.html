@@ -41,18 +41,22 @@
       </div>
 
       <section class="bloc-image" aria-labelledby="titre-image-evenement">
-        <div class="apercu-image" [class.sans-image]="!apercuImage()">
-          @if (apercuImage()) {
-            <img [src]="apercuImage()" alt="Aperçu de l’illustration de l’événement" />
-          } @else {
-            <span aria-hidden="true"><i class="pi pi-image"></i>EPT Alumni</span>
-          }
-        </div>
+        @if (imageARecadrer(); as image) {
+          <app-recadreur-image class="recadrage" [image]="image" [format]="formatEvenement"
+            libelle="Recadrer l’image de l’événement au format 16:9"
+            (recadree)="appliquerRecadrage($event)" (annulee)="fermerRecadrage()" />
+        } @else {
+          <div class="apercu-image">
+            <app-visuel-evenement [urlImage]="apercuImage()" [dateDebut]="modele().dateDebut || null"
+              [lieu]="modele().lieu.trim() || null" alternative="Aperçu de l’illustration de l’événement" />
+          </div>
+        }
         <div class="champ">
           <label id="titre-image-evenement" for="evenement-image">Image de l’événement <span class="optionnel">Facultatif</span></label>
           <input #champImage id="evenement-image" type="file" accept="image/jpeg,image/png"
             aria-describedby="aide-image erreur-image" (change)="selectionnerImage($event)" />
-          <small id="aide-image">JPEG ou PNG, 5 Mo maximum. L’image s’adapte au cadre sans être rognée.</small>
+          <small id="aide-image">JPEG ou PNG, 5 Mo maximum, au moins 800 × 450 pixels. Vous la recadrez au format 16:9 ;
+            sans image, une affiche datée est générée.</small>
           @if (erreurImage(); as erreur) {
             <span class="erreur-champ" id="erreur-image" role="alert">{{ erreur }}</span>
           }

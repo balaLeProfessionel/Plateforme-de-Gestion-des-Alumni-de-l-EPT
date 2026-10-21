@@ -22,6 +22,8 @@ describe('CarteMentor', () => {
     fixture.componentInstance.demander.subscribe((mentor) => demandes.push(mentor));
 
     expect(racine.querySelector('h2 a')?.getAttribute('href')).toBe('/profil/u1');
+    expect(racine.querySelector('.carte')?.classList).toContain('carte-cliquable');
+    expect(racine.querySelectorAll('a.lien-etire')).toHaveLength(1);
     expect(racine.textContent).toContain('Promo 2016 · Génie Informatique');
     expect(racine.querySelector('.disponibilite')?.textContent).toContain('Disponible · 1 place');
     const bouton = racine.querySelector('.demander') as HTMLButtonElement;

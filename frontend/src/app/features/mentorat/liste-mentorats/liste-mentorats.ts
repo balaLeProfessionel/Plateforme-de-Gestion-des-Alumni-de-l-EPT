@@ -7,6 +7,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable, Subject, catchError, map, of, startWith, switchMap } from 'rxjs';
 import { CompteurDemandesMentorat } from '../../../core/services/mentorat/compteur-demandes';
 import { MentoratService } from '../../../core/services/mentorat/mentorat';
+import { AvatarMembre } from '../../../shared/images/avatar-membre';
 import {
   LIBELLES_STATUT_MENTORAT,
   Mentorat,
@@ -26,7 +27,7 @@ export interface VueListeMentorats {
 
 @Component({
   selector: 'app-liste-mentorats',
-  imports: [DatePipe, FormField, RouterLink],
+  imports: [DatePipe, FormField, RouterLink, AvatarMembre],
   templateUrl: './liste-mentorats.html',
   styleUrl: './liste-mentorats.scss',
 })
@@ -68,10 +69,6 @@ export class ListeMentorats {
 
   protected autrePersonne(mentorat: Mentorat): ParticipantMentorat {
     return mentorat.monRole === 'MENTOR' ? mentorat.mentore : mentorat.mentor;
-  }
-
-  protected initiales({ prenom, nom }: ParticipantMentorat): string {
-    return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase();
   }
 
   protected changerPage(numero: number): void {

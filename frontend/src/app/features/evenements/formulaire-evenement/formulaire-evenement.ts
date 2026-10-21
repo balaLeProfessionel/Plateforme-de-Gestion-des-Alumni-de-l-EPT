@@ -9,6 +9,10 @@ import { EvenementService } from '../../../core/services/evenements/evenement';
 import { AudienceEvenement, Evenement, EvenementRequest } from '../../../core/services/models/evenement';
 import { RetourNavigation } from '../../../core/navigation/retour-navigation';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
+import { chargerImagePourRecadrage } from '../../../shared/images/charger-image';
+import { FORMAT_EVENEMENT } from '../../../shared/images/recadrage';
+import { RecadreurImage } from '../../../shared/images/recadreur-image';
+import { VisuelEvenement } from '../../../shared/images/visuel-evenement';
 import { etatNavigationEvenement, urlRetourInterne } from '../navigation-evenements';
 
 interface ModeleFormulaireEvenement {
@@ -23,7 +27,7 @@ interface ModeleFormulaireEvenement {
 
 @Component({
   selector: 'app-formulaire-evenement',
-  imports: [FormField, BoutonRetour],
+  imports: [FormField, BoutonRetour, RecadreurImage, VisuelEvenement],
   templateUrl: './formulaire-evenement.html',
   styleUrl: './formulaire-evenement.scss',
 })
@@ -47,6 +51,9 @@ export class FormulaireEvenement {
   protected readonly apercuImage = signal<string | null>(null);
   protected readonly suppressionImage = signal(false);
   protected readonly erreurImage = signal<string | null>(null);
+  /** Image en cours de recadrage, avant d'être acceptée comme illustration. */
+  protected readonly imageARecadrer = signal<HTMLImageElement | null>(null);
+  protected readonly formatEvenement = FORMAT_EVENEMENT;
   private urlApercuTemporaire: string | null = null;
   protected readonly modele = signal<ModeleFormulaireEvenement>({
     titre: '', description: '', lieu: '', dateDebut: '', dateFin: '',
@@ -87,7 +94,10 @@ export class FormulaireEvenement {
     const etat = etatNavigationEvenement();
     this.urlRetour.set(urlRetourInterne(etat.returnUrl));
     this.urlOrigine.set(urlRetourInterne(etat.originReturnUrl));
-    this.destroyRef.onDestroy(() => this.libererApercu());
+    this.destroyRef.onDestroy(() => {
+      this.libererApercu();
+      this.fermerRecadrage();
+    });
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const id = params.get('id');
       this.identifiantEvenement.set(id);
@@ -184,24 +194,32 @@ export class FormulaireEvenement {
     return Number.isSafeInteger(page) && page >= 0 ? page : 0;
   }
 
-  protected selectionnerImage(event: Event): void {
+  /** Une image choisie passe d'abord par le recadrage : seul le format 16:9 est envoyé. */
+  protected async selectionnerImage(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const fichier = input.files?.item(0) ?? null;
+    input.value = '';
     this.erreurImage.set(null);
     if (!fichier) return;
-    if (!['image/jpeg', 'image/png'].includes(fichier.type)) {
-      this.erreurImage.set('Choisissez une image JPEG ou PNG.');
-      input.value = '';
-      return;
+    try {
+      this.fermerRecadrage();
+      this.imageARecadrer.set(await chargerImagePourRecadrage(fichier, FORMAT_EVENEMENT));
+    } catch (erreur) {
+      this.erreurImage.set(erreur instanceof Error ? erreur.message : 'Cette image ne peut pas être utilisée.');
     }
-    if (fichier.size > 5 * 1024 * 1024) {
-      this.erreurImage.set('L’image ne doit pas dépasser 5 Mo.');
-      input.value = '';
-      return;
-    }
+  }
+
+  protected appliquerRecadrage(fichier: File): void {
+    this.fermerRecadrage();
     this.suppressionImage.set(false);
     this.fichierImage.set(fichier);
     this.definirApercu(fichier);
+  }
+
+  protected fermerRecadrage(): void {
+    const image = this.imageARecadrer();
+    if (image) URL.revokeObjectURL(image.src);
+    this.imageARecadrer.set(null);
   }
 
   protected annulerSelectionImage(input?: HTMLInputElement): void {

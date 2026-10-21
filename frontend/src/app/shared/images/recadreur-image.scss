@@ -1,0 +1,76 @@
+.recadreur { display: grid; gap: 0.75rem; }
+
+.cadre {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #0b2533;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+
+  &:active { cursor: grabbing; }
+  &:focus-visible { outline: 3px solid var(--ept-sky); outline-offset: 2px; }
+
+  img { position: absolute; max-width: none; height: auto; pointer-events: none; }
+}
+
+/* Aperçu rond : seul le cercle sera visible sur le site, mais le fichier reste carré. */
+.cadre.rond {
+  max-width: 22rem;
+  justify-self: center;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    box-shadow: 0 0 0 100vmax rgb(1 30 45 / 0.55);
+    pointer-events: none;
+  }
+}
+
+/* Règle des tiers, pour aider à placer le sujet. */
+.grille {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, transparent calc(33.33% - 0.5px), rgb(255 255 255 / 0.45) calc(33.33% - 0.5px) calc(33.33% + 0.5px), transparent calc(33.33% + 0.5px) calc(66.66% - 0.5px), rgb(255 255 255 / 0.45) calc(66.66% - 0.5px) calc(66.66% + 0.5px), transparent calc(66.66% + 0.5px)),
+    linear-gradient(to bottom, transparent calc(33.33% - 0.5px), rgb(255 255 255 / 0.45) calc(33.33% - 0.5px) calc(33.33% + 0.5px), transparent calc(33.33% + 0.5px) calc(66.66% - 0.5px), rgb(255 255 255 / 0.45) calc(66.66% - 0.5px) calc(66.66% + 0.5px), transparent calc(66.66% + 0.5px));
+  pointer-events: none;
+}
+
+.aide { margin: 0; color: var(--ept-text-secondary); font-size: 0.8rem; }
+
+.commandes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--ept-primary);
+
+  input { flex: 1 1 10rem; min-width: 0; accent-color: var(--ept-primary); }
+  input:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 3px; }
+}
+
+.actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; }
+
+button {
+  min-height: 2.5rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--ept-primary);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled { opacity: 0.6; cursor: wait; }
+  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+}
+
+.principal { background: var(--ept-primary); color: white; }
+.secondaire { background: white; color: var(--ept-primary); }
+.erreur { margin: 0; color: var(--ept-error); font-size: 0.82rem; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

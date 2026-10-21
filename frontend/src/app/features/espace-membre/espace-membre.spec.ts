@@ -87,15 +87,16 @@ describe('Navigation de l’espace membre', () => {
     const fixture = TestBed.createComponent(EspaceMembre);
     fixture.detectChanges();
     const racine = fixture.nativeElement as HTMLElement;
-    const photos = [...racine.querySelectorAll<HTMLImageElement>('p-avatar img')];
+    const photos = [...racine.querySelectorAll<HTMLImageElement>('app-avatar-membre img')];
 
     expect(photos.map((photo) => photo.getAttribute('src'))).toEqual(['/api/photos/awa.png', '/api/photos/awa.png']);
 
     photos[0].dispatchEvent(new Event('error'));
     fixture.detectChanges();
 
-    expect(racine.querySelector('p-avatar img')).toBeNull();
-    expect(racine.querySelector('.barre-laterale p-avatar')?.textContent?.trim()).toBe('AD');
+    expect(racine.querySelector('.barre-laterale app-avatar-membre img')).toBeNull();
+    expect(racine.querySelector('.barre-laterale app-avatar-membre')?.textContent?.trim()).toBe('AD');
+    expect(racine.querySelector('.barre-laterale app-avatar-membre')?.getAttribute('data-role')).toBe('ALUMNI');
   });
 
   it('regroupe profil, paramètres et déconnexion dans le menu du compte', () => {

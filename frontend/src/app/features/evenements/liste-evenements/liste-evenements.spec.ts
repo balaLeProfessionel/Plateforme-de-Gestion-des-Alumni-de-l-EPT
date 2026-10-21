@@ -51,7 +51,7 @@ describe('ListeEvenements', () => {
       .toContain('/evenements/event-1');
   });
 
-  it('garde une zone d’illustration commune pour les cartes avec ou sans image', async () => {
+  it('affiche l’image ou, à défaut, une affiche datée dans le même cadre 16:9', async () => {
     lister.mockReturnValueOnce(of(page({ contenu: [
       evenement({ urlImage: null }),
       evenement({ id: 'event-2', urlImage: '/api/evenement-images/affiche.png' }),
@@ -61,10 +61,25 @@ describe('ListeEvenements', () => {
 
     const visuels = [...fixture.nativeElement.querySelectorAll('.visuel-evenement')] as HTMLElement[];
     expect(visuels).toHaveLength(2);
-    expect(visuels[0].classList).toContain('sans-image');
-    expect(visuels[0].querySelector('span')?.textContent).toContain('EPT Alumni');
-    expect(visuels[1].classList).not.toContain('sans-image');
+    expect(visuels[0].querySelector('img')).toBeNull();
+    expect(visuels[0].querySelector('.affiche .date')).not.toBeNull();
+    expect(visuels[0].querySelector('.affiche')?.getAttribute('aria-hidden')).toBe('true');
+    expect(visuels[1].querySelector('.affiche')).toBeNull();
     expect(visuels[1].querySelector('img')?.getAttribute('src')).toBe('/api/evenement-images/affiche.png');
+    expect(visuels[1].querySelector('img')?.getAttribute('loading')).toBe('lazy');
+  });
+
+  it('rend toute la carte cliquable avec un seul lien, nommé par le titre', async () => {
+    lister.mockReturnValueOnce(of(page({ contenu: [evenement({})], totalElements: 1, totalPages: 1 })));
+    parametres.next(convertToParamMap({}));
+    await fixture.whenStable();
+
+    const carte = fixture.nativeElement.querySelector('.carte-evenement') as HTMLElement;
+    const liens = [...carte.querySelectorAll('a')];
+    expect(carte.classList).toContain('carte-cliquable');
+    expect(liens).toHaveLength(1);
+    expect(liens[0].classList).toContain('lien-etire');
+    expect(liens[0].closest('h2')).not.toBeNull();
   });
 
   it('synchronise la période et la page depuis l’URL', async () => {

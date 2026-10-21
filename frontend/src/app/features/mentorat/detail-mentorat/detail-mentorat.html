@@ -14,9 +14,8 @@
       <div class="duo">
         @for (personne of [mentorat.mentor, mentorat.mentore]; track personne.id; let estMentor = $first) {
           <a class="personne" [routerLink]="['/profil', personne.id]">
-            <span class="avatar" [class.etudiant]="!estMentor" aria-hidden="true">
-              @if (personne.urlPhoto) { <img [src]="personne.urlPhoto" alt="" /> } @else { {{ initiales(personne) }} }
-            </span>
+            <app-avatar-membre [urlPhoto]="personne.urlPhoto" [prenom]="personne.prenom" [nom]="personne.nom"
+              [roleMembre]="estMentor ? 'ALUMNI' : 'ETUDIANT'" [taille]="3.25" />
             <span class="identite">
               <small>{{ estMentor ? 'Mentor' : 'Mentoré' }}</small>
               <strong>{{ personne.prenom }} {{ personne.nom }}</strong>

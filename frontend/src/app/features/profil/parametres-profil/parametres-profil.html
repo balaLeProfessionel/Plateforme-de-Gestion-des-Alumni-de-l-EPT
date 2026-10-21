@@ -23,13 +23,15 @@
     </nav>
 
     <section class="carte-parametres" id="photo" aria-labelledby="titre-photo">
-      <div class="titre-section"><div><h2 id="titre-photo">Photo de profil</h2><p>JPEG ou PNG, 5 Mo maximum.</p></div></div>
-      <div class="gestion-photo">
-        <div class="avatar">
-          @if (sourcePhoto() && !imageInvalide()) {
-            <img [src]="sourcePhoto()" alt="Aperçu de la photo de profil" (error)="imageInvalide.set(true)" />
-          } @else { <span aria-hidden="true">{{ initiales() }}</span> }
-        </div>
+      <div class="titre-section"><div><h2 id="titre-photo">Photo de profil</h2>
+        <p>JPEG ou PNG, 5 Mo maximum, au moins 200 × 200 pixels. Vous la recadrez en carré.</p></div></div>
+      @if (photoARecadrer(); as image) {
+        <app-recadreur-image [image]="image" [format]="formatPhoto" [rond]="true"
+          libelle="Recadrer la photo de profil" (recadree)="appliquerRecadrage($event)" (annulee)="fermerRecadrage()" />
+      }
+      <div class="gestion-photo" [hidden]="photoARecadrer()">
+        <app-avatar-membre [urlPhoto]="sourcePhoto()" [prenom]="membre.prenom" [nom]="membre.nom" [roleMembre]="membre.role"
+          [taille]="6" [libelle]="sourcePhoto() ? 'Aperçu de la photo de profil' : null" />
         <div class="actions-photo">
           <label class="bouton-principal" for="photo-profil">Choisir une photo</label>
           <input id="photo-profil" class="fichier-cache" type="file" accept="image/jpeg,image/png"

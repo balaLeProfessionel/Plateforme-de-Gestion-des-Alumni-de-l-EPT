@@ -87,13 +87,12 @@ describe('FormulaireEvenement', () => {
     expect(modifier).toHaveBeenCalledWith('event-1', expect.objectContaining({ titre: 'Titre modifié' }));
   });
 
-  it('affiche une zone d’image de hauteur commune même quand aucune illustration n’existe', async () => {
+  it('prévisualise l’affiche datée tant qu’aucune image n’est choisie', async () => {
     await fixture.whenStable();
 
     const apercu = fixture.nativeElement.querySelector('.apercu-image') as HTMLElement;
-    expect(apercu.classList).toContain('sans-image');
     expect(apercu.querySelector('img')).toBeNull();
-    expect(apercu.textContent).toContain('EPT Alumni');
+    expect(apercu.querySelector('.affiche')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('input[type="file"]').getAttribute('accept'))
       .toBe('image/jpeg,image/png');
   });
@@ -122,15 +121,16 @@ describe('FormulaireEvenement', () => {
     const input = { files: { item: fichier }, value: 'dessin.svg' } as unknown as HTMLInputElement;
     const evenementFichier = new Event('change');
     Object.defineProperty(evenementFichier, 'target', { value: input });
-    fixture.componentInstance['selectionnerImage'](evenementFichier);
+    await fixture.componentInstance['selectionnerImage'](evenementFichier);
     expect(fixture.componentInstance['erreurImage']()).toContain('JPEG ou PNG');
     expect(input.value).toBe('');
 
     fichier.mockReturnValue(new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'grande.png', {
       type: 'image/png',
     }));
-    fixture.componentInstance['selectionnerImage'](evenementFichier);
+    await fixture.componentInstance['selectionnerImage'](evenementFichier);
     expect(fixture.componentInstance['erreurImage']()).toContain('5 Mo');
+    expect(fixture.componentInstance['imageARecadrer']()).toBeNull();
     expect(creer).not.toHaveBeenCalled();
   });
 

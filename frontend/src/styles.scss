@@ -159,3 +159,15 @@ app-consultation-profil .indicateur-detail {
   color: var(--ept-text-secondary);
   font-size: 0.8rem;
 }
+
+/*
+ * Carte entièrement cliquable (« lien étiré ») : un seul lien, nommé par le titre de la carte,
+ * couvre toute la carte grâce à son ::after. Les autres commandes de la carte (boutons, liens
+ * secondaires, champs) passent au-dessus et restent utilisables ; le lecteur d'écran n'entend
+ * qu'un lien par carte, et le focus clavier entoure toute la carte.
+ */
+.carte-cliquable { position: relative; }
+.carte-cliquable .lien-etire::after { content: ''; position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
+.carte-cliquable .lien-etire:focus-visible { outline: none; }
+.carte-cliquable:has(.lien-etire:focus-visible) { outline: 3px solid var(--ept-sky); outline-offset: 3px; }
+.carte-cliquable :is(button, a:not(.lien-etire), input, select, textarea, label, summary) { position: relative; z-index: 2; }

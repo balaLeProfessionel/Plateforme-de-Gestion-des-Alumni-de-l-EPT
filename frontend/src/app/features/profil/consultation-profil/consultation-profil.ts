@@ -13,6 +13,7 @@ import {
 } from '../../../core/services/models/profil.model';
 import { ProfilService } from '../../../core/services/profil/profil-service';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
+import { AvatarMembre } from '../../../shared/images/avatar-membre';
 
 interface ProfilAffiche extends ProfilPublic {
   email?: string;
@@ -22,7 +23,7 @@ interface ProfilAffiche extends ProfilPublic {
 
 @Component({
   selector: 'app-consultation-profil',
-  imports: [DatePipe, RouterLink, BoutonRetour],
+  imports: [DatePipe, RouterLink, BoutonRetour, AvatarMembre],
   templateUrl: './consultation-profil.html',
   styleUrl: './consultation-profil.scss'
 })
@@ -36,12 +37,6 @@ export class ConsultationProfil {
   protected readonly estMonProfil = signal(false);
   protected readonly enChargement = signal(true);
   protected readonly messageErreur = signal<string | null>(null);
-  protected readonly imageInvalide = signal(false);
-
-  protected readonly initiales = computed(() => {
-    const profil = this.profil();
-    return `${profil?.prenom?.charAt(0) ?? ''}${profil?.nom?.charAt(0) ?? ''}`.toUpperCase();
-  });
 
   protected readonly badgeRole = computed(() => ({
     ETUDIANT: 'Étudiant',
@@ -76,7 +71,6 @@ export class ConsultationProfil {
       tap(() => {
         this.enChargement.set(true);
         this.messageErreur.set(null);
-        this.imageInvalide.set(false);
       }),
       switchMap((parametres) => {
         const id = parametres.get('id');

@@ -15,14 +15,14 @@
     <ul class="liste">
       @for (mentorat of resultat.contenu; track mentorat.id) {
         @let personne = autrePersonne(mentorat);
-        <li class="ligne" [attr.data-statut]="mentorat.statut">
-          <div class="avatar" [class.etudiant]="mentorat.monRole === 'MENTOR'" aria-hidden="true">
-            @if (personne.urlPhoto) { <img [src]="personne.urlPhoto" alt="" /> } @else { {{ initiales(personne) }} }
-          </div>
+        <li class="ligne carte-cliquable" [attr.data-statut]="mentorat.statut">
+          <app-avatar-membre [urlPhoto]="personne.urlPhoto" [prenom]="personne.prenom" [nom]="personne.nom"
+            [roleMembre]="mentorat.monRole === 'MENTOR' ? 'ETUDIANT' : 'ALUMNI'" />
 
           <div class="contenu">
             <div class="entete">
-              <h2><a [routerLink]="['/mentorat/suivi', mentorat.id]">{{ personne.prenom }} {{ personne.nom }}</a></h2>
+              <h2><a class="lien-etire" [routerLink]="['/mentorat/suivi', mentorat.id]"
+                [attr.aria-label]="'Mentorat avec ' + personne.prenom + ' ' + personne.nom + ', ' + mentorat.domaine.libelle">{{ personne.prenom }} {{ personne.nom }}</a></h2>
               <span class="statut">{{ libellesStatut[mentorat.statut] }}</span>
             </div>
             <p class="details">
@@ -68,9 +68,7 @@
                 </div>
               }
             } @else if (mentorat.statut === 'ACCEPTEE' || mentorat.statut === 'TERMINEE') {
-              <a class="lien-suivi" [routerLink]="['/mentorat/suivi', mentorat.id]">
-                Voir le suivi<i class="pi pi-arrow-right" aria-hidden="true"></i>
-              </a>
+              <span class="lien-suivi" aria-hidden="true">Voir le suivi<i class="pi pi-arrow-right"></i></span>
             }
           </div>
         </li>

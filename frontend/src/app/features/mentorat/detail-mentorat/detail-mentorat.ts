@@ -9,15 +9,15 @@ import {
   LIBELLES_STATUT_MENTORAT,
   Mentorat,
   MentoratDetail,
-  ParticipantMentorat,
 } from '../../../core/services/models/mentorat.model';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
+import { AvatarMembre } from '../../../shared/images/avatar-membre';
 import { EvaluationMentoratCarte } from './evaluation-mentorat/evaluation-mentorat';
 import { SeancesMentorat } from './seances-mentorat/seances-mentorat';
 
 @Component({
   selector: 'app-detail-mentorat',
-  imports: [DatePipe, RouterLink, BoutonRetour, SeancesMentorat, EvaluationMentoratCarte],
+  imports: [DatePipe, RouterLink, BoutonRetour, SeancesMentorat, EvaluationMentoratCarte, AvatarMembre],
   templateUrl: './detail-mentorat.html',
   styleUrl: './detail-mentorat.scss',
 })
@@ -62,10 +62,6 @@ export class DetailMentorat {
 
   protected actualiser(): void {
     this.recharger.next();
-  }
-
-  protected initiales({ prenom, nom }: ParticipantMentorat): string {
-    return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase();
   }
 
   protected terminer(mentorat: Mentorat): void {

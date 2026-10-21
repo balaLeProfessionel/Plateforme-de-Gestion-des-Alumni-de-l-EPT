@@ -11,11 +11,8 @@
   .optionnel { margin-left: .3rem; }
 }
 .bloc-image { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 1.2rem; padding: 1rem; border: 1px solid var(--ept-border); background: #fbfcfc; }
-.apercu-image { display: grid; width: 100%; min-width: 0; min-height: 8.5rem; max-height: 12rem; aspect-ratio: 16 / 7; place-items: center; overflow: hidden; border: 1px solid var(--ept-border); background: #edf4f7;
-  img { display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: contain; }
-  span { display: flex; align-items: center; justify-content: center; gap: .55rem; width: 100%; height: 100%; background: linear-gradient(135deg, #e7f4f8, #f3f6f7); color: var(--ept-primary); font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; i { font-size: 1.15rem; } }
-}
-.apercu-image.sans-image { border-style: dashed; }
+.apercu-image { min-width: 0; overflow: hidden; border: 1px solid var(--ept-border); border-radius: 8px; }
+.recadrage { grid-column: 1 / -1; }
 .champ input[type='file'] { padding: .45rem; }
 .actions-image { display: flex; flex-wrap: wrap; gap: .5rem; }
 .actions-image button { min-height: 2.4rem; padding: .5rem .7rem; border: 1px solid var(--ept-primary); background: white; color: var(--ept-primary); font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; }

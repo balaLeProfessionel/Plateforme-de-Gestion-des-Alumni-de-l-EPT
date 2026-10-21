@@ -71,18 +71,18 @@ describe('ParametresProfil', () => {
     );
   });
 
-  it('refuse une photo non prise en charge avant l appel réseau', () => {
+  it('refuse une photo non prise en charge avant l appel réseau', async () => {
     const fichier = new File(['texte'], 'profil.txt', { type: 'text/plain' });
-    composant['choisirPhoto']({ target: { files: [fichier], value: 'profil.txt' } } as unknown as Event);
+    await composant['choisirPhoto']({ target: { files: [fichier], value: 'profil.txt' } } as unknown as Event);
 
     expect(composant['erreurPhoto']()).toContain('JPEG ou PNG');
     expect(profilService.modifierPhoto).not.toHaveBeenCalled();
   });
 
-  it('affiche puis libère l aperçu local d une photo valide', () => {
-    const fichier = new File(['image'], 'profil.png', { type: 'image/png' });
+  it('affiche puis libère l aperçu local de la photo recadrée', () => {
+    const fichier = new File(['image'], 'profil.jpg', { type: 'image/jpeg' });
 
-    composant['choisirPhoto']({ target: { files: [fichier], value: 'profil.png' } } as unknown as Event);
+    composant['appliquerRecadrage'](fichier);
 
     expect(composant['sourcePhoto']()).toBe('blob:apercu-photo');
     expect(composant['fichierPhoto']()).toBe(fichier);
@@ -91,20 +91,20 @@ describe('ParametresProfil', () => {
     expect(composant['sourcePhoto']()).toBeNull();
   });
 
-  it('refuse une photo dépassant cinq mégaoctets avant l appel réseau', () => {
+  it('refuse une photo dépassant cinq mégaoctets avant l appel réseau', async () => {
     const fichier = new File(
       [new Uint8Array(5 * 1024 * 1024 + 1)], 'profil.jpg', { type: 'image/jpeg' }
     );
 
-    composant['choisirPhoto']({ target: { files: [fichier], value: 'profil.jpg' } } as unknown as Event);
+    await composant['choisirPhoto']({ target: { files: [fichier], value: 'profil.jpg' } } as unknown as Event);
 
     expect(composant['erreurPhoto']()).toContain('5 Mo');
     expect(profilService.modifierPhoto).not.toHaveBeenCalled();
   });
 
   it('enregistre puis supprime la photo et synchronise la session', () => {
-    const fichier = new File(['image'], 'profil.png', { type: 'image/png' });
-    composant['choisirPhoto']({ target: { files: [fichier], value: 'profil.png' } } as unknown as Event);
+    const fichier = new File(['image'], 'profil.jpg', { type: 'image/jpeg' });
+    composant['appliquerRecadrage'](fichier);
 
     composant['enregistrerPhoto']();
 
@@ -121,13 +121,13 @@ describe('ParametresProfil', () => {
   it('revient aux initiales quand l image du profil ne charge pas', () => {
     composant['profil'].set({ ...profil(), urlPhoto: '/api/photos/introuvable.png' });
     fixture.detectChanges();
-    const image = fixture.nativeElement.querySelector('.avatar img') as HTMLImageElement;
+    const image = fixture.nativeElement.querySelector('app-avatar-membre img') as HTMLImageElement;
 
     image.dispatchEvent(new Event('error'));
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.avatar img')).toBeNull();
-    expect(fixture.nativeElement.querySelector('.avatar').textContent).toContain('AD');
+    expect(fixture.nativeElement.querySelector('app-avatar-membre img')).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-avatar-membre').textContent).toContain('AD');
   });
 
   it('affiche une erreur de chargement puis permet de réessayer', () => {

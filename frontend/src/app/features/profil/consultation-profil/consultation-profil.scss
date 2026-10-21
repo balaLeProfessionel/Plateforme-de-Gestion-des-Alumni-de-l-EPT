@@ -11,8 +11,7 @@
   background: linear-gradient(110deg, #fff 0%, #fff 70%, #eef7fa 100%);
 }
 
-.avatar { width: 8rem; height: 8rem; display: grid; place-items: center; overflow: hidden; border: 1px solid var(--ept-border); border-radius: 4px; background: var(--ept-primary-light); color: var(--ept-primary); font-family: var(--ept-font-heading); font-size: 2rem; font-weight: 700; }
-.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.avatar { border: 4px solid var(--ept-surface); box-shadow: 0 0 0 1px var(--ept-border); }
 .identite { min-width: 0; }
 .ligne-nom { display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; }
 .ligne-nom h1 { margin: 0; overflow-wrap: anywhere; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.05; letter-spacing: -0.03em; }
@@ -83,7 +82,7 @@ dd { margin: 0; overflow-wrap: anywhere; font-weight: 600; }
 @media (max-width: 520px) {
   .page-profil { width: min(100% - 2rem, 1180px); padding-top: 2rem; }
   .entete-profil { grid-template-columns: minmax(0, 1fr); align-items: start; padding: 1.25rem; }
-  .avatar { width: 6rem; height: 6rem; }
+  .avatar { --taille: 6rem !important; }
   .ligne-nom h1 { font-size: 2rem; }
   .section-profil { padding: 1.2rem; }
 }

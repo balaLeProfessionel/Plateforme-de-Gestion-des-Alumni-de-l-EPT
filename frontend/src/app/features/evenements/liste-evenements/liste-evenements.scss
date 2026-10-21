@@ -26,13 +26,11 @@
   }
 }
 .entete-carte { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .55rem; }
-.visuel-evenement { display: grid; width: 100%; min-width: 0; min-height: 8.5rem; max-height: 10rem; aspect-ratio: 16 / 7; place-items: center; overflow: hidden; margin: .8rem 0 .25rem; border: 1px solid var(--ept-border); background: #edf4f7;
-  text-decoration: none;
-  &:focus-visible { outline: 3px solid var(--ept-sky); outline-offset: 2px; }
-  img { display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: contain; }
-  span { display: flex; align-items: center; justify-content: center; gap: .55rem; width: 100%; height: 100%; background: linear-gradient(135deg, #e7f4f8, #f3f6f7); color: var(--ept-primary); font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; i { font-size: 1.15rem; } }
+.visuel-evenement { min-width: 0; overflow: hidden; margin: .8rem 0 .25rem; border-radius: 8px; }
+.carte-evenement { transition: border-color .18s ease, box-shadow .18s ease;
+  &:hover { border-color: var(--ept-primary); box-shadow: 0 8px 24px rgba(1, 46, 69, .08); }
+  &:hover h2 a { text-decoration: underline; }
 }
-.visuel-evenement.sans-image { border-style: dashed; }
 .badge-officiel, .badge-communaute, .badge-annule, .audience { display: inline-flex; align-items: center; gap: .35rem; min-height: 1.7rem; padding: .25rem .5rem; border: 1px solid transparent; font-size: .72rem; font-weight: 700; }
 .badge-officiel { border-color: #b6dce9; background: #d8edf5; color: var(--ept-primary); }
 .badge-communaute { border-color: var(--ept-border); background: #f5f7f8; color: var(--ept-text-secondary); }
@@ -49,7 +47,7 @@
 .actions-carte { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .8rem; padding-top: .8rem; border-top: 1px solid var(--ept-border);
   .action-secondaire, .action-danger { min-height: 2.55rem; padding: .55rem .75rem; font-size: .82rem; }
 }
-.confirmation-annulation { display: grid; gap: .6rem; margin-top: .8rem; padding: .8rem; border: 1px solid #efc7c2; background: #fff8f6;
+.confirmation-annulation { position: relative; z-index: 2; display: grid; gap: .6rem; margin-top: .8rem; padding: .8rem; border: 1px solid #efc7c2; background: #fff8f6;
   p { margin: 0; color: #75332c; font-size: .86rem; line-height: 1.45; }
   > div { display: flex; flex-wrap: wrap; gap: .45rem; }
   .erreur-action { font-weight: 700; }

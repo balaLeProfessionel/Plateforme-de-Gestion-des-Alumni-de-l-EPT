@@ -1,7 +1,8 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, input, linkedSignal } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AnnuaireMembre, RoleAnnuaire } from '../../../core/services/models/annuaire.model';
+import { AvatarMembre } from '../../../shared/images/avatar-membre';
 
 interface PresentationRole {
   libelle: string;
@@ -26,30 +27,18 @@ const ORGANISME_PAR_DEFAUT: PresentationRole = { libelle: 'Organisme', icone: 'p
 
 @Component({
   selector: 'app-carte-membre',
-  imports: [RouterLink, NgTemplateOutlet],
+  imports: [RouterLink, NgTemplateOutlet, AvatarMembre],
   templateUrl: './carte-membre.html',
   styleUrl: './carte-membre.scss',
 })
 export class CarteMembre {
   readonly membre = input.required<AnnuaireMembre>();
 
-  /** Repasse à faux pour chaque nouvelle image afin de retenter son chargement. */
-  protected readonly imageInvalide = linkedSignal({
-    source: () => this.membre().urlPhoto,
-    computation: () => false,
-  });
-
   protected readonly estOrganisme = computed(() => this.membre().role === 'ORGANISME');
 
   protected readonly nomAffiche = computed(() => {
     const membre = this.membre();
     return [membre.prenom, membre.nom].filter(Boolean).join(' ');
-  });
-
-  protected readonly initiales = computed(() => {
-    const membre = this.membre();
-    const mots = membre.prenom ? [membre.prenom, membre.nom] : membre.nom.split(/\s+/);
-    return mots.slice(0, 2).map((mot) => mot.charAt(0)).join('').toUpperCase();
   });
 
   /** Le rôle, ou le type d’organisme, donne la couleur et le libellé du bandeau. */

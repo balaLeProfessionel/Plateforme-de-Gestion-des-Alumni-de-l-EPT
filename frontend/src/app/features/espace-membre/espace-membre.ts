@@ -1,22 +1,22 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, OnDestroy, computed, inject, linkedSignal, signal } from '@angular/core';
+import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Sidebar as IconeSidebar } from '@primeicons/angular/sidebar';
 import { MenuItem } from 'primeng/api';
-import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { SidebarModule } from 'primeng/sidebar';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
+import { AvatarMembre } from '../../shared/images/avatar-membre';
 import { MenuMobile, RubriqueAVenir, RubriqueMenu } from './menu-mobile/menu-mobile';
 import { NavigationMobile } from './navigation-mobile/navigation-mobile';
 
 @Component({
   selector: 'app-espace-membre',
   imports: [
-    AvatarModule, RouterLink, RouterLinkActive, RouterOutlet, SidebarModule, MenuModule, TooltipModule, ButtonModule,
+    AvatarMembre, RouterLink, RouterLinkActive, RouterOutlet, SidebarModule, MenuModule, TooltipModule, ButtonModule,
     IconeSidebar, MenuMobile, NavigationMobile,
   ],
   templateUrl: './espace-membre.html',
@@ -82,21 +82,6 @@ export class EspaceMembre implements OnDestroy {
     return [utilisateur?.prenom, utilisateur?.nom].filter(Boolean).join(' ') || 'Mon compte';
   });
 
-  protected readonly initiales = computed(() => {
-    const utilisateur = this.authService.utilisateur();
-    return [utilisateur?.prenom?.[0], utilisateur?.nom?.[0]]
-      .filter(Boolean).join('').toUpperCase() || 'EPT';
-  });
-
-  /** Repasse à faux à chaque nouvelle photo, pour retenter son chargement. */
-  protected readonly photoInvalide = linkedSignal({
-    source: () => this.authService.utilisateur()?.urlPhoto,
-    computation: () => false,
-  });
-
-  protected readonly photoProfil = computed(() =>
-    this.photoInvalide() ? undefined : this.authService.utilisateur()?.urlPhoto || undefined
-  );
 
   protected readonly typeMembre = computed(() => {
     const role = this.authService.utilisateur()?.role;
