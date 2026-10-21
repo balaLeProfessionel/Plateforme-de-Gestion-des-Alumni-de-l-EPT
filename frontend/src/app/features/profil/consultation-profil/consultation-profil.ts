@@ -5,6 +5,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin, map, switchMap, tap } from 'rxjs';
 
+import { AuthService } from '../../../core/services/auth/auth-service';
 import {
   Experience,
   Formation,
@@ -30,6 +31,7 @@ interface ProfilAffiche extends ProfilPublic {
 })
 export class ConsultationProfil {
   private readonly profilService = inject(ProfilService);
+  private readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -75,8 +77,10 @@ export class ConsultationProfil {
       }),
       switchMap((parametres) => {
         const id = parametres.get('id');
-        this.estMonProfil.set(!id);
-        return id ? this.profilService.obtenirProfilPublic(id) : this.chargerMonProfil();
+        // /profil/<mon-id> (lien depuis l'annuaire, par exemple) reste mon profil complet.
+        const moi = !id || id === this.authService.utilisateur()?.id;
+        this.estMonProfil.set(moi);
+        return moi ? this.chargerMonProfil() : this.profilService.obtenirProfilPublic(id);
       }),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({

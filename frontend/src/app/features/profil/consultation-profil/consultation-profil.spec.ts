@@ -1,9 +1,11 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Location } from '@angular/common';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { BehaviorSubject, of } from 'rxjs';
 import { vi } from 'vitest';
 
+import { AuthService } from '../../../core/services/auth/auth-service';
 import { ProfilPublic } from '../../../core/services/models/profil.model';
 import { ProfilService } from '../../../core/services/profil/profil-service';
 import { ConsultationProfil } from './consultation-profil';
@@ -34,7 +36,8 @@ describe('ConsultationProfil', () => {
       providers: [
         provideRouter([]),
         { provide: ActivatedRoute, useValue: { paramMap: parametres } },
-        { provide: ProfilService, useValue: service }
+        { provide: ProfilService, useValue: service },
+        { provide: AuthService, useValue: { utilisateur: signal({ id: 'moi', role: 'ALUMNI' }) } }
       ]
     }).compileComponents();
   });
@@ -67,6 +70,17 @@ describe('ConsultationProfil', () => {
     expect(contenu).toContain('Aucune formation renseignée.');
     expect(fixture.nativeElement.querySelector('.modifier')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('app-bouton-retour')?.textContent).toContain('Retour');
+  });
+
+  it('reconnaît mon propre profil ouvert par son identifiant', async () => {
+    parametres.next(convertToParamMap({ id: 'moi' }));
+    creerComposant();
+    await fixture.whenStable();
+
+    expect(service.obtenirProfil).toHaveBeenCalled();
+    expect(service.obtenirProfilPublic).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain('Informations privées');
+    expect(fixture.nativeElement.querySelector('.modifier')).not.toBeNull();
   });
 
   it('revient à l’écran précédent en conservant ses filtres', async () => {
