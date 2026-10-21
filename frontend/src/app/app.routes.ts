@@ -6,6 +6,7 @@ import {
   changementInitialSeulementGuard,
   roleGuard
 } from './core/guards/auth.guard';
+import { titreProfil } from './features/profil/consultation-profil/titre-profil';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'connexion', pathMatch: 'full' },
@@ -223,7 +224,7 @@ export const routes: Routes = [
       },
       {
         path: 'profil/:id',
-        title: 'Profil membre | EPT Alumni',
+        title: titreProfil,
         canActivate: [authGuard, changementInitialRequisGuard],
         loadComponent: () =>
           import('./features/profil/consultation-profil/consultation-profil').then(
