@@ -1,4 +1,4 @@
-<main class="page-profil" aria-live="polite" [attr.aria-busy]="enChargement()">
+<div class="page-profil" aria-live="polite" [attr.aria-busy]="enChargement()">
   <app-bouton-retour [secours]="estMonProfil() ? '/accueil' : '/annuaire'" />
 
   @if (enChargement()) {
@@ -238,4 +238,4 @@
       </aside>
     </div>
   }
-</main>
+</div>

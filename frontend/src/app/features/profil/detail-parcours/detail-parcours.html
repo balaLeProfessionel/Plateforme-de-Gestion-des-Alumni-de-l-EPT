@@ -1,4 +1,4 @@
-<main class="page-detail" aria-live="polite" [attr.aria-busy]="enChargement()">
+<div class="page-detail" aria-live="polite" [attr.aria-busy]="enChargement()">
   @if (enChargement()) {
     <div class="squelette" aria-hidden="true"></div>
   } @else if (messageErreur() && !item()) {
@@ -68,4 +68,4 @@
       }
     </article>
   }
-</main>
+</div>

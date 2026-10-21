@@ -140,8 +140,17 @@ Chaque cas indique **où il est vérifié** :
 | M05 | Dates en français (« 21 oct. 2026 ») | OK |
 | M06 | Notifications visibles dans les logs de l'API | OK |
 
-## Constats hors périmètre (avant le mentorat)
+## Constats hors périmètre (corrigés le 21 oct. 2026)
 
-- Annuaire et Événements imbriquent un second `<main>` dans celui de l'espace membre (AXE `landmark-no-duplicate-main`).
-- La barre latérale PrimeNG a du contenu hors région (AXE `region`).
-- `--ept-text-secondary` sur `--ept-bg` : contraste 4,48:1, juste sous 4,5:1.
+- Second `<main>` imbriqué dans celui de l'espace membre : Annuaire, Événements (liste, détail,
+  formulaire), Profil, Paramètres, Détail de parcours, Organisme → racine de page en `<div>`.
+- Contenu de la barre latérale PrimeNG hors région : `p-sidebar-aside` reçoit `role="complementary"`.
+- `--ept-text-secondary` passe de #5B7789 (4,48:1 sur le fond de page) à #536C7D (≥ 4,5:1 sur tous les fonds clairs).
+- Audit AXE de toutes les pages de l'espace membre en largeur bureau et du panneau « Menu » mobile : 0 erreur.
+
+## Navigation mobile
+
+| ID | Cas | Vérifié par |
+|---|---|---|
+| M07 | La barre du bas garde 4 entrées lisibles à 375 px ; Mentorat est dans le panneau « Menu », section « Rubriques » | F:navigation-mobile.spec, F:espace-membre.spec, Navigateur |
+| M08 | Le bouton Menu affiche les demandes en attente et devient page courante sur `/mentorat` | F:navigation-mobile.spec |
