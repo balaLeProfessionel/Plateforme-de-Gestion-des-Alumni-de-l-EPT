@@ -20,6 +20,13 @@ public class EmailService {
         log.info("======================================================");
     }
 
+    public void envoyerNotification(String destinataire, String sujet, String message) {
+        log.info("======================================================");
+        log.info("  NOTIFICATION pour {} : {}", destinataire, sujet);
+        log.info("  {}", message);
+        log.info("======================================================");
+    }
+
     public void envoyerCodeReinitialisation(String destinataire, String code) {
         log.info("======================================================");
         log.info("  CODE DE RÉINITIALISATION pour {} : {}", destinataire, code);

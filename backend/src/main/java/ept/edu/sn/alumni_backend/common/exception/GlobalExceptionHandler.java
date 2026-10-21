@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -22,6 +23,8 @@ import ept.edu.sn.alumni_backend.evenement.exception.ImageEvenementIntrouvableEx
 import ept.edu.sn.alumni_backend.evenement.exception.StockageImageEvenementException;
 import ept.edu.sn.alumni_backend.evenement.exception.CapaciteEvenementAtteinteException;
 import ept.edu.sn.alumni_backend.evenement.exception.LimiteCreationEvenementAtteinteException;
+import ept.edu.sn.alumni_backend.mentorat.exception.ConflitMentoratException;
+import ept.edu.sn.alumni_backend.mentorat.exception.MentoratIntrouvableException;
 import ept.edu.sn.alumni_backend.organisme.exception.OrganismeIntrouvableException;
 import ept.edu.sn.alumni_backend.utilisateur.exception.ProfilIntrouvableException;
 import ept.edu.sn.alumni_backend.utilisateur.photo.PhotoIntrouvableException;
@@ -123,6 +126,19 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleCapaciteEvenementAtteinte(
             CapaciteEvenementAtteinteException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(MentoratIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> handleMentoratIntrouvable(MentoratIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler({ConflitMentoratException.class, ObjectOptimisticLockingFailureException.class})
+    public ResponseEntity<Map<String, String>> handleConflitMentorat(RuntimeException e) {
+        String message = e instanceof ConflitMentoratException
+            ? e.getMessage()
+            : "Ces informations viennent d'être modifiées. Rechargez la page et réessayez.";
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", message));
     }
 
     @ExceptionHandler(PhotoIntrouvableException.class)
