@@ -52,7 +52,7 @@ describe('CarteMentor', () => {
 
   it.each([
     [{ placesRestantes: 0 }, 'Complet', 'Complet'],
-    [{ disponible: false }, 'Indisponible', 'Indisponible pour le moment'],
+    [{ disponible: false }, 'Indisponible', 'Indisponible'],
     [{ demandeEnCours: true }, 'Demande envoyée', 'Disponible · 2 places'],
   ])('désactive la demande et dit pourquoi (%o)', (etat, bouton, disponibilite) => {
     const racine = afficher(unMentor(etat));

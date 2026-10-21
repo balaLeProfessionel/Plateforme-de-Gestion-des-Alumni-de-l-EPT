@@ -17,15 +17,17 @@
 /* Comme dans l’annuaire, le bandeau prend la couleur du rôle du mentor. */
 .bandeau {
   display: flex;
-  height: 4rem;
+  height: 4.5rem;
   flex: 0 0 auto;
-  flex-wrap: wrap;
   justify-content: space-between;
   align-items: flex-start;
   gap: 0.35rem;
   padding: 0.6rem 0.75rem;
   background: var(--bandeau, var(--ept-sky));
 }
+
+/* Les deux pastilles restent sur une ligne, au-dessus de l’avatar qui chevauche le bas du bandeau. */
+.bandeau app-etiquette-role { flex: 0 0 auto; }
 
 .carte[data-role='ETUDIANT'] { --bandeau: var(--ept-gold); }
 .carte[data-role='PERSONNEL'] { --bandeau: var(--ept-primary); }
@@ -41,8 +43,12 @@
   color: var(--ept-success);
   font-size: 0.72rem;
   font-weight: 700;
+  flex: 0 1 auto;
+  min-width: 0;
+  white-space: nowrap;
 
-  .point { width: 0.45rem; height: 0.45rem; border-radius: 50%; background: currentColor; }
+  .texte { overflow: hidden; text-overflow: ellipsis; }
+  .point { flex: 0 0 auto; width: 0.45rem; height: 0.45rem; border-radius: 50%; background: currentColor; }
   &.indisponible { color: var(--ept-text-secondary); }
 }
 

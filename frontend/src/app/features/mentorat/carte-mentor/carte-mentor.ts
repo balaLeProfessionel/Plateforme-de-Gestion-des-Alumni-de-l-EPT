@@ -39,7 +39,7 @@ export class CarteMentor {
 
   protected readonly disponibilite = computed(() => {
     const places = this.mentor().placesRestantes;
-    if (!this.mentor().disponible) return 'Indisponible pour le moment';
+    if (!this.mentor().disponible) return 'Indisponible';
     if (places <= 0) return 'Complet';
     return `Disponible · ${places} place${places > 1 ? 's' : ''}`;
   });

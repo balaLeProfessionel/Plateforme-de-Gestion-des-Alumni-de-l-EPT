@@ -2,7 +2,7 @@
   <div class="bandeau">
     <app-etiquette-role [role]="mentor().role" />
     <span class="disponibilite" [class.indisponible]="blocage() === 'Indisponible' || blocage() === 'Complet'">
-      <span class="point" aria-hidden="true"></span>{{ disponibilite() }}
+      <span class="point" aria-hidden="true"></span><span class="texte" [attr.title]="disponibilite()">{{ disponibilite() }}</span>
     </span>
   </div>
 
