@@ -36,6 +36,7 @@
   // Vert — succès, validations (nécessaire en complément, non précisé mais indispensable)
   --ept-success: #2E7D5B;
   --ept-success-light: #E4F1EC;
+  --ept-success-dark: #1F6447;   // texte sur --ept-success-light (6.1:1, AA)
 
   // Textes et bordures
   --ept-text: #014365;
@@ -119,7 +120,7 @@ h1, h2, h3, h4, h5, h6 {
 .alerte-succes {
   background: var(--ept-success-light);
   border-left-color: var(--ept-success);
-  color: var(--ept-success);
+  color: var(--ept-success-dark);
 }
 
 // Sur mobile, un champ dont le texte fait moins de 16px declenche un zoom
