@@ -132,7 +132,7 @@ class GestionProfilIntegrationTests {
                 .with(authentication(authentification())))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.urlPhoto").value(org.hamcrest.Matchers.matchesPattern(
-                "/api/photos/[0-9a-f-]{36}\\.png"
+                "/api/photos/[0-9a-f-]{36}\\.jpg"
             )));
 
         mockMvc.perform(delete("/api/profil/me/photo").with(authentication(authentification())))
@@ -212,10 +212,10 @@ class GestionProfilIntegrationTests {
     }
 
     private byte[] imagePng() throws Exception {
-        BufferedImage image = new BufferedImage(40, 40, BufferedImage.TYPE_INT_RGB);
+        BufferedImage image = new BufferedImage(240, 240, BufferedImage.TYPE_INT_RGB);
         var graphics = image.createGraphics();
         graphics.setColor(Color.BLUE);
-        graphics.fillRect(0, 0, 40, 40);
+        graphics.fillRect(0, 0, 240, 240);
         graphics.dispose();
         ByteArrayOutputStream sortie = new ByteArrayOutputStream();
         ImageIO.write(image, "png", sortie);

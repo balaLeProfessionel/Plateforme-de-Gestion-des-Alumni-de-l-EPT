@@ -25,7 +25,7 @@ class StockagePhotoProfilTests {
     Path repertoire;
 
     @Test
-    void stockeUneImageSousUnNomOpaqueEtLaRedimensionne() throws Exception {
+    void stockeUneImageSousUnNomOpaqueEnCarreDeSixCentsPixels() throws Exception {
         StockagePhotoProfil stockage = stockage();
         MockMultipartFile fichier = new MockMultipartFile(
             "photo", "portrait.png", "image/png", imagePng(1200, 600)
@@ -37,9 +37,9 @@ class StockagePhotoProfilTests {
             enregistree = ImageIO.read(entree);
         }
 
-        assertTrue(url.matches("/api/photos/[0-9a-f-]{36}\\.png"));
-        assertEquals(800, enregistree.getWidth());
-        assertEquals(400, enregistree.getHeight());
+        assertTrue(url.matches("/api/photos/[0-9a-f-]{36}\\.jpg"));
+        assertEquals(600, enregistree.getWidth());
+        assertEquals(600, enregistree.getHeight());
         stockage.supprimerSiGeree(url);
     }
 
@@ -56,14 +56,21 @@ class StockagePhotoProfilTests {
     void accepteUnJpegEtRefuseUneExtensionIncoherente() throws Exception {
         StockagePhotoProfil stockage = stockage();
         String url = stockage.stocker(new MockMultipartFile(
-            "photo", "portrait.jpeg", "image/jpeg", imageJpeg(30, 20)
+            "photo", "portrait.jpeg", "image/jpeg", imageJpeg(300, 200)
         ));
 
         assertTrue(url.endsWith(".jpg"));
         assertThrows(IllegalArgumentException.class, () -> stockage.stocker(new MockMultipartFile(
-            "photo", "portrait.txt", "image/jpeg", imageJpeg(30, 20)
+            "photo", "portrait.txt", "image/jpeg", imageJpeg(300, 200)
         )));
         stockage.supprimerSiGeree(url);
+    }
+
+    @Test
+    void refuseUnePhotoTropPetitePourUnPortraitNet() {
+        IllegalArgumentException erreur = assertThrows(IllegalArgumentException.class, () -> stockage().stocker(
+            new MockMultipartFile("photo", "vignette.png", "image/png", imagePng(199, 400))));
+        assertEquals("L’image est trop petite : au moins 200 × 200 pixels.", erreur.getMessage());
     }
 
     @Test
@@ -80,7 +87,7 @@ class StockagePhotoProfilTests {
     void supprimeSeulementUnePhotoGereeEtBloqueLesCheminsInvalides() throws Exception {
         StockagePhotoProfil stockage = stockage();
         String url = stockage.stocker(new MockMultipartFile(
-            "photo", "portrait.png", "image/png", imagePng(20, 20)
+            "photo", "portrait.png", "image/png", imagePng(200, 200)
         ));
         String nom = url.substring("/api/photos/".length());
 

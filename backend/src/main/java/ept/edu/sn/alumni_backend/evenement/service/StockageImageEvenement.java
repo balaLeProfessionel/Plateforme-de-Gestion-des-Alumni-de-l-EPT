@@ -1,7 +1,5 @@
 package ept.edu.sn.alumni_backend.evenement.service;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -24,13 +22,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
 
+import ept.edu.sn.alumni_backend.common.image.FormatImage;
 import ept.edu.sn.alumni_backend.evenement.exception.ImageEvenementIntrouvableException;
 import ept.edu.sn.alumni_backend.evenement.exception.StockageImageEvenementException;
 
 @Service
 public class StockageImageEvenement {
     private static final Set<String> FORMATS_ACCEPTES = Set.of("image/jpeg", "image/png");
-    private static final int DIMENSION_MAXIMALE = 1600;
     private static final long PIXELS_SOURCE_MAXIMAUX = 20_000_000;
     private static final String PREFIXE_PUBLIC = "/api/evenement-images/";
 
@@ -65,16 +63,14 @@ public class StockageImageEvenement {
             byte[] contenu = fichier.getBytes();
             verifierSignature(contenu, type);
             BufferedImage source = decoder(contenu);
-            String extension = "image/png".equals(type) ? "png" : "jpg";
-            String nom = UUID.randomUUID() + "." + extension;
+            FormatImage.EVENEMENT.verifierTailleMinimale(source);
+            String nom = UUID.randomUUID() + ".jpg";
             Files.createDirectories(repertoire);
             Path destination = cheminSecurise(nom);
             Path temporaire = Files.createTempFile(repertoire, "evenement-", ".tmp");
             try {
-                BufferedImage redimensionnee = redimensionner(source, extension);
-                if (!ImageIO.write(redimensionnee, extension, temporaire.toFile())) {
-                    throw new IllegalArgumentException("Le format de l’image ne peut pas être traité.");
-                }
+                // Format imposé : 1600 × 900 (16:9), recadré au centre si l'image n'a pas ce rapport.
+                FormatImage.ecrireJpeg(FormatImage.EVENEMENT.appliquer(source), temporaire);
                 try {
                     Files.move(temporaire, destination, StandardCopyOption.ATOMIC_MOVE);
                 } catch (AtomicMoveNotSupportedException e) {
@@ -154,22 +150,5 @@ public class StockageImageEvenement {
         if (("image/jpeg".equals(type) && !jpeg) || ("image/png".equals(type) && !png)) {
             throw new IllegalArgumentException("Le contenu du fichier ne correspond pas à son format.");
         }
-    }
-
-    private BufferedImage redimensionner(BufferedImage source, String format) {
-        double ratio = Math.min(1d, (double) DIMENSION_MAXIMALE / Math.max(source.getWidth(), source.getHeight()));
-        int largeur = Math.max(1, (int) Math.round(source.getWidth() * ratio));
-        int hauteur = Math.max(1, (int) Math.round(source.getHeight() * ratio));
-        int type = "png".equals(format) ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
-        BufferedImage cible = new BufferedImage(largeur, hauteur, type);
-        Graphics2D graphics = cible.createGraphics();
-        try {
-            graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-            graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-            graphics.drawImage(source, 0, 0, largeur, hauteur, null);
-        } finally {
-            graphics.dispose();
-        }
-        return cible;
     }
 }

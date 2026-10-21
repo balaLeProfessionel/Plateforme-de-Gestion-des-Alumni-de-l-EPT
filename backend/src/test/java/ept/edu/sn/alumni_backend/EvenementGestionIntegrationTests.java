@@ -360,7 +360,7 @@ class EvenementGestionIntegrationTests {
                 multipart("/api/evenements/{id}/image", evenement.getId()).file(imageEvenement()), alumni))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.urlImage").value(org.hamcrest.Matchers.matchesPattern(
-                "/api/evenement-images/[0-9a-f-]{36}\\.png")))
+                "/api/evenement-images/[0-9a-f-]{36}\\.jpg")))
             .andReturn();
         String url = com.jayway.jsonpath.JsonPath.read(
             televersement.getResponse().getContentAsString(), "$.urlImage");
@@ -368,7 +368,7 @@ class EvenementGestionIntegrationTests {
         mockMvc.perform(get(url))
             .andExpect(status().isOk())
             .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
-                .contentType(MediaType.IMAGE_PNG));
+                .contentType(MediaType.IMAGE_JPEG));
         mockMvc.perform(requeteAuthentifie(delete("/api/evenements/{id}/image", evenement.getId()), alumni))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.urlImage").value(org.hamcrest.Matchers.nullValue()));
@@ -463,7 +463,7 @@ class EvenementGestionIntegrationTests {
     }
 
     private MockMultipartFile imageEvenement() throws Exception {
-        BufferedImage image = new BufferedImage(48, 24, BufferedImage.TYPE_INT_RGB);
+        BufferedImage image = new BufferedImage(800, 450, BufferedImage.TYPE_INT_RGB);
         var graphics = image.createGraphics();
         graphics.setColor(Color.BLUE);
         graphics.fillRect(0, 0, 48, 24);
