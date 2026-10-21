@@ -84,6 +84,13 @@ public class MentoratController {
             profilMentorService.rechercherMentors(recherche, domaine, disponibles, page, taille, principal));
     }
 
+    @GetMapping("/mentors/utilisateur/{utilisateurId}")
+    public ResponseEntity<MentorResponse> obtenirMentor(
+            @PathVariable UUID utilisateurId,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.of(profilMentorService.obtenirMentor(utilisateurId, principal));
+    }
+
     @PostMapping("/mentorats")
     public ResponseEntity<MentoratResponse> demander(
             @Valid @RequestBody DemandeMentoratRequest request,

@@ -36,6 +36,11 @@ export class MentoratService {
     return this.http.put<ProfilMentor>(`${API}/profil`, profil);
   }
 
+  /** Offre d'un alumni vue depuis son profil ; 404 s'il ne propose pas de mentorat. */
+  obtenirMentor(utilisateurId: string) {
+    return this.http.get<Mentor>(`${API}/mentors/utilisateur/${encodeURIComponent(utilisateurId)}`);
+  }
+
   rechercherMentors({ recherche, domaine, disponibles, page }: CriteresMentors, taille = 12) {
     let params = new HttpParams().set('page', page).set('taille', taille).set('disponibles', disponibles);
     if (recherche.trim()) params = params.set('recherche', recherche.trim());

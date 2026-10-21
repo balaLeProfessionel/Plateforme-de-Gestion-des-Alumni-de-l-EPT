@@ -32,6 +32,25 @@ describe('CarteMembre', () => {
     expect(racine().querySelector('.bandeau .role')?.textContent?.trim()).toBe(libelle);
   });
 
+  it.each([
+    ['DISPONIBLE', 'Mentor disponible', ', mentor disponible'],
+    ['INDISPONIBLE', 'Mentor', ', mentor'],
+  ] as const)('signale un alumni mentor (%s) à l’écran et dans le nom du lien', async (statut, badge, suffixe) => {
+    fixture.componentRef.setInput('membre', membre({ role: 'ALUMNI', mentor: statut }));
+    await fixture.whenStable();
+
+    expect(racine().querySelector('.mentor')?.textContent?.trim()).toBe(badge);
+    expect(racine().querySelector('.carte-lien')?.getAttribute('aria-label')).toMatch(new RegExp(suffixe + '$'));
+  });
+
+  it('n’affiche aucun badge pour un membre qui ne propose pas de mentorat', async () => {
+    fixture.componentRef.setInput('membre', membre({ role: 'ALUMNI', mentor: null }));
+    await fixture.whenStable();
+
+    expect(racine().querySelector('.mentor')).toBeNull();
+    expect(racine().querySelector('.carte-lien')?.getAttribute('aria-label')).not.toContain('mentor');
+  });
+
   it('garde le rôle visible et ajoute la vérification en attente', async () => {
     fixture.componentRef.setInput('membre', membre({ role: 'ALUMNI', statutCompte: 'EN_ATTENTE' }));
     await fixture.whenStable();

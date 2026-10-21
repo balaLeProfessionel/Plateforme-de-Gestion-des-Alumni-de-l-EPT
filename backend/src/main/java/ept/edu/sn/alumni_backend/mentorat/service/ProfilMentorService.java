@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.mentorat.service;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.mentorat.StatutMentor;
 import ept.edu.sn.alumni_backend.mentorat.StatutMentorat;
 import ept.edu.sn.alumni_backend.mentorat.dto.DomaineMentoratResponse;
 import ept.edu.sn.alumni_backend.mentorat.dto.MentorResponse;
@@ -121,6 +123,40 @@ public class ProfilMentorService {
             profil,
             actifsParProfil.getOrDefault(profil.getId(), 0L),
             demandesEnCours.contains(profil.getId()))));
+    }
+
+    /**
+     * Offre d'un alumni consultée depuis son profil. Vide s'il ne propose pas de mentorat ou
+     * n'est pas sollicitable, comme dans la recherche.
+     */
+    @Transactional(readOnly = true)
+    public Optional<MentorResponse> obtenirMentor(UUID utilisateurId, UtilisateurPrincipal principal) {
+        UUID moi = principal.getUtilisateur().getId();
+        return profilMentorRepository.findByUtilisateur_Id(utilisateurId)
+            .filter(ProfilMentor::estSollicitable)
+            .map(profil -> mapper.versCarte(profil, mentoresActifs(profil.getId()),
+                mentoratRepository.existsByMentore_IdAndProfilMentor_IdAndStatutIn(
+                    moi, profil.getId(), StatutMentorat.EN_COURS)));
+    }
+
+    /** Statut de mentor des membres d'une page de l'annuaire, en deux requêtes pour toute la page. */
+    @Transactional(readOnly = true)
+    public Map<UUID, StatutMentor> statutsMentors(Collection<UUID> utilisateurIds) {
+        if (utilisateurIds.isEmpty()) return Map.of();
+        List<ProfilMentor> profils = profilMentorRepository.findByUtilisateur_IdIn(utilisateurIds).stream()
+            .filter(ProfilMentor::estSollicitable)
+            .toList();
+        if (profils.isEmpty()) return Map.of();
+        Map<UUID, Long> actifs = mentoratRepository
+            .compterParProfils(profils.stream().map(ProfilMentor::getId).toList(), StatutMentorat.ACCEPTEE).stream()
+            .collect(Collectors.toMap(
+                MentoratRepository.NombreParProfilProjection::getProfilMentorId,
+                MentoratRepository.NombreParProfilProjection::getNombre));
+        return profils.stream().collect(Collectors.toMap(
+            profil -> profil.getUtilisateur().getId(),
+            profil -> profil.isDisponible() && profil.getCapaciteMax() > actifs.getOrDefault(profil.getId(), 0L)
+                ? StatutMentor.DISPONIBLE
+                : StatutMentor.INDISPONIBLE));
     }
 
     private long mentoresActifs(UUID profilId) {

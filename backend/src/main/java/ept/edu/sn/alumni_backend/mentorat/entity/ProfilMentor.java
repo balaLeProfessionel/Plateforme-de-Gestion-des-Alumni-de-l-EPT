@@ -8,6 +8,8 @@ import java.util.UUID;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Check;
 
+import ept.edu.sn.alumni_backend.enums.StatutCompte;
+import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -68,6 +70,16 @@ public class ProfilMentor {
 
     @Column(nullable = false)
     private Instant modifieLe;
+
+    /**
+     * Mentor visible et sollicitable : alumni au compte actif et vérifié. Une offre d'un compte
+     * suspendu ou en attente reste en base mais n'apparaît nulle part.
+     */
+    public boolean estSollicitable() {
+        return utilisateur.isEmailVerifie()
+            && utilisateur.getStatutCompte() == StatutCompte.ACTIF
+            && utilisateur.getRole() == TypeRole.ALUMNI;
+    }
 
     @PrePersist
     void initialiserDates() {

@@ -1,6 +1,6 @@
 @if (lienProfil(); as lien) {
   <a class="carte-lien" [routerLink]="lien"
-    [attr.aria-label]="(estOrganisme() ? 'Voir la fiche de ' : 'Consulter le profil de ') + nomAffiche()">
+    [attr.aria-label]="libelleLien()">
     <ng-container [ngTemplateOutlet]="carte" [ngTemplateOutletContext]="{ $implicit: true }" />
   </a>
 } @else {
@@ -20,6 +20,12 @@
 
     <div class="corps">
       <h2 [attr.title]="nomAffiche()">{{ nomAffiche() }}</h2>
+
+      @if (membre().mentor; as mentor) {
+        <span class="mentor" [class.disponible]="mentor === 'DISPONIBLE'">
+          <i class="pi pi-sitemap" aria-hidden="true"></i>{{ mentor === 'DISPONIBLE' ? 'Mentor disponible' : 'Mentor' }}
+        </span>
+      }
 
       @if (enAttente()) {
         <span class="attente"><i class="pi pi-clock" aria-hidden="true"></i>En attente de vérification</span>

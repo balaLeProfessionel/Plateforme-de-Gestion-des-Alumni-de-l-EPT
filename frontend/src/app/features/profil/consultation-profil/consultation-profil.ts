@@ -14,6 +14,7 @@ import {
 import { ProfilService } from '../../../core/services/profil/profil-service';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
+import { OffreMentoratProfil } from '../../mentorat/offre-mentorat-profil/offre-mentorat-profil';
 
 interface ProfilAffiche extends ProfilPublic {
   email?: string;
@@ -23,7 +24,7 @@ interface ProfilAffiche extends ProfilPublic {
 
 @Component({
   selector: 'app-consultation-profil',
-  imports: [DatePipe, RouterLink, BoutonRetour, AvatarMembre],
+  imports: [DatePipe, RouterLink, BoutonRetour, AvatarMembre, OffreMentoratProfil],
   templateUrl: './consultation-profil.html',
   styleUrl: './consultation-profil.scss'
 })

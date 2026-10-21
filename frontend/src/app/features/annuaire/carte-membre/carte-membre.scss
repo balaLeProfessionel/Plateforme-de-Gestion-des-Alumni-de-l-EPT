@@ -86,6 +86,21 @@ h2 {
   -webkit-line-clamp: 2;
 }
 
+.mentor {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--ept-bg);
+  color: var(--ept-text-secondary);
+  font-size: 0.7rem;
+  font-weight: 700;
+
+  i { font-size: 0.7rem; }
+  &.disponible { background: var(--ept-success-light); color: var(--ept-success-dark); }
+}
+
 .attente {
   display: inline-flex;
   align-items: center;

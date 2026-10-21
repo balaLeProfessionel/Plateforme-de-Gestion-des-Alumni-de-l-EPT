@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
-import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.mentorat.RoleMentorat;
 import ept.edu.sn.alumni_backend.mentorat.StatutMentorat;
@@ -51,7 +50,7 @@ public class MentoratService {
         }
         // Un mentor absent de la recherche (compte suspendu, en attente…) ne peut pas non plus être sollicité.
         ProfilMentor profil = profilMentorRepository.findByIdForUpdate(request.profilMentorId())
-            .filter(MentoratService::estSollicitable)
+            .filter(ProfilMentor::estSollicitable)
             .orElseThrow(() -> new MentoratIntrouvableException("Ce mentor est introuvable."));
         if (profil.getUtilisateur().getId().equals(demandeur.getId())) {
             throw new IllegalArgumentException("Vous ne pouvez pas vous solliciter vous-même.");
@@ -164,13 +163,6 @@ public class MentoratService {
         if (!mentorat.getStatut().peutPasserA(cible)) {
             throw new ConflitMentoratException("Ce mentorat n'est plus dans un état qui permet cette action.");
         }
-    }
-
-    private static boolean estSollicitable(ProfilMentor profil) {
-        Utilisateur mentor = profil.getUtilisateur();
-        return mentor.isEmailVerifie()
-            && mentor.getStatutCompte() == StatutCompte.ACTIF
-            && mentor.getRole() == TypeRole.ALUMNI;
     }
 
     private long placesRestantes(ProfilMentor profil) {

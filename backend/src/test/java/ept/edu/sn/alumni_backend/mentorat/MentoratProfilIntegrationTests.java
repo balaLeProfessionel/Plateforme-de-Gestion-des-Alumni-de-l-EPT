@@ -290,6 +290,60 @@ class MentoratProfilIntegrationTests extends MentoratTestsBase {
             .andExpect(jsonPath("$.contenu[0].nom").value(prefixe + "2"));
     }
 
+    // ---------- Mentorat hors du module (annuaire, profil) ----------
+
+    @Test
+    void a01_lAnnuaireSignaleLesMentorsDisponiblesOuIndisponibles() throws Exception {
+        String prefixe = "Annu" + UUID.randomUUID().toString().substring(0, 6);
+        Utilisateur disponible = renommer(alumni, prefixe + "A");
+        Utilisateur complet = renommer(creerUtilisateur(TypeRole.ALUMNI, "x"), prefixe + "B");
+        Utilisateur enPause = renommer(creerUtilisateur(TypeRole.ALUMNI, "x"), prefixe + "C");
+        renommer(creerUtilisateur(TypeRole.ALUMNI, "x"), prefixe + "D");
+        creerProfil(disponible, true, 2, data);
+        UUID profilComplet = creerProfil(complet, true, 1, data);
+        changerStatut(demander(etudiant, profilComplet, data), "accepter", complet);
+        creerProfil(enPause, false, 2, data);
+
+        mockMvc.perform(authentifie(get("/api/annuaire").param("recherche", prefixe).param("role", "ALUMNI"), etudiant))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.contenu[0].mentor").value("DISPONIBLE"))
+            .andExpect(jsonPath("$.contenu[1].mentor").value("INDISPONIBLE"))
+            .andExpect(jsonPath("$.contenu[2].mentor").value("INDISPONIBLE"))
+            .andExpect(jsonPath("$.contenu[3].mentor").doesNotExist());
+    }
+
+    @Test
+    void a02_leProfilDUnMentorDonneSonOffreEtLaDemandeEnCoursDuVisiteur() throws Exception {
+        UUID profilId = creerProfil(alumni, true, 2, data);
+        mockMvc.perform(authentifie(get("/api/mentorat/mentors/utilisateur/{id}", alumni.getId()), etudiant))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.profilId").value(profilId.toString()))
+            .andExpect(jsonPath("$.placesRestantes").value(2))
+            .andExpect(jsonPath("$.demandeEnCours").value(false))
+            .andExpect(jsonPath("$.domaines[0].code").value("DATA_IA"));
+
+        demander(etudiant, profilId, data);
+        mockMvc.perform(authentifie(get("/api/mentorat/mentors/utilisateur/{id}", alumni.getId()), etudiant))
+            .andExpect(jsonPath("$.demandeEnCours").value(true));
+    }
+
+    @Test
+    void a03_unMembreSansOffreOuUnMentorSuspenduNAPasDOffreVisible() throws Exception {
+        mockMvc.perform(authentifie(get("/api/mentorat/mentors/utilisateur/{id}", alumni.getId()), etudiant))
+            .andExpect(status().isNotFound());
+
+        creerProfil(alumni, true, 2, data);
+        alumni.setStatutCompte(StatutCompte.SUSPENDU);
+        utilisateurRepository.saveAndFlush(alumni);
+        mockMvc.perform(authentifie(get("/api/mentorat/mentors/utilisateur/{id}", alumni.getId()), etudiant))
+            .andExpect(status().isNotFound());
+    }
+
+    private Utilisateur renommer(Utilisateur utilisateur, String nom) {
+        utilisateur.setNom(nom);
+        return utilisateurRepository.saveAndFlush(utilisateur);
+    }
+
     @Test
     void r07_laCarteNExposeAucuneCoordonneePrivee() throws Exception {
         creerProfil(alumni, true, 2, data);

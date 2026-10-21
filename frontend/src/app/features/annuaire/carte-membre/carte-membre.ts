@@ -41,6 +41,14 @@ export class CarteMembre {
     return [membre.prenom, membre.nom].filter(Boolean).join(' ');
   });
 
+  /** Nom du lien de la carte : le badge visuel « Mentor » y est repris pour les lecteurs d’écran. */
+  protected readonly libelleLien = computed(() => {
+    const debut = this.estOrganisme() ? 'Voir la fiche de ' : 'Consulter le profil de ';
+    const mentor = this.membre().mentor;
+    const suite = mentor === 'DISPONIBLE' ? ', mentor disponible' : mentor ? ', mentor' : '';
+    return debut + this.nomAffiche() + suite;
+  });
+
   /** Le rôle, ou le type d’organisme, donne la couleur et le libellé du bandeau. */
   protected readonly presentation = computed<PresentationRole>(() => {
     const membre = this.membre();

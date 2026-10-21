@@ -1,7 +1,10 @@
 package ept.edu.sn.alumni_backend.annuaire;
 
 import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -11,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ept.edu.sn.alumni_backend.annuaire.dto.AnnuaireMembreResponse;
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.mentorat.StatutMentor;
+import ept.edu.sn.alumni_backend.mentorat.service.ProfilMentorService;
 import ept.edu.sn.alumni_backend.utilisateur.MembreVisibilite;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
@@ -21,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class AnnuaireService {
     private final UtilisateurRepository utilisateurRepository;
     private final AnnuaireMapper annuaireMapper;
+    private final ProfilMentorService profilMentorService;
 
     @Transactional(readOnly = true)
     public PageResponse<AnnuaireMembreResponse> rechercher(
@@ -75,8 +81,11 @@ public class AnnuaireService {
             : Sort.by(Sort.Order.asc("nom"), Sort.Order.asc("prenom"));
         PageRequest pagination = PageRequest.of(page, taille, sort);
 
+        Page<Utilisateur> membres = utilisateurRepository.findAll(specification, pagination);
+        Map<UUID, StatutMentor> mentors = profilMentorService.statutsMentors(
+            membres.stream().filter(m -> m.getRole() == TypeRole.ALUMNI).map(Utilisateur::getId).toList());
         return PageResponse.depuis(
-            utilisateurRepository.findAll(specification, pagination).map(annuaireMapper::versResponse)
+            membres.map(membre -> annuaireMapper.versResponse(membre, mentors.get(membre.getId())))
         );
     }
 

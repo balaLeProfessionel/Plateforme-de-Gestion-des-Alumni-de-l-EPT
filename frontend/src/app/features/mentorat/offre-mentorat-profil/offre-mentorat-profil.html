@@ -1,0 +1,48 @@
+@if (charge()) {
+  @if (estMonProfil()) {
+    <section class="offre" aria-labelledby="titre-offre-mentorat">
+      <h2 id="titre-offre-mentorat"><i class="pi pi-sitemap" aria-hidden="true"></i>Mentorat</h2>
+      @if (monOffre(); as offre) {
+        <p class="etat" [class.disponible]="offre.disponible">
+          {{ offre.disponible ? 'Vous êtes disponible' : 'Votre offre est en pause' }}
+          · {{ offre.mentoresActifs }} / {{ offre.capaciteMax }} mentorés
+        </p>
+        <ul class="domaines" aria-label="Vos domaines d’accompagnement">
+          @for (domaine of offre.domaines; track domaine.id) { <li>{{ domaine.libelle }}</li> }
+        </ul>
+        <a class="action" routerLink="/mentorat/offre">Modifier mon offre</a>
+      } @else {
+        <p class="texte">Partagez votre expérience : les étudiants de l’EPT pourront vous demander un accompagnement.</p>
+        <a class="action principale" routerLink="/mentorat/offre">Proposer du mentorat</a>
+      }
+    </section>
+  } @else if (mentor(); as offre) {
+    <section class="offre" aria-labelledby="titre-offre-mentorat">
+      <h2 id="titre-offre-mentorat"><i class="pi pi-sitemap" aria-hidden="true"></i>Mentor EPT</h2>
+      <p class="etat" [class.disponible]="offre.disponible && offre.placesRestantes > 0">
+        @if (offre.disponible && offre.placesRestantes > 0) {
+          Disponible · {{ offre.placesRestantes }} place{{ offre.placesRestantes > 1 ? 's' : '' }}
+        } @else {
+          Indisponible pour le moment
+        }
+      </p>
+      @if (offre.presentation) { <p class="presentation">{{ offre.presentation }}</p> }
+      <ul class="domaines" aria-label="Domaines d’accompagnement">
+        @for (domaine of offre.domaines; track domaine.id) { <li>{{ domaine.libelle }}</li> }
+      </ul>
+
+      @if (peutDemander()) {
+        @if (confirmation(); as message) {
+          <p class="confirmation" role="status"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ message }}</p>
+        } @else if (blocage(); as raison) {
+          <p class="blocage">{{ raison }}</p>
+        } @else {
+          <button type="button" class="action principale" (click)="mentorSollicite.set(offre)">
+            Demander un mentorat
+          </button>
+        }
+      }
+    </section>
+    <app-dialogue-demande [mentor]="mentorSollicite()" (envoyee)="demandeEnvoyee()" (fermee)="mentorSollicite.set(null)" />
+  }
+}

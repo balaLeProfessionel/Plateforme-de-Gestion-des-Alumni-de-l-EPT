@@ -1,5 +1,7 @@
 package ept.edu.sn.alumni_backend.mentorat.repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,6 +23,9 @@ import jakarta.persistence.LockModeType;
 public interface ProfilMentorRepository
         extends JpaRepository<ProfilMentor, UUID>, JpaSpecificationExecutor<ProfilMentor> {
     Optional<ProfilMentor> findByUtilisateur_Id(UUID utilisateurId);
+
+    @EntityGraph(attributePaths = "utilisateur")
+    List<ProfilMentor> findByUtilisateur_IdIn(Collection<UUID> utilisateurIds);
 
     @Override
     @EntityGraph(attributePaths = "utilisateur")
