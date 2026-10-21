@@ -122,6 +122,30 @@ export const LIBELLES_STATUT_MENTORAT: Record<StatutMentorat, string> = {
   TERMINEE: 'Terminée',
 };
 
+/** Ce que signifie l’état pour chacun, et ce qu’il peut faire ensuite. */
+export const EXPLICATIONS_STATUT_MENTORAT: Record<StatutMentorat, Record<RoleMentorat, string>> = {
+  EN_ATTENTE: {
+    MENTORE: 'Votre demande attend la réponse du mentor. Vous pouvez l’annuler tant qu’il n’a pas répondu.',
+    MENTOR: 'Cet étudiant attend votre réponse : acceptez sa demande, ou refusez-la en précisant un motif.',
+  },
+  ACCEPTEE: {
+    MENTORE: 'Le mentor a accepté. Planifiez vos séances ensemble et consignez-les au fil du mentorat.',
+    MENTOR: 'Vous accompagnez cet étudiant. Planifiez vos séances ensemble et consignez-les au fil du mentorat.',
+  },
+  REFUSEE: {
+    MENTORE: 'Le mentor n’a pas pu accepter votre demande. Vous pouvez solliciter un autre mentor.',
+    MENTOR: 'Vous avez refusé cette demande ; l’étudiant en a été prévenu.',
+  },
+  ANNULEE: {
+    MENTORE: 'Vous avez annulé cette demande avant la réponse du mentor.',
+    MENTOR: 'L’étudiant a annulé sa demande avant votre réponse.',
+  },
+  TERMINEE: {
+    MENTORE: 'Ce mentorat est clôturé. Ses séances restent consultables et vous pouvez l’évaluer.',
+    MENTOR: 'Ce mentorat est clôturé. Ses séances restent consultables et vous pouvez l’évaluer.',
+  },
+};
+
 export const LIBELLES_MODALITE: Record<ModaliteSeance, string> = {
   VISIO: 'Visio',
   PRESENTIEL: 'Présentiel',

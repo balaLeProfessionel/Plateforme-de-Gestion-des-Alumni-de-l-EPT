@@ -39,6 +39,7 @@ describe('MentoratPage', () => {
   it('propose à l’étudiant de chercher un mentor et de suivre ses demandes', () => {
     const racine = afficher('ETUDIANT');
     expect(onglets(racine)).toEqual(['Trouver un mentor', 'Mes demandes', 'Mes mentorats']);
+    expect((racine.querySelector('app-guide-mentorat details') as HTMLDetailsElement).open).toBe(false);
     expect(actualiser).not.toHaveBeenCalled();
   });
 
@@ -55,6 +56,7 @@ describe('MentoratPage', () => {
     const racine = afficher(role);
     expect(racine.querySelector('.onglets')).toBeNull();
     expect(racine.textContent).toContain('Le mentorat relie étudiants et alumni');
+    expect((racine.querySelector('app-guide-mentorat details') as HTMLDetailsElement).open).toBe(true);
   });
 
   it.each([

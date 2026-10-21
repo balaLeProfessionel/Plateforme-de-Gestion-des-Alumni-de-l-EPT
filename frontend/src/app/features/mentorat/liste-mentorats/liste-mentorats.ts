@@ -9,6 +9,7 @@ import { CompteurDemandesMentorat } from '../../../core/services/mentorat/compte
 import { MentoratService } from '../../../core/services/mentorat/mentorat';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
 import {
+  EXPLICATIONS_STATUT_MENTORAT,
   LIBELLES_STATUT_MENTORAT,
   Mentorat,
   Page,
@@ -39,6 +40,7 @@ export class ListeMentorats {
 
   protected readonly vue = inject(ActivatedRoute).snapshot.data['vue'] as VueListeMentorats;
   protected readonly libellesStatut = LIBELLES_STATUT_MENTORAT;
+  protected readonly explications = EXPLICATIONS_STATUT_MENTORAT;
   protected readonly page = signal<Page<Mentorat> | null>(null);
   protected readonly messageErreur = signal<string | null>(null);
   protected readonly numeroPage = signal(0);

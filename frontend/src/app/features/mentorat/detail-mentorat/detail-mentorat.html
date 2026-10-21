@@ -30,6 +30,7 @@
         <span class="domaine">{{ mentorat.domaine.libelle }}</span>
         @if (mentorat.programme; as programme) { <span class="programme">{{ programme }}</span> }
       </div>
+      <p class="explication">{{ explications[mentorat.statut][mentorat.monRole] }}</p>
 
       <h1 class="sr-only">Mentorat {{ mentorat.domaine.libelle }} avec {{ mentorat.monRole === 'MENTOR' ? mentorat.mentore.prenom : mentorat.mentor.prenom }}</h1>
       <blockquote>{{ mentorat.objectif }}</blockquote>

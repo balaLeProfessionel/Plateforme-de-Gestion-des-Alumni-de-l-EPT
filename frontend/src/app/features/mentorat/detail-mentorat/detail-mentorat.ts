@@ -6,6 +6,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable, Subject, catchError, map, merge, of, switchMap } from 'rxjs';
 import { MentoratService } from '../../../core/services/mentorat/mentorat';
 import {
+  EXPLICATIONS_STATUT_MENTORAT,
   LIBELLES_STATUT_MENTORAT,
   Mentorat,
   MentoratDetail,
@@ -27,6 +28,7 @@ export class DetailMentorat {
   private readonly recharger = new Subject<void>();
 
   protected readonly libellesStatut = LIBELLES_STATUT_MENTORAT;
+  protected readonly explications = EXPLICATIONS_STATUT_MENTORAT;
   protected readonly detail = signal<MentoratDetail | null>(null);
   protected readonly messageErreur = signal<string | null>(null);
   protected readonly erreurAction = signal<string | null>(null);

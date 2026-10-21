@@ -6,6 +6,8 @@
     <p class="introduction">{{ introduction() }}</p>
   </header>
 
+  <app-guide-mentorat [ouvert]="!onglets().length" />
+
   @if (onglets().length) {
     <nav class="onglets" aria-label="Rubriques du mentorat">
       @for (onglet of onglets(); track onglet.lien) {
@@ -22,7 +24,8 @@
     <section class="etat-mentorat">
       <i class="pi pi-sitemap" aria-hidden="true"></i>
       <h2>Le mentorat relie étudiants et alumni</h2>
-      <p>Les étudiants y trouvent un alumni pour les accompagner, et les alumni y proposent leur aide.</p>
+      <p>Les étudiants y trouvent un alumni pour les accompagner, et les alumni y proposent leur aide.
+        Cet espace leur est réservé : il s’ouvre avec un compte étudiant ou alumni.</p>
     </section>
   }
 </div>

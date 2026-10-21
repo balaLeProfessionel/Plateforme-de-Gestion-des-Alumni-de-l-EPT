@@ -2,6 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
+import { GuideMentorat } from './guide-mentorat/guide-mentorat';
 import { FilAriane } from '../../shared/fil-ariane/fil-ariane';
 
 interface Onglet {
@@ -26,7 +27,7 @@ const ONGLETS_MENTOR: readonly Onglet[] = [
 /** Cadre commun du mentorat : en-tête et onglets adaptés au rôle. */
 @Component({
   selector: 'app-mentorat',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, FilAriane],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, FilAriane, GuideMentorat],
   templateUrl: './mentorat.html',
   styleUrl: './mentorat.scss',
 })

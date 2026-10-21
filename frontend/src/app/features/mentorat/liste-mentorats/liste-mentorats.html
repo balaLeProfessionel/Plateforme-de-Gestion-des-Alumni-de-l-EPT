@@ -30,6 +30,7 @@
               @if (personne.filiere) { <span>{{ personne.filiere }}</span> }
               <span>Demande du {{ mentorat.creeLe | date: 'd MMM y' }}</span>
             </p>
+            <p class="explication">{{ explications[mentorat.statut][mentorat.monRole] }}</p>
             <p class="objectif">{{ mentorat.objectif }}</p>
             @if (mentorat.statut === 'REFUSEE' && mentorat.motifRefus) {
               <p class="motif">Motif : {{ mentorat.motifRefus }}</p>
