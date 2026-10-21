@@ -81,6 +81,10 @@ Le fichier contient le code de référence de chaque patron :
 - Mobile ≤ 560 px : onglets en largeur égale, pastilles de filtres sur une ligne défilante,
   champs en pleine largeur. La barre de navigation mobile occupe le bas : laisser de la marge.
 - `.sr-only` n'est pas global : le redéclarer dans la feuille du composant qui l'utilise.
+- La barre latérale PrimeNG (`p-sidebar-aside`) porte `role="complementary"` : sans rôle, son contenu
+  est hors région pour AXE.
+- La barre du bas mobile garde **4 entrées** (Accueil, Annuaire, Événements, Menu) : une nouvelle
+  rubrique va dans le panneau « Menu » (`liensMenuMobile` dans `espace-membre.ts`).
 - Une page enfant de l'espace membre n'utilise **pas** `<main>` : le cadre (`espace-membre.html`)
   en fournit déjà un ; un second `<main>` imbriqué échoue à AXE. Racine de page : `<div class="…-page">`.
 

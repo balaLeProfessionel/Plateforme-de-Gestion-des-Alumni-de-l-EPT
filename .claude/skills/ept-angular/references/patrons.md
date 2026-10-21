@@ -216,4 +216,6 @@ La route vide redirige selon le rôle avec une fonction :
 ```
 
 Ajouter la rubrique à la navigation : `liensNavigation` dans `espace-membre.ts` (et la retirer
-de `rubriquesAVenir`), et un lien dans `navigation-mobile.html` (ajuster le nombre de colonnes).
+de `rubriquesAVenir`) pour la barre latérale, et `liensMenuMobile` pour le panneau « Menu » mobile.
+La barre du bas reste à quatre entrées ; ajouter la page à `pageDuMenu` (`navigation-mobile.ts`)
+pour que le bouton Menu soit marqué comme page courante.

@@ -39,7 +39,8 @@
 - Contraste texte ≥ 4.5:1, grands textes et icônes ≥ 3:1.
 - Le blanc sur l'or (`--ept-gold`) n'atteint pas AA : utiliser `--ept-gold-dark` sur `--ept-gold-light` (5.3:1).
 - `--ept-success` sur `--ept-success-light` = 4.3:1 (échec) : utiliser `--ept-success-dark` (6.1:1).
-- `--ept-text-secondary` sur `--ept-bg` = 4.48:1, à la limite : préférer ce gris sur fond blanc.
+- `--ept-text-secondary` (#536C7D) passe 4.5:1 sur blanc, `--ept-bg`, `--ept-primary-light` et `--ept-gold-light` ;
+  ne pas l'éclaircir (l'ancienne valeur #5B7789 échouait sur `--ept-bg`).
 - `aria-label` est interdit sur un `<p>` ou un `<span>` sans rôle : ajouter `role="img"` (ex. note en étoiles).
 - Ne jamais coder une information par la couleur seule : un statut a toujours un libellé.
 
