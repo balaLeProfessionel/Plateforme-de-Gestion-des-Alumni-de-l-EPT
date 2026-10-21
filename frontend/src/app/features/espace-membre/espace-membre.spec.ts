@@ -146,6 +146,7 @@ describe('Navigation de l’espace membre', () => {
     expect(racine.querySelector('.badge-mentorat')?.textContent?.trim()).toBe('3');
     expect(racine.querySelector('.barre-laterale a[href="/mentorat"]')?.textContent)
       .toContain('3 demandes en attente');
+    expect(racine.querySelector('.menu-mobile a[href="/mentorat"] .compteur')?.textContent?.trim()).toBe('3');
   });
 
   it('n’affiche pas de lien de profil indisponible pour l’administration', () => {
@@ -154,8 +155,9 @@ describe('Navigation de l’espace membre', () => {
     fixture.detectChanges();
     const racine = fixture.nativeElement as HTMLElement;
 
-    expect(racine.querySelectorAll('.menu-mobile a')).toHaveLength(0);
-    expect(racine.querySelectorAll('.navigation-mobile a')).toHaveLength(4);
+    // Seule la rubrique Mentorat reste : aucun lien de profil pour l'administration.
+    expect([...racine.querySelectorAll('.menu-mobile a')].map((lien) => lien.getAttribute('href'))).toEqual(['/mentorat']);
+    expect(racine.querySelectorAll('.navigation-mobile a')).toHaveLength(3);
     expect(racine.querySelector('.deconnexion-menu')).not.toBeNull();
   });
 });

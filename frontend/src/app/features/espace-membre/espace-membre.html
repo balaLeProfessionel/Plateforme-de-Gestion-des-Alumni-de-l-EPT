@@ -3,7 +3,7 @@
     <p-sidebar id="navigation-principale" class="barre-laterale" [(open)]="sidebarOuverte"
       collapsible="icon" variant="sidebar" width="16rem">
       <p-sidebar-spacer />
-      <p-sidebar-aside aria-label="Navigation de l’espace membre">
+      <p-sidebar-aside role="complementary" aria-label="Navigation de l’espace membre">
         <p-sidebar-panel>
           <p-sidebar-header>
             <p-sidebar-menu>
@@ -125,6 +125,6 @@
   </p-sidebar-layout>
 
   <app-menu-mobile [(ouvert)]="menuOuvert" [lienProfil]="lienProfil()" [lienParametres]="lienParametres()"
-    [rubriques]="rubriquesAVenir" (deconnexion)="seDeconnecter()" />
+    [liens]="liensMenuMobile()" [rubriques]="rubriquesAVenir" (deconnexion)="seDeconnecter()" />
   <app-navigation-mobile [(menuOuvert)]="menuOuvert" />
 </div>

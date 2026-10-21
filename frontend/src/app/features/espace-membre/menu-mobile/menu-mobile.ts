@@ -9,6 +9,12 @@ export interface RubriqueAVenir {
   icone: string;
 }
 
+/** Rubrique accessible depuis le panneau, faute de place dans la barre du bas. */
+export interface RubriqueMenu extends RubriqueAVenir {
+  route: string;
+  compteur?: number;
+}
+
 /** Panneau « Mon espace » des petits écrans : dialog modal, focus piégé, défilement de la page bloqué. */
 @Component({
   selector: 'app-menu-mobile',
@@ -20,6 +26,7 @@ export class MenuMobile {
   readonly ouvert = model(false);
   readonly lienProfil = input<string | null>(null);
   readonly lienParametres = input<string | null>(null);
+  readonly liens = input<readonly RubriqueMenu[]>([]);
   readonly rubriques = input<readonly RubriqueAVenir[]>([]);
   readonly deconnexion = output();
 

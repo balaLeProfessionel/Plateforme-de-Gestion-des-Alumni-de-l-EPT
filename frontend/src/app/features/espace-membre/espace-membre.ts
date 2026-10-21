@@ -10,7 +10,7 @@ import { SidebarModule } from 'primeng/sidebar';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
-import { MenuMobile, RubriqueAVenir } from './menu-mobile/menu-mobile';
+import { MenuMobile, RubriqueAVenir, RubriqueMenu } from './menu-mobile/menu-mobile';
 import { NavigationMobile } from './navigation-mobile/navigation-mobile';
 
 @Component({
@@ -43,6 +43,10 @@ export class EspaceMembre implements OnDestroy {
     { libelle: 'Offres d’emploi', icone: 'pi-briefcase' },
     { libelle: 'Actualités', icone: 'pi-megaphone' },
   ];
+  /** La barre du bas garde quatre entrées lisibles : le mentorat passe par le panneau « Menu ». */
+  protected readonly liensMenuMobile = computed<readonly RubriqueMenu[]>(() => [
+    { libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() },
+  ]);
 
   protected readonly lienProfil = computed(() => {
     const role = this.authService.utilisateur()?.role;

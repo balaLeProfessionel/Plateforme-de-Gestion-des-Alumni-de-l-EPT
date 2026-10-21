@@ -16,6 +16,18 @@
       <i class="pi pi-cog" aria-hidden="true"></i>Paramètres du profil
     </a>
   }
+  @if (liens().length) {
+    <p class="titre-panneau">Rubriques</p>
+    @for (lien of liens(); track lien.route) {
+      <a [routerLink]="lien.route" routerLinkActive="actif" ariaCurrentWhenActive="page" (click)="fermer()">
+        <i class="pi" [class]="'pi ' + lien.icone" aria-hidden="true"></i>{{ lien.libelle }}
+        @if (lien.compteur) {
+          <span class="compteur" aria-hidden="true">{{ lien.compteur }}</span>
+          <span class="sr-only">, {{ lien.compteur }} demandes en attente</span>
+        }
+      </a>
+    }
+  }
   <p class="titre-panneau">À découvrir bientôt</p>
   @for (rubrique of rubriques(); track rubrique.libelle) {
     <span class="rubrique-a-venir"><i class="pi" [class]="'pi ' + rubrique.icone" aria-hidden="true"></i>{{ rubrique.libelle }}</span>
