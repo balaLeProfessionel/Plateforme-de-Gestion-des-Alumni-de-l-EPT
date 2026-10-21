@@ -3,6 +3,7 @@ package ept.edu.sn.alumni_backend.mentorat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -178,6 +179,51 @@ class MentoratSuiviIntegrationTests extends MentoratTestsBase {
             .andExpect(status().isConflict());
         mockMvc.perform(authentifie(get("/api/mentorat/mentorats/{id}", mentorat), mentor))
             .andExpect(jsonPath("$.seances[0].statut").value("PLANIFIEE"));
+    }
+
+    @Test
+    void s09_lesDeuxParticipantsDeplacentUneSeancePlanifiee() throws Exception {
+        changerStatut(mentorat, "accepter", mentor);
+        UUID seance = planifier(mentorat, mentor);
+        Instant nouvelleDate = Instant.parse("2031-03-04T10:30:00Z");
+        envoyer(put("/api/mentorat/mentorats/{id}/seances/{s}", mentorat, seance), etudiant, """
+            {"debut":"%s","dureeMinutes":60,"modalite":"PRESENTIEL","lieuOuLien":"  Salle B12  "}
+            """.formatted(nouvelleDate))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.debut").value(nouvelleDate.toString()))
+            .andExpect(jsonPath("$.dureeMinutes").value(60))
+            .andExpect(jsonPath("$.modalite").value("PRESENTIEL"))
+            .andExpect(jsonPath("$.lieuOuLien").value("Salle B12"))
+            .andExpect(jsonPath("$.statut").value("PLANIFIEE"))
+            .andExpect(jsonPath("$.proposeeParId").value(mentor.getId().toString()));
+
+        envoyer(put("/api/mentorat/mentorats/{id}/seances/{s}", mentorat, seance), mentor,
+                "{\"debut\":\"%s\",\"dureeMinutes\":14,\"modalite\":\"VISIO\"}".formatted(nouvelleDate))
+            .andExpect(status().isBadRequest());
+        envoyer(put("/api/mentorat/mentorats/{id}/seances/{s}", mentorat, seance), intrus, seance(45))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void s10_uneSeanceRealiseeAnnuleeOuDUnMentoratCloture_NeSeDeplacePas() throws Exception {
+        changerStatut(mentorat, "accepter", mentor);
+        UUID realisee = planifier(mentorat, mentor);
+        UUID annulee = planifier(mentorat, mentor);
+        UUID planifiee = planifier(mentorat, mentor);
+        envoyer(patch("/api/mentorat/mentorats/{id}/seances/{s}", mentorat, realisee), mentor, "{\"statut\":\"REALISEE\"}");
+        envoyer(patch("/api/mentorat/mentorats/{id}/seances/{s}", mentorat, annulee), mentor, "{\"statut\":\"ANNULEE\"}");
+
+        for (UUID seance : new UUID[] {realisee, annulee}) {
+            envoyer(put("/api/mentorat/mentorats/{id}/seances/{s}", mentorat, seance), mentor, seance(45))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Seule une séance planifiée peut être modifiée."));
+        }
+        envoyer(put("/api/mentorat/mentorats/{id}/seances/{s}", mentorat, UUID.randomUUID()), mentor, seance(45))
+            .andExpect(status().isNotFound());
+
+        changerStatut(mentorat, "terminer", etudiant);
+        envoyer(put("/api/mentorat/mentorats/{id}/seances/{s}", mentorat, planifiee), mentor, seance(45))
+            .andExpect(status().isConflict());
     }
 
     // ---------- Évaluation ----------

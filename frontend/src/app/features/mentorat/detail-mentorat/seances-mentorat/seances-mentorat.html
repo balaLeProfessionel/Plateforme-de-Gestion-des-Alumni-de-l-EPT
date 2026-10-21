@@ -10,38 +10,8 @@
 
   @if (messageErreur(); as message) { <p class="erreur" role="alert">{{ message }}</p> }
 
-  @if (formulaireOuvert()) {
-    <form class="planification" (submit)="planifier($event)" novalidate>
-      <div class="champ">
-        <label for="seance-debut">Date et heure</label>
-        <input id="seance-debut" type="datetime-local" [formField]="formulaire.debut" aria-describedby="erreur-debut"
-          [attr.aria-invalid]="formulaire.debut().touched() && formulaire.debut().invalid()" />
-        @if (formulaire.debut().touched() && formulaire.debut().errors()[0]; as erreur) {
-          <small id="erreur-debut" class="erreur-champ">{{ erreur.message }}</small>
-        }
-      </div>
-      <div class="champ">
-        <label for="seance-duree">Durée</label>
-        <select id="seance-duree" [formField]="formulaire.dureeMinutes">
-          @for (duree of durees; track duree) { <option [value]="duree">{{ duree }} min</option> }
-        </select>
-      </div>
-      <div class="champ">
-        <label for="seance-modalite">Modalité</label>
-        <select id="seance-modalite" [formField]="formulaire.modalite">
-          @for (modalite of modalites; track modalite[0]) { <option [value]="modalite[0]">{{ modalite[1] }}</option> }
-        </select>
-      </div>
-      <div class="champ large">
-        <label for="seance-lieu">{{ modele().modalite === 'VISIO' ? 'Lien de la visio' : 'Lieu ou précisions' }}</label>
-        <input id="seance-lieu" type="text" autocomplete="off" [formField]="formulaire.lieuOuLien"
-          [placeholder]="modele().modalite === 'VISIO' ? 'https://…' : 'Ex. Bibliothèque de l’EPT'" />
-      </div>
-      <div class="actions large">
-        <button type="submit" class="principal" [disabled]="envoiEnCours()">Planifier</button>
-        <button type="button" class="secondaire" (click)="formulaireOuvert.set(false)">Annuler</button>
-      </div>
-    </form>
+  @if (formulaireOuvert() && !seanceEnEdition()) {
+    <ng-container [ngTemplateOutlet]="formulaireSeance" />
   }
 
   @if (seances().length === 0) {
@@ -62,7 +32,9 @@
           <p class="lieu">{{ seance.lieuOuLien }}</p>
         }
         @if (modifiable()) {
-          @if (suiviOuvert() === seance.id) {
+          @if (seanceEnEdition() === seance.id) {
+            <ng-container [ngTemplateOutlet]="formulaireSeance" />
+          } @else if (suiviOuvert() === seance.id) {
             <div class="suivi">
               <label [for]="'compte-rendu-' + seance.id">Compte rendu (facultatif)</label>
               <textarea [id]="'compte-rendu-' + seance.id" rows="3" [formField]="formulaireSuivi.compteRendu"></textarea>
@@ -78,6 +50,10 @@
           } @else {
             <div class="actions">
               <button type="button" class="secondaire" (click)="ouvrirSuivi(seance)">Consigner la séance</button>
+              <button type="button" class="secondaire" (click)="ouvrirModification(seance)">Déplacer</button>
+              <button type="button" class="secondaire" (click)="ajouterAMonAgenda(seance)">
+                <i class="pi pi-calendar-plus" aria-hidden="true"></i>Ajouter à mon agenda
+              </button>
               <button type="button" class="texte" [disabled]="envoiEnCours()"
                 (click)="changerStatut(seance, 'ANNULEE')">Annuler la séance</button>
             </div>
@@ -102,3 +78,37 @@
     }
   </ol>
 </section>
+
+<ng-template #formulaireSeance>
+  <form class="planification" [attr.aria-label]="seanceEnEdition() ? 'Déplacer la séance' : 'Planifier une séance'" (submit)="enregistrer($event)" novalidate>
+    <div class="champ">
+      <label for="seance-debut">Date et heure</label>
+      <input id="seance-debut" type="datetime-local" [formField]="formulaire.debut" aria-describedby="erreur-debut"
+        [attr.aria-invalid]="formulaire.debut().touched() && formulaire.debut().invalid()" />
+      @if (formulaire.debut().touched() && formulaire.debut().errors()[0]; as erreur) {
+        <small id="erreur-debut" class="erreur-champ">{{ erreur.message }}</small>
+      }
+    </div>
+    <div class="champ">
+      <label for="seance-duree">Durée</label>
+      <select id="seance-duree" [formField]="formulaire.dureeMinutes">
+        @for (duree of durees(); track duree) { <option [value]="duree">{{ duree }} min</option> }
+      </select>
+    </div>
+    <div class="champ">
+      <label for="seance-modalite">Modalité</label>
+      <select id="seance-modalite" [formField]="formulaire.modalite">
+        @for (modalite of modalites; track modalite[0]) { <option [value]="modalite[0]">{{ modalite[1] }}</option> }
+      </select>
+    </div>
+    <div class="champ large">
+      <label for="seance-lieu">{{ modele().modalite === 'VISIO' ? 'Lien de la visio' : 'Lieu ou précisions' }}</label>
+      <input id="seance-lieu" type="text" autocomplete="off" [formField]="formulaire.lieuOuLien"
+        [placeholder]="modele().modalite === 'VISIO' ? 'https://…' : 'Ex. Bibliothèque de l’EPT'" />
+    </div>
+    <div class="actions large">
+      <button type="submit" class="principal" [disabled]="envoiEnCours()">{{ seanceEnEdition() ? 'Enregistrer' : 'Planifier' }}</button>
+      <button type="button" class="secondaire" (click)="fermerFormulaire()">Annuler</button>
+    </div>
+  </form>
+</ng-template>

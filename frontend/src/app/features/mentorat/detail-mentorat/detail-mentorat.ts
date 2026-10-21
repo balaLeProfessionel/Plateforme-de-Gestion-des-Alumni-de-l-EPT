@@ -39,6 +39,13 @@ export class DetailMentorat {
     if (!mentorat) return '';
     return mentorat.monRole === 'MENTOR' ? mentorat.mentor.id : mentorat.mentore.id;
   });
+  /** Titre des séances exportées vers l’agenda. */
+  protected readonly intitule = computed(() => {
+    const mentorat = this.mentorat();
+    if (!mentorat) return '';
+    const autre = mentorat.monRole === 'MENTOR' ? mentorat.mentore : mentorat.mentor;
+    return `Mentorat ${mentorat.domaine.libelle} avec ${autre.prenom} ${autre.nom}`;
+  });
   protected readonly secours = computed(() =>
     this.mentorat()?.monRole === 'MENTOR' ? '/mentorat/mentores' : '/mentorat/suivis');
 

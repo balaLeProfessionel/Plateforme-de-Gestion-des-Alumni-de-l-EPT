@@ -50,7 +50,7 @@
 
     <div class="colonnes">
       <app-seances-mentorat [mentoratId]="mentorat.id" [seances]="detail.seances"
-        [modifiable]="mentorat.statut === 'ACCEPTEE'" (modifiee)="actualiser()" />
+        [modifiable]="mentorat.statut === 'ACCEPTEE'" [intitule]="intitule()" (modifiee)="actualiser()" />
 
       <aside class="cote">
         <app-evaluation-mentorat [mentoratId]="mentorat.id" [evaluations]="detail.evaluations"

@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 
 import { SeanceMentorat } from '../../../../core/services/models/mentorat.model';
 import { saisir, soumettre, uneSeance } from '../../testing/donnees-mentorat';
@@ -113,6 +114,55 @@ describe('SeancesMentorat', () => {
     fixture.detectChanges();
     expect(racine.querySelector('[role="alert"]')?.textContent).toContain('ne peut plus passer');
     expect(modifications).toBe(0);
+  });
+
+  it('déplace une séance planifiée dans le formulaire prérempli, à sa place dans la frise', async () => {
+    afficher([uneSeance({ id: 's1', dureeMinutes: 15, modalite: 'PRESENTIEL', lieuOuLien: 'Salle B12' }), uneSeance({ id: 's2' })]);
+    bouton('Déplacer')?.click();
+    fixture.detectChanges();
+
+    const formulaire = racine.querySelector('.frise li .planification') as HTMLFormElement;
+    expect(formulaire.getAttribute('aria-label')).toBe('Déplacer la séance');
+    expect((racine.querySelector('#seance-debut') as HTMLInputElement).value)
+      .toBe(new Date('2026-10-28T18:00:00Z').toLocaleString('sv-SE').slice(0, 16).replace(' ', 'T'));
+    expect((racine.querySelector('#seance-duree') as HTMLSelectElement).value).toBe('15');
+    expect((racine.querySelector('#seance-lieu') as HTMLInputElement).value).toBe('Salle B12');
+    expect(bouton('Planifier une séance')).toBeUndefined();
+
+    saisir(racine.querySelector('#seance-debut') as HTMLInputElement, '2026-11-02T09:30');
+    fixture.detectChanges();
+    soumettre(formulaire);
+    await fixture.whenStable();
+
+    const requete = http.expectOne((r) => r.method === 'PUT' && r.url === '/api/mentorat/mentorats/m1/seances/s1');
+    expect(requete.request.body).toEqual({
+      debut: new Date('2026-11-02T09:30').toISOString(), dureeMinutes: 15, modalite: 'PRESENTIEL', lieuOuLien: 'Salle B12',
+    });
+    requete.flush(uneSeance());
+    await new Promise((fin) => setTimeout(fin));
+    fixture.detectChanges();
+    expect(modifications).toBe(1);
+    expect(racine.querySelector('.planification')).toBeNull();
+  });
+
+  it('télécharge la séance au format iCalendar', async () => {
+    fixture.componentRef.setInput('intitule', 'Mentorat Data & IA avec Awa Thiam');
+    afficher([uneSeance()]);
+    const creerUrl = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:seance');
+    const revoquer = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      expect(this.download).toBe('seance-mentorat-2026-10-28.ics');
+      expect(this.href).toBe('blob:seance');
+    });
+
+    bouton('Ajouter à mon agenda')?.click();
+
+    expect(clic).toHaveBeenCalledOnce();
+    const fichier = creerUrl.mock.calls[0][0] as Blob;
+    expect(fichier.type).toBe('text/calendar;charset=utf-8');
+    expect(await fichier.text()).toContain('SUMMARY:Mentorat Data & IA avec Awa Thiam');
+    expect(revoquer).toHaveBeenCalledWith('blob:seance');
+    vi.restoreAllMocks();
   });
 
   it('trie les séances à venir et n’ouvre que les liens https', () => {

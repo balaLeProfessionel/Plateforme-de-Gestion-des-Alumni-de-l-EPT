@@ -86,6 +86,11 @@ export class MentoratService {
     return this.http.post<SeanceMentorat>(`${API}/mentorats/${encodeURIComponent(id)}/seances`, seance);
   }
 
+  modifierSeance(id: string, seanceId: string, seance: SeanceMentoratRequest) {
+    return this.http.put<SeanceMentorat>(
+      `${API}/mentorats/${encodeURIComponent(id)}/seances/${encodeURIComponent(seanceId)}`, seance);
+  }
+
   suivreSeance(id: string, seanceId: string, statut: StatutSeance, compteRendu: string | null) {
     return this.http.patch<SeanceMentorat>(
       `${API}/mentorats/${encodeURIComponent(id)}/seances/${encodeURIComponent(seanceId)}`,

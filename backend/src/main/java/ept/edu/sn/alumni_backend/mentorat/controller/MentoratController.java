@@ -162,7 +162,16 @@ public class MentoratController {
             .body(response);
     }
 
-    @PatchMapping("/mentorats/{id}/seances/{seanceId}")
+    @PutMapping("/mentorats/{id}/seances/{seanceId}")
+    public ResponseEntity<SeanceMentoratResponse> modifierSeance(
+            @PathVariable UUID id,
+            @PathVariable UUID seanceId,
+            @Valid @RequestBody SeanceMentoratRequest request,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(suiviService.modifier(id, seanceId, request, principal));
+    }
+
+        @PatchMapping("/mentorats/{id}/seances/{seanceId}")
     public ResponseEntity<SeanceMentoratResponse> suivreSeance(
             @PathVariable UUID id,
             @PathVariable UUID seanceId,

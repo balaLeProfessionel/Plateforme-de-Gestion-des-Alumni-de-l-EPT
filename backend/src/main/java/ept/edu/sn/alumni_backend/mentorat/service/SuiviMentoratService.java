@@ -57,10 +57,7 @@ public class SuiviMentoratService {
         exigerMentoratEnCours(mentorat);
         SeanceMentorat seance = new SeanceMentorat();
         seance.setMentorat(mentorat);
-        seance.setDebut(request.debut());
-        seance.setDureeMinutes(request.dureeMinutes());
-        seance.setModalite(request.modalite());
-        seance.setLieuOuLien(texteOuNull(request.lieuOuLien()));
+        appliquer(seance, request);
         seance.setProposeePar(utilisateurRepository.getReferenceById(principal.getUtilisateur().getId()));
         seanceRepository.save(seance);
         evenements.publishEvent(new NotificationMentorat(
@@ -70,13 +67,30 @@ public class SuiviMentoratService {
         return mapper.versResponse(seance);
     }
 
+    /** Déplace une séance encore planifiée (date, durée, modalité ou lieu) et prévient l'autre participant. */
+    @Transactional
+    public SeanceMentoratResponse modifier(
+            UUID mentoratId, UUID seanceId, SeanceMentoratRequest request, UtilisateurPrincipal principal) {
+        Mentorat mentorat = acces.chargerPourParticipant(mentoratId, principal);
+        exigerMentoratEnCours(mentorat);
+        SeanceMentorat seance = charger(seanceId, mentorat);
+        if (seance.getStatut() != StatutSeance.PLANIFIEE) {
+            throw new ConflitMentoratException("Seule une séance planifiée peut être modifiée.");
+        }
+        appliquer(seance, request);
+        evenements.publishEvent(new NotificationMentorat(
+            acces.autreParticipant(mentorat, principal).getEmail(),
+            "Séance de mentorat modifiée",
+            "La séance a été déplacée au " + request.debut() + " (" + request.dureeMinutes() + " min)."));
+        return mapper.versResponse(seance);
+    }
+
     @Transactional
     public SeanceMentoratResponse suivre(
             UUID mentoratId, UUID seanceId, SuiviSeanceRequest request, UtilisateurPrincipal principal) {
         Mentorat mentorat = acces.chargerPourParticipant(mentoratId, principal);
         exigerMentoratEnCours(mentorat);
-        SeanceMentorat seance = seanceRepository.findByIdAndMentorat_Id(seanceId, mentorat.getId())
-            .orElseThrow(() -> new MentoratIntrouvableException("Cette séance est introuvable."));
+        SeanceMentorat seance = charger(seanceId, mentorat);
         if (!seance.getStatut().peutPasserA(request.statut())) {
             throw new ConflitMentoratException("Cette séance ne peut plus passer à ce statut.");
         }
@@ -106,6 +120,18 @@ public class SuiviMentoratService {
         evaluation.setNote(request.note());
         evaluation.setCommentaire(texteOuNull(request.commentaire()));
         return mapper.versResponse(evaluationRepository.saveAndFlush(evaluation));
+    }
+
+    private SeanceMentorat charger(UUID seanceId, Mentorat mentorat) {
+        return seanceRepository.findByIdAndMentorat_Id(seanceId, mentorat.getId())
+            .orElseThrow(() -> new MentoratIntrouvableException("Cette séance est introuvable."));
+    }
+
+    private static void appliquer(SeanceMentorat seance, SeanceMentoratRequest request) {
+        seance.setDebut(request.debut());
+        seance.setDureeMinutes(request.dureeMinutes());
+        seance.setModalite(request.modalite());
+        seance.setLieuOuLien(texteOuNull(request.lieuOuLien()));
     }
 
     private static void exigerMentoratEnCours(Mentorat mentorat) {

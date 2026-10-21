@@ -8,6 +8,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.UUID;
@@ -51,8 +52,12 @@ class MentoratNotificationsIntegrationTests extends MentoratTestsBase {
         changerStatut(mentorat, "accepter", mentor);
         verify(emailService).envoyerNotification(eq(etudiant.getEmail()), eq("Demande de mentorat acceptée"), anyString());
 
-        planifier(mentorat, etudiant);
+        UUID seance = planifier(mentorat, etudiant);
         verify(emailService).envoyerNotification(eq(mentor.getEmail()), eq("Nouvelle séance de mentorat"), anyString());
+
+        envoyer(put("/api/mentorat/mentorats/{id}/seances/{s}", mentorat, seance), mentor, seance(60))
+            .andExpect(status().isOk());
+        verify(emailService).envoyerNotification(eq(etudiant.getEmail()), eq("Séance de mentorat modifiée"), anyString());
 
         changerStatut(mentorat, "terminer", mentor);
         verify(emailService).envoyerNotification(eq(etudiant.getEmail()), eq("Mentorat terminé"), anyString());

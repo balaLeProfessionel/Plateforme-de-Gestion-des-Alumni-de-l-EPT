@@ -19,8 +19,8 @@ Chaque cas indique **où il est vérifié** :
 | Statuts | `EN_ATTENTE` → `ACCEPTEE` / `REFUSEE` / `ANNULEE` ; `ACCEPTEE` → `TERMINEE`. Les autres sont finaux. |
 | Qui agit | Accepter / refuser : le mentor. Annuler : l'étudiant (demande en attente). Terminer : l'un ou l'autre. |
 | Visibilité | Un mentorat n'existe (404) que pour ses deux participants. |
-| Séances | Planifier, consigner, annuler : uniquement pendant un mentorat `ACCEPTEE`. Durée 15 à 240 min. |
-| Séance | `PLANIFIEE` → `REALISEE` (compte rendu possible, modifiable) ou `ANNULEE` (sans compte rendu, finale). |
+| Séances | Planifier, déplacer, consigner, annuler : uniquement pendant un mentorat `ACCEPTEE`. Durée 15 à 240 min. |
+| Séance | `PLANIFIEE` → `REALISEE` (compte rendu possible, modifiable) ou `ANNULEE` (sans compte rendu, finale). Seule une séance `PLANIFIEE` se déplace (date, durée, modalité, lieu). |
 | Évaluation | Après `TERMINEE`, une par participant, note 1 à 5, commentaire ≤ 1000. |
 | Notifications | Envoyées après validation en base, à l'autre participant ; jamais pour une action refusée. |
 
@@ -98,6 +98,8 @@ Chaque cas indique **où il est vérifié** :
 | S06 | Annulée avec compte rendu → 400 ; annulée puis tout changement → 409 | idem | B:MentoratSuivi.s06 |
 | S07 | Séance d'un autre mentorat ; compte rendu > 4000 | 404 ; 400 | B:MentoratSuivi.s07 |
 | S08 | Après clôture : planifier ou consigner | 409, séance inchangée | B:MentoratSuivi.s08 |
+| S09 | Déplacer une séance planifiée (l'un ou l'autre participant) ; durée invalide ; tiers | 200, lieu nettoyé, auteur inchangé ; 400 ; 404 | B:MentoratSuivi.s09 |
+| S10 | Déplacer une séance réalisée, annulée, inconnue, ou après clôture | 409, 404, 409 | B:MentoratSuivi.s10 |
 | E01 | Évaluer en attente ou en cours | 409 | B:MentoratSuivi.e01 |
 | E02 | Une évaluation par participant ; tiers ; `peutEvaluer` | 201, 409 au 2e essai, 404 ; drapeau mis à jour | B:MentoratSuivi.e02 |
 | E03 | Note 0, 6 ou absente | 400 | B:MentoratSuivi.e03 |
@@ -107,7 +109,7 @@ Chaque cas indique **où il est vérifié** :
 ### Notifications (N)
 | ID | Cas | Attendu | Vérifié par |
 |---|---|---|---|
-| N01 | Demande, acceptation, séance, clôture | L'autre participant est prévenu | B:MentoratNotifications.n01 |
+| N01 | Demande, acceptation, séance, déplacement, clôture | L'autre participant est prévenu | B:MentoratNotifications.n01 |
 | N02 | Refus (avec motif), annulation | Étudiant / mentor prévenu | B:MentoratNotifications.n02 |
 | N03 | Action refusée (403, 409) | Aucune notification | B:MentoratNotifications.n03 |
 
@@ -125,7 +127,8 @@ Chaque cas indique **où il est vérifié** :
 | F08 | Listes : accepter, refuser avec motif, erreur « capacité atteinte », annuler | F:liste-mentorats.spec |
 | F09 | Mon offre : vierge, existante, 1 à 5 domaines, capacité 1 à 10, enregistrement, refus du serveur | F:mon-offre.spec |
 | F10 | Suivi : introuvable, participants, terminer avec confirmation, annuler, répondre, motif de refus | F:detail-mentorat.spec |
-| F11 | Séances : date obligatoire, format envoyé, libellé selon la modalité, consigner, annuler, liens `https` uniquement | F:seances-mentorat.spec |
+| F11 | Séances : date obligatoire, format envoyé, libellé selon la modalité, consigner, annuler, déplacer (formulaire prérempli dans la frise), liens `https` uniquement | F:seances-mentorat.spec |
+| F14 | Agenda : fichier `.ics` (UTC, durée, lien, échappement, lignes de 75 octets), téléchargement nommé d'après la date | F:agenda-seance.spec, F:seances-mentorat.spec |
 | F12 | Évaluation : note obligatoire, envoi, ma note, note de l'autre, cas indisponible | F:evaluation-mentorat.spec |
 | F13 | Service HTTP : paramètres utiles seulement, statuts répétés, identifiants encodés, verbes | F:core/services/mentorat/mentorat.spec |
 
