@@ -4,6 +4,10 @@
 *.xml text eol=lf
 *.json text eol=lf
 *.scss text eol=lf
+# Scripts exécutés par Bash ou dans les conteneurs : jamais de fins de ligne Windows.
+*.sh text eol=lf
+*.py text eol=lf
+*.sql text eol=lf
 
 
 *.jar binary
