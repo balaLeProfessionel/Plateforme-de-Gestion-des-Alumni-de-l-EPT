@@ -18,7 +18,7 @@ describe('Navigation mobile', () => {
     const menu = racine.querySelector('.navigation-mobile button') as HTMLButtonElement;
 
     expect([...racine.querySelectorAll('.navigation-mobile a')].map((lien) => lien.getAttribute('href')))
-      .toEqual(['/accueil', '/annuaire', '/evenements']);
+      .toEqual(['/accueil', '/annuaire', '/evenements', '/mentorat']);
     expect(menu.getAttribute('aria-controls')).toBe('menu-mobile');
     expect(menu.getAttribute('aria-haspopup')).toBe('dialog');
     expect(menu.getAttribute('aria-expanded')).toBe('false');

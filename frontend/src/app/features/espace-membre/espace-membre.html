@@ -30,7 +30,13 @@
                           #actif="routerLinkActive" [isActive]="actif.isActive"
                           [pTooltip]="lien.libelle" tooltipPosition="right" [tooltipDisabled]="sidebarOuverte()">
                           <i class="pi" [class]="'pi ' + lien.icone" aria-hidden="true"></i><span>{{ lien.libelle }}</span>
+                          @if (lien.route === '/mentorat' && compteurMentorat.nombre() > 0) {
+                            <span class="sr-only">, {{ compteurMentorat.nombre() }} demandes en attente</span>
+                          }
                         </a>
+                        @if (lien.route === '/mentorat' && compteurMentorat.nombre() > 0) {
+                          <p-sidebar-menu-badge class="badge-mentorat" aria-hidden="true">{{ compteurMentorat.nombre() }}</p-sidebar-menu-badge>
+                        }
                       </p-sidebar-menu-item>
                     }
                   </p-sidebar-menu>

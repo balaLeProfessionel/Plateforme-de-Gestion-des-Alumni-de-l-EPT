@@ -9,6 +9,7 @@ import { MenuModule } from 'primeng/menu';
 import { SidebarModule } from 'primeng/sidebar';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '../../core/services/auth/auth-service';
+import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
 import { MenuMobile, RubriqueAVenir } from './menu-mobile/menu-mobile';
 import { NavigationMobile } from './navigation-mobile/navigation-mobile';
 
@@ -31,13 +32,14 @@ export class EspaceMembre implements OnDestroy {
   /** Partagé par le bouton du compte, la barre du bas et le dialog « Mon espace ». */
   protected readonly menuOuvert = signal(false);
   protected readonly sidebarOuverte = signal(!this.formatNavigation?.matches);
+  protected readonly compteurMentorat = inject(CompteurDemandesMentorat);
   protected readonly liensNavigation = [
     { libelle: 'Accueil', icone: 'pi-home', route: '/accueil', exact: true },
     { libelle: 'Annuaire', icone: 'pi-users', route: '/annuaire', exact: false },
     { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
+    { libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', exact: false },
   ];
   protected readonly rubriquesAVenir: readonly RubriqueAVenir[] = [
-    { libelle: 'Mentorat', icone: 'pi-sitemap' },
     { libelle: 'Offres d’emploi', icone: 'pi-briefcase' },
     { libelle: 'Actualités', icone: 'pi-megaphone' },
   ];
@@ -101,6 +103,7 @@ export class EspaceMembre implements OnDestroy {
 
   constructor() {
     this.formatNavigation?.addEventListener('change', this.changementFormatNavigation);
+    if (this.authService.utilisateur()?.role === 'ALUMNI') this.compteurMentorat.actualiser();
   }
 
   ngOnDestroy(): void {

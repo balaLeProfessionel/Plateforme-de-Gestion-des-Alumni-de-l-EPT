@@ -1,0 +1,71 @@
+.mentorat-page { width: min(100% - 3rem, 1240px); margin: 0 auto; padding: 1.5rem 0 clamp(2.5rem, 6vw, 4rem); }
+
+.entete-mentorat {
+  margin-bottom: 1rem;
+
+  h1 { margin: 0; color: var(--ept-primary-dark); font-size: clamp(1.6rem, 3vw, 2rem); line-height: 1.15; }
+  .introduction { margin: 0.4rem 0 0; color: var(--ept-text-secondary); font-size: 0.95rem; }
+}
+
+.onglets {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--ept-border);
+
+  a {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.9rem;
+    border-bottom: 3px solid transparent;
+    color: var(--ept-text-secondary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover { color: var(--ept-primary); }
+    &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: -2px; }
+    &.actif { border-bottom-color: var(--ept-primary); color: var(--ept-primary); }
+  }
+}
+
+.compteur {
+  display: inline-grid;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  place-items: center;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--ept-gold-light);
+  color: var(--ept-gold-dark);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.etat-mentorat {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 4rem 1rem;
+  border: 1px dashed var(--ept-border);
+  text-align: center;
+
+  > i { color: var(--ept-primary); font-size: 1.7rem; }
+  h2, p { margin: 0; }
+  p { max-width: 32rem; color: var(--ept-text-secondary); }
+}
+
+@media (max-width: 560px) {
+  .onglets {
+    overflow: visible;
+
+    a { flex: 1 1 0; justify-content: center; min-width: 0; padding-inline: 0.35rem; font-size: 0.8rem; text-align: center; }
+    i { display: none; }
+  }
+}

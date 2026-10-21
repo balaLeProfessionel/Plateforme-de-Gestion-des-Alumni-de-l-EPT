@@ -168,6 +168,11 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'mentorat',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadChildren: () => import('./features/mentorat/mentorat.routes').then((m) => m.MENTORAT_ROUTES)
+      },
+      {
         path: 'organismes/:id',
         title: 'Organisme | EPT Alumni',
         canActivate: [authGuard, changementInitialRequisGuard],

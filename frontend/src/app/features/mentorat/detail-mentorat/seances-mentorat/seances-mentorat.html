@@ -1,0 +1,104 @@
+<section class="seances" aria-labelledby="titre-seances">
+  <header>
+    <h2 id="titre-seances">Séances</h2>
+    @if (modifiable() && !formulaireOuvert()) {
+      <button type="button" class="principal" (click)="ouvrirFormulaire()">
+        <i class="pi pi-plus" aria-hidden="true"></i>Planifier une séance
+      </button>
+    }
+  </header>
+
+  @if (messageErreur(); as message) { <p class="erreur" role="alert">{{ message }}</p> }
+
+  @if (formulaireOuvert()) {
+    <form class="planification" (submit)="planifier($event)" novalidate>
+      <div class="champ">
+        <label for="seance-debut">Date et heure</label>
+        <input id="seance-debut" type="datetime-local" [formField]="formulaire.debut" aria-describedby="erreur-debut"
+          [attr.aria-invalid]="formulaire.debut().touched() && formulaire.debut().invalid()" />
+        @if (formulaire.debut().touched() && formulaire.debut().errors()[0]; as erreur) {
+          <small id="erreur-debut" class="erreur-champ">{{ erreur.message }}</small>
+        }
+      </div>
+      <div class="champ">
+        <label for="seance-duree">Durée</label>
+        <select id="seance-duree" [formField]="formulaire.dureeMinutes">
+          @for (duree of durees; track duree) { <option [value]="duree">{{ duree }} min</option> }
+        </select>
+      </div>
+      <div class="champ">
+        <label for="seance-modalite">Modalité</label>
+        <select id="seance-modalite" [formField]="formulaire.modalite">
+          @for (modalite of modalites; track modalite[0]) { <option [value]="modalite[0]">{{ modalite[1] }}</option> }
+        </select>
+      </div>
+      <div class="champ large">
+        <label for="seance-lieu">{{ modele().modalite === 'VISIO' ? 'Lien de la visio' : 'Lieu ou précisions' }}</label>
+        <input id="seance-lieu" type="text" autocomplete="off" [formField]="formulaire.lieuOuLien"
+          [placeholder]="modele().modalite === 'VISIO' ? 'https://…' : 'Ex. Bibliothèque de l’EPT'" />
+      </div>
+      <div class="actions large">
+        <button type="submit" class="principal" [disabled]="envoiEnCours()">Planifier</button>
+        <button type="button" class="secondaire" (click)="formulaireOuvert.set(false)">Annuler</button>
+      </div>
+    </form>
+  }
+
+  @if (seances().length === 0) {
+    <p class="vide">{{ modifiable() ? 'Aucune séance pour l’instant. Planifiez la première rencontre.' : 'Aucune séance consignée.' }}</p>
+  }
+
+  <ol class="frise">
+    @for (seance of aVenir(); track seance.id) {
+      <li class="seance a-venir">
+        <div class="quand">
+          <strong>{{ seance.debut | date: 'EEE d MMM · HH:mm' }}</strong>
+          <span>{{ seance.dureeMinutes }} min · {{ libellesModalite[seance.modalite] }}</span>
+        </div>
+        <span class="badge">Planifiée</span>
+        @if (lienExterne(seance.lieuOuLien); as lien) {
+          <a class="lien" [href]="lien" target="_blank" rel="noopener noreferrer">Rejoindre<span class="sr-only"> (nouvel onglet)</span></a>
+        } @else if (seance.lieuOuLien) {
+          <p class="lieu">{{ seance.lieuOuLien }}</p>
+        }
+        @if (modifiable()) {
+          @if (suiviOuvert() === seance.id) {
+            <div class="suivi">
+              <label [for]="'compte-rendu-' + seance.id">Compte rendu (facultatif)</label>
+              <textarea [id]="'compte-rendu-' + seance.id" rows="3" [formField]="formulaireSuivi.compteRendu"></textarea>
+              @if (formulaireSuivi.compteRendu().errors()[0]; as erreur) {
+                <small class="erreur-champ">{{ erreur.message }}</small>
+              }
+              <div class="actions">
+                <button type="button" class="principal" [disabled]="envoiEnCours()"
+                  (click)="changerStatut(seance, 'REALISEE')">Marquer comme réalisée</button>
+                <button type="button" class="secondaire" (click)="suiviOuvert.set(null)">Fermer</button>
+              </div>
+            </div>
+          } @else {
+            <div class="actions">
+              <button type="button" class="secondaire" (click)="ouvrirSuivi(seance)">Consigner la séance</button>
+              <button type="button" class="texte" [disabled]="envoiEnCours()"
+                (click)="changerStatut(seance, 'ANNULEE')">Annuler la séance</button>
+            </div>
+          }
+        }
+      </li>
+    }
+    @for (seance of historique(); track seance.id) {
+      <li class="seance" [class.annulee]="seance.statut === 'ANNULEE'">
+        <div class="quand">
+          <strong>{{ seance.debut | date: 'EEE d MMM y · HH:mm' }}</strong>
+          <span>{{ seance.dureeMinutes }} min · {{ libellesModalite[seance.modalite] }}</span>
+        </div>
+        <span class="badge">{{ seance.statut === 'REALISEE' ? 'Réalisée' : 'Annulée' }}</span>
+        @if (seance.compteRendu) {
+          <details>
+            <summary>Compte rendu</summary>
+            <p>{{ seance.compteRendu }}</p>
+          </details>
+        }
+      </li>
+    }
+  </ol>
+</section>

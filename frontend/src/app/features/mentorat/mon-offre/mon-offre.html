@@ -1,0 +1,66 @@
+@if (enChargement()) {
+  <div class="squelette" aria-busy="true" aria-label="Chargement de votre offre"></div>
+} @else {
+  <form class="offre" (submit)="enregistrer($event)" novalidate>
+    <header>
+      <div>
+        <h2>Mon offre de mentorat</h2>
+        @if (profil(); as offre) {
+          <p>Vous accompagnez {{ offre.mentoresActifs }} / {{ offre.capaciteMax }} mentorés.</p>
+        } @else {
+          <p>Proposez votre aide aux étudiants de l’EPT : ils pourront vous solliciter dans vos domaines.</p>
+        }
+      </div>
+      <label class="interrupteur">
+        <input type="checkbox" role="switch" [formField]="formulaire.disponible" />
+        <span class="piste" aria-hidden="true"></span>
+        {{ modele().disponible ? 'Disponible' : 'Indisponible' }}
+      </label>
+    </header>
+
+    @if (messageErreur(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+    @if (confirmation(); as message) { <p class="message succes" role="status">{{ message }}</p> }
+
+    <fieldset class="domaines" aria-describedby="aide-domaines erreur-domaines">
+      <legend>Domaines d’accompagnement</legend>
+      <p id="aide-domaines" class="aide">Jusqu’à {{ domainesMax }} domaines.</p>
+      <div class="choix">
+        @for (domaine of domaines(); track domaine.id) {
+          <label [class.choisi]="estChoisi(domaine.id)">
+            <input type="checkbox" [checked]="estChoisi(domaine.id)" (change)="basculerDomaine(domaine.id)"
+              [attr.aria-invalid]="formulaire.domaineIds().touched() && formulaire.domaineIds().invalid()" />
+            {{ domaine.libelle }}
+          </label>
+        }
+      </div>
+      @if (formulaire.domaineIds().touched() && formulaire.domaineIds().errors()[0]; as erreur) {
+        <small id="erreur-domaines" class="erreur-champ">{{ erreur.message }}</small>
+      }
+    </fieldset>
+
+    <div class="champ capacite">
+      <label for="offre-capacite">Mentorés en même temps</label>
+      <input id="offre-capacite" type="number" [formField]="formulaire.capaciteMax"
+        [attr.aria-invalid]="formulaire.capaciteMax().invalid()" aria-describedby="erreur-capacite" />
+      @if (formulaire.capaciteMax().errors()[0]; as erreur) {
+        <small id="erreur-capacite" class="erreur-champ">{{ erreur.message }}</small>
+      }
+    </div>
+
+    <div class="champ">
+      <label for="offre-presentation">Présentation</label>
+      <textarea id="offre-presentation" rows="4" [formField]="formulaire.presentation"
+        placeholder="Votre parcours, ce que vous pouvez apporter…" aria-describedby="aide-presentation"></textarea>
+      <small id="aide-presentation" class="aide">{{ modele().presentation.length }} / 600 caractères</small>
+      @if (formulaire.presentation().errors()[0]; as erreur) {
+        <small class="erreur-champ">{{ erreur.message }}</small>
+      }
+    </div>
+
+    <div class="actions">
+      <button type="submit" [disabled]="envoiEnCours()">
+        {{ envoiEnCours() ? 'Enregistrement…' : (profil() ? 'Enregistrer' : 'Proposer mon mentorat') }}
+      </button>
+    </div>
+  </form>
+}

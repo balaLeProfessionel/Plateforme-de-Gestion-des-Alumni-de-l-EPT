@@ -1,0 +1,43 @@
+<section class="evaluation" aria-labelledby="titre-evaluation">
+  <h2 id="titre-evaluation">Évaluation</h2>
+
+  @if (peutEvaluer()) {
+    <form (submit)="envoyer($event)" novalidate>
+      <fieldset class="etoiles" aria-describedby="erreur-note">
+        <legend>Ce mentorat vous a-t-il été utile ?</legend>
+        @for (note of notes; track note) {
+          <label [class.allumee]="modele().note >= note">
+            <input type="radio" name="note" [value]="note" [checked]="modele().note === note" (change)="choisirNote(note)"
+              [attr.aria-invalid]="formulaire.note().touched() && formulaire.note().invalid()" />
+            <i class="pi pi-star-fill" aria-hidden="true"></i>
+            <span class="sr-only">{{ note }} sur 5</span>
+          </label>
+        }
+      </fieldset>
+      @if (formulaire.note().touched() && formulaire.note().errors()[0]; as erreur) {
+        <small id="erreur-note" class="erreur-champ">{{ erreur.message }}</small>
+      }
+      <label for="evaluation-commentaire" class="libelle">Commentaire (facultatif)</label>
+      <textarea id="evaluation-commentaire" rows="3" [formField]="formulaire.commentaire"></textarea>
+      @if (messageErreur(); as message) { <p class="erreur" role="alert">{{ message }}</p> }
+      <button type="submit" [disabled]="envoiEnCours()">Envoyer mon évaluation</button>
+    </form>
+  } @else if (maNote(); as evaluation) {
+    <p class="note" role="img" [attr.aria-label]="'Votre note : ' + evaluation.note + ' sur 5'">
+      @for (note of notes; track note) {
+        <i class="pi" [class]="note <= evaluation.note ? 'pi pi-star-fill' : 'pi pi-star'" aria-hidden="true"></i>
+      }
+    </p>
+    @if (evaluation.commentaire) { <blockquote>{{ evaluation.commentaire }}</blockquote> }
+    <p class="aide">Merci pour votre retour.</p>
+  } @else {
+    <p class="note desactivee" aria-hidden="true">
+      @for (note of notes; track note) { <i class="pi pi-star"></i> }
+    </p>
+    <p class="aide">{{ termine() ? 'Évaluation indisponible.' : 'Disponible à la clôture du mentorat.' }}</p>
+  }
+
+  @if (autreNote() && (maNote() || !peutEvaluer())) {
+    <p class="aide">L’autre participant a aussi évalué ce mentorat.</p>
+  }
+</section>

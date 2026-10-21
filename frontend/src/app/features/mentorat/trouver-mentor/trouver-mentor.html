@@ -1,0 +1,72 @@
+<section class="filtres" aria-label="Rechercher un mentor">
+  <div class="barre">
+    <div class="champ-recherche">
+      <i class="pi pi-search" aria-hidden="true"></i>
+      <label for="recherche-mentor" class="sr-only">Rechercher un mentor</label>
+      <input id="recherche-mentor" type="search" autocomplete="off" [formField]="formulaire.recherche"
+        placeholder="Nom, prénom ou poste…" aria-describedby="aide-mentors"
+        (keydown.enter)="$event.preventDefault(); appliquerRecherche()" />
+      <span id="aide-mentors" class="sr-only">Les résultats se mettent à jour automatiquement.</span>
+    </div>
+    <label class="disponibles">
+      <input type="checkbox" [checked]="criteres().disponibles" (change)="basculerDisponibles($event)" />
+      Disponibles uniquement
+    </label>
+  </div>
+
+  <div class="domaines" role="group" aria-label="Filtrer par domaine">
+    <button type="button" [attr.aria-pressed]="!criteres().domaine" (click)="choisirDomaine('')">Tous</button>
+    @for (domaine of domaines(); track domaine.id) {
+      <button type="button" [attr.aria-pressed]="criteres().domaine === domaine.id"
+        (click)="choisirDomaine(domaine.id)">{{ domaine.libelle }}</button>
+    }
+  </div>
+</section>
+
+<p class="resume" role="status">
+  @if (confirmation(); as message) {
+    <span class="confirmation"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ message }}
+      <a routerLink="../demandes">Suivre mes demandes</a></span>
+  } @else if (resultat(); as page) {
+    <strong>{{ page.totalElements }}</strong> {{ page.totalElements > 1 ? 'mentors trouvés' : 'mentor trouvé' }}
+  } @else if (enChargement()) {
+    Chargement des mentors…
+  }
+</p>
+
+<div aria-live="polite" [attr.aria-busy]="enChargement()">
+  @if (enChargement() && !resultat()) {
+    <div class="grille" aria-hidden="true">
+      @for (item of [1, 2, 3, 4, 5, 6]; track item) { <div class="squelette"></div> }
+    </div>
+  } @else if (messageErreur(); as message) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Chargement impossible</h2>
+      <p>{{ message }}</p>
+    </div>
+  } @else if (resultat()?.contenu?.length === 0) {
+    <div class="etat">
+      <i class="pi pi-search" aria-hidden="true"></i>
+      <h2>Aucun mentor ne correspond</h2>
+      <p>Essayez un autre domaine ou retirez le filtre « Disponibles uniquement ».</p>
+    </div>
+  } @else if (resultat(); as page) {
+    <ul class="grille" [class.actualisation]="enChargement()">
+      @for (mentor of page.contenu; track mentor.profilId) {
+        <li><app-carte-mentor [mentor]="mentor" (demander)="solliciter($event)" /></li>
+      }
+    </ul>
+
+    @if (pages().length > 1) {
+      <nav class="pagination" aria-label="Pagination des mentors">
+        @for (numero of pages(); track numero) {
+          <button type="button" [class.active]="numero === page.page" [attr.aria-current]="numero === page.page ? 'page' : null"
+            (click)="changerPage(numero)">{{ numero + 1 }}</button>
+        }
+      </nav>
+    }
+  }
+</div>
+
+<app-dialogue-demande [mentor]="mentorSollicite()" (envoyee)="demandeEnvoyee()" (fermee)="mentorSollicite.set(null)" />

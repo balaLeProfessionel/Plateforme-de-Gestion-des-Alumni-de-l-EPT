@@ -1,0 +1,93 @@
+@if (messageErreur(); as message) {
+  <div class="etat" role="alert">
+    <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+    <h2>Chargement impossible</h2>
+    <p>{{ message }}</p>
+  </div>
+} @else if (page(); as resultat) {
+  @if (resultat.contenu.length === 0) {
+    <div class="etat">
+      <i class="pi pi-inbox" aria-hidden="true"></i>
+      <h2>{{ vue.titreVide }}</h2>
+      <p>{{ vue.texteVide }}</p>
+    </div>
+  } @else {
+    <ul class="liste">
+      @for (mentorat of resultat.contenu; track mentorat.id) {
+        @let personne = autrePersonne(mentorat);
+        <li class="ligne" [attr.data-statut]="mentorat.statut">
+          <div class="avatar" [class.etudiant]="mentorat.monRole === 'MENTOR'" aria-hidden="true">
+            @if (personne.urlPhoto) { <img [src]="personne.urlPhoto" alt="" /> } @else { {{ initiales(personne) }} }
+          </div>
+
+          <div class="contenu">
+            <div class="entete">
+              <h2><a [routerLink]="['/mentorat/suivi', mentorat.id]">{{ personne.prenom }} {{ personne.nom }}</a></h2>
+              <span class="statut">{{ libellesStatut[mentorat.statut] }}</span>
+            </div>
+            <p class="details">
+              <span class="domaine">{{ mentorat.domaine.libelle }}</span>
+              @if (personne.filiere) { <span>{{ personne.filiere }}</span> }
+              <span>Demande du {{ mentorat.creeLe | date: 'd MMM y' }}</span>
+            </p>
+            <p class="objectif">{{ mentorat.objectif }}</p>
+            @if (mentorat.statut === 'REFUSEE' && mentorat.motifRefus) {
+              <p class="motif">Motif : {{ mentorat.motifRefus }}</p>
+            }
+
+            @if (erreurAction()?.id === mentorat.id) {
+              <p class="erreur" role="alert">{{ erreurAction()?.message }}</p>
+            }
+
+            @if (mentorat.statut === 'EN_ATTENTE') {
+              @if (mentorat.monRole === 'MENTOR') {
+                @if (refusOuvert() === mentorat.id) {
+                  <div class="panneau-refus">
+                    <label [for]="'motif-' + mentorat.id">Motif du refus (facultatif)</label>
+                    <textarea [id]="'motif-' + mentorat.id" rows="3" [formField]="formulaireRefus.motif"></textarea>
+                    @if (formulaireRefus.motif().errors()[0]; as erreur) {
+                      <small class="erreur">{{ erreur.message }}</small>
+                    }
+                    <div class="actions">
+                      <button type="button" class="danger" [disabled]="actionEnCours() === mentorat.id"
+                        (click)="confirmerRefus(mentorat)">Confirmer le refus</button>
+                      <button type="button" class="secondaire" (click)="refusOuvert.set(null)">Annuler</button>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="actions">
+                    <button type="button" class="principal" [disabled]="actionEnCours() === mentorat.id"
+                      (click)="accepter(mentorat)">Accepter</button>
+                    <button type="button" class="secondaire" (click)="ouvrirRefus(mentorat)">Refuser</button>
+                  </div>
+                }
+              } @else {
+                <div class="actions">
+                  <button type="button" class="secondaire" [disabled]="actionEnCours() === mentorat.id"
+                    (click)="annuler(mentorat)">Annuler ma demande</button>
+                </div>
+              }
+            } @else if (mentorat.statut === 'ACCEPTEE' || mentorat.statut === 'TERMINEE') {
+              <a class="lien-suivi" [routerLink]="['/mentorat/suivi', mentorat.id]">
+                Voir le suivi<i class="pi pi-arrow-right" aria-hidden="true"></i>
+              </a>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+
+    @if (resultat.totalPages > 1) {
+      <nav class="pagination" aria-label="Pagination">
+        <button type="button" [disabled]="resultat.page === 0" (click)="changerPage(resultat.page - 1)">Précédent</button>
+        <span>Page {{ resultat.page + 1 }} sur {{ resultat.totalPages }}</span>
+        <button type="button" [disabled]="resultat.page + 1 >= resultat.totalPages"
+          (click)="changerPage(resultat.page + 1)">Suivant</button>
+      </nav>
+    }
+  }
+} @else {
+  <div class="liste" aria-busy="true" aria-label="Chargement des mentorats">
+    @for (item of [1, 2, 3]; track item) { <div class="squelette" aria-hidden="true"></div> }
+  </div>
+}

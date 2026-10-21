@@ -1,0 +1,48 @@
+<article class="carte" [attr.aria-labelledby]="'mentor-' + mentor().profilId">
+  <div class="bandeau">
+    <span class="disponibilite" [class.indisponible]="blocage() === 'Indisponible' || blocage() === 'Complet'">
+      <span class="point" aria-hidden="true"></span>{{ disponibilite() }}
+    </span>
+  </div>
+
+  <div class="avatar" aria-hidden="true">
+    @if (mentor().urlPhoto && !imageInvalide()) {
+      <img [src]="mentor().urlPhoto" alt="" (error)="imageInvalide.set(true)" />
+    } @else {
+      <span>{{ initiales() }}</span>
+    }
+  </div>
+
+  <div class="corps">
+    <h2 [id]="'mentor-' + mentor().profilId">
+      <a [routerLink]="['/profil', mentor().utilisateurId]">{{ nomAffiche() }}</a>
+    </h2>
+    @if (parcours(); as texte) { <p class="parcours">{{ texte }}</p> }
+    @if (mentor().posteActuel; as poste) {
+      <p class="poste"><i class="pi pi-briefcase" aria-hidden="true"></i>{{ poste }}</p>
+    }
+    @if (mentor().presentation; as presentation) {
+      <p class="presentation">{{ presentation }}</p>
+    }
+
+    <ul class="domaines" aria-label="Domaines d’accompagnement">
+      @for (domaine of domainesVisibles(); track domaine.id) {
+        <li>{{ domaine.libelle }}</li>
+      }
+      @if (domainesMasques() > 0) {
+        <li class="plus" [attr.aria-label]="domainesMasques() + ' autres domaines'">+{{ domainesMasques() }}</li>
+      }
+    </ul>
+
+    <button type="button" class="demander" [disabled]="blocage() !== null"
+      [attr.aria-label]="blocage() ? null : 'Demander un mentorat à ' + nomAffiche()"
+      (click)="demander.emit(mentor())">
+      @if (blocage(); as raison) {
+        @if (raison === 'Demande envoyée') { <i class="pi pi-check" aria-hidden="true"></i> }
+        {{ raison }}
+      } @else {
+        Demander un mentorat
+      }
+    </button>
+  </div>
+</article>

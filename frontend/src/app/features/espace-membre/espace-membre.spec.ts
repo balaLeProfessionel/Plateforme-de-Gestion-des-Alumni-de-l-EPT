@@ -4,20 +4,26 @@ import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
 
 import { AuthService } from '../../core/services/auth/auth-service';
+import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
 import { EspaceMembre } from './espace-membre';
 
 describe('Navigation de l’espace membre', () => {
   const utilisateur = signal<Record<string, string> | null>(null);
   const logout = vi.fn();
+  const demandesEnAttente = signal(0);
+  const actualiserCompteur = vi.fn();
 
   beforeEach(() => {
     utilisateur.set({ role: 'ALUMNI', nom: 'Diop', prenom: 'Awa' });
     logout.mockClear();
+    demandesEnAttente.set(0);
+    actualiserCompteur.mockClear();
     TestBed.configureTestingModule({
       imports: [EspaceMembre],
       providers: [
         provideRouter([{ path: '**', children: [] }]),
-        { provide: AuthService, useValue: { utilisateur, logout } }
+        { provide: AuthService, useValue: { utilisateur, logout } },
+        { provide: CompteurDemandesMentorat, useValue: { nombre: demandesEnAttente, actualiser: actualiserCompteur } }
       ]
     });
   });
@@ -29,11 +35,11 @@ describe('Navigation de l’espace membre', () => {
     const liens = [...racine.querySelectorAll('.barre-laterale nav a')]
       .map((lien) => lien.getAttribute('href'));
 
-    expect(liens).toEqual(['/accueil', '/annuaire', '/evenements']);
+    expect(liens).toEqual(['/accueil', '/annuaire', '/evenements', '/mentorat']);
     expect(racine.querySelector('.barre-laterale .marque')?.getAttribute('href')).toBe('/accueil');
     expect([...racine.querySelectorAll('.barre-laterale nav button[aria-disabled="true"]')]
       .map((lien) => lien.getAttribute('aria-label')))
-      .toEqual(['Mentorat, à venir', 'Offres d’emploi, à venir', 'Actualités, à venir']);
+      .toEqual(['Offres d’emploi, à venir', 'Actualités, à venir']);
     expect(racine.querySelector('.barre-laterale nav button[aria-disabled="true"] a')).toBeNull();
     expect(racine.querySelector('.entete-mobile .bouton-compte')?.getAttribute('aria-haspopup')).toBe('dialog');
   });
@@ -130,6 +136,18 @@ describe('Navigation de l’espace membre', () => {
     fixture.destroy();
   });
 
+  it('signale aux mentors les demandes de mentorat en attente', () => {
+    demandesEnAttente.set(3);
+    const fixture = TestBed.createComponent(EspaceMembre);
+    fixture.detectChanges();
+    const racine = fixture.nativeElement as HTMLElement;
+
+    expect(actualiserCompteur).toHaveBeenCalledOnce();
+    expect(racine.querySelector('.badge-mentorat')?.textContent?.trim()).toBe('3');
+    expect(racine.querySelector('.barre-laterale a[href="/mentorat"]')?.textContent)
+      .toContain('3 demandes en attente');
+  });
+
   it('n’affiche pas de lien de profil indisponible pour l’administration', () => {
     utilisateur.set({ role: 'ADMIN', nom: 'EPT', prenom: 'Admin' });
     const fixture = TestBed.createComponent(EspaceMembre);
@@ -137,7 +155,7 @@ describe('Navigation de l’espace membre', () => {
     const racine = fixture.nativeElement as HTMLElement;
 
     expect(racine.querySelectorAll('.menu-mobile a')).toHaveLength(0);
-    expect(racine.querySelectorAll('.navigation-mobile a')).toHaveLength(3);
+    expect(racine.querySelectorAll('.navigation-mobile a')).toHaveLength(4);
     expect(racine.querySelector('.deconnexion-menu')).not.toBeNull();
   });
 });
