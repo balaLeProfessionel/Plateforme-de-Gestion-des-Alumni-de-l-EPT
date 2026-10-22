@@ -8,7 +8,7 @@ import ept.edu.sn.alumni_backend.mentorat.StatutProgramme;
 
 /**
  * Un programme et ses étapes. {@code gerable} : la personne connectée peut le modifier
- * (responsable ou administrateur).
+ * (responsable ou administrateur) ; {@code jeParticipe} : elle y est mentor volontaire.
  */
 public record ProgrammeResponse(
     UUID id,
@@ -20,7 +20,9 @@ public record ProgrammeResponse(
     ParticipantMentoratResponse responsable,
     List<Etape> etapes,
     long nombreMentorats,
-    boolean gerable
+    long nombreMentors,
+    boolean gerable,
+    boolean jeParticipe
 ) {
     public record Etape(UUID id, String titre, String description, int ordre) {
     }

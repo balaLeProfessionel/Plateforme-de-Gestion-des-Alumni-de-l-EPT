@@ -42,10 +42,11 @@ export class MentoratService {
     return this.http.get<Mentor>(`${API}/mentors/utilisateur/${encodeURIComponent(utilisateurId)}`);
   }
 
-  rechercherMentors({ recherche, domaine, disponibles, page }: CriteresMentors, taille = 12) {
+  rechercherMentors({ recherche, domaine, disponibles, page, programme }: CriteresMentors, taille = 12) {
     let params = new HttpParams().set('page', page).set('taille', taille).set('disponibles', disponibles);
     if (recherche.trim()) params = params.set('recherche', recherche.trim());
     if (domaine) params = params.set('domaine', domaine);
+    if (programme) params = params.set('programme', programme);
     return this.http.get<Page<Mentor>>(`${API}/mentors`, { params });
   }
 

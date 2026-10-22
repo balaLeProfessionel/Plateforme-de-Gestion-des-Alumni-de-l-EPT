@@ -6,6 +6,7 @@ import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, map, of, skip, switchMap, tap } from 'rxjs';
 import { CompteurDemandesMentorat } from '../../../core/services/mentorat/compteur-demandes';
 import { MentoratService } from '../../../core/services/mentorat/mentorat';
+import { ProgrammeService } from '../../../core/services/mentorat/programmes';
 import { CriteresMentors, Mentor, Page } from '../../../core/services/models/mentorat.model';
 import { CarteMentor } from '../carte-mentor/carte-mentor';
 import { DialogueDemande } from '../dialogue-demande/dialogue-demande';
@@ -25,6 +26,9 @@ export class TrouverMentor {
   private readonly destroyRef = inject(DestroyRef);
   protected readonly compteur = inject(CompteurDemandesMentorat);
 
+  /** Programmes ouverts : un bandeau discret y mène, sans onglet de plus. */
+  protected readonly programmesOuverts = toSignal(
+    inject(ProgrammeService).listerOuverts().pipe(catchError(() => of([]))), { initialValue: [] });
   protected readonly domaines = toSignal(
     this.mentoratService.listerDomaines().pipe(catchError(() => of([]))), { initialValue: [] });
   protected readonly modele = signal({ recherche: '' });

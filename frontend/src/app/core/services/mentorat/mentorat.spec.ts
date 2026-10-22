@@ -86,11 +86,15 @@ describe('ProgrammeService', () => {
     const http = TestBed.inject(HttpTestingController);
 
     service.listerGeres().subscribe();
+    service.listerOuverts().subscribe();
+    service.participer('p1').subscribe();
     service.obtenir('p 1').subscribe();
     service.changerStatut('p1', 'OUVERT').subscribe();
     service.supprimer('p1').subscribe();
 
     http.expectOne('/api/mentorat/programmes/geres').flush([]);
+    http.expectOne('/api/mentorat/programmes/ouverts').flush([]);
+    expect(http.expectOne('/api/mentorat/programmes/p1/participation').request.method).toBe('POST');
     http.expectOne('/api/mentorat/programmes/p%201').flush({});
     const statut = http.expectOne('/api/mentorat/programmes/p1/statut');
     expect(statut.request.method).toBe('PATCH');

@@ -128,6 +128,8 @@ export interface CriteresMentors {
   domaine: string;
   disponibles: boolean;
   page: number;
+  /** Mentors volontaires d’un programme seulement. */
+  programme?: string;
 }
 
 export const LIBELLES_STATUT_MENTORAT: Record<StatutMentorat, string> = {
@@ -204,8 +206,12 @@ export interface Programme {
   responsable: ParticipantMentorat;
   etapes: EtapeProgramme[];
   nombreMentorats: number;
+  /** Mentors volontaires inscrits au programme. */
+  nombreMentors: number;
   /** Je peux le modifier : responsable ou administration. */
   gerable: boolean;
+  /** J’y suis mentor volontaire. */
+  jeParticipe: boolean;
 }
 
 /** Liste complète des étapes dans l’ordre voulu ; une étape sans id est créée, une étape absente retirée. */

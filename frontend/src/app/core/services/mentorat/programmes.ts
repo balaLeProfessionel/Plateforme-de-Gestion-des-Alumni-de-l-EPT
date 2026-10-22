@@ -13,6 +13,20 @@ export class ProgrammeService {
     return this.http.get<Programme[]>(`${API}/geres`);
   }
 
+  /** Programmes ouverts aux rattachements, proposés à tous les membres. */
+  listerOuverts() {
+    return this.http.get<Programme[]>(`${API}/ouverts`);
+  }
+
+  /** Je deviens mentor volontaire du programme (il me faut une offre de mentorat). */
+  participer(id: string) {
+    return this.http.post<Programme>(`${API}/${encodeURIComponent(id)}/participation`, {});
+  }
+
+  seRetirer(id: string) {
+    return this.http.delete<Programme>(`${API}/${encodeURIComponent(id)}/participation`);
+  }
+
   obtenir(id: string) {
     return this.http.get<Programme>(`${API}/${encodeURIComponent(id)}`);
   }

@@ -23,6 +23,18 @@
   </div>
 </section>
 
+@if (programmesOuverts().length) {
+  <aside class="programmes" aria-label="Programmes ouverts">
+    <i class="pi pi-flag" aria-hidden="true"></i>
+    <p>
+      {{ programmesOuverts().length > 1 ? 'Programmes ouverts' : 'Programme ouvert' }} :
+      @for (programme of programmesOuverts(); track programme.id; let dernier = $last) {
+        <a [routerLink]="['/mentorat/programmes', programme.id]">{{ programme.titre }}</a>{{ dernier ? '' : ', ' }}
+      }
+    </p>
+  </aside>
+}
+
 @if (compteur.limiteAtteinte()) {
   <p class="limite">
     <i class="pi pi-info-circle" aria-hidden="true"></i>

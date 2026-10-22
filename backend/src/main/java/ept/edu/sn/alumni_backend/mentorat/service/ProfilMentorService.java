@@ -27,6 +27,7 @@ import ept.edu.sn.alumni_backend.mentorat.dto.MentorResponse;
 import ept.edu.sn.alumni_backend.mentorat.dto.ProfilMentorRequest;
 import ept.edu.sn.alumni_backend.mentorat.dto.ProfilMentorResponse;
 import ept.edu.sn.alumni_backend.mentorat.entity.DomaineMentorat;
+import ept.edu.sn.alumni_backend.mentorat.entity.ParticipationProgramme;
 import ept.edu.sn.alumni_backend.mentorat.entity.ProfilMentor;
 import ept.edu.sn.alumni_backend.mentorat.exception.ConflitMentoratException;
 import ept.edu.sn.alumni_backend.mentorat.repository.DomaineMentoratRepository;
@@ -95,6 +96,7 @@ public class ProfilMentorService {
     public PageResponse<MentorResponse> rechercherMentors(
             String recherche,
             UUID domaineId,
+            UUID programmeId,
             boolean disponiblesSeulement,
             int page,
             int taille,
@@ -103,6 +105,7 @@ public class ProfilMentorService {
         Specification<ProfilMentor> specification = mentorVisible(moi)
             .and(correspondA(recherche))
             .and(couvreDomaine(domaineId))
+            .and(participeAuProgramme(programmeId))
             .and(disponiblesSeulement
                 ? (racine, requete, cb) -> cb.isTrue(racine.get("disponible"))
                 : Specification.unrestricted());
@@ -185,6 +188,21 @@ public class ProfilMentorService {
                 cb.like(cb.lower(utilisateur.get("nom")), motif),
                 cb.like(cb.lower(utilisateur.get("prenom")), motif),
                 cb.like(cb.lower(cb.coalesce(utilisateur.get("posteActuel"), "")), motif));
+        };
+    }
+
+    /** Mentors volontaires d'un programme (sous-requête, comme pour les domaines). */
+    private static Specification<ProfilMentor> participeAuProgramme(UUID programmeId) {
+        if (programmeId == null) {
+            return Specification.unrestricted();
+        }
+        return (racine, requete, cb) -> {
+            var sousRequete = requete.subquery(UUID.class);
+            var participation = sousRequete.from(ParticipationProgramme.class);
+            sousRequete.select(participation.get("id")).where(
+                cb.equal(participation.get("profilMentor").get("id"), racine.get("id")),
+                cb.equal(participation.get("programme").get("id"), programmeId));
+            return cb.exists(sousRequete);
         };
     }
 

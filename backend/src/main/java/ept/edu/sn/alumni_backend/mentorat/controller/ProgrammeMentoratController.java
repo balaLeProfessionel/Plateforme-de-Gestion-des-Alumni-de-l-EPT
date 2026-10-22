@@ -37,6 +37,25 @@ public class ProgrammeMentoratController {
         return ResponseEntity.ok(programmeService.listerGeres(principal));
     }
 
+    @GetMapping("/ouverts")
+    public ResponseEntity<List<ProgrammeResponse>> listerOuverts(@AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(programmeService.listerOuverts(principal));
+    }
+
+    @PostMapping("/{id}/participation")
+    public ResponseEntity<ProgrammeResponse> participer(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(programmeService.participer(id, principal));
+    }
+
+    @DeleteMapping("/{id}/participation")
+    public ResponseEntity<ProgrammeResponse> seRetirer(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(programmeService.seRetirer(id, principal));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ProgrammeResponse> obtenir(
             @PathVariable UUID id,

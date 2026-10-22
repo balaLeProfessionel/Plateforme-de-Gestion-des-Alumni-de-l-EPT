@@ -37,6 +37,11 @@ export const MENTORAT_ROUTES: Routes = [
     loadComponent: () => import('./gestion-programmes/formulaire-programme/formulaire-programme').then((m) => m.FormulaireProgramme)
   },
   {
+    path: 'programmes/:id',
+    title: 'Programme de mentorat | EPT Alumni',
+    loadComponent: () => import('./programme/page-programme').then((m) => m.PageProgramme)
+  },
+  {
     path: 'suivi/:id',
     title: 'Suivi du mentorat | EPT Alumni',
     loadComponent: () => import('./detail-mentorat/detail-mentorat').then((m) => m.DetailMentorat)

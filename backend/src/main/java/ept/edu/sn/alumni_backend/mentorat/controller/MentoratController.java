@@ -76,12 +76,13 @@ public class MentoratController {
     public ResponseEntity<PageResponse<MentorResponse>> rechercherMentors(
             @RequestParam(required = false) @Size(max = 100) String recherche,
             @RequestParam(required = false) UUID domaine,
+            @RequestParam(required = false) UUID programme,
             @RequestParam(defaultValue = "false") boolean disponibles,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "12") @Min(1) @Max(48) int taille,
             @AuthenticationPrincipal UtilisateurPrincipal principal) {
         return ResponseEntity.ok(
-            profilMentorService.rechercherMentors(recherche, domaine, disponibles, page, taille, principal));
+            profilMentorService.rechercherMentors(recherche, domaine, programme, disponibles, page, taille, principal));
     }
 
     @GetMapping("/mentors/utilisateur/{utilisateurId}")

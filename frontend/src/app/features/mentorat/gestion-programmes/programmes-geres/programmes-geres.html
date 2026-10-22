@@ -40,6 +40,7 @@
             </p>
             <p class="chiffres">
               {{ programme.etapes.length }} étape{{ programme.etapes.length > 1 ? 's' : '' }}
+              · {{ programme.nombreMentors }} mentor{{ programme.nombreMentors > 1 ? 's' : '' }} volontaire{{ programme.nombreMentors > 1 ? 's' : '' }}
               · {{ programme.nombreMentorats }} mentorat{{ programme.nombreMentorats > 1 ? 's' : '' }}
               · responsable : {{ programme.responsable.prenom }} {{ programme.responsable.nom }}
             </p>

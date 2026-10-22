@@ -17,11 +17,15 @@ import ept.edu.sn.alumni_backend.mentorat.StatutProgramme;
 import ept.edu.sn.alumni_backend.mentorat.dto.ProgrammeRequest;
 import ept.edu.sn.alumni_backend.mentorat.dto.ProgrammeResponse;
 import ept.edu.sn.alumni_backend.mentorat.entity.JalonProgramme;
+import ept.edu.sn.alumni_backend.mentorat.entity.ParticipationProgramme;
+import ept.edu.sn.alumni_backend.mentorat.entity.ProfilMentor;
 import ept.edu.sn.alumni_backend.mentorat.entity.ProgrammeMentorat;
 import ept.edu.sn.alumni_backend.mentorat.exception.ConflitMentoratException;
 import ept.edu.sn.alumni_backend.mentorat.exception.MentoratIntrouvableException;
 import ept.edu.sn.alumni_backend.mentorat.repository.JalonProgrammeRepository;
 import ept.edu.sn.alumni_backend.mentorat.repository.MentoratRepository;
+import ept.edu.sn.alumni_backend.mentorat.repository.ParticipationProgrammeRepository;
+import ept.edu.sn.alumni_backend.mentorat.repository.ProfilMentorRepository;
 import ept.edu.sn.alumni_backend.mentorat.repository.ProgrammeMentoratRepository;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
@@ -40,6 +44,8 @@ public class ProgrammeMentoratService {
     private final ProgrammeMentoratRepository programmeRepository;
     private final JalonProgrammeRepository jalonRepository;
     private final MentoratRepository mentoratRepository;
+    private final ParticipationProgrammeRepository participationRepository;
+    private final ProfilMentorRepository profilMentorRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final MentoratMapper mapper;
 
@@ -54,12 +60,15 @@ public class ProgrammeMentoratService {
         return versResponses(programmes, principal);
     }
 
+    /** Programmes ouverts aux rattachements, proposés à tous les membres. */
+    @Transactional(readOnly = true)
+    public List<ProgrammeResponse> listerOuverts(UtilisateurPrincipal principal) {
+        return versResponses(programmeRepository.findByStatutOrderByDateDebutAscTitreAsc(StatutProgramme.OUVERT), principal);
+    }
+
     @Transactional(readOnly = true)
     public ProgrammeResponse obtenir(UUID programmeId, UtilisateurPrincipal principal) {
-        ProgrammeMentorat programme = programmeRepository.findById(programmeId)
-            .filter(p -> p.getStatut() != StatutProgramme.BROUILLON || peutGerer(p, principal))
-            .orElseThrow(ProgrammeMentoratService::introuvable);
-        return versResponses(List.of(programme), principal).getFirst();
+        return versResponses(List.of(chargerVisible(programmeId, principal)), principal).getFirst();
     }
 
     @Transactional
@@ -107,6 +116,38 @@ public class ProgrammeMentoratService {
         return obtenir(programmeId, principal);
     }
 
+    /**
+     * Je deviens mentor volontaire du programme : il faut qu'il soit ouvert et que je propose déjà
+     * du mentorat (mon offre fixe mes domaines et ma capacité). Sans effet si j'y participe déjà.
+     */
+    @Transactional
+    public ProgrammeResponse participer(UUID programmeId, UtilisateurPrincipal principal) {
+        ProgrammeMentorat programme = chargerVisible(programmeId, principal);
+        if (programme.getStatut() != StatutProgramme.OUVERT) {
+            throw new ConflitMentoratException("On ne rejoint un programme que lorsqu'il est ouvert.");
+        }
+        ProfilMentor profil = profilMentorRepository.findByUtilisateur_Id(principal.getUtilisateur().getId())
+            .orElseThrow(() -> new ConflitMentoratException(
+                "Proposez d'abord du mentorat (Mon offre) pour participer au programme comme mentor."));
+        if (!participationRepository.existsByProgramme_IdAndProfilMentor_Id(programmeId, profil.getId())) {
+            ParticipationProgramme participation = new ParticipationProgramme();
+            participation.setProgramme(programme);
+            participation.setProfilMentor(profil);
+            participationRepository.saveAndFlush(participation);
+        }
+        return obtenir(programmeId, principal);
+    }
+
+    /** Je ne suis plus mentor volontaire ; les mentorats déjà rattachés continuent. */
+    @Transactional
+    public ProgrammeResponse seRetirer(UUID programmeId, UtilisateurPrincipal principal) {
+        chargerVisible(programmeId, principal);
+        participationRepository.findByProgramme_IdAndProfilMentor_Utilisateur_Id(programmeId, principal.getUtilisateur().getId())
+            .ifPresent(participationRepository::delete);
+        participationRepository.flush();
+        return obtenir(programmeId, principal);
+    }
+
     /** Seul un brouillon sans mentorat se supprime ; ensuite, on le clôt pour garder l'historique. */
     @Transactional
     public void supprimer(UUID programmeId, UtilisateurPrincipal principal) {
@@ -114,6 +155,7 @@ public class ProgrammeMentoratService {
         if (programme.getStatut() != StatutProgramme.BROUILLON || mentoratRepository.existsByProgramme_Id(programmeId)) {
             throw new ConflitMentoratException("Seul un brouillon se supprime. Clôturez plutôt ce programme.");
         }
+        participationRepository.deleteByProgramme_Id(programmeId);
         jalonRepository.deleteByProgramme_Id(programmeId);
         programmeRepository.delete(programme);
     }
@@ -172,9 +214,10 @@ public class ProgrammeMentoratService {
             .collect(Collectors.groupingBy(jalon -> jalon.getProgramme().getId(), Collectors.mapping(
                 jalon -> new ProgrammeResponse.Etape(jalon.getId(), jalon.getTitre(), jalon.getDescription(), jalon.getOrdre()),
                 Collectors.toList())));
-        Map<UUID, Long> mentorats = mentoratRepository.compterParProgrammes(ids).stream().collect(Collectors.toMap(
-            MentoratRepository.NombreParProgrammeProjection::getProgrammeId,
-            MentoratRepository.NombreParProgrammeProjection::getNombre));
+        Map<UUID, Long> mentorats = parProgramme(mentoratRepository.compterParProgrammes(ids));
+        Map<UUID, Long> mentors = parProgramme(participationRepository.compterParProgrammes(ids));
+        Set<UUID> mesParticipations = Set.copyOf(
+            participationRepository.programmesOuParticipe(ids, principal.getUtilisateur().getId()));
         return programmes.stream().map(programme -> new ProgrammeResponse(
             programme.getId(),
             programme.getTitre(),
@@ -185,7 +228,22 @@ public class ProgrammeMentoratService {
             mapper.participant(programme.getResponsable()),
             etapes.getOrDefault(programme.getId(), List.of()),
             mentorats.getOrDefault(programme.getId(), 0L),
-            peutGerer(programme, principal))).toList();
+            mentors.getOrDefault(programme.getId(), 0L),
+            peutGerer(programme, principal),
+            mesParticipations.contains(programme.getId()))).toList();
+    }
+
+    private static Map<UUID, Long> parProgramme(List<MentoratRepository.NombreParProgrammeProjection> nombres) {
+        return nombres.stream().collect(Collectors.toMap(
+            MentoratRepository.NombreParProgrammeProjection::getProgrammeId,
+            MentoratRepository.NombreParProgrammeProjection::getNombre));
+    }
+
+    /** Un brouillon n'existe que pour ceux qui le gèrent. */
+    private ProgrammeMentorat chargerVisible(UUID programmeId, UtilisateurPrincipal principal) {
+        return programmeRepository.findById(programmeId)
+            .filter(p -> p.getStatut() != StatutProgramme.BROUILLON || peutGerer(p, principal))
+            .orElseThrow(ProgrammeMentoratService::introuvable);
     }
 
     /** Introuvable pour qui ne voit pas un brouillon ; interdit pour qui voit le programme sans le gérer. */

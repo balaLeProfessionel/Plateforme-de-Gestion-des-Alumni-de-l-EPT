@@ -7,7 +7,8 @@ import { BehaviorSubject } from 'rxjs';
 import { vi } from 'vitest';
 
 import { CompteurDemandesMentorat } from '../../../core/services/mentorat/compteur-demandes';
-import { Mentor, Page } from '../../../core/services/models/mentorat.model';
+import { Mentor, Page, Programme } from '../../../core/services/models/mentorat.model';
+import { unProgramme } from '../testing/donnees-mentorat';
 import { TrouverMentor } from './trouver-mentor';
 
 describe('TrouverMentor', () => {
@@ -43,6 +44,17 @@ describe('TrouverMentor', () => {
 
   afterEach(() => http.verify());
 
+  it('signale les programmes ouverts par un bandeau qui mène à leur page', async () => {
+    demarrer({}, [unProgramme({ id: 'p1', titre: 'Orientation lycée 2026', statut: 'OUVERT' })]);
+    http.expectOne((req) => req.url === '/api/mentorat/mentors').flush(page([]));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const bandeau = fixture.nativeElement.querySelector('.programmes') as HTMLElement;
+    expect(bandeau.textContent).toContain('Programme ouvert');
+    expect(bandeau.querySelector('a')?.getAttribute('href')).toBe('/mentorat/programmes/p1');
+  });
+
   it('prévient quand la limite de demandes en attente est atteinte et bloque les cartes', async () => {
     envoyees.set(3);
     demarrer();
@@ -57,10 +69,11 @@ describe('TrouverMentor', () => {
     expect((fixture.nativeElement.querySelector('.demander') as HTMLButtonElement).disabled).toBe(true);
   });
 
-  function demarrer(params: Record<string, string> = {}): void {
+  function demarrer(params: Record<string, string> = {}, ouverts: Programme[] = []): void {
     parametres.next(convertToParamMap(params));
     fixture = TestBed.createComponent(TrouverMentor);
     fixture.detectChanges();
+    http.expectOne('/api/mentorat/programmes/ouverts').flush(ouverts);
     http.expectOne('/api/mentorat/domaines').flush([
       { id: 'd1', code: 'DATA_IA', libelle: 'Data & IA' },
       { id: 'd2', code: 'CARRIERE_INSERTION', libelle: 'Carrière & insertion' },

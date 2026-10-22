@@ -133,3 +133,19 @@
   i { margin-top: 0.2rem; color: var(--ept-gold-dark); }
   a { color: var(--ept-primary); font-weight: 700; }
 }
+
+.programmes {
+  display: flex;
+  gap: 0.6rem;
+  margin: 0 0 1rem;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  background: var(--ept-primary-light);
+  color: var(--ept-primary-dark);
+  font-size: 0.9rem;
+
+  i { margin-top: 0.2rem; color: var(--ept-primary); }
+  p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+  a { color: var(--ept-primary); font-weight: 700; }
+  a:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+}

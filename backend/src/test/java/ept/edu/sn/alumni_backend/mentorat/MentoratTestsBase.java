@@ -26,6 +26,7 @@ import ept.edu.sn.alumni_backend.mentorat.repository.DomaineMentoratRepository;
 import ept.edu.sn.alumni_backend.mentorat.repository.EvaluationMentoratRepository;
 import ept.edu.sn.alumni_backend.mentorat.repository.JalonProgrammeRepository;
 import ept.edu.sn.alumni_backend.mentorat.repository.MentoratRepository;
+import ept.edu.sn.alumni_backend.mentorat.repository.ParticipationProgrammeRepository;
 import ept.edu.sn.alumni_backend.mentorat.repository.ProfilMentorRepository;
 import ept.edu.sn.alumni_backend.mentorat.repository.ProgrammeMentoratRepository;
 import ept.edu.sn.alumni_backend.mentorat.repository.ProgressionJalonRepository;
@@ -70,6 +71,9 @@ abstract class MentoratTestsBase {
     @Autowired
     protected ProgressionJalonRepository progressionRepository;
 
+    @Autowired
+    protected ParticipationProgrammeRepository participationProgrammeRepository;
+
     /** Les autres classes de test vident les utilisateurs : on retire ce qui les référence. */
     @AfterEach
     void nettoyerMentorat() {
@@ -77,6 +81,7 @@ abstract class MentoratTestsBase {
         seanceRepository.deleteAll();
         progressionRepository.deleteAll();
         mentoratRepository.deleteAll();
+        participationProgrammeRepository.deleteAll();
         profilMentorRepository.deleteAll();
         jalonRepository.deleteAll();
         programmeRepository.deleteAll();
