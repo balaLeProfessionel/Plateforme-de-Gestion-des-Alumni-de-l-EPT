@@ -10,7 +10,7 @@ import { AudienceEvenement, Evenement, EvenementRequest } from '../../../core/se
 import { RetourNavigation } from '../../../core/navigation/retour-navigation';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { chargerImagePourRecadrage } from '../../../shared/images/charger-image';
-import { FORMAT_EVENEMENT } from '../../../shared/images/recadrage';
+import { estPetite, FORMAT_EVENEMENT } from '../../../shared/images/recadrage';
 import { RecadreurImage } from '../../../shared/images/recadreur-image';
 import { VisuelEvenement } from '../../../shared/images/visuel-evenement';
 import { etatNavigationEvenement, urlRetourInterne } from '../navigation-evenements';
@@ -51,6 +51,8 @@ export class FormulaireEvenement {
   protected readonly apercuImage = signal<string | null>(null);
   protected readonly suppressionImage = signal(false);
   protected readonly erreurImage = signal<string | null>(null);
+  /** Image acceptée mais sous la taille conseillée : on prévient qu’elle sera un peu floue. */
+  protected readonly avertissementImage = signal<string | null>(null);
   /** Image en cours de recadrage, avant d'être acceptée comme illustration. */
   protected readonly imageARecadrer = signal<HTMLImageElement | null>(null);
   protected readonly formatEvenement = FORMAT_EVENEMENT;
@@ -67,7 +69,6 @@ export class FormulaireEvenement {
     required(chemin.lieu, { message: 'Le lieu est obligatoire.' });
     maxLength(chemin.lieu, 200, { message: 'Le lieu ne peut pas dépasser 200 caractères.' });
     required(chemin.dateDebut, { message: 'La date de début est obligatoire.' });
-    required(chemin.dateFin, { message: 'La date de fin est obligatoire.' });
     required(chemin.audience, { message: 'Choisissez le public de cet événement.' });
     validate(chemin.titre, ({ value }) => value().trim().length === 0
       ? { kind: 'blank', message: 'Le titre est obligatoire.' }
@@ -128,7 +129,7 @@ export class FormulaireEvenement {
           description: valeurs.description.trim(),
           lieu: valeurs.lieu.trim(),
           dateDebut: new Date(valeurs.dateDebut).toISOString(),
-          dateFin: new Date(valeurs.dateFin).toISOString(),
+          dateFin: valeurs.dateFin ? new Date(valeurs.dateFin).toISOString() : null,
           audience: valeurs.audience,
           nombrePlaces: valeurs.nombrePlaces === '' ? null : Number(valeurs.nombrePlaces),
         };
@@ -200,10 +201,15 @@ export class FormulaireEvenement {
     const fichier = input.files?.item(0) ?? null;
     input.value = '';
     this.erreurImage.set(null);
+    this.avertissementImage.set(null);
     if (!fichier) return;
     try {
       this.fermerRecadrage();
-      this.imageARecadrer.set(await chargerImagePourRecadrage(fichier, FORMAT_EVENEMENT));
+      const image = await chargerImagePourRecadrage(fichier, FORMAT_EVENEMENT);
+      this.avertissementImage.set(estPetite({ largeur: image.naturalWidth, hauteur: image.naturalHeight }, FORMAT_EVENEMENT)
+        ? `Image de petite taille (${image.naturalWidth} × ${image.naturalHeight} pixels) : elle sera agrandie et pourra paraître un peu floue.`
+        : null);
+      this.imageARecadrer.set(image);
     } catch (erreur) {
       this.erreurImage.set(erreur instanceof Error ? erreur.message : 'Cette image ne peut pas être utilisée.');
     }
@@ -214,6 +220,11 @@ export class FormulaireEvenement {
     this.suppressionImage.set(false);
     this.fichierImage.set(fichier);
     this.definirApercu(fichier);
+  }
+
+  protected annulerRecadrage(): void {
+    this.fermerRecadrage();
+    this.avertissementImage.set(null);
   }
 
   protected fermerRecadrage(): void {
@@ -227,6 +238,7 @@ export class FormulaireEvenement {
     this.libererApercu();
     this.apercuImage.set(this.suppressionImage() ? null : this.imageActuelle());
     this.erreurImage.set(null);
+    this.avertissementImage.set(null);
     if (input) input.value = '';
   }
 
@@ -234,6 +246,7 @@ export class FormulaireEvenement {
     this.suppressionImage.update((supprimer) => !supprimer);
     this.apercuImage.set(this.suppressionImage() ? null : this.imageActuelle());
     this.erreurImage.set(null);
+    this.avertissementImage.set(null);
   }
 
   private definirApercu(fichier: File): void {
@@ -251,8 +264,19 @@ export class FormulaireEvenement {
     this.fichierImage.set(null);
     this.suppressionImage.set(false);
     this.erreurImage.set(null);
+    this.avertissementImage.set(null);
     this.libererApercu();
     this.apercuImage.set(this.imageActuelle());
+  }
+
+  /** Le nombre de places n’accepte que des chiffres : impossible de saisir un signe moins ou une virgule. */
+  protected nettoyerPlaces(evenement: Event): void {
+    const champ = evenement.target as HTMLInputElement;
+    const chiffres = champ.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+    if (chiffres !== champ.value) {
+      champ.value = chiffres;
+      this.modele.update((modele) => ({ ...modele, nombrePlaces: chiffres }));
+    }
   }
 
   protected libelleErreur(champ: 'titre' | 'description' | 'lieu' | 'dateDebut' | 'dateFin' | 'audience' | 'nombrePlaces'):
@@ -272,7 +296,7 @@ export class FormulaireEvenement {
         description: evenement.description,
         lieu: evenement.lieu,
         dateDebut: this.versDateLocale(evenement.dateDebut),
-        dateFin: this.versDateLocale(evenement.dateFin),
+        dateFin: evenement.dateFin ? this.versDateLocale(evenement.dateFin) : '',
         audience: evenement.audience,
         nombrePlaces: evenement.nombrePlaces?.toString() ?? '',
       });

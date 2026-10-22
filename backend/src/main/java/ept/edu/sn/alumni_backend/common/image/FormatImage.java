@@ -20,8 +20,8 @@ import javax.imageio.stream.ImageOutputStream;
  * Le frontend propose un recadrage manuel ; ce traitement garantit le format même sans lui.
  */
 public record FormatImage(int largeur, int hauteur, int largeurMinimale, int hauteurMinimale) {
-    /** Images d'événement : 16:9. */
-    public static final FormatImage EVENEMENT = new FormatImage(1600, 900, 800, 450);
+    /** Images d'événement : 16:9. Une petite image est agrandie (un peu floue) plutôt que refusée. */
+    public static final FormatImage EVENEMENT = new FormatImage(1600, 900, 400, 225);
     /** Photos de profil : carré. */
     public static final FormatImage PHOTO_PROFIL = new FormatImage(600, 600, 200, 200);
 

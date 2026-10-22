@@ -42,7 +42,9 @@
           <i class="pi pi-calendar" aria-hidden="true"></i>
           <div><h2>Date et heure</h2>
             <p><time [attr.datetime]="item.dateDebut">{{ formaterDate(item.dateDebut) }}</time></p>
-            <p class="fin-evenement">Fin : <time [attr.datetime]="item.dateFin">{{ formaterDate(item.dateFin) }}</time></p>
+            @if (item.dateFin; as fin) {
+              <p class="fin-evenement">Fin : <time [attr.datetime]="fin">{{ formaterDate(fin) }}</time></p>
+            }
           </div>
         </div>
         <div class="information">

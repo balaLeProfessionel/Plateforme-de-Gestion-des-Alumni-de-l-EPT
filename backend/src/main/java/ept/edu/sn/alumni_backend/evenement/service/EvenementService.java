@@ -1,5 +1,9 @@
 package ept.edu.sn.alumni_backend.evenement.service;
 
+import ept.edu.sn.alumni_backend.evenement.dto.FiltresEvenements;
+import jakarta.persistence.criteria.Predicate;
+import java.util.Locale;
+import java.util.ArrayList;
 import java.time.Instant;
 import java.time.Duration;
 import java.util.Map;
@@ -48,6 +52,8 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class EvenementService {
+    private static final char ECHAPPEMENT = '\\';
+
     private static final Logger LOGGER = LoggerFactory.getLogger(EvenementService.class);
     private final EvenementRepository evenementRepository;
     private final ParticipationEvenementRepository participationRepository;
@@ -60,6 +66,7 @@ public class EvenementService {
     public PageEvenementsResponse lister(
             UtilisateurPrincipal principal,
             PeriodeEvenement periode,
+            FiltresEvenements filtres,
             int page,
             int taille) {
         TypeRole role = principal.getUtilisateur().getRole();
@@ -68,7 +75,8 @@ public class EvenementService {
             .and((racine, requete, cb) -> cb.equal(racine.get("statut"), StatutEvenement.PUBLIE))
             .and((racine, requete, cb) -> periode == PeriodeEvenement.AVENIR
                 ? cb.greaterThanOrEqualTo(racine.get("dateFin"), maintenant)
-                : cb.lessThan(racine.get("dateFin"), maintenant));
+                : cb.lessThan(racine.get("dateFin"), maintenant))
+            .and(correspondA(filtres));
 
         Sort tri = periode == PeriodeEvenement.AVENIR
             ? Sort.by(Sort.Order.asc("dateDebut"), Sort.Order.asc("id"))
@@ -89,15 +97,17 @@ public class EvenementService {
     public PageEvenementsResponse listerMesEvenements(
             UtilisateurPrincipal principal,
             PeriodeEvenement periode,
+            FiltresEvenements filtres,
             int page,
             int taille) {
         Instant maintenant = Instant.now();
         UUID organisateurId = principal.getUtilisateur().getId();
-        Specification<Evenement> specification = (racine, requete, cb) -> cb.and(
+        Specification<Evenement> proprietaire = (racine, requete, cb) -> cb.and(
             cb.equal(racine.get("organisateur").get("id"), organisateurId),
             periode == PeriodeEvenement.AVENIR
                 ? cb.greaterThanOrEqualTo(racine.get("dateFin"), maintenant)
                 : cb.lessThan(racine.get("dateFin"), maintenant));
+        Specification<Evenement> specification = proprietaire.and(correspondA(filtres));
 
         Sort tri = periode == PeriodeEvenement.AVENIR
             ? Sort.by(Sort.Order.asc("dateDebut"), Sort.Order.asc("id"))
@@ -325,9 +335,34 @@ public class EvenementService {
         evenement.setDescription(request.description().strip());
         evenement.setLieu(request.lieu().strip());
         evenement.setDateDebut(request.dateDebut());
-        evenement.setDateFin(request.dateFin());
+        evenement.setDateFin(request.dateFin() != null ? request.dateFin() : request.dateDebut());
         evenement.setAudience(request.audience());
         evenement.setNombrePlaces(request.nombrePlaces());
+    }
+
+    /** Filtres de recherche ; un critère absent ne restreint rien. */
+    private static Specification<Evenement> correspondA(FiltresEvenements filtres) {
+        return (racine, requete, cb) -> {
+            List<Predicate> conditions = new ArrayList<>();
+            if (filtres.recherche() != null) {
+                String motif = motif(filtres.recherche());
+                conditions.add(cb.or(
+                    cb.like(cb.lower(racine.get("titre")), motif, ECHAPPEMENT),
+                    cb.like(cb.lower(racine.get("description")), motif, ECHAPPEMENT)));
+            }
+            if (filtres.lieu() != null) {
+                conditions.add(cb.like(cb.lower(racine.get("lieu")), motif(filtres.lieu()), ECHAPPEMENT));
+            }
+            if (filtres.officiel() != null) {
+                conditions.add(cb.equal(racine.get("officielEpt"), filtres.officiel()));
+            }
+            return cb.and(conditions.toArray(Predicate[]::new));
+        };
+    }
+
+    /** Motif LIKE insensible à la casse ; « % », « _ » et « \ » saisis sont cherchés tels quels. */
+    private static String motif(String texte) {
+        return "%" + texte.toLowerCase(Locale.ROOT).replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
     }
 
     private Specification<Evenement> visiblePar(TypeRole role) {

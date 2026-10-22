@@ -32,7 +32,7 @@ public class EvenementMapper {
             evenement.getLieu(),
             evenement.getUrlImage(),
             evenement.getDateDebut(),
-            evenement.getDateFin(),
+            evenement.estPonctuel() ? null : evenement.getDateFin(),
             evenement.getAudience(),
             evenement.getNombrePlaces(),
             evenement.isOfficielEpt(),

@@ -68,10 +68,19 @@ class StockageImageEvenementTests {
     @Test
     void refuseUneImageTropPetitePourLeCadre() throws Exception {
         IllegalArgumentException erreur = assertThrows(IllegalArgumentException.class, () -> stockage().stocker(
-            fichier("vignette.png", "image/png", image("png", 799, 450))));
-        assertEquals("L’image est trop petite : au moins 800 × 450 pixels.", erreur.getMessage());
+            fichier("vignette.png", "image/png", image("png", 399, 225))));
+        assertEquals("L’image est trop petite : au moins 400 × 225 pixels.", erreur.getMessage());
         assertThrows(IllegalArgumentException.class, () -> stockage().stocker(
-            fichier("vignette.png", "image/png", image("png", 1600, 449))));
+            fichier("vignette.png", "image/png", image("png", 1600, 224))));
+    }
+
+    @Test
+    void agranditUnePetiteImageAuFormatPlutotQueDeLaRefuser() throws Exception {
+        StockageImageEvenement stockage = stockage();
+        String url = stockage.stocker(fichier("petite.jpg", "image/jpeg", image("jpg", 400, 225)));
+        BufferedImage stockee = lireImage(stockage, url);
+        assertEquals(1600, stockee.getWidth());
+        assertEquals(900, stockee.getHeight());
     }
 
     @Test

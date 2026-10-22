@@ -10,7 +10,8 @@ export interface Evenement {
   lieu: string;
   urlImage: string | null;
   dateDebut: string;
-  dateFin: string;
+  /** Absente pour un événement ponctuel, qui a lieu à la date de début. */
+  dateFin: string | null;
   audience: AudienceEvenement;
   nombrePlaces: number | null;
   officielEpt: boolean;
@@ -27,10 +28,19 @@ export interface EvenementRequest {
   description: string;
   lieu: string;
   dateDebut: string;
-  dateFin: string;
+  dateFin: string | null;
   audience: AudienceEvenement;
   nombrePlaces: number | null;
 }
+
+/** Critères de recherche de la liste des événements. */
+export interface FiltresEvenements {
+  recherche: string;
+  lieu: string;
+  officiel: 'oui' | 'non' | '';
+}
+
+export const AUCUN_FILTRE: FiltresEvenements = { recherche: '', lieu: '', officiel: '' };
 
 export interface ParticipantEvenement {
   id: string;

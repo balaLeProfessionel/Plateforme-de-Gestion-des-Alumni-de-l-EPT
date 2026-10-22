@@ -2,6 +2,7 @@ import {
   cadreMaximal,
   contraindre,
   deplacer,
+  estPetite,
   estTropPetite,
   etatInitial,
   FORMAT_EVENEMENT,
@@ -66,8 +67,13 @@ describe('Calcul du recadrage', () => {
   });
 
   it('refuse une source plus petite que le minimum du format', () => {
-    expect(estTropPetite({ largeur: 799, hauteur: 900 }, FORMAT_EVENEMENT)).toBe(true);
-    expect(estTropPetite({ largeur: 800, hauteur: 450 }, FORMAT_EVENEMENT)).toBe(false);
+    expect(estTropPetite({ largeur: 399, hauteur: 900 }, FORMAT_EVENEMENT)).toBe(true);
+    expect(estTropPetite({ largeur: 400, hauteur: 225 }, FORMAT_EVENEMENT)).toBe(false);
     expect(estTropPetite({ largeur: 300, hauteur: 199 }, FORMAT_PHOTO_PROFIL)).toBe(true);
+  });
+
+  it('signale une source acceptée mais sous la taille conseillée', () => {
+    expect(estPetite({ largeur: 640, hauteur: 360 }, FORMAT_EVENEMENT)).toBe(true);
+    expect(estPetite({ largeur: 800, hauteur: 450 }, FORMAT_EVENEMENT)).toBe(false);
   });
 });

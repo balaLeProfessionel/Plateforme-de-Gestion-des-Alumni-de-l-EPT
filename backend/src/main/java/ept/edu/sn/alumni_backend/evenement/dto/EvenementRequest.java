@@ -14,7 +14,8 @@ public record EvenementRequest(
     @NotBlank @Size(max = 5000) String description,
     @NotBlank @Size(max = 200) String lieu,
     @NotNull Instant dateDebut,
-    @NotNull Instant dateFin,
+    /** Facultative : sans fin, l'événement a lieu à la date de début (événement ponctuel). */
+    Instant dateFin,
     @NotNull AudienceEvenement audience,
     @Positive Integer nombrePlaces
 ) {

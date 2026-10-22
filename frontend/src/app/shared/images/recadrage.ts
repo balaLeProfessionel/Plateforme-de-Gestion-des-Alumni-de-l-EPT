@@ -1,14 +1,23 @@
-/** Format imposé à une image : rapport du cadre, taille produite et taille minimale de la source. */
+/**
+ * Format imposé à une image : rapport du cadre, taille produite, taille minimale de la source
+ * (en dessous, refusée) et taille conseillée (en dessous, acceptée mais un peu floue).
+ */
 export interface FormatRecadrage {
   largeur: number;
   hauteur: number;
   largeurMinimale: number;
   hauteurMinimale: number;
+  largeurConseillee: number;
+  hauteurConseillee: number;
 }
 
 /** Mêmes formats que le serveur (`FormatImage`). */
-export const FORMAT_EVENEMENT: FormatRecadrage = { largeur: 1600, hauteur: 900, largeurMinimale: 800, hauteurMinimale: 450 };
-export const FORMAT_PHOTO_PROFIL: FormatRecadrage = { largeur: 600, hauteur: 600, largeurMinimale: 200, hauteurMinimale: 200 };
+export const FORMAT_EVENEMENT: FormatRecadrage = {
+  largeur: 1600, hauteur: 900, largeurMinimale: 400, hauteurMinimale: 225, largeurConseillee: 800, hauteurConseillee: 450,
+};
+export const FORMAT_PHOTO_PROFIL: FormatRecadrage = {
+  largeur: 600, hauteur: 600, largeurMinimale: 200, hauteurMinimale: 200, largeurConseillee: 400, hauteurConseillee: 400,
+};
 
 export interface Dimensions {
   largeur: number;
@@ -36,6 +45,11 @@ export function estTropPetite(image: Dimensions, format: FormatRecadrage): boole
   return image.largeur < format.largeurMinimale || image.hauteur < format.hauteurMinimale;
 }
 
+/** Acceptée mais sous la taille conseillée : elle sera agrandie et paraîtra un peu floue. */
+export function estPetite(image: Dimensions, format: FormatRecadrage): boolean {
+  return image.largeur < format.largeurConseillee || image.hauteur < format.hauteurConseillee;
+}
+
 /** Plus grand cadre au rapport du format qui tient dans l'image (zoom 1). */
 export function cadreMaximal(image: Dimensions, format: FormatRecadrage): Dimensions {
   const rapport = format.largeur / format.hauteur;
@@ -44,10 +58,10 @@ export function cadreMaximal(image: Dimensions, format: FormatRecadrage): Dimens
     : { largeur: image.largeur, hauteur: image.largeur / rapport };
 }
 
-/** Zoom maximal : au-delà, le cadre couvrirait moins de pixels que le minimum, l'image deviendrait floue. */
+/** Zoom maximal : au-delà, le cadre couvrirait moins de pixels que conseillé, l'image deviendrait floue. */
 export function zoomMaximal(image: Dimensions, format: FormatRecadrage): number {
   const cadre = cadreMaximal(image, format);
-  return Math.max(1, Math.min(4, cadre.largeur / format.largeurMinimale, cadre.hauteur / format.hauteurMinimale));
+  return Math.max(1, Math.min(4, cadre.largeur / format.largeurConseillee, cadre.hauteur / format.hauteurConseillee));
 }
 
 export function etatInitial(image: Dimensions): EtatRecadrage {

@@ -10,7 +10,7 @@
   &:hover { background: #fff1ef; } &:disabled { opacity: .6; cursor: wait; }
 }
 .barre-evenements { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; padding: .6rem; border: 1px solid var(--ept-border); border-radius: 12px; background: var(--ept-surface); }
-.filtre-proprietaire, .onglets-periode { display: inline-flex; gap: .25rem; padding: .2rem; border-radius: 10px; background: var(--ept-bg);
+.filtre-proprietaire { display: inline-flex; gap: .25rem; padding: .2rem; border-radius: 10px; background: var(--ept-bg);
   button { display: inline-flex; min-height: 2.3rem; align-items: center; gap: .45rem; padding: .4rem .85rem; border: 0; border-radius: 8px; background: transparent; color: var(--ept-text-secondary); font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; }
   button:hover { color: var(--ept-primary); }
   button[aria-pressed='true'] { background: white; color: var(--ept-primary); box-shadow: 0 1px 3px rgba(1, 46, 69, .12); }
@@ -33,6 +33,7 @@
 }
 .badge-officiel, .badge-communaute, .badge-annule, .audience { display: inline-flex; align-items: center; gap: .35rem; min-height: 1.7rem; padding: .25rem .5rem; border: 1px solid transparent; font-size: .72rem; font-weight: 700; }
 .badge-officiel { border-color: #b6dce9; background: #d8edf5; color: var(--ept-primary); }
+.badge-organisateur { display: inline-flex; align-items: center; gap: .35rem; min-height: 1.7rem; padding: .25rem .5rem; background: var(--ept-primary-light); color: var(--ept-primary); font-size: .72rem; font-weight: 700; }
 .badge-communaute { border-color: var(--ept-border); background: #f5f7f8; color: var(--ept-text-secondary); }
 .badge-annule { border-color: #efc7c2; background: #fff0ed; color: #8d2f25; }
 .audience { border-color: var(--ept-border); color: var(--ept-text-secondary); font-weight: 500; }
@@ -44,7 +45,7 @@
   > span:first-child { display: inline-flex; align-items: center; gap: .4rem; }
   .lien-detail { display: inline-flex; align-items: center; gap: .35rem; color: var(--ept-primary); font-weight: 700; text-decoration: none; &:hover { text-decoration: underline; } &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; } }
 }
-.actions-carte { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .8rem; padding-top: .8rem; border-top: 1px solid var(--ept-border);
+.actions-carte { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr)); gap: .45rem; margin-top: .8rem; padding-top: .8rem; border-top: 1px solid var(--ept-border);
   .action-secondaire, .action-danger { min-height: 2.55rem; padding: .55rem .75rem; font-size: .82rem; }
 }
 .confirmation-annulation { position: relative; z-index: 2; display: grid; gap: .6rem; margin-top: .8rem; padding: .8rem; border: 1px solid #efc7c2; background: #fff8f6;
@@ -68,6 +69,6 @@
 @media (max-width: 760px) {
   .grille-evenements { grid-template-columns: minmax(0, 1fr); }
   .entete-evenements { flex-direction: column; align-items: stretch; }
-  .filtre-proprietaire, .onglets-periode { flex: 1; button { flex: 1; justify-content: center; } }
-  .filtre-proprietaire { i { display: none; } button { padding-inline: .4rem; font-size: clamp(.72rem, 3.4vw, .82rem); white-space: nowrap; } }
+  .filtre-proprietaire { flex: 1; min-width: 0; button { flex: 1 1 0; min-width: 0; justify-content: center; } }
+  .filtre-proprietaire { i { display: none; } button { padding-inline: .4rem; font-size: clamp(.72rem, 3.4vw, .82rem); line-height: 1.2; text-align: center; } }
 }

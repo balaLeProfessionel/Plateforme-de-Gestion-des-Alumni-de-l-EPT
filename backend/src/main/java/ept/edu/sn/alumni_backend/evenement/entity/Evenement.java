@@ -46,8 +46,17 @@ public class Evenement {
     @Column(nullable = false)
     private Instant dateDebut;
 
+    /**
+     * Toujours renseignée en base : pour un événement ponctuel (sans fin), elle vaut la date de début.
+     * Les périodes « à venir » et « passés » s'appuient dessus sans cas particulier.
+     */
     @Column(nullable = false)
     private Instant dateFin;
+
+    /** Vrai quand l'organisateur n'a pas indiqué de fin : l'événement a lieu à une date précise. */
+    public boolean estPonctuel() {
+        return dateFin.equals(dateDebut);
+    }
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

@@ -1,0 +1,114 @@
+:host { display: block; flex: 1 1 100%; min-width: 0; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.filtres { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.6rem; }
+
+.ligne { display: flex; gap: 0.5rem; min-width: 0; }
+
+.champ-icone {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+
+  i { position: absolute; top: 50%; left: 0.8rem; transform: translateY(-50%); color: var(--ept-text-secondary); }
+  input { width: 100%; min-width: 0; min-height: 2.6rem; padding: 0.45rem 0.7rem 0.45rem 2.3rem; border: 1px solid var(--ept-border); border-radius: 8px; background: white; color: var(--ept-primary-dark); font: inherit; }
+  input:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
+}
+
+.bouton-filtres {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.6rem;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--ept-border);
+  border-radius: 8px;
+  background: white;
+  color: var(--ept-primary-dark);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover, &.actif { border-color: var(--ept-primary); color: var(--ept-primary); }
+  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
+}
+
+.pastille {
+  display: inline-grid;
+  min-width: 1.3rem;
+  height: 1.3rem;
+  place-items: center;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: var(--ept-primary);
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.panneau {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--ept-border);
+
+  .lieu { flex: 1 1 12rem; }
+}
+
+.groupe {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  border-radius: 10px;
+  background: var(--ept-bg);
+
+  button {
+    min-height: 2.3rem;
+    padding: 0.35rem 0.75rem;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ept-text-secondary);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:hover { color: var(--ept-primary); }
+    &[aria-pressed='true'] { background: white; color: var(--ept-primary); box-shadow: 0 1px 3px rgba(1, 46, 69, 0.12); }
+    &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
+  }
+}
+
+.effacer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.3rem;
+  padding: 0.35rem 0.5rem;
+  border: 0;
+  background: transparent;
+  color: var(--ept-primary);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; border-radius: 6px; }
+}
+
+@media (max-width: 760px) {
+  .panneau { display: grid; grid-template-columns: minmax(0, 1fr); }
+  // Les boutons se partagent la largeur ; sur un écran très étroit, un libellé passe à la ligne plutôt que de déborder.
+  .groupe { display: flex; min-width: 0; }
+  .groupe button { flex: 1 1 0; min-width: 0; padding-inline: 0.2rem; font-size: clamp(0.7rem, 3.4vw, 0.85rem); line-height: 1.2; white-space: normal; }
+  .effacer { justify-self: start; }
+}

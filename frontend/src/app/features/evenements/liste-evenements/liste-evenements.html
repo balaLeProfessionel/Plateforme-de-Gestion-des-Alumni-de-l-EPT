@@ -21,14 +21,9 @@
       </button>
     </div>
 
-    <div class="onglets-periode" role="group" aria-label="Période des événements">
-      <button type="button" [attr.aria-pressed]="periode() === 'AVENIR'" (click)="changerPeriode('AVENIR')">
-        À venir
-      </button>
-      <button type="button" [attr.aria-pressed]="periode() === 'PASSES'" (click)="changerPeriode('PASSES')">
-        Passés
-      </button>
-    </div>
+
+    <app-filtres-evenements [filtres]="filtres()" [periode]="periode()"
+      (modifies)="appliquerFiltres($event)" (periodeChoisie)="changerPeriode($event)" (effaces)="effacerFiltres()" />
   </div>
 
   <p class="resume-evenements" role="status">
@@ -37,6 +32,7 @@
       {{ resultat.totalElements > 1 ? 'événements' : 'événement' }}
       {{ periode() === 'AVENIR' ? 'à venir' : (resultat.totalElements > 1 ? 'passés' : 'passé') }}
       @if (mesEvenements()) { <span>· organisés par vous</span> }
+      @if (filtresActifs()) { <span>· selon vos critères</span> }
     } @else if (enChargement()) {
       Chargement des événements…
     }
@@ -59,6 +55,11 @@
     } @else if (page()?.contenu?.length === 0) {
       <div class="etat-evenements">
         <i class="pi pi-calendar" aria-hidden="true"></i>
+        @if (filtresActifs()) {
+          <h2>Aucun événement ne correspond</h2>
+          <p>Essayez d’autres mots, un autre lieu ou une autre période.</p>
+          <button type="button" (click)="effacerFiltres()">Effacer les filtres</button>
+        } @else {
         <h2>{{ periode() === 'AVENIR' ? 'Aucun événement à venir' : 'Aucun événement passé' }}</h2>
         <p>{{ mesEvenements()
           ? (periode() === 'AVENIR'
@@ -71,6 +72,7 @@
           <a class="action-principale" routerLink="/evenements/creer" [state]="{ returnUrl: urlCourante() }">
             <i class="pi pi-plus" aria-hidden="true"></i>Créer un événement
           </a>
+        }
         }
       </div>
     } @else if (page(); as resultat) {
@@ -87,6 +89,9 @@
                   <span class="badge-communaute">Communauté</span>
                 }
                 <span class="audience">{{ libelleAudience(evenement.audience) }}</span>
+                @if (!mesEvenements() && estMonEvenement(evenement)) {
+                  <span class="badge-organisateur"><i class="pi pi-user" aria-hidden="true"></i>Vous organisez</span>
+                }
               </div>
               <div class="visuel-evenement">
                 <app-visuel-evenement [urlImage]="evenement.urlImage" [dateDebut]="evenement.dateDebut"
@@ -106,11 +111,11 @@
                 </span>
                 <span class="lien-detail" aria-hidden="true">Voir le détail <i class="pi pi-arrow-right"></i></span>
               </div>
-              @if (mesEvenements()) {
-                <div class="actions-carte" aria-label="Actions de gestion">
+              @if (mesEvenements() || estMonEvenement(evenement)) {
+                <div class="actions-carte" role="group" aria-label="Actions de gestion">
                   @if (evenement.statut === 'PUBLIE') {
                     <a class="action-secondaire" [routerLink]="['/evenements', evenement.id, 'modifier']"
-                      [queryParams]="{ periode: periode(), page: resultat.page, vue: 'mes' }"
+                      [queryParams]="{ periode: periode(), page: resultat.page, vue: mesEvenements() ? 'mes' : null }"
                       [state]="{ returnUrl: urlCourante(), originReturnUrl: urlCourante() }">
                       <i class="pi pi-pencil" aria-hidden="true"></i>Modifier
                     </a>

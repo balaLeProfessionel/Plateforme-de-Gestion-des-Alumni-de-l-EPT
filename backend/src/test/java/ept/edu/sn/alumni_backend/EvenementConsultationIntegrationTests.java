@@ -4,6 +4,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -81,6 +83,37 @@ class EvenementConsultationIntegrationTests {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(1))
             .andExpect(jsonPath("$.contenu[0].audience").value("TOUS"));
+    }
+
+    @Test
+    void rechercheParTexteLieuEtCaractereOfficiel() throws Exception {
+        Instant demain = LocalDate.now(ZoneId.of("Africa/Dakar")).plusDays(1)
+            .atTime(10, 0).atZone(ZoneId.of("Africa/Dakar")).toInstant();
+        Evenement forum = creerEvenementDetaille("Forum des métiers", "Rencontre avec les entreprises",
+            "Auditorium EPT", true, demain, demain.plusSeconds(7200));
+        creerEvenementDetaille("Atelier CV", "Préparer son forum", "Salle B12", false,
+            demain.plusSeconds(3 * 86_400), demain.plusSeconds(3 * 86_400 + 3600));
+        creerEvenementDetaille("Hackathon", "48 h de code", "Dakar", false,
+            demain.plusSeconds(10 * 86_400), demain.plusSeconds(12 * 86_400));
+
+        mockMvc.perform(requeteAuthentifie("/api/evenements", alumni).param("recherche", "FORUM"))
+            .andExpect(jsonPath("$.totalElements").value(2));
+        mockMvc.perform(requeteAuthentifie("/api/evenements", alumni).param("lieu", "auditorium"))
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.contenu[0].id").value(forum.getId().toString()));
+        mockMvc.perform(requeteAuthentifie("/api/evenements", alumni).param("officiel", "true"))
+            .andExpect(jsonPath("$.totalElements").value(1));
+        mockMvc.perform(requeteAuthentifie("/api/evenements", alumni).param("officiel", "false"))
+            .andExpect(jsonPath("$.totalElements").value(2));
+
+        mockMvc.perform(requeteAuthentifie("/api/evenements", alumni)
+                .param("recherche", "forum").param("officiel", "false"))
+            .andExpect(jsonPath("$.contenu[0].titre").value("Atelier CV"));
+
+        mockMvc.perform(requeteAuthentifie("/api/evenements", alumni).param("recherche", "100%"))
+            .andExpect(jsonPath("$.totalElements").value(0));
+        mockMvc.perform(requeteAuthentifie("/api/evenements/mes-evenements", alumni).param("lieu", "dakar"))
+            .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     @Test
@@ -212,6 +245,17 @@ class EvenementConsultationIntegrationTests {
 
     private Evenement creerEvenement(AudienceEvenement audience, StatutEvenement statut, Instant dateFin) {
         return creerEvenement(alumni, audience, statut, dateFin);
+    }
+
+    private Evenement creerEvenementDetaille(
+            String titre, String description, String lieu, boolean officiel, Instant debut, Instant fin) {
+        Evenement evenement = creerEvenement(alumni, AudienceEvenement.TOUS, StatutEvenement.PUBLIE, fin);
+        evenement.setTitre(titre);
+        evenement.setDescription(description);
+        evenement.setLieu(lieu);
+        evenement.setOfficielEpt(officiel);
+        evenement.setDateDebut(debut);
+        return evenementRepository.saveAndFlush(evenement);
     }
 
     private Evenement creerEvenement(

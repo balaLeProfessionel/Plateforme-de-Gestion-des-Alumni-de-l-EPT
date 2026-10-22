@@ -1,0 +1,48 @@
+<div class="filtres" role="search" aria-label="Rechercher un événement">
+  <div class="ligne">
+    <div class="champ-icone">
+      <i class="pi pi-search" aria-hidden="true"></i>
+      <label for="filtre-recherche" class="sr-only">Rechercher un événement</label>
+      <input id="filtre-recherche" type="search" autocomplete="off" placeholder="Rechercher…"
+        [formField]="formulaire.recherche" aria-describedby="aide-filtres"
+        (keydown.enter)="$event.preventDefault(); appliquerTout()" />
+    </div>
+    <button type="button" class="bouton-filtres" [class.actif]="ouvert()" [attr.aria-expanded]="ouvert()"
+      aria-controls="panneau-filtres" (click)="ouvert.set(!ouvert())">
+      <i class="pi pi-sliders-h" aria-hidden="true"></i>Filtres
+      @if (caches() > 0) {
+        <span class="pastille">{{ caches() }}<span class="sr-only"> actif{{ caches() > 1 ? 's' : '' }}</span></span>
+      }
+    </button>
+    <span id="aide-filtres" class="sr-only">Les résultats se mettent à jour automatiquement.</span>
+  </div>
+
+  @if (ouvert()) {
+    <div id="panneau-filtres" class="panneau">
+      <div class="groupe" role="group" aria-label="Période">
+        <button type="button" [attr.aria-pressed]="periode() === 'AVENIR'" (click)="choisirPeriode('AVENIR')">À venir</button>
+        <button type="button" [attr.aria-pressed]="periode() === 'PASSES'" (click)="choisirPeriode('PASSES')">Passés</button>
+      </div>
+
+      <div class="groupe" role="group" aria-label="Organisé par">
+        <button type="button" [attr.aria-pressed]="filtres().officiel === ''" (click)="choisirOrganisation('')">Tous</button>
+        <button type="button" [attr.aria-pressed]="filtres().officiel === 'oui'" (click)="choisirOrganisation('oui')">EPT officiel</button>
+        <button type="button" [attr.aria-pressed]="filtres().officiel === 'non'" (click)="choisirOrganisation('non')">Communauté</button>
+      </div>
+
+      <div class="champ-icone lieu">
+        <i class="pi pi-map-marker" aria-hidden="true"></i>
+        <label for="filtre-lieu" class="sr-only">Lieu</label>
+        <input id="filtre-lieu" type="search" autocomplete="off" placeholder="Lieu"
+          [formField]="formulaire.lieu" aria-describedby="aide-filtres"
+          (keydown.enter)="$event.preventDefault(); appliquerTout()" />
+      </div>
+
+      @if (effacable()) {
+        <button type="button" class="effacer" (click)="effacer()">
+          <i class="pi pi-times" aria-hidden="true"></i>Effacer les filtres
+        </button>
+      }
+    </div>
+  }
+</div>

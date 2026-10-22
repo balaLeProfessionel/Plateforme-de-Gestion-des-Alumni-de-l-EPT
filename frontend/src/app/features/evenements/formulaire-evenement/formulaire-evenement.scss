@@ -30,3 +30,13 @@
 @keyframes rotation { to { transform: rotate(360deg); } }
 @media (max-width: 680px) { .formulaire-evenement-page { width: min(100% - 2rem, 900px); } .grille-champs, .bloc-image { grid-template-columns: minmax(0, 1fr); } .apercu-image { order: 0; } .actions-formulaire > button { flex: 1 1 auto; } }
 @media (prefers-reduced-motion: reduce) { .indicateur-chargement { animation-duration: 1.8s; } }
+
+.avertissement-image {
+  display: flex;
+  gap: 0.4rem;
+  color: var(--ept-gold-dark);
+  font-size: 0.85rem;
+  line-height: 1.45;
+
+  i { margin-top: 0.15rem; }
+}

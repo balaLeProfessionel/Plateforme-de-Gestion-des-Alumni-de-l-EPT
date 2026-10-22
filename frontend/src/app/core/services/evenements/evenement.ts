@@ -1,9 +1,11 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import {
+  AUCUN_FILTRE,
   AudienceEvenement,
   Evenement,
   EvenementRequest,
+  FiltresEvenements,
   PageEvenements,
   PageParticipants,
   PeriodeEvenement,
@@ -14,25 +16,17 @@ import {
 export class EvenementService {
   private readonly http = inject(HttpClient);
 
-  lister(periode: PeriodeEvenement, page: number, taille = 12) {
-    const params = new HttpParams()
-      .set('periode', periode)
-      .set('page', page)
-      .set('taille', taille);
-
-    return this.http.get<PageEvenements>('/api/evenements', { params });
+  lister(periode: PeriodeEvenement, page: number, filtres: FiltresEvenements = AUCUN_FILTRE, taille = 12) {
+    return this.http.get<PageEvenements>('/api/evenements', { params: parametres(periode, page, filtres, taille) });
   }
 
   obtenir(id: string) {
     return this.http.get<Evenement>(`/api/evenements/${encodeURIComponent(id)}`);
   }
 
-  listerMesEvenements(periode: PeriodeEvenement, page: number, taille = 12) {
-    const params = new HttpParams()
-      .set('periode', periode)
-      .set('page', page)
-      .set('taille', taille);
-    return this.http.get<PageEvenements>('/api/evenements/mes-evenements', { params });
+  listerMesEvenements(periode: PeriodeEvenement, page: number, filtres: FiltresEvenements = AUCUN_FILTRE, taille = 12) {
+    return this.http.get<PageEvenements>('/api/evenements/mes-evenements',
+      { params: parametres(periode, page, filtres, taille) });
   }
 
   listerParticipants(id: string, page: number, taille = 12) {
@@ -72,4 +66,13 @@ export class EvenementService {
   definirStatutOfficiel(id: string, officielEpt: boolean) {
     return this.http.patch<Evenement>(`/api/evenements/${encodeURIComponent(id)}/officiel`, { officielEpt });
   }
+}
+
+/** Seuls les critères renseignés partent dans la requête. */
+function parametres(periode: PeriodeEvenement, page: number, filtres: FiltresEvenements, taille: number): HttpParams {
+  let params = new HttpParams().set('periode', periode).set('page', page).set('taille', taille);
+  if (filtres.recherche.trim()) params = params.set('recherche', filtres.recherche.trim());
+  if (filtres.lieu.trim()) params = params.set('lieu', filtres.lieu.trim());
+  if (filtres.officiel) params = params.set('officiel', filtres.officiel === 'oui');
+  return params;
 }

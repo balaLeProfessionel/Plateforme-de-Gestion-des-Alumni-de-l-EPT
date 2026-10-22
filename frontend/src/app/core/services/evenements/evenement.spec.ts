@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { AudienceEvenement, EvenementRequest } from '../models/evenement';
+import { AUCUN_FILTRE, AudienceEvenement, EvenementRequest } from '../models/evenement';
 
 import { EvenementService } from './evenement';
 
@@ -20,11 +20,21 @@ describe('EvenementService', () => {
   afterEach(() => http.verify());
 
   it('envoie la période et la pagination demandées', () => {
-    service.lister('PASSES', 2, 24).subscribe();
+    service.lister('PASSES', 2, AUCUN_FILTRE, 24).subscribe();
 
     const requete = http.expectOne('/api/evenements?periode=PASSES&page=2&taille=24');
     expect(requete.request.method).toBe('GET');
     requete.flush({ contenu: [], page: 2, taille: 24, totalElements: 0, totalPages: 0 });
+  });
+
+  it('n’envoie que les critères de recherche renseignés, nettoyés', () => {
+    service.lister('AVENIR', 0, { recherche: '  forum ', lieu: '', officiel: 'non' }).subscribe();
+
+    const requete = http.expectOne((req) => req.url === '/api/evenements');
+    expect(requete.request.params.keys()).toEqual(['periode', 'page', 'taille', 'recherche', 'officiel']);
+    expect(requete.request.params.get('recherche')).toBe('forum');
+    expect(requete.request.params.get('officiel')).toBe('false');
+    requete.flush({ contenu: [], page: 0, taille: 12, totalElements: 0, totalPages: 0 });
   });
 
   it('encode l’identifiant de l’événement dans la requête de détail', () => {
@@ -36,7 +46,7 @@ describe('EvenementService', () => {
   });
 
   it('demande uniquement les événements de la session pour la période et la page choisies', () => {
-    service.listerMesEvenements('AVENIR', 1, 12).subscribe();
+    service.listerMesEvenements('AVENIR', 1, AUCUN_FILTRE, 12).subscribe();
 
     const requete = http.expectOne('/api/evenements/mes-evenements?periode=AVENIR&page=1&taille=12');
     expect(requete.request.method).toBe('GET');

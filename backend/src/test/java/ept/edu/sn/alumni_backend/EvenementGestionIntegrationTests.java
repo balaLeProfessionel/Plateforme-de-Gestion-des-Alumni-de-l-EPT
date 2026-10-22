@@ -247,6 +247,38 @@ class EvenementGestionIntegrationTests {
     }
 
     @Test
+    void unEvenementSansDateDeFinALieuALaDateDeDebutEtPeutRecevoirUneFinPlusTard() throws Exception {
+        Instant debut = Instant.now().plusSeconds(86_400).truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+        EvenementRequest ponctuel = new EvenementRequest(
+            "Conférence ponctuelle", "Description", "Thiès", debut, null, AudienceEvenement.TOUS, null);
+
+        String reponse = mockMvc.perform(requeteAuthentifie(post("/api/evenements"), alumni)
+                .contentType(MediaType.APPLICATION_JSON).content(corps(ponctuel)))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.dateDebut").value(debut.toString()))
+            .andExpect(jsonPath("$.dateFin").doesNotExist())
+            .andReturn().getResponse().getContentAsString();
+        String id = com.jayway.jsonpath.JsonPath.read(reponse, "$.id");
+
+        mockMvc.perform(requeteAuthentifie(get("/api/evenements"), autreAlumni))
+            .andExpect(jsonPath("$.contenu[?(@.id == '%s')].dateFin".formatted(id)).value(org.hamcrest.Matchers.contains((Object) null)));
+
+        Instant fin = debut.plusSeconds(7200);
+        mockMvc.perform(requeteAuthentifie(put("/api/evenements/{id}", id), alumni)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(corps(new EvenementRequest("Conférence ponctuelle", "Description", "Thiès", debut, fin,
+                    AudienceEvenement.TOUS, null))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.dateFin").value(fin.toString()));
+
+        EvenementRequest finEgaleAuDebut = new EvenementRequest(
+            "Conférence", "Description", "Thiès", debut, debut, AudienceEvenement.TOUS, null);
+        mockMvc.perform(requeteAuthentifie(post("/api/evenements"), alumni)
+                .contentType(MediaType.APPLICATION_JSON).content(corps(finEgaleAuDebut)))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void ignoreLesTentativesDeFalsificationDuCreateurDuStatutEtDuCaractereOfficiel() throws Exception {
         String contenu = """
             {
@@ -452,13 +484,13 @@ class EvenementGestionIntegrationTests {
               "description":"%s",
               "lieu":"%s",
               "dateDebut":"%s",
-              "dateFin":"%s",
+              "dateFin":%s,
               "audience":"%s",
               "nombrePlaces":%s
             }
             """.formatted(
                 request.titre(), request.description(), request.lieu(), request.dateDebut(),
-                request.dateFin(), request.audience().name(),
+                request.dateFin() == null ? "null" : "\"" + request.dateFin() + "\"", request.audience().name(),
                 request.nombrePlaces() == null ? "null" : request.nombrePlaces().toString());
     }
 

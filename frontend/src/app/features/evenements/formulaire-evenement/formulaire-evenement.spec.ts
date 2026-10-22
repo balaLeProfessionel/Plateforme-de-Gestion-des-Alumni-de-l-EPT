@@ -46,7 +46,7 @@ describe('FormulaireEvenement', () => {
     await fixture.componentInstance['soumettre'](new Event('submit'));
     await fixture.whenStable();
 
-    expect(fixture.nativeElement.querySelectorAll('.obligatoire')).toHaveLength(6);
+    expect(fixture.nativeElement.querySelectorAll('.obligatoire')).toHaveLength(5);
     expect(creer).not.toHaveBeenCalled();
     expect(fixture.nativeElement.textContent).toContain('Le titre est obligatoire.');
   });
@@ -62,6 +62,25 @@ describe('FormulaireEvenement', () => {
       titre: 'Rencontre Alumni', audience: 'ALUMNI', nombrePlaces: null,
       dateDebut: expect.stringMatching(/^2026-10-15T/),
     }));
+  });
+
+  it('crée un événement ponctuel sans date de fin', async () => {
+    fixture.componentInstance['modele'].set({
+      titre: 'Conférence', description: 'Description', lieu: 'Thiès',
+      dateDebut: '2026-10-22T15:34', dateFin: '', audience: 'TOUS', nombrePlaces: '',
+    });
+    await fixture.componentInstance['soumettre'](new Event('submit'));
+    expect(creer).toHaveBeenCalledWith(expect.objectContaining({ dateFin: null }));
+  });
+
+  it('n’accepte que des chiffres dans le nombre de places', () => {
+    const champ = fixture.nativeElement.querySelector('#evenement-places') as HTMLInputElement;
+    for (const [saisie, attendu] of [['-26', '26'], ['12,5', '125'], ['007', '7'], ['abc', '']]) {
+      champ.value = saisie;
+      champ.dispatchEvent(new Event('input'));
+      expect(champ.value).toBe(attendu);
+      expect(fixture.componentInstance['modele']().nombrePlaces).toBe(attendu);
+    }
   });
 
   it('bloque une fin antérieure au début avant l’appel réseau', async () => {

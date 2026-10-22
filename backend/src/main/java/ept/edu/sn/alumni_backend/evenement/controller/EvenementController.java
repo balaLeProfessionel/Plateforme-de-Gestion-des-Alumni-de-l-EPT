@@ -1,5 +1,7 @@
 package ept.edu.sn.alumni_backend.evenement.controller;
 
+import ept.edu.sn.alumni_backend.evenement.dto.FiltresEvenements;
+import jakarta.validation.constraints.Size;
 import java.net.URI;
 import java.util.UUID;
 
@@ -46,8 +48,12 @@ public class EvenementController {
             @AuthenticationPrincipal UtilisateurPrincipal principal,
             @RequestParam(defaultValue = "AVENIR") PeriodeEvenement periode,
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "12") @Min(1) @Max(48) int taille) {
-        return ResponseEntity.ok(evenementService.lister(principal, periode, page, taille));
+            @RequestParam(defaultValue = "12") @Min(1) @Max(48) int taille,
+            @RequestParam(required = false) @Size(max = 120) String recherche,
+            @RequestParam(required = false) @Size(max = 120) String lieu,
+            @RequestParam(required = false) Boolean officiel) {
+        return ResponseEntity.ok(evenementService.lister(
+            principal, periode, new FiltresEvenements(recherche, lieu, officiel), page, taille));
     }
 
     @GetMapping("/mes-evenements")
@@ -55,8 +61,12 @@ public class EvenementController {
             @AuthenticationPrincipal UtilisateurPrincipal principal,
             @RequestParam(defaultValue = "AVENIR") PeriodeEvenement periode,
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "12") @Min(1) @Max(48) int taille) {
-        return ResponseEntity.ok(evenementService.listerMesEvenements(principal, periode, page, taille));
+            @RequestParam(defaultValue = "12") @Min(1) @Max(48) int taille,
+            @RequestParam(required = false) @Size(max = 120) String recherche,
+            @RequestParam(required = false) @Size(max = 120) String lieu,
+            @RequestParam(required = false) Boolean officiel) {
+        return ResponseEntity.ok(evenementService.listerMesEvenements(
+            principal, periode, new FiltresEvenements(recherche, lieu, officiel), page, taille));
     }
 
     @GetMapping("/{id}")

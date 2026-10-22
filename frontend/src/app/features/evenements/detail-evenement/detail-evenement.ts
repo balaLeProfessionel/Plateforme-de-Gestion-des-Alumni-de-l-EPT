@@ -120,7 +120,7 @@ export class DetailEvenement {
       || (evenement.audience === 'ALUMNI' && role === 'ALUMNI')
       || (evenement.audience === 'ETUDIANTS' && role === 'ETUDIANT');
     return evenement.statut === 'PUBLIE'
-      && new Date(evenement.dateFin).getTime() > Date.now()
+      && new Date(evenement.dateFin ?? evenement.dateDebut).getTime() > Date.now()
       && dansAudience;
   }
 

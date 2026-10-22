@@ -44,7 +44,7 @@
         @if (imageARecadrer(); as image) {
           <app-recadreur-image class="recadrage" [image]="image" [format]="formatEvenement"
             libelle="Recadrer l’image de l’événement au format 16:9"
-            (recadree)="appliquerRecadrage($event)" (annulee)="fermerRecadrage()" />
+            (recadree)="appliquerRecadrage($event)" (annulee)="annulerRecadrage()" />
         } @else {
           <div class="apercu-image">
             <app-visuel-evenement [urlImage]="apercuImage()" [dateDebut]="modele().dateDebut || null"
@@ -55,10 +55,14 @@
           <label id="titre-image-evenement" for="evenement-image">Image de l’événement <span class="optionnel">Facultatif</span></label>
           <input #champImage id="evenement-image" type="file" accept="image/jpeg,image/png"
             aria-describedby="aide-image erreur-image" (change)="selectionnerImage($event)" />
-          <small id="aide-image">JPEG ou PNG, 5 Mo maximum, au moins 800 × 450 pixels. Vous la recadrez au format 16:9 ;
-            sans image, une affiche datée est générée.</small>
+          <small id="aide-image">JPEG ou PNG, 5 Mo maximum, idéalement 800 × 450 pixels ou plus. Vous la recadrez au
+            format 16:9 ; sans image, une affiche datée est générée.</small>
           @if (erreurImage(); as erreur) {
             <span class="erreur-champ" id="erreur-image" role="alert">{{ erreur }}</span>
+          } @else if (avertissementImage(); as avertissement) {
+            <span class="avertissement-image" role="status">
+              <i class="pi pi-info-circle" aria-hidden="true"></i>{{ avertissement }}
+            </span>
           }
           <div class="actions-image">
             @if (fichierImage()) {
@@ -107,9 +111,10 @@
           }
         </div>
         <div class="champ">
-          <label for="evenement-fin">Date et heure de fin <span class="obligatoire" aria-hidden="true">*</span></label>
+          <label for="evenement-fin">Date et heure de fin <span class="optionnel">Facultatif</span></label>
           <input id="evenement-fin" type="datetime-local" [formField]="formulaire.dateFin"
-            aria-describedby="erreur-fin" />
+            aria-describedby="aide-fin erreur-fin" />
+          <small id="aide-fin">Laissez vide pour un événement à une date précise.</small>
           @if (formulaire.dateFin().touched() && libelleErreur('dateFin'); as erreur) {
             <span class="erreur-champ" id="erreur-fin">{{ erreur }}</span>
           }
@@ -118,7 +123,8 @@
 
       <div class="champ capacite">
         <label for="evenement-places">Nombre de places <span class="optionnel">Facultatif</span></label>
-        <input id="evenement-places" type="number" inputmode="numeric" [formField]="formulaire.nombrePlaces"
+        <input id="evenement-places" type="text" inputmode="numeric" autocomplete="off"
+          [formField]="formulaire.nombrePlaces" (input)="nettoyerPlaces($event)"
           aria-describedby="aide-places erreur-places" />
         <small id="aide-places">Laissez vide pour ne pas limiter les participations.</small>
         @if (formulaire.nombrePlaces().touched() && libelleErreur('nombrePlaces'); as erreur) {

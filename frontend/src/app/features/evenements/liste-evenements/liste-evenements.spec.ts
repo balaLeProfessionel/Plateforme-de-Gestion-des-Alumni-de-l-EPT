@@ -1,10 +1,12 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
+import { AuthService } from '../../../core/services/auth/auth-service';
 import { EvenementService } from '../../../core/services/evenements/evenement';
-import { Evenement, PageEvenements } from '../../../core/services/models/evenement';
+import { AUCUN_FILTRE, Evenement, PageEvenements } from '../../../core/services/models/evenement';
 import { ListeEvenements } from './liste-evenements';
 
 describe('ListeEvenements', () => {
@@ -14,9 +16,11 @@ describe('ListeEvenements', () => {
   let listerMesEvenements: ReturnType<typeof vi.fn>;
   let annuler: ReturnType<typeof vi.fn>;
   let router: Router;
+  const utilisateur = signal<{ id: string } | null>({ id: 'moi' });
 
   beforeEach(async () => {
     parametres = new BehaviorSubject(convertToParamMap({}));
+    utilisateur.set({ id: 'moi' });
     lister = vi.fn().mockImplementation(() => of(page()));
     listerMesEvenements = vi.fn().mockImplementation(() => of(page()));
     annuler = vi.fn().mockImplementation(() => of(evenement({ statut: 'ANNULE' })));
@@ -25,6 +29,7 @@ describe('ListeEvenements', () => {
       providers: [
         provideRouter([]),
         { provide: ActivatedRoute, useValue: { queryParamMap: parametres } },
+        { provide: AuthService, useValue: { utilisateur } },
         { provide: EvenementService, useValue: { lister, listerMesEvenements, annuler, obtenir: vi.fn() } }
       ]
     }).compileComponents();
@@ -41,7 +46,7 @@ describe('ListeEvenements', () => {
     parametres.next(convertToParamMap({}));
     await fixture.whenStable();
 
-    expect(lister).toHaveBeenCalledWith('AVENIR', 0);
+    expect(lister).toHaveBeenCalledWith('AVENIR', 0, AUCUN_FILTRE);
     expect(fixture.nativeElement.querySelectorAll('.carte-evenement')).toHaveLength(2);
     expect(fixture.nativeElement.querySelector('.carte-evenement.officiel .badge-officiel')?.textContent)
       .toContain('EPT officiel');
@@ -82,20 +87,74 @@ describe('ListeEvenements', () => {
     expect(liens[0].closest('h2')).not.toBeNull();
   });
 
+  it('lit les critères de recherche dans l’URL et ignore les valeurs invalides', async () => {
+    parametres.next(convertToParamMap({ recherche: 'forum', lieu: 'Thiès', officiel: 'peut-etre' }));
+    await fixture.whenStable();
+
+    expect(lister).toHaveBeenLastCalledWith('AVENIR', 0, { recherche: 'forum', lieu: 'Thiès', officiel: '' });
+    expect(fixture.nativeElement.querySelector('.resume-evenements')?.textContent).toContain('selon vos critères');
+  });
+
+  it('applique les filtres dans l’URL en revenant à la première page sans empiler l’historique', () => {
+    const navigation = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    fixture.componentInstance['appliquerFiltres']({ ...AUCUN_FILTRE, lieu: 'Dakar', officiel: 'non' });
+    expect(navigation).toHaveBeenCalledWith([], {
+      relativeTo: TestBed.inject(ActivatedRoute),
+      queryParams: { recherche: null, lieu: 'Dakar', officiel: 'non', page: 0 },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  });
+
+  it('propose d’effacer les filtres quand aucun événement ne correspond', async () => {
+    parametres.next(convertToParamMap({ recherche: 'introuvable' }));
+    await fixture.whenStable();
+    const navigation = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    const etat = fixture.nativeElement.querySelector('.etat-evenements') as HTMLElement;
+    expect(etat.textContent).toContain('Aucun événement ne correspond');
+    (etat.querySelector('button') as HTMLButtonElement).click();
+    expect(navigation).toHaveBeenCalledOnce();
+    expect(navigation).toHaveBeenCalledWith([], expect.objectContaining({
+      queryParams: { recherche: null, lieu: null, officiel: null, periode: null, page: 0 },
+    }));
+  });
+
+  it('signale mes propres événements dans la liste de tous et permet de les modifier', async () => {
+    utilisateur.set({ id: 'organisateur-1' });
+    lister.mockReturnValueOnce(of(page({ contenu: [evenement(), evenement({ id: 'event-2', organisateurId: 'autre' })],
+      totalElements: 2, totalPages: 1 })));
+    parametres.next(convertToParamMap({}));
+    await fixture.whenStable();
+
+    const [mien, autre] = [...fixture.nativeElement.querySelectorAll('.carte-evenement')] as HTMLElement[];
+    expect(mien.querySelector('.badge-organisateur')?.textContent).toContain('Vous organisez');
+    expect(mien.querySelector('.actions-carte a')?.getAttribute('href')).toContain('/evenements/event-1/modifier');
+    expect(autre.querySelector('.badge-organisateur')).toBeNull();
+    expect(autre.querySelector('.actions-carte')).toBeNull();
+  });
+
+  it('affiche un événement ponctuel par sa seule date de début', async () => {
+    lister.mockReturnValueOnce(of(page({ contenu: [evenement({ dateDebut: '2026-10-22T15:34:00Z', dateFin: null })],
+      totalElements: 1, totalPages: 1 })));
+    parametres.next(convertToParamMap({}));
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.date-evenement')?.textContent?.trim()).toBe('22 octobre 2026 · 15:34');
+  });
+
   it('synchronise la période et la page depuis l’URL', async () => {
     parametres.next(convertToParamMap({ periode: 'PASSES', page: '3' }));
     await fixture.whenStable();
 
-    expect(lister).toHaveBeenLastCalledWith('PASSES', 3);
-    expect(fixture.nativeElement.querySelector('.onglets-periode button[aria-pressed="true"]')?.textContent)
-      .toContain('Passés');
+    expect(lister).toHaveBeenLastCalledWith('PASSES', 3, AUCUN_FILTRE);
+    expect(fixture.nativeElement.querySelector('.resume-evenements')?.textContent).toContain('passé');
   });
 
   it('charge ses événements depuis le filtre et conserve période et page dans l’URL', async () => {
     parametres.next(convertToParamMap({ vue: 'mes', periode: 'PASSES', page: '2' }));
     await fixture.whenStable();
 
-    expect(listerMesEvenements).toHaveBeenLastCalledWith('PASSES', 2);
+    expect(listerMesEvenements).toHaveBeenLastCalledWith('PASSES', 2, AUCUN_FILTRE);
     expect(fixture.nativeElement.querySelector('button[aria-pressed="true"]')?.textContent)
       .toContain('Mes événements');
   });
