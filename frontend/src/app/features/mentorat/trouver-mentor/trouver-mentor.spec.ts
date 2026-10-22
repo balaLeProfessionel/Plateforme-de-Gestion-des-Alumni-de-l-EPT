@@ -53,7 +53,7 @@ describe('TrouverMentor', () => {
     expect(compteur.actualiser).toHaveBeenCalled();
     const limite = fixture.nativeElement.querySelector('.limite') as HTMLElement;
     expect(limite.textContent).toContain('Vous avez 3 demandes en attente, le maximum.');
-    expect(limite.querySelector('a')?.getAttribute('href')).toBe('/mentorat/demandes');
+    expect(limite.querySelector('a')?.getAttribute('href')).toBe('/mentorat/mentorats');
     expect((fixture.nativeElement.querySelector('.demander') as HTMLButtonElement).disabled).toBe(true);
   });
 

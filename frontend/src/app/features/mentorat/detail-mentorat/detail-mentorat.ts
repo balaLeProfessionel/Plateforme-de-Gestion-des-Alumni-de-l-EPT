@@ -50,7 +50,7 @@ export class DetailMentorat {
     return `Mentorat ${mentorat.domaine.libelle} avec ${autre.prenom} ${autre.nom}`;
   });
   protected readonly secours = computed(() =>
-    this.mentorat()?.monRole === 'MENTOR' ? '/mentorat/mentores' : '/mentorat/suivis');
+    this.mentorat()?.monRole === 'MENTOR' ? '/mentorat/mentores' : '/mentorat/mentorats');
 
   constructor() {
     const identifiant = this.route.paramMap.pipe(map((params) => params.get('id') ?? ''));

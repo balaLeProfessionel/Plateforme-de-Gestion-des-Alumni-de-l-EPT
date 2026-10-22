@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, provideRouter } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
 
 import { CompteurDemandesMentorat } from '../../../core/services/mentorat/compteur-demandes';
@@ -12,6 +12,8 @@ describe('ListeMentorats', () => {
   let fixture: ComponentFixture<ListeMentorats>;
   let http: HttpTestingController;
   const actualiser = vi.fn();
+  let modifications: number;
+  let totaux: number[];
 
   function demarrer(vue: VueListeMentorats): void {
     TestBed.configureTestingModule({
@@ -20,20 +22,24 @@ describe('ListeMentorats', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
-        { provide: ActivatedRoute, useValue: { snapshot: { data: { vue } } } },
         { provide: CompteurDemandesMentorat, useValue: { actualiser } },
       ],
     });
     http = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(ListeMentorats);
+    fixture.componentRef.setInput('vue', vue);
+    modifications = 0;
+    totaux = [];
+    fixture.componentInstance.modifie.subscribe(() => modifications++);
+    fixture.componentInstance.total.subscribe((total) => totaux.push(total));
     fixture.detectChanges();
   }
 
   beforeEach(() => actualiser.mockClear());
   afterEach(() => http.verify());
 
-  it('permet au mentor de refuser avec un motif puis recharge la liste et le compteur', async () => {
-    demarrer({ role: 'MENTOR', statuts: ['EN_ATTENTE'], titreVide: 'Vide', texteVide: '' });
+  it('permet au mentor de refuser avec un motif, prévient la page et actualise le compteur', async () => {
+    demarrer(vue('MENTOR', ['EN_ATTENTE']));
     const liste = http.expectOne((req) => req.url === '/api/mentorat/mentorats');
     expect(liste.request.params.get('role')).toBe('MENTOR');
     expect(liste.request.params.getAll('statut')).toEqual(['EN_ATTENTE']);
@@ -54,15 +60,30 @@ describe('ListeMentorats', () => {
     const refus = http.expectOne('/api/mentorat/mentorats/m1/refuser');
     expect(refus.request.body).toEqual({ motif: 'Agenda complet' });
     refus.flush({ ...mentorat(), statut: 'REFUSEE' });
-    http.expectOne((req) => req.url === '/api/mentorat/mentorats').flush(page([]));
     await fixture.whenStable();
 
     expect(actualiser).toHaveBeenCalledOnce();
-    expect(fixture.nativeElement.textContent).toContain('Vide');
+    expect(modifications).toBe(1);
+    expect(totaux).toEqual([1]);
+  });
+
+  it('se recharge quand la page signale un changement, et ne montre rien quand elle est vide', async () => {
+    demarrer(vue('MENTOR', ['ACCEPTEE']));
+    http.expectOne((req) => req.url === '/api/mentorat/mentorats').flush(page([mentorat()]));
+    await fixture.whenStable();
+
+    fixture.componentRef.setInput('actualisation', 1);
+    fixture.detectChanges();
+    http.expectOne((req) => req.url === '/api/mentorat/mentorats').flush(page([]));
+    await fixture.whenStable();
+
+    expect(totaux).toEqual([1, 0]);
+    expect(fixture.nativeElement.querySelector('.liste')).toBeNull();
+    expect(fixture.nativeElement.textContent.trim()).toBe('');
   });
 
   it('affiche l’erreur métier quand le mentor est complet', async () => {
-    demarrer({ role: 'MENTOR', statuts: ['EN_ATTENTE'], titreVide: 'Vide', texteVide: '' });
+    demarrer(vue('MENTOR', ['EN_ATTENTE']));
     http.expectOne((req) => req.url === '/api/mentorat/mentorats').flush(page([mentorat()]));
     await fixture.whenStable();
 
@@ -76,12 +97,12 @@ describe('ListeMentorats', () => {
   });
 
   it('propose à l’étudiant d’annuler une demande en attente', async () => {
-    demarrer({ role: 'MENTORE', statuts: ['EN_ATTENTE'], titreVide: 'Vide', texteVide: '' });
+    demarrer(vue('MENTORE', ['EN_ATTENTE']));
     http.expectOne((req) => req.url === '/api/mentorat/mentorats')
       .flush(page([{ ...mentorat(), monRole: 'MENTORE' }]));
     await fixture.whenStable();
 
-    expect(fixture.nativeElement.querySelector('h2')?.textContent).toContain('Awa Diop');
+    expect(fixture.nativeElement.querySelector('h3')?.textContent).toContain('Awa Diop');
     const ligne = fixture.nativeElement.querySelector('.ligne') as HTMLElement;
     expect(ligne.classList).toContain('carte-cliquable');
     expect(ligne.querySelector('.explication')?.textContent).toContain('attend la réponse du mentor');
@@ -90,7 +111,7 @@ describe('ListeMentorats', () => {
     expect(ligne.querySelector('a.lien-etire')?.getAttribute('aria-label')).toBe('Mentorat avec Awa Diop, Data & IA');
     (fixture.nativeElement.querySelector('.actions button') as HTMLButtonElement).click();
     http.expectOne('/api/mentorat/mentorats/m1/annuler').flush({ ...mentorat(), statut: 'ANNULEE' });
-    http.expectOne((req) => req.url === '/api/mentorat/mentorats').flush(page([]));
+    expect(modifications).toBe(1);
     expect(actualiser).not.toHaveBeenCalled();
   });
 });
@@ -114,4 +135,8 @@ function mentorat(): Mentorat {
 
 function page(contenu: Mentorat[]): Page<Mentorat> {
   return { contenu, page: 0, taille: 12, totalElements: contenu.length, totalPages: 1 };
+}
+
+function vue(role: VueListeMentorats['role'], statuts: VueListeMentorats['statuts']): VueListeMentorats {
+  return { titre: 'Section', role, statuts };
 }

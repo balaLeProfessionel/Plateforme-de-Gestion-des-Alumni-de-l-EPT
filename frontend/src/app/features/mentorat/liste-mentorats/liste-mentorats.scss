@@ -13,7 +13,7 @@
   transition: border-color 0.18s ease;
 
   &:hover { border-color: var(--ept-primary); }
-  &:hover h2 a { text-decoration: underline; }
+  &:hover h3 a { text-decoration: underline; }
 }
 
 .ligne[data-statut='EN_ATTENTE'] { --statut-fond: var(--ept-gold-light); --statut-texte: var(--ept-gold-dark); }
@@ -31,8 +31,8 @@
   justify-content: space-between;
   gap: 0.5rem;
 
-  h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1rem; }
-  h2 a { color: inherit; text-decoration: none; &:hover { text-decoration: underline; } }
+  h3 { margin: 0; color: var(--ept-primary-dark); font-size: 1rem; }
+  h3 a { color: inherit; text-decoration: none; &:hover { text-decoration: underline; } }
   a:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
 }
 
@@ -116,7 +116,7 @@
   text-align: center;
 
   > i { color: var(--ept-primary); font-size: 1.7rem; }
-  h2, p { margin: 0; }
+  h3, p { margin: 0; }
   p { max-width: 30rem; color: var(--ept-text-secondary); }
 }
 

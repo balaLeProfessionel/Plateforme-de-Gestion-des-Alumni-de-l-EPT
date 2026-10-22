@@ -2,12 +2,15 @@ import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 import { AuthService } from '../../core/services/auth/auth-service';
 import { roleGuard } from '../../core/guards/auth.guard';
-import { ROLES_MENTORAT, participeAuMentorat } from '../../core/services/models/mentorat.model';
+import {
+  ROLES_MENTORAT, RoleMentorat, StatutMentorat, participeAuMentorat,
+} from '../../core/services/models/mentorat.model';
 import { VueListeMentorats } from './liste-mentorats/liste-mentorats';
 
 const PARTICIPANTS = { roles: ROLES_MENTORAT };
 
-const vue = (vue: VueListeMentorats) => ({ vue });
+const section = (titre: string, role: RoleMentorat, statuts: StatutMentorat[]): VueListeMentorats =>
+  ({ titre, role, statuts });
 
 export const MENTORAT_ROUTES: Routes = [
   {
@@ -23,10 +26,10 @@ export const MENTORAT_ROUTES: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        // Les alumni, souvent mentors, arrivent sur leurs demandes reçues ; les autres membres sur la recherche.
+        // Les alumni, souvent mentors, arrivent sur leurs mentorés ; les autres membres sur la recherche.
         redirectTo: () => {
           const role = inject(AuthService).utilisateur()?.role;
-          if (role === 'ALUMNI') return 'recues';
+          if (role === 'ALUMNI') return 'mentores';
           return participeAuMentorat(role) ? 'trouver' : 'presentation';
         }
       },
@@ -39,49 +42,21 @@ export const MENTORAT_ROUTES: Routes = [
         loadComponent: () => import('./trouver-mentor/trouver-mentor').then((m) => m.TrouverMentor)
       },
       {
-        path: 'demandes',
-        title: 'Mes demandes de mentorat | EPT Alumni',
-        canActivate: [roleGuard],
-        data: {
-          ...PARTICIPANTS,
-          ...vue({
-            role: 'MENTORE',
-            statuts: ['EN_ATTENTE', 'REFUSEE', 'ANNULEE'],
-            titreVide: 'Aucune demande',
-            texteVide: 'Les demandes que vous enverrez à un mentor apparaîtront ici.',
-          }),
-        },
-        loadComponent: () => import('./liste-mentorats/liste-mentorats').then((m) => m.ListeMentorats)
-      },
-      {
-        path: 'suivis',
+        path: 'mentorats',
         title: 'Mes mentorats | EPT Alumni',
         canActivate: [roleGuard],
         data: {
           ...PARTICIPANTS,
-          ...vue({
-            role: 'MENTORE',
-            statuts: ['ACCEPTEE', 'TERMINEE'],
-            titreVide: 'Aucun mentorat en cours',
-            texteVide: 'Quand un mentor acceptera votre demande, vous suivrez vos séances ici.',
-          }),
+          sections: [
+            section('Demandes en attente', 'MENTORE', ['EN_ATTENTE']),
+            section('En cours', 'MENTORE', ['ACCEPTEE']),
+            section('Historique', 'MENTORE', ['TERMINEE', 'REFUSEE', 'ANNULEE']),
+          ],
+          titreVide: 'Aucun mentorat pour l’instant',
+          texteVide: 'Trouvez un mentor et envoyez-lui une demande : vous la suivrez ici.',
+          invitation: { libelle: 'Trouver un mentor', lien: '/mentorat/trouver' },
         },
-        loadComponent: () => import('./liste-mentorats/liste-mentorats').then((m) => m.ListeMentorats)
-      },
-      {
-        path: 'recues',
-        title: 'Demandes reçues | EPT Alumni',
-        canActivate: [roleGuard],
-        data: {
-          ...PARTICIPANTS,
-          ...vue({
-            role: 'MENTOR',
-            statuts: ['EN_ATTENTE'],
-            titreVide: 'Aucune demande en attente',
-            texteVide: 'Les demandes qu’on vous adresse arriveront ici. Vérifiez que votre offre est disponible.',
-          }),
-        },
-        loadComponent: () => import('./liste-mentorats/liste-mentorats').then((m) => m.ListeMentorats)
+        loadComponent: () => import('./page-mentorats/page-mentorats').then((m) => m.PageMentorats)
       },
       {
         path: 'mentores',
@@ -89,15 +64,21 @@ export const MENTORAT_ROUTES: Routes = [
         canActivate: [roleGuard],
         data: {
           ...PARTICIPANTS,
-          ...vue({
-            role: 'MENTOR',
-            statuts: ['ACCEPTEE', 'TERMINEE', 'REFUSEE', 'ANNULEE'],
-            titreVide: 'Aucun mentoré pour l’instant',
-            texteVide: 'Les personnes que vous accompagnez, et l’historique de vos réponses, apparaîtront ici.',
-          }),
+          sections: [
+            section('À traiter', 'MENTOR', ['EN_ATTENTE']),
+            section('En cours', 'MENTOR', ['ACCEPTEE']),
+            section('Historique', 'MENTOR', ['TERMINEE', 'REFUSEE', 'ANNULEE']),
+          ],
+          titreVide: 'Personne à accompagner pour l’instant',
+          texteVide: 'Les demandes qu’on vous adresse arriveront ici. Vérifiez que votre offre est disponible.',
+          invitation: { libelle: 'Voir mon offre', lien: '/mentorat/offre' },
         },
-        loadComponent: () => import('./liste-mentorats/liste-mentorats').then((m) => m.ListeMentorats)
+        loadComponent: () => import('./page-mentorats/page-mentorats').then((m) => m.PageMentorats)
       },
+      // Anciennes rubriques (liens déjà envoyés, favoris) : regroupées dans les deux pages ci-dessus.
+      { path: 'demandes', redirectTo: 'mentorats' },
+      { path: 'suivis', redirectTo: 'mentorats' },
+      { path: 'recues', redirectTo: 'mentores' },
       {
         path: 'offre',
         title: 'Mon offre de mentorat | EPT Alumni',

@@ -21,13 +21,11 @@ interface GroupeOnglets {
 
 const ONGLETS_MENTORE: readonly Onglet[] = [
   { libelle: 'Trouver un mentor', lien: 'trouver', icone: 'pi-search' },
-  { libelle: 'Mes demandes', lien: 'demandes', icone: 'pi-send' },
-  { libelle: 'Mes mentorats', lien: 'suivis', icone: 'pi-comments' },
+  { libelle: 'Mes mentorats', lien: 'mentorats', icone: 'pi-comments' },
 ];
 
 const ONGLETS_MENTOR: readonly Onglet[] = [
-  { libelle: 'Demandes reçues', lien: 'recues', icone: 'pi-inbox', compteur: true },
-  { libelle: 'Mes mentorés', lien: 'mentores', icone: 'pi-users' },
+  { libelle: 'Mes mentorés', lien: 'mentores', icone: 'pi-users', compteur: true },
   { libelle: 'Mon offre', lien: 'offre', icone: 'pi-sliders-h' },
 ];
 

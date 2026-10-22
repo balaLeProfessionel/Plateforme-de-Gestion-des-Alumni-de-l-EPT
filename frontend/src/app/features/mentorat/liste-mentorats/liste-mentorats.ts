@@ -1,10 +1,10 @@
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, computed, DestroyRef, inject, input, output, signal } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormField, form, maxLength } from '@angular/forms/signals';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Observable, Subject, catchError, map, of, startWith, switchMap } from 'rxjs';
+import { RouterLink } from '@angular/router';
+import { Observable, catchError, map, of, switchMap } from 'rxjs';
 import { CompteurDemandesMentorat } from '../../../core/services/mentorat/compteur-demandes';
 import { MentoratService } from '../../../core/services/mentorat/mentorat';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
@@ -19,12 +19,11 @@ import {
   StatutMentorat,
 } from '../../../core/services/models/mentorat.model';
 
-/** Ce que chaque onglet affiche, déclaré dans les données de sa route. */
+/** Une section d’une page « Mes mentorats » ou « Mes mentorés », déclarée dans les données de la route. */
 export interface VueListeMentorats {
+  titre: string;
   role: RoleMentorat;
   statuts: StatutMentorat[];
-  titreVide: string;
-  texteVide: string;
 }
 
 @Component({
@@ -37,9 +36,15 @@ export class ListeMentorats {
   private readonly mentoratService = inject(MentoratService);
   private readonly compteur = inject(CompteurDemandesMentorat);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly recharger = new Subject<void>();
 
-  protected readonly vue = inject(ActivatedRoute).snapshot.data['vue'] as VueListeMentorats;
+  readonly vue = input.required<VueListeMentorats>();
+  /** Incrémenté par la page quand une autre section a changé : la liste se recharge. */
+  readonly actualisation = input(0);
+  /** Une action a modifié un mentorat (il peut changer de section). */
+  readonly modifie = output<void>();
+  /** Nombre total de mentorats de la section, une fois chargée (la page masque les sections vides). */
+  readonly total = output<number>();
+
   protected readonly libellesStatut = LIBELLES_STATUT_MENTORAT;
   protected readonly explications = EXPLICATIONS_STATUT_MENTORAT;
   protected readonly page = signal<Page<Mentorat> | null>(null);
@@ -55,9 +60,8 @@ export class ListeMentorats {
   });
 
   constructor() {
-    this.recharger.pipe(
-      startWith(undefined),
-      switchMap(() => this.mentoratService.lister(this.vue.role, this.vue.statuts, this.numeroPage()).pipe(
+    toObservable(computed(() => ({ vue: this.vue(), numero: this.numeroPage(), version: this.actualisation() }))).pipe(
+      switchMap(({ vue, numero }) => this.mentoratService.lister(vue.role, vue.statuts, numero).pipe(
         map((page) => ({ page, erreur: null })),
         catchError((erreur: HttpErrorResponse) => of({
           page: null,
@@ -67,6 +71,7 @@ export class ListeMentorats {
     ).subscribe(({ page, erreur }) => {
       this.page.set(page);
       this.messageErreur.set(erreur);
+      if (page) this.total.emit(page.totalElements);
     });
   }
 
@@ -76,7 +81,6 @@ export class ListeMentorats {
 
   protected changerPage(numero: number): void {
     this.numeroPage.set(numero);
-    this.recharger.next();
   }
 
   protected ouvrirRefus(mentorat: Mentorat): void {
@@ -107,8 +111,8 @@ export class ListeMentorats {
       next: () => {
         this.actionEnCours.set(null);
         this.refusOuvert.set(null);
-        if (this.vue.role === 'MENTOR') this.compteur.actualiser();
-        this.recharger.next();
+        if (this.vue().role === 'MENTOR') this.compteur.actualiser();
+        this.modifie.emit();
       },
       error: (erreur: HttpErrorResponse) => {
         this.actionEnCours.set(null);

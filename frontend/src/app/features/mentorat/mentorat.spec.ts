@@ -43,8 +43,8 @@ describe('MentoratPage', () => {
     nombre.set(3);
     const racine = afficher(role);
     expect(groupes(racine)).toEqual([
-      { titre: 'Être accompagné', onglets: ['Trouver un mentor', 'Mes demandes', 'Mes mentorats'] },
-      { titre: 'Accompagner', onglets: ['Demandes reçues 3 en attente', 'Mes mentorés', 'Mon offre'] },
+      { titre: 'Être accompagné', onglets: ['Trouver un mentor', 'Mes mentorats'] },
+      { titre: 'Accompagner', onglets: ['Mes mentorés 3 en attente', 'Mon offre'] },
     ]);
     expect(actualiser).toHaveBeenCalledOnce();
     expect((racine.querySelector('app-guide-mentorat details') as HTMLDetailsElement).open).toBe(false);
@@ -60,7 +60,7 @@ describe('MentoratPage', () => {
 
   it.each([
     ['ETUDIANT', 'trouver'],
-    ['ALUMNI', 'recues'],
+    ['ALUMNI', 'mentores'],
     ['PERSONNEL', 'trouver'],
     ['VISITEUR', 'trouver'],
     ['ORGANISME', 'presentation'],
@@ -79,8 +79,19 @@ describe('MentoratPage', () => {
       .filter((route) => route.data?.['roles'])
       .map((route) => [route.path, route.data?.['roles']]));
     expect(roles).toEqual({
-      trouver: ROLES_MENTORAT, demandes: ROLES_MENTORAT, suivis: ROLES_MENTORAT,
-      recues: ROLES_MENTORAT, mentores: ROLES_MENTORAT, offre: ROLES_MENTORAT,
+      trouver: ROLES_MENTORAT, mentorats: ROLES_MENTORAT, mentores: ROLES_MENTORAT, offre: ROLES_MENTORAT,
     });
+  });
+
+  it('regroupe les anciennes rubriques dans les deux pages et garde leurs adresses', () => {
+    const cadre = MENTORAT_ROUTES.find((route) => route.path === '') as Route;
+    const redirections = Object.fromEntries((cadre.children ?? [])
+      .filter((route) => typeof route.redirectTo === 'string')
+      .map((route) => [route.path, route.redirectTo]));
+    expect(redirections).toEqual({ demandes: 'mentorats', suivis: 'mentorats', recues: 'mentores' });
+    const sections = (chemin: string) => (cadre.children ?? []).find((route) => route.path === chemin)
+      ?.data?.['sections'].map((section: { titre: string }) => section.titre);
+    expect(sections('mentorats')).toEqual(['Demandes en attente', 'En cours', 'Historique']);
+    expect(sections('mentores')).toEqual(['À traiter', 'En cours', 'Historique']);
   });
 });

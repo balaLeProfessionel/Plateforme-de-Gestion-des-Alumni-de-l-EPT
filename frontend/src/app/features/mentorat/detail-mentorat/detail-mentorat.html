@@ -72,7 +72,7 @@
         } @else if (mentorat.statut === 'EN_ATTENTE' && mentorat.monRole === 'MENTORE') {
           <button type="button" class="danger" [disabled]="actionEnCours()" (click)="annuler(mentorat)">Annuler ma demande</button>
         } @else if (mentorat.statut === 'EN_ATTENTE') {
-          <a class="secondaire" routerLink="/mentorat/recues">Répondre à la demande</a>
+          <a class="secondaire" routerLink="/mentorat/mentores">Répondre à la demande</a>
         }
       </aside>
     </div>

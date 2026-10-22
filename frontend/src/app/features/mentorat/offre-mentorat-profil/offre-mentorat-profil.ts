@@ -73,7 +73,7 @@ export class OffreMentoratProfil {
     this.mentorSollicite.set(null);
     if (!mentor) return;
     this.mentor.set({ ...mentor, demandeEnCours: true });
-    this.confirmation.set('Votre demande a été envoyée. Vous la suivez dans Mentorat › Mes demandes.');
+    this.confirmation.set('Votre demande a été envoyée. Vous la suivez dans Mentorat › Mes mentorats.');
     this.compteur.actualiser();
   }
 }

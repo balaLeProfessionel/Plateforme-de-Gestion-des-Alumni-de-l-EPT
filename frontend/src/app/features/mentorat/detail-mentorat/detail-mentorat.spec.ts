@@ -88,9 +88,9 @@ describe('DetailMentorat', () => {
     expect(bouton('Annuler ma demande')).toBeUndefined();
   });
 
-  it('renvoie le mentor vers les demandes reçues pour répondre', async () => {
+  it('renvoie le mentor vers ses mentorés pour répondre', async () => {
     await charger(unDetail());
-    expect(racine.querySelector('a[href="/mentorat/recues"]')?.textContent).toContain('Répondre à la demande');
+    expect(racine.querySelector('a[href="/mentorat/mentores"]')?.textContent).toContain('Répondre à la demande');
   });
 
   it('affiche le motif d’un refus et aucune action', async () => {

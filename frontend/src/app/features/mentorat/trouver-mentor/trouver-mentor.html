@@ -27,14 +27,14 @@
   <p class="limite">
     <i class="pi pi-info-circle" aria-hidden="true"></i>
     <span>Vous avez {{ compteur.envoyees() }} demandes en attente, le maximum.
-      Attendez une réponse ou <a routerLink="/mentorat/demandes">annulez-en une</a> pour solliciter un autre mentor.</span>
+      Attendez une réponse ou <a routerLink="/mentorat/mentorats">annulez-en une</a> pour solliciter un autre mentor.</span>
   </p>
 }
 
 <p class="resume" role="status">
   @if (confirmation(); as message) {
     <span class="confirmation"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ message }}
-      <a routerLink="../demandes">Suivre mes demandes</a></span>
+      <a routerLink="/mentorat/mentorats">Suivre mes demandes</a></span>
   } @else if (resultat(); as page) {
     <strong>{{ page.totalElements }}</strong> {{ page.totalElements > 1 ? 'mentors trouvés' : 'mentor trouvé' }}
   } @else if (enChargement()) {
