@@ -7,6 +7,10 @@ import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
 import { EspaceMembre } from './espace-membre';
 
+// Le premier rendu de la barre latérale PrimeNG charge tout le module : seul, il prend
+// moins d’une seconde, mais sous la suite complète en parallèle il dépasse les 5 s par défaut.
+vi.setConfig({ testTimeout: 20_000 });
+
 describe('Navigation de l’espace membre', () => {
   const utilisateur = signal<Record<string, string> | null>(null);
   const logout = vi.fn();
