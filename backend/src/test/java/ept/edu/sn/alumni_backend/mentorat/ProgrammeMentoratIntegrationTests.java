@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.mentorat;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -31,7 +32,7 @@ import ept.edu.sn.alumni_backend.mentorat.entity.Mentorat;
 import ept.edu.sn.alumni_backend.mentorat.entity.ProgressionJalon;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 
-/** Cas G-* (gestion, lot 1) et V-* (programme visible et mentors volontaires, lot 2) du catalogue. */
+/** Cas G-* (gestion, lot 1), V-* (programme visible et mentors volontaires, lot 2) et D-* (demande rattachée, lot 3). */
 @SpringBootTest
 @AutoConfigureMockMvc
 class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
@@ -286,6 +287,85 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
             .andExpect(jsonPath("$.message").value("On ne rejoint un programme que lorsqu'il est ouvert."));
     }
 
+    // ---------- Lot 3 : demande rattachée au programme ----------
+
+    @Test
+    void d01_uneDemandeFaiteDepuisLeProgrammeLuiEstRattachee() throws Exception {
+        UUID id = creer(personnel, "Orientation", "Étape");
+        changerStatutProgramme(id, "OUVERT", personnel);
+        UUID data = domaine("DATA_IA");
+        Utilisateur mentor = creerUtilisateur(TypeRole.ALUMNI, "Volontaire");
+        UUID profilId = creerProfil(mentor, true, 2, data);
+        participer(id, mentor);
+
+        String reponse = envoyer(post("/api/mentorat/mentorats"), etudiant, demandeDansProgramme(profilId, data, id))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.programme.id").value(id.toString()))
+            .andExpect(jsonPath("$.programme.titre").value("Orientation"))
+            .andReturn().getResponse().getContentAsString();
+        UUID mentoratId = UUID.fromString(JsonPath.read(reponse, "$.id"));
+
+        mockMvc.perform(authentifie(get("/api/mentorat/mentorats").param("role", "MENTOR"), mentor))
+            .andExpect(jsonPath("$.contenu[0].programme.titre").value("Orientation"));
+        mockMvc.perform(authentifie(get("/api/mentorat/mentorats/{id}", mentoratId), etudiant))
+            .andExpect(jsonPath("$.mentorat.programme.id").value(id.toString()));
+        // Une demande libre au même mentor reste possible ailleurs, sans programme.
+        mockMvc.perform(authentifie(get("/api/mentorat/mentorats").param("role", "MENTORE"), etudiant))
+            .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
+    void d02_leProgrammeDoitEtreOuvertEtLeMentorVolontaire() throws Exception {
+        UUID id = creer(personnel, "Orientation", "Étape");
+        UUID data = domaine("DATA_IA");
+        Utilisateur volontaire = creerUtilisateur(TypeRole.ALUMNI, "Volontaire");
+        UUID profilVolontaire = creerProfil(volontaire, true, 2, data);
+        Utilisateur horsProgramme = creerUtilisateur(TypeRole.ALUMNI, "Libre");
+        UUID profilLibre = creerProfil(horsProgramme, true, 2, data);
+
+        envoyer(post("/api/mentorat/mentorats"), etudiant, demandeDansProgramme(profilVolontaire, data, id))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value("Ce programme est introuvable."));
+        changerStatutProgramme(id, "OUVERT", personnel);
+        participer(id, volontaire);
+        envoyer(post("/api/mentorat/mentorats"), etudiant, demandeDansProgramme(profilLibre, data, id))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value("Ce mentor ne participe pas à ce programme."));
+        changerStatutProgramme(id, "EN_COURS", personnel);
+        envoyer(post("/api/mentorat/mentorats"), etudiant, demandeDansProgramme(profilVolontaire, data, id))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value("Ce programme n'accepte plus de nouvelles demandes."));
+        envoyer(post("/api/mentorat/mentorats"), etudiant, demandeDansProgramme(profilVolontaire, data, UUID.randomUUID()))
+            .andExpect(status().isNotFound());
+        assertThat(mentoratRepository.count()).isZero();
+    }
+
+    @Test
+    void d03_unProgrammeSuiviParUneDemandeNeSeSupprimePlus() throws Exception {
+        UUID id = creer(personnel, "Orientation", "Étape");
+        changerStatutProgramme(id, "OUVERT", personnel);
+        UUID data = domaine("DATA_IA");
+        Utilisateur mentor = creerUtilisateur(TypeRole.ALUMNI, "Volontaire");
+        UUID profilId = creerProfil(mentor, true, 2, data);
+        participer(id, mentor);
+        envoyer(post("/api/mentorat/mentorats"), etudiant, demandeDansProgramme(profilId, data, id))
+            .andExpect(status().isCreated());
+
+        changerStatutProgramme(id, "BROUILLON", personnel)
+            .andExpect(status().isConflict());
+    }
+
+    private void participer(UUID programmeId, Utilisateur mentor) throws Exception {
+        mockMvc.perform(authentifie(post("/api/mentorat/programmes/{id}/participation", programmeId), mentor))
+            .andExpect(status().isOk());
+    }
+
+    private static String demandeDansProgramme(UUID profilId, UUID domaineId, UUID programmeId) {
+        return """
+            {"profilMentorId":"%s","domaineId":"%s","objectif":"M'orienter","programmeId":"%s"}
+            """.formatted(profilId, domaineId, programmeId);
+    }
+
     private UUID creer(Utilisateur auteur, String titre, String... etapes) throws Exception {
         String[] corps = new String[etapes.length];
         for (int i = 0; i < etapes.length; i++) corps[i] = etape(null, etapes[i]);
@@ -299,7 +379,7 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
         return envoyer(patch("/api/mentorat/programmes/{id}/statut", id), auteur, "{\"statut\":\"" + statut + "\"}");
     }
 
-    /** Un mentorat rattaché au programme (le rattachement par la demande arrive au lot 3). */
+    /** Un mentorat rattaché au programme directement en base, sans passer par les règles de la demande. */
     private Mentorat rattacherUnMentorat(UUID programmeId) throws Exception {
         UUID data = domaine("DATA_IA");
         Utilisateur mentor = creerUtilisateur(TypeRole.ALUMNI, "Mentor");

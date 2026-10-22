@@ -46,7 +46,8 @@
   color: var(--ept-text-secondary);
   font-size: 0.8rem;
 
-  .domaine { padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--ept-primary-light); color: var(--ept-primary); font-weight: 600; }
+  .domaine, .programme { padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--ept-primary-light); color: var(--ept-primary); font-weight: 600; }
+  .programme { display: inline-flex; gap: 0.3rem; align-items: center; min-width: 0; background: var(--ept-gold-light); color: var(--ept-gold-dark); overflow-wrap: anywhere; }
 }
 
 .objectif {

@@ -64,6 +64,11 @@ describe('PageProgramme', () => {
     expect(racine.querySelector('h1')?.textContent).toContain('Orientation lycée 2026');
     expect([...racine.querySelectorAll('.etapes strong')].map((e) => e.textContent)).toEqual(['Premier échange', 'Visite de l’EPT']);
     expect(racine.querySelectorAll('app-carte-mentor')).toHaveLength(1);
+
+    // La demande faite depuis cette page est rattachée au programme.
+    (racine.querySelector('app-carte-mentor button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(racine.querySelector('app-dialogue-demande .programme')?.textContent).toContain('Orientation lycée 2026');
     expect(racine.querySelector('.lien-gestion')?.getAttribute('href')).toBe('/mentorat/gestion-programmes/p1');
   });
 

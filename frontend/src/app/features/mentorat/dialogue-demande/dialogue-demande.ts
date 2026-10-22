@@ -4,7 +4,7 @@ import { FormField, form, maxLength, required, submit, validate } from '@angular
 import { firstValueFrom } from 'rxjs';
 import { focaliserPremiereErreur } from '../../../shared/formulaires/focus-premiere-erreur';
 import { MentoratService } from '../../../core/services/mentorat/mentorat';
-import { Mentor, Mentorat } from '../../../core/services/models/mentorat.model';
+import { Mentor, Mentorat, ProgrammeResume } from '../../../core/services/models/mentorat.model';
 
 const LONGUEUR_OBJECTIF = 1000;
 
@@ -23,6 +23,8 @@ export class DialogueDemande {
 
   /** Le mentor sollicité ; null ferme la fenêtre. */
   readonly mentor = input<Mentor | null>(null);
+  /** Demande faite depuis la page d’un programme : elle lui est rattachée. */
+  readonly programme = input<ProgrammeResume | null>(null);
   readonly envoyee = output<Mentorat>();
   readonly fermee = output<void>();
 
@@ -67,7 +69,7 @@ export class DialogueDemande {
         try {
           const { domaineId, objectif } = this.modele();
           const mentorat = await firstValueFrom(
-            this.mentoratService.demander(mentor.profilId, domaineId, objectif.trim()));
+            this.mentoratService.demander(mentor.profilId, domaineId, objectif.trim(), this.programme()?.id ?? null));
           this.envoyee.emit(mentorat);
         } catch (erreur) {
           this.messageErreur.set(erreur instanceof HttpErrorResponse && erreur.error?.message

@@ -18,6 +18,6 @@ public record MentoratResponse(
     ParticipantMentoratResponse mentor,
     ParticipantMentoratResponse mentore,
     RoleMentorat monRole,
-    String programme
+    ProgrammeResumeResponse programme
 ) {
 }

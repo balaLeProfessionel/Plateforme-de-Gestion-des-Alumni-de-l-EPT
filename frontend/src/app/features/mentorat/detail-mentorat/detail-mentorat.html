@@ -29,7 +29,10 @@
       <div class="etiquettes">
         <span class="statut">{{ libellesStatut[mentorat.statut] }}</span>
         <span class="domaine">{{ mentorat.domaine.libelle }}</span>
-        @if (mentorat.programme; as programme) { <span class="programme">{{ programme }}</span> }
+        @if (mentorat.programme; as programme) {
+          <a class="programme" [routerLink]="['/mentorat/programmes', programme.id]">
+            <i class="pi pi-flag" aria-hidden="true"></i>Programme « {{ programme.titre }} »</a>
+        }
       </div>
       <p class="explication">{{ explications[mentorat.statut][mentorat.monRole] }}</p>
 

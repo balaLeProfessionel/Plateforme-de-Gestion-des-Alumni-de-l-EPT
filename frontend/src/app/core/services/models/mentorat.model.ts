@@ -79,7 +79,13 @@ export interface Mentorat {
   mentor: ParticipantMentorat;
   mentore: ParticipantMentorat;
   monRole: RoleMentorat;
-  programme: string | null;
+  /** Le programme auquel la demande a été rattachée ; null pour un mentorat libre. */
+  programme: ProgrammeResume | null;
+}
+
+export interface ProgrammeResume {
+  id: string;
+  titre: string;
 }
 
 export interface SeanceMentorat {

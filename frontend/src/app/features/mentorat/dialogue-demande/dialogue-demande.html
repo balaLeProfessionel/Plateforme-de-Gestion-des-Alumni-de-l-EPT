@@ -4,6 +4,9 @@
       <header>
         <h2 id="titre-demande">Demander un mentorat</h2>
         <p>à {{ mentor.prenom }} {{ mentor.nom }}</p>
+        @if (programme(); as programme) {
+          <p class="programme"><i class="pi pi-flag" aria-hidden="true"></i>Dans le cadre du programme « {{ programme.titre }} »</p>
+        }
         <button type="button" class="fermer" aria-label="Fermer" (click)="fermer()">
           <i class="pi pi-times" aria-hidden="true"></i>
         </button>

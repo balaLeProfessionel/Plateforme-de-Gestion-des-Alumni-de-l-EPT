@@ -17,6 +17,7 @@ header {
 
   h2 { margin: 0; font-size: 1.25rem; }
   p { margin: 0.2rem 0 0; color: var(--ept-text-secondary); font-size: 0.9rem; }
+  .programme { display: flex; gap: 0.4rem; align-items: baseline; color: var(--ept-gold-dark); font-weight: 600; }
 }
 
 .fermer {

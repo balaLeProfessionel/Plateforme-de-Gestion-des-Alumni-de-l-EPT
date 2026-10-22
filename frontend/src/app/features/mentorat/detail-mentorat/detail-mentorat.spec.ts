@@ -61,6 +61,13 @@ describe('DetailMentorat', () => {
     expect(racine.querySelector('h1')?.textContent).toContain('Mentorat Data & IA');
   });
 
+  it('mène au programme auquel le mentorat est rattaché', async () => {
+    await charger(unDetail({ mentorat: unMentorat({ programme: { id: 'prog1', titre: 'Orientation lycée 2026' } }) }));
+    const lien = racine.querySelector('a.programme') as HTMLAnchorElement;
+    expect(lien.getAttribute('href')).toBe('/mentorat/programmes/prog1');
+    expect(lien.textContent).toContain('Programme « Orientation lycée 2026 »');
+  });
+
   it('demande une confirmation avant de terminer, puis recharge', async () => {
     await charger(unDetail({ mentorat: unMentorat({ statut: 'ACCEPTEE' }) }));
     bouton('Terminer le mentorat')?.click();

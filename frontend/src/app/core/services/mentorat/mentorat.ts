@@ -50,8 +50,9 @@ export class MentoratService {
     return this.http.get<Page<Mentor>>(`${API}/mentors`, { params });
   }
 
-  demander(profilMentorId: string, domaineId: string, objectif: string) {
-    return this.http.post<Mentorat>(`${API}/mentorats`, { profilMentorId, domaineId, objectif });
+  /** Une demande faite depuis la page d’un programme y est rattachée par `programmeId`. */
+  demander(profilMentorId: string, domaineId: string, objectif: string, programmeId: string | null = null) {
+    return this.http.post<Mentorat>(`${API}/mentorats`, { profilMentorId, domaineId, objectif, programmeId });
   }
 
   lister(role: RoleMentorat, statuts: readonly StatutMentorat[], page: number, taille = 12) {

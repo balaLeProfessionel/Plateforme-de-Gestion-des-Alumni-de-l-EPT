@@ -24,11 +24,11 @@ public interface MentoratRepository extends JpaRepository<Mentorat, UUID> {
     boolean existsByMentore_IdAndProfilMentor_IdAndStatutIn(
         UUID mentoreId, UUID profilMentorId, Collection<StatutMentorat> statuts);
 
-    @EntityGraph(attributePaths = {"mentore", "profilMentor", "profilMentor.utilisateur", "domaine"})
+    @EntityGraph(attributePaths = {"mentore", "profilMentor", "profilMentor.utilisateur", "domaine", "programme"})
     Page<Mentorat> findByMentore_IdAndStatutIn(
         UUID mentoreId, Collection<StatutMentorat> statuts, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"mentore", "profilMentor", "profilMentor.utilisateur", "domaine"})
+    @EntityGraph(attributePaths = {"mentore", "profilMentor", "profilMentor.utilisateur", "domaine", "programme"})
     Page<Mentorat> findByProfilMentor_Utilisateur_IdAndStatutIn(
         UUID mentorId, Collection<StatutMentorat> statuts, Pageable pageable);
 

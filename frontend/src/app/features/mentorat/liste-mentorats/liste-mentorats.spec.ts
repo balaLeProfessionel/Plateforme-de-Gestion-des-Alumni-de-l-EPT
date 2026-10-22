@@ -96,6 +96,18 @@ describe('ListeMentorats', () => {
       .toContain('nombre maximum de mentorés');
   });
 
+  it('rappelle le programme d’une demande rattachée, sans second lien', async () => {
+    demarrer(vue('MENTOR', ['EN_ATTENTE']));
+    http.expectOne((req) => req.url === '/api/mentorat/mentorats')
+      .flush(page([{ ...mentorat(), programme: { id: 'prog1', titre: 'Orientation lycée 2026' } }]));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const ligne = fixture.nativeElement.querySelector('.ligne') as HTMLElement;
+    expect(ligne.querySelector('.programme')?.textContent).toContain('Orientation lycée 2026');
+    expect(ligne.querySelectorAll('a.lien-etire')).toHaveLength(1);
+  });
+
   it('propose à l’étudiant d’annuler une demande en attente', async () => {
     demarrer(vue('MENTORE', ['EN_ATTENTE']));
     http.expectOne((req) => req.url === '/api/mentorat/mentorats')
@@ -108,6 +120,7 @@ describe('ListeMentorats', () => {
     expect(ligne.querySelector('.explication')?.textContent).toContain('attend la réponse du mentor');
     expect(ligne.querySelector('.entete app-etiquette-role')?.textContent?.trim()).toBe('Alumni');
     expect([...ligne.querySelectorAll('a')].map((lien) => lien.getAttribute('href'))).toEqual(['/mentorat/suivi/m1']);
+    expect(ligne.querySelector('.programme')).toBeNull();
     expect(ligne.querySelector('a.lien-etire')?.getAttribute('aria-label')).toBe('Mentorat avec Awa Diop, Data & IA');
     (fixture.nativeElement.querySelector('.actions button') as HTMLButtonElement).click();
     http.expectOne('/api/mentorat/mentorats/m1/annuler').flush({ ...mentorat(), statut: 'ANNULEE' });

@@ -86,11 +86,25 @@ describe('DialogueDemande', () => {
 
     soumettre(formulaire());
     const requete = http.expectOne('/api/mentorat/mentorats');
-    expect(requete.request.body).toEqual({ profilMentorId: 'p1', domaineId: 'd1', objectif: 'Préparer mon stage' });
+    expect(requete.request.body).toEqual({ profilMentorId: 'p1', domaineId: 'd1', objectif: 'Préparer mon stage', programmeId: null });
     requete.flush(unMentorat());
     await fixture.whenStable();
 
     expect(envoyees).toEqual(['m1']);
+  });
+
+  it('rattache la demande au programme d’où elle est faite et le rappelle', async () => {
+    fixture.componentRef.setInput('mentor', unMentor());
+    fixture.componentRef.setInput('programme', { id: 'prog1', titre: 'Orientation lycée 2026' });
+    fixture.detectChanges();
+    expect(racine.querySelector('header .programme')?.textContent).toContain('Dans le cadre du programme « Orientation lycée 2026 »');
+
+    saisir(objectif(), 'M’orienter');
+    soumettre(formulaire());
+    const requete = http.expectOne('/api/mentorat/mentorats');
+    expect(requete.request.body.programmeId).toBe('prog1');
+    requete.flush(unMentorat({ programme: { id: 'prog1', titre: 'Orientation lycée 2026' } }));
+    await fixture.whenStable();
   });
 
   it('affiche le message métier renvoyé par le serveur et garde la saisie', async () => {

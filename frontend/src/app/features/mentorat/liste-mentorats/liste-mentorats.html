@@ -22,6 +22,9 @@
             </div>
             <p class="details">
               <span class="domaine">{{ mentorat.domaine.libelle }}</span>
+              @if (mentorat.programme; as programme) {
+                <span class="programme"><i class="pi pi-flag" aria-hidden="true"></i>{{ programme.titre }}</span>
+              }
               @if (personne.filiere) { <span>{{ personne.filiere }}</span> }
               <span>Demande du {{ mentorat.creeLe | date: 'd MMM y' }}</span>
             </p>

@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ept.edu.sn.alumni_backend.mentorat.ParticipationMentorat;
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
 import ept.edu.sn.alumni_backend.mentorat.RoleMentorat;
+import ept.edu.sn.alumni_backend.mentorat.StatutProgramme;
 import ept.edu.sn.alumni_backend.mentorat.StatutMentorat;
 import ept.edu.sn.alumni_backend.mentorat.dto.CompteursMentoratResponse;
 import ept.edu.sn.alumni_backend.mentorat.dto.DemandeMentoratRequest;
@@ -21,11 +22,14 @@ import ept.edu.sn.alumni_backend.mentorat.dto.MentoratResponse;
 import ept.edu.sn.alumni_backend.mentorat.entity.DomaineMentorat;
 import ept.edu.sn.alumni_backend.mentorat.entity.Mentorat;
 import ept.edu.sn.alumni_backend.mentorat.entity.ProfilMentor;
+import ept.edu.sn.alumni_backend.mentorat.entity.ProgrammeMentorat;
 import ept.edu.sn.alumni_backend.mentorat.evenement.NotificationMentorat;
 import ept.edu.sn.alumni_backend.mentorat.exception.ConflitMentoratException;
 import ept.edu.sn.alumni_backend.mentorat.exception.MentoratIntrouvableException;
 import ept.edu.sn.alumni_backend.mentorat.repository.MentoratRepository;
+import ept.edu.sn.alumni_backend.mentorat.repository.ParticipationProgrammeRepository;
 import ept.edu.sn.alumni_backend.mentorat.repository.ProfilMentorRepository;
+import ept.edu.sn.alumni_backend.mentorat.repository.ProgrammeMentoratRepository;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
@@ -37,6 +41,8 @@ import lombok.RequiredArgsConstructor;
 public class MentoratService {
     private final MentoratRepository mentoratRepository;
     private final ProfilMentorRepository profilMentorRepository;
+    private final ProgrammeMentoratRepository programmeRepository;
+    private final ParticipationProgrammeRepository participationProgrammeRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final MentoratMapper mapper;
     private final AccesMentorat acces;
@@ -59,6 +65,7 @@ public class MentoratService {
             .filter(d -> d.getId().equals(request.domaineId()))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("Ce mentor n'accompagne pas dans ce domaine."));
+        ProgrammeMentorat programme = request.programmeId() == null ? null : programmeDeLaDemande(request.programmeId(), profil);
         if (!profil.isDisponible() || placesRestantes(profil) <= 0) {
             throw new ConflitMentoratException("Ce mentor n'est pas disponible pour le moment.");
         }
@@ -77,9 +84,11 @@ public class MentoratService {
         mentorat.setProfilMentor(profil);
         mentorat.setDomaine(domaine);
         mentorat.setObjectif(request.objectif().trim());
+        mentorat.setProgramme(programme);
         mentoratRepository.save(mentorat);
         notifier(profil.getUtilisateur(), "Nouvelle demande de mentorat",
-            nomComplet(demandeur) + " souhaite être accompagné(e) en « " + domaine.getLibelle() + " ».");
+            nomComplet(demandeur) + " souhaite être accompagné(e) en « " + domaine.getLibelle() + " »"
+                + (programme != null ? " dans le cadre du programme « " + programme.getTitre() + " »." : "."));
         return mapper.versResponse(mentorat, demandeur.getId());
     }
 
@@ -159,6 +168,20 @@ public class MentoratService {
         notifier(acces.autreParticipant(mentorat, principal), "Mentorat terminé",
             "Le mentorat est clôturé. Vous pouvez maintenant l'évaluer.");
         return mapper.versResponse(mentorat, principal.getUtilisateur().getId());
+    }
+
+    /** Une demande rattachée à un programme : programme ouvert et mentor volontaire de ce programme. */
+    private ProgrammeMentorat programmeDeLaDemande(UUID programmeId, ProfilMentor profil) {
+        ProgrammeMentorat programme = programmeRepository.findById(programmeId)
+            .filter(p -> p.getStatut() != StatutProgramme.BROUILLON)
+            .orElseThrow(() -> new MentoratIntrouvableException("Ce programme est introuvable."));
+        if (programme.getStatut() != StatutProgramme.OUVERT) {
+            throw new ConflitMentoratException("Ce programme n'accepte plus de nouvelles demandes.");
+        }
+        if (!participationProgrammeRepository.existsByProgramme_IdAndProfilMentor_Id(programmeId, profil.getId())) {
+            throw new ConflitMentoratException("Ce mentor ne participe pas à ce programme.");
+        }
+        return programme;
     }
 
     private void exigerRole(Mentorat mentorat, UtilisateurPrincipal principal, RoleMentorat attendu, String message) {

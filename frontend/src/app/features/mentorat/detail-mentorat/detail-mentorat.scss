@@ -50,10 +50,12 @@
   flex-wrap: wrap;
   gap: 0.4rem;
 
-  span { padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; }
+  span, a { padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; }
   .statut { background: var(--statut-fond); color: var(--statut-texte); }
   .domaine { background: var(--ept-primary-light); color: var(--ept-primary); }
-  .programme { background: var(--ept-gold-light); color: var(--ept-gold-dark); }
+  .programme { display: inline-flex; gap: 0.35rem; align-items: center; background: var(--ept-gold-light); color: var(--ept-gold-dark); text-decoration: none; }
+  a.programme:hover { text-decoration: underline; }
+  a.programme:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
 }
 
 blockquote { margin: 0; padding: 0.75rem 1rem; border-left: 3px solid var(--ept-sky); border-radius: 0 8px 8px 0; background: var(--ept-bg); color: var(--ept-primary-dark); line-height: 1.5; }

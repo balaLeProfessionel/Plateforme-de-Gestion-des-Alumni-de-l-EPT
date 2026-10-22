@@ -92,7 +92,7 @@
       }
     </section>
 
-    <app-dialogue-demande [mentor]="mentorSollicite()" (envoyee)="demandeEnvoyee()" (fermee)="mentorSollicite.set(null)" />
+    <app-dialogue-demande [mentor]="mentorSollicite()" [programme]="programme" (envoyee)="demandeEnvoyee()" (fermee)="mentorSollicite.set(null)" />
   } @else {
     <div class="squelette grand" aria-busy="true" aria-label="Chargement du programme"></div>
   }

@@ -130,7 +130,7 @@ describe('TrouverMentor', () => {
     await fixture.whenStable();
 
     const envoi = http.expectOne('/api/mentorat/mentorats');
-    expect(envoi.request.body).toEqual({ profilMentorId: 'p1', domaineId: 'd1', objectif: 'Préparer mon stage' });
+    expect(envoi.request.body).toEqual({ profilMentorId: 'p1', domaineId: 'd1', objectif: 'Préparer mon stage', programmeId: null });
     envoi.flush({ id: 'm1' });
     await fixture.whenStable();
     fixture.detectChanges();

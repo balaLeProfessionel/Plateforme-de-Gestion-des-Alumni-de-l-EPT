@@ -13,6 +13,7 @@ import ept.edu.sn.alumni_backend.mentorat.dto.MentorResponse;
 import ept.edu.sn.alumni_backend.mentorat.dto.MentoratResponse;
 import ept.edu.sn.alumni_backend.mentorat.dto.ParticipantMentoratResponse;
 import ept.edu.sn.alumni_backend.mentorat.dto.ProfilMentorResponse;
+import ept.edu.sn.alumni_backend.mentorat.dto.ProgrammeResumeResponse;
 import ept.edu.sn.alumni_backend.mentorat.dto.SeanceMentoratResponse;
 import ept.edu.sn.alumni_backend.mentorat.entity.DomaineMentorat;
 import ept.edu.sn.alumni_backend.mentorat.entity.EvaluationMentorat;
@@ -77,7 +78,9 @@ public class MentoratMapper {
             participant(mentor),
             participant(mentorat.getMentore()),
             monRole,
-            mentorat.getProgramme() != null ? mentorat.getProgramme().getTitre() : null);
+            mentorat.getProgramme() != null
+                ? new ProgrammeResumeResponse(mentorat.getProgramme().getId(), mentorat.getProgramme().getTitre())
+                : null);
     }
 
     public SeanceMentoratResponse versResponse(SeanceMentorat seance) {
