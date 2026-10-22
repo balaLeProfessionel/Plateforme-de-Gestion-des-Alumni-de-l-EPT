@@ -25,11 +25,12 @@
 
 .grille-profil { min-width: 0; display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 0.85fr); align-items: start; gap: 1.5rem; margin-top: 1.5rem; }
 .colonne-principale, .colonne-laterale { display: grid; gap: 1.5rem; }
-.colonne-principale, .colonne-laterale { min-width: 0; }
+.colonne-principale, .colonne-laterale { min-width: 0; grid-template-columns: minmax(0, 1fr); }
 .section-profil { padding: 1.5rem; border: 1px solid var(--ept-border); background: white; }
 .section-profil h2 { margin: 0; font-size: 1.25rem; }
 .bio { margin: 1rem 0 0; overflow-wrap: anywhere; color: var(--ept-text-secondary); line-height: 1.7; white-space: pre-line; }
-.titre-section { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.titre-section { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; }
+.titre-section h2 { min-width: 0; overflow-wrap: anywhere; }
 .titre-section a { color: var(--ept-primary); font-weight: 700; text-decoration: none; }
 
 .parcours-ept { border-color: #b9dce8; border-top: 4px solid var(--ept-primary); background: #f6fbfd; }

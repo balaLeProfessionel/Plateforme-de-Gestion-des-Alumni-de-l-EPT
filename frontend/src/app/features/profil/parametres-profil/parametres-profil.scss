@@ -27,10 +27,10 @@ button:disabled { opacity: .6; cursor: wait; }
 .erreur { color: #b42318; }.succes { color: #147a4b; }
 .champs-lecture-seule { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-bottom: 1rem; padding: 1rem; border-radius: 2px; background: var(--ept-primary-soft); }
 .champs-lecture-seule div { min-width: 0; }.champs-lecture-seule span { display: block; color: var(--ept-text-muted); font-size: .8rem; }.champs-lecture-seule strong { overflow-wrap: anywhere; }
-.formulaire-securite { max-width: 620px; display: grid; gap: 1rem; }
-.champ-mot-de-passe { display: grid; gap: .4rem; }.champ-mot-de-passe label { font-weight: 700; color: var(--ept-primary); }.champ-mot-de-passe small { color: #b42318; }
+.formulaire-securite { max-width: 620px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+.champ-mot-de-passe { display: grid; grid-template-columns: minmax(0, 1fr); gap: .4rem; }.champ-mot-de-passe label { font-weight: 700; color: var(--ept-primary); }.champ-mot-de-passe small { color: #b42318; }
 .champ-avec-action { display: flex; }.champ-avec-action input { flex: 1; min-width: 0; border-radius: 2px 0 0 2px; }.champ-avec-action button { width: 2.8rem; border: 1px solid var(--p-inputtext-border-color); border-left: 0; border-radius: 0 2px 2px 0; background: white; color: var(--ept-primary); }
 .squelette { height: 34rem; border-radius: 2px; background: linear-gradient(90deg, #edf1f3 25%, #f7f9fa 50%, #edf1f3 75%); background-size: 200% 100%; animation: charge 1.3s infinite; }
 .etat-erreur { padding: 2rem; text-align: center; border: 1px solid var(--ept-border); border-radius: 2px; background: white; }
 @keyframes charge { to { background-position: -200% 0; } }
-@media (max-width: 640px) { .page-parametres { width: min(100% - 1rem, 960px); padding-top: 1rem; }.entete-page { display: grid; }.navigation-sections { width: 100%; justify-content: center; overflow-x: auto; }.gestion-photo { align-items: flex-start; }.champs-lecture-seule { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) { .page-parametres { width: min(100% - 1rem, 960px); padding-top: 1rem; }.entete-page { display: grid; }.navigation-sections { width: 100%; justify-content: safe center; overflow-x: auto; }.navigation-sections a { flex: 0 0 auto; padding-inline: clamp(.5rem, 3vw, .85rem); }.gestion-photo { align-items: flex-start; }.champs-lecture-seule { grid-template-columns: minmax(0, 1fr); } }
