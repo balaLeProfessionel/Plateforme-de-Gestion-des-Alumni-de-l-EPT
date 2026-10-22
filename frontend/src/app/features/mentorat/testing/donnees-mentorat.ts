@@ -1,4 +1,4 @@
-import { Mentor, Mentorat, MentoratDetail, Page, SeanceMentorat } from '../../../core/services/models/mentorat.model';
+import { Mentor, Mentorat, MentoratDetail, Page, Programme, SeanceMentorat } from '../../../core/services/models/mentorat.model';
 
 /** Données de test partagées par les specs du mentorat. */
 export function unMentor(valeurs: Partial<Mentor> = {}): Mentor {
@@ -63,4 +63,18 @@ export function saisir(element: HTMLInputElement | HTMLTextAreaElement | HTMLSel
 
 export function soumettre(formulaire: HTMLFormElement): void {
   formulaire.dispatchEvent(new Event('submit', { cancelable: true }));
+}
+
+export function unProgramme(valeurs: Partial<Programme> = {}): Programme {
+  return {
+    id: 'p1', titre: 'Orientation lycée 2026', description: 'Accompagner les lycéens.',
+    dateDebut: '2026-11-01', dateFin: '2027-03-31', statut: 'BROUILLON',
+    responsable: { id: 'r1', nom: 'Faye', prenom: 'Ndèye', urlPhoto: null, posteActuel: null, filiere: null, anneeSortie: null, role: 'PERSONNEL' },
+    etapes: [
+      { id: 'e1', titre: 'Premier échange', description: null, ordre: 1 },
+      { id: 'e2', titre: 'Visite de l’EPT', description: null, ordre: 2 },
+    ],
+    nombreMentorats: 0, gerable: true,
+    ...valeurs,
+  };
 }

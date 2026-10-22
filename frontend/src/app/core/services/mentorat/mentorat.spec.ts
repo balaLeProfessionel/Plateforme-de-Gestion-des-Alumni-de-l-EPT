@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
+import { ProgrammeService } from './programmes';
 import { CompteurDemandesMentorat } from './compteur-demandes';
 import { MentoratService } from './mentorat';
 
@@ -74,6 +75,28 @@ describe('CompteurDemandesMentorat', () => {
     http.expectOne('/api/mentorat/mentorats/compteurs').flush({}, { status: 500, statusText: 'Erreur' });
     expect(compteur.nombre()).toBe(0);
     expect(compteur.limiteAtteinte()).toBe(false);
+    http.verify();
+  });
+});
+
+describe('ProgrammeService', () => {
+  it('appelle les routes de gestion avec les bons verbes et des identifiants encodés', () => {
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    const service = TestBed.inject(ProgrammeService);
+    const http = TestBed.inject(HttpTestingController);
+
+    service.listerGeres().subscribe();
+    service.obtenir('p 1').subscribe();
+    service.changerStatut('p1', 'OUVERT').subscribe();
+    service.supprimer('p1').subscribe();
+
+    http.expectOne('/api/mentorat/programmes/geres').flush([]);
+    http.expectOne('/api/mentorat/programmes/p%201').flush({});
+    const statut = http.expectOne('/api/mentorat/programmes/p1/statut');
+    expect(statut.request.method).toBe('PATCH');
+    expect(statut.request.body).toEqual({ statut: 'OUVERT' });
+    statut.flush({});
+    expect(http.expectOne('/api/mentorat/programmes/p1').request.method).toBe('DELETE');
     http.verify();
   });
 });

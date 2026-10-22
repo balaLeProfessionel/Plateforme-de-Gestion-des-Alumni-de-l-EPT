@@ -50,6 +50,20 @@ describe('MentoratPage', () => {
     expect((racine.querySelector('app-guide-mentorat details') as HTMLDetailsElement).open).toBe(false);
   });
 
+  it.each([
+    ['PERSONNEL', true], ['ADMIN', true], ['ETUDIANT', false], ['ALUMNI', false], ['VISITEUR', false],
+  ])('propose « Gérer les programmes » au personnel et à l’administration (%s)', (role, visible) => {
+    const lien = afficher(role).querySelector('.lien-gestion');
+    expect(lien !== null).toBe(visible);
+    if (lien) expect(lien.getAttribute('href')).toBe('/mentorat/gestion-programmes');
+  });
+
+  it('réserve la gestion des programmes au personnel et à l’administration', () => {
+    const gestion = MENTORAT_ROUTES.filter((route) => route.path?.startsWith('gestion-programmes'));
+    expect(gestion.map((route) => route.path)).toEqual(['gestion-programmes', 'gestion-programmes/nouveau', 'gestion-programmes/:id']);
+    for (const route of gestion) expect(route.data?.['roles']).toEqual(['PERSONNEL', 'ADMIN']);
+  });
+
   it.each(['ORGANISME', 'ADMIN'])('présente le module aux comptes qui n’y participent pas (%s)', (role) => {
     const racine = afficher(role);
     expect(racine.querySelector('.onglets')).toBeNull();

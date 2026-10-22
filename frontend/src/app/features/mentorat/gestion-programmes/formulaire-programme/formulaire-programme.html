@@ -1,0 +1,155 @@
+<div class="programme-page">
+  <app-bouton-retour secours="/mentorat/gestion-programmes" />
+
+  @if (chargement()) {
+    <div class="squelette" aria-busy="true" aria-label="Chargement du programme"></div>
+  } @else if (erreurChargement(); as erreur) {
+    <section class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h1>Programme indisponible</h1>
+      <p>{{ erreur }}</p>
+    </section>
+  } @else {
+    <header class="entete">
+      <h1>{{ identifiant ? 'Modifier le programme' : 'Créer un programme' }}</h1>
+      @if (programme(); as programme) {
+        <p class="etat-programme">
+          <span class="statut" [attr.data-statut]="programme.statut">{{ libellesStatut[programme.statut] }}</span>
+          {{ programme.nombreMentorats }} mentorat{{ programme.nombreMentorats > 1 ? 's' : '' }} rattaché{{ programme.nombreMentorats > 1 ? 's' : '' }}
+        </p>
+      } @else {
+        <p class="introduction">Le programme reste un brouillon, visible de vous seul, tant que vous ne l’ouvrez pas.</p>
+      }
+    </header>
+
+    @if (messageErreur(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+    @if (confirmation(); as message) { <p class="message succes" role="status">{{ message }}</p> }
+
+    @if (programme(); as programme) {
+      @if (actions().length || programme.statut === 'BROUILLON') {
+        <section class="cycle" aria-labelledby="titre-cycle">
+          <h2 id="titre-cycle">Cycle de vie</h2>
+          <div class="actions">
+            @for (action of actions(); track action.cible) {
+              <button type="button" [class.principal]="action.cible === 'OUVERT' && programme.statut === 'BROUILLON'"
+                [disabled]="enCours()" (click)="changerStatut(action)">{{ action.libelle }}</button>
+            }
+            @if (programme.statut === 'BROUILLON') {
+              <button type="button" class="danger" [disabled]="enCours()" (click)="confirmationSuppression.set(true)">
+                Supprimer le brouillon
+              </button>
+            }
+          </div>
+          @if (actionAConfirmer(); as action) {
+            <div class="confirmer" role="group" aria-label="Confirmer l’action">
+              <p>{{ action.confirmation }}</p>
+              <button type="button" class="danger" (click)="changerStatut(action)">{{ action.libelle }}</button>
+              <button type="button" (click)="actionAConfirmer.set(null)">Annuler</button>
+            </div>
+          }
+          @if (confirmationSuppression()) {
+            <div class="confirmer" role="group" aria-label="Confirmer la suppression">
+              <p>Supprimer définitivement ce brouillon et ses étapes ?</p>
+              <button type="button" class="danger" (click)="supprimer()">Supprimer</button>
+              <button type="button" (click)="confirmationSuppression.set(false)">Annuler</button>
+            </div>
+          }
+        </section>
+      }
+    }
+
+    @if (fige()) {
+      <p class="message">Ce programme est clos : sa présentation et ses étapes ne se modifient plus.</p>
+    }
+
+    <form class="formulaire" (submit)="enregistrer($event)" novalidate>
+      <fieldset [disabled]="fige()">
+        <legend class="sr-only">Présentation du programme</legend>
+        <div class="champ">
+          <label for="programme-titre">Titre <span class="obligatoire" aria-hidden="true">*</span></label>
+          <input id="programme-titre" type="text" autocomplete="off" [formField]="formulaire.titre"
+            placeholder="Orientation lycée 2026" aria-describedby="erreur-titre"
+            [attr.aria-invalid]="formulaire.titre().touched() && formulaire.titre().invalid()" />
+          @if (formulaire.titre().touched() && formulaire.titre().errors()[0]; as erreur) {
+            <small id="erreur-titre" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+
+        <div class="champ">
+          <label for="programme-description">Présentation <span class="optionnel">Facultatif</span></label>
+          <textarea id="programme-description" rows="4" [formField]="formulaire.description"
+            placeholder="À qui s’adresse le programme, ce qu’on y fait, ce qu’on en attend." aria-describedby="erreur-description"></textarea>
+          @if (formulaire.description().errors()[0]; as erreur) {
+            <small id="erreur-description" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+
+        <div class="periode">
+          <div class="champ">
+            <label for="programme-debut">Début <span class="obligatoire" aria-hidden="true">*</span></label>
+            <input id="programme-debut" type="date" [formField]="formulaire.dateDebut" aria-describedby="erreur-debut"
+              [attr.aria-invalid]="formulaire.dateDebut().touched() && formulaire.dateDebut().invalid()" />
+            @if (formulaire.dateDebut().touched() && formulaire.dateDebut().errors()[0]; as erreur) {
+              <small id="erreur-debut" class="erreur-champ">{{ erreur.message }}</small>
+            }
+          </div>
+          <div class="champ">
+            <label for="programme-fin">Fin <span class="obligatoire" aria-hidden="true">*</span></label>
+            <input id="programme-fin" type="date" [formField]="formulaire.dateFin" aria-describedby="erreur-fin"
+              [attr.aria-invalid]="formulaire.dateFin().touched() && formulaire.dateFin().invalid()" />
+            @if (formulaire.dateFin().touched() && formulaire.dateFin().errors()[0]; as erreur) {
+              <small id="erreur-fin" class="erreur-champ">{{ erreur.message }}</small>
+            }
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="etapes" [disabled]="fige()">
+        <legend>Étapes <span class="aide">({{ modele().etapes.length }} / {{ etapesMax }}) : les binômes du programme les franchiront une à une.</span></legend>
+        <ol>
+          @for (etape of modele().etapes; track $index; let i = $index, premier = $first, dernier = $last) {
+            <li class="etape">
+              <span class="numero" aria-hidden="true">{{ i + 1 }}</span>
+              <div class="champs-etape">
+                <div class="champ">
+                  <label [for]="'etape-titre-' + i">Titre de l’étape {{ i + 1 }}</label>
+                  <input [id]="'etape-titre-' + i" type="text" autocomplete="off" [formField]="formulaire.etapes[i].titre"
+                    placeholder="Premier échange" [attr.aria-describedby]="'erreur-etape-' + i"
+                    [attr.aria-invalid]="formulaire.etapes[i].titre().touched() && formulaire.etapes[i].titre().invalid()" />
+                  @if (formulaire.etapes[i].titre().touched() && formulaire.etapes[i].titre().errors()[0]; as erreur) {
+                    <small [id]="'erreur-etape-' + i" class="erreur-champ">{{ erreur.message }}</small>
+                  }
+                </div>
+                <div class="champ">
+                  <label [for]="'etape-description-' + i">Précisions <span class="optionnel">Facultatif</span></label>
+                  <input [id]="'etape-description-' + i" type="text" autocomplete="off" [formField]="formulaire.etapes[i].description" />
+                </div>
+              </div>
+              <div class="ordre" role="group" [attr.aria-label]="'Étape ' + (i + 1)">
+                <button type="button" class="icone" [disabled]="premier" (click)="deplacerEtape(i, -1)"
+                  [attr.aria-label]="'Monter l’étape ' + (i + 1)"><i class="pi pi-arrow-up" aria-hidden="true"></i></button>
+                <button type="button" class="icone" [disabled]="dernier" (click)="deplacerEtape(i, 1)"
+                  [attr.aria-label]="'Descendre l’étape ' + (i + 1)"><i class="pi pi-arrow-down" aria-hidden="true"></i></button>
+                <button type="button" class="icone" (click)="retirerEtape(i)"
+                  [attr.aria-label]="'Retirer l’étape ' + (i + 1)"><i class="pi pi-trash" aria-hidden="true"></i></button>
+              </div>
+            </li>
+          }
+        </ol>
+        @if (modele().etapes.length < etapesMax) {
+          <button type="button" class="ajouter" (click)="ajouterEtape()">
+            <i class="pi pi-plus" aria-hidden="true"></i>Ajouter une étape
+          </button>
+        }
+      </fieldset>
+
+      @if (!fige()) {
+        <div class="pied">
+          <button type="submit" class="principal" [disabled]="enCours()">
+            {{ enCours() ? 'Enregistrement…' : (identifiant ? 'Enregistrer' : 'Créer le brouillon') }}
+          </button>
+        </div>
+      }
+    </form>
+  }
+</div>

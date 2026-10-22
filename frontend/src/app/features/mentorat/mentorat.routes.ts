@@ -3,16 +3,39 @@ import { Routes } from '@angular/router';
 import { AuthService } from '../../core/services/auth/auth-service';
 import { roleGuard } from '../../core/guards/auth.guard';
 import {
-  ROLES_MENTORAT, RoleMentorat, StatutMentorat, participeAuMentorat,
+  ROLES_GESTION_PROGRAMMES, ROLES_MENTORAT, RoleMentorat, StatutMentorat, participeAuMentorat,
 } from '../../core/services/models/mentorat.model';
 import { VueListeMentorats } from './liste-mentorats/liste-mentorats';
 
 const PARTICIPANTS = { roles: ROLES_MENTORAT };
+const GESTIONNAIRES = { roles: ROLES_GESTION_PROGRAMMES };
 
 const section = (titre: string, role: RoleMentorat, statuts: StatutMentorat[]): VueListeMentorats =>
   ({ titre, role, statuts });
 
 export const MENTORAT_ROUTES: Routes = [
+  // Gestion des programmes : hors des onglets, réservée au personnel et à l’administration.
+  {
+    path: 'gestion-programmes',
+    title: 'Programmes de mentorat | EPT Alumni',
+    canActivate: [roleGuard],
+    data: GESTIONNAIRES,
+    loadComponent: () => import('./gestion-programmes/programmes-geres/programmes-geres').then((m) => m.ProgrammesGeres)
+  },
+  {
+    path: 'gestion-programmes/nouveau',
+    title: 'Créer un programme | EPT Alumni',
+    canActivate: [roleGuard],
+    data: GESTIONNAIRES,
+    loadComponent: () => import('./gestion-programmes/formulaire-programme/formulaire-programme').then((m) => m.FormulaireProgramme)
+  },
+  {
+    path: 'gestion-programmes/:id',
+    title: 'Modifier un programme | EPT Alumni',
+    canActivate: [roleGuard],
+    data: GESTIONNAIRES,
+    loadComponent: () => import('./gestion-programmes/formulaire-programme/formulaire-programme').then((m) => m.FormulaireProgramme)
+  },
   {
     path: 'suivi/:id',
     title: 'Suivi du mentorat | EPT Alumni',

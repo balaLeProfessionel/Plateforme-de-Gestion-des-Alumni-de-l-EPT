@@ -167,3 +167,52 @@ export const LIBELLES_MODALITE: Record<ModaliteSeance, string> = {
   PRESENTIEL: 'Présentiel',
   TELEPHONE: 'Téléphone',
 };
+
+// ---------- Programmes de mentorat ----------
+
+export type StatutProgramme = 'BROUILLON' | 'OUVERT' | 'EN_COURS' | 'CLOS';
+
+/** Le personnel de l’EPT crée les programmes ; l’administration les gère tous. */
+export const ROLES_GESTION_PROGRAMMES: readonly string[] = ['PERSONNEL', 'ADMIN'];
+
+export function gereLesProgrammes(role: string | null | undefined): boolean {
+  return ROLES_GESTION_PROGRAMMES.includes(role ?? '');
+}
+
+export const LIBELLES_STATUT_PROGRAMME: Record<StatutProgramme, string> = {
+  BROUILLON: 'Brouillon',
+  OUVERT: 'Ouvert',
+  EN_COURS: 'En cours',
+  CLOS: 'Clos',
+};
+
+export interface EtapeProgramme {
+  id: string;
+  titre: string;
+  description: string | null;
+  ordre: number;
+}
+
+export interface Programme {
+  id: string;
+  titre: string;
+  description: string | null;
+  /** Jour « AAAA-MM-JJ ». */
+  dateDebut: string;
+  dateFin: string;
+  statut: StatutProgramme;
+  responsable: ParticipantMentorat;
+  etapes: EtapeProgramme[];
+  nombreMentorats: number;
+  /** Je peux le modifier : responsable ou administration. */
+  gerable: boolean;
+}
+
+/** Liste complète des étapes dans l’ordre voulu ; une étape sans id est créée, une étape absente retirée. */
+export interface ProgrammeRequest {
+  titre: string;
+  description: string | null;
+  dateDebut: string;
+  dateFin: string;
+  etapes: { id: string | null; titre: string; description: string | null }[];
+}

@@ -1,0 +1,229 @@
+package ept.edu.sn.alumni_backend.mentorat.service;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.mentorat.StatutProgramme;
+import ept.edu.sn.alumni_backend.mentorat.dto.ProgrammeRequest;
+import ept.edu.sn.alumni_backend.mentorat.dto.ProgrammeResponse;
+import ept.edu.sn.alumni_backend.mentorat.entity.JalonProgramme;
+import ept.edu.sn.alumni_backend.mentorat.entity.ProgrammeMentorat;
+import ept.edu.sn.alumni_backend.mentorat.exception.ConflitMentoratException;
+import ept.edu.sn.alumni_backend.mentorat.exception.MentoratIntrouvableException;
+import ept.edu.sn.alumni_backend.mentorat.repository.JalonProgrammeRepository;
+import ept.edu.sn.alumni_backend.mentorat.repository.MentoratRepository;
+import ept.edu.sn.alumni_backend.mentorat.repository.ProgrammeMentoratRepository;
+import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
+import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
+import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
+import lombok.RequiredArgsConstructor;
+
+/**
+ * Programmes de mentorat encadrés par l'école : le personnel les crée et en devient responsable,
+ * l'administration les gère tous. Un brouillon n'est visible que de ceux qui le gèrent.
+ */
+@Service
+@RequiredArgsConstructor
+public class ProgrammeMentoratService {
+    private static final Set<TypeRole> GESTIONNAIRES = Set.of(TypeRole.PERSONNEL, TypeRole.ADMIN);
+
+    private final ProgrammeMentoratRepository programmeRepository;
+    private final JalonProgrammeRepository jalonRepository;
+    private final MentoratRepository mentoratRepository;
+    private final UtilisateurRepository utilisateurRepository;
+    private final MentoratMapper mapper;
+
+    /** Programmes que je gère : tous pour l'administration, les miens pour le personnel. */
+    @Transactional(readOnly = true)
+    public List<ProgrammeResponse> listerGeres(UtilisateurPrincipal principal) {
+        exigerGestionnaire(principal);
+        Utilisateur moi = principal.getUtilisateur();
+        List<ProgrammeMentorat> programmes = moi.getRole() == TypeRole.ADMIN
+            ? programmeRepository.findAllByOrderByCreeLeDesc()
+            : programmeRepository.findByResponsable_IdOrderByCreeLeDesc(moi.getId());
+        return versResponses(programmes, principal);
+    }
+
+    @Transactional(readOnly = true)
+    public ProgrammeResponse obtenir(UUID programmeId, UtilisateurPrincipal principal) {
+        ProgrammeMentorat programme = programmeRepository.findById(programmeId)
+            .filter(p -> p.getStatut() != StatutProgramme.BROUILLON || peutGerer(p, principal))
+            .orElseThrow(ProgrammeMentoratService::introuvable);
+        return versResponses(List.of(programme), principal).getFirst();
+    }
+
+    @Transactional
+    public ProgrammeResponse creer(ProgrammeRequest request, UtilisateurPrincipal principal) {
+        exigerGestionnaire(principal);
+        if (request.etapes().stream().anyMatch(etape -> etape.id() != null)) {
+            throw new IllegalArgumentException("Un nouveau programme ne peut pas reprendre des étapes existantes.");
+        }
+        ProgrammeMentorat programme = new ProgrammeMentorat();
+        programme.setResponsable(utilisateurRepository.getReferenceById(principal.getUtilisateur().getId()));
+        appliquer(programme, request);
+        programmeRepository.saveAndFlush(programme);
+        remplacerEtapes(programme, request.etapes());
+        return obtenir(programme.getId(), principal);
+    }
+
+    @Transactional
+    public ProgrammeResponse modifier(UUID programmeId, ProgrammeRequest request, UtilisateurPrincipal principal) {
+        ProgrammeMentorat programme = chargerPourGestion(programmeId, principal);
+        if (!programme.getStatut().estModifiable()) {
+            throw new ConflitMentoratException("Un programme clos ne se modifie plus.");
+        }
+        if (programme.getStatut() != StatutProgramme.BROUILLON && request.etapes().isEmpty()) {
+            throw new ConflitMentoratException("Un programme ouvert garde au moins une étape.");
+        }
+        appliquer(programme, request);
+        remplacerEtapes(programme, request.etapes());
+        return obtenir(programme.getId(), principal);
+    }
+
+    @Transactional
+    public ProgrammeResponse changerStatut(UUID programmeId, StatutProgramme cible, UtilisateurPrincipal principal) {
+        ProgrammeMentorat programme = chargerPourGestion(programmeId, principal);
+        if (!programme.getStatut().peutPasserA(cible)) {
+            throw new ConflitMentoratException("Ce programme ne peut pas passer de « "
+                + libelle(programme.getStatut()) + " » à « " + libelle(cible) + " ».");
+        }
+        if (cible == StatutProgramme.OUVERT && jalonRepository.findByProgramme_IdOrderByOrdreAsc(programmeId).isEmpty()) {
+            throw new ConflitMentoratException("Ajoutez au moins une étape avant d'ouvrir le programme.");
+        }
+        if (cible == StatutProgramme.BROUILLON && mentoratRepository.existsByProgramme_Id(programmeId)) {
+            throw new ConflitMentoratException("Des mentorats suivent déjà ce programme : il ne peut plus redevenir un brouillon.");
+        }
+        programme.setStatut(cible);
+        return obtenir(programmeId, principal);
+    }
+
+    /** Seul un brouillon sans mentorat se supprime ; ensuite, on le clôt pour garder l'historique. */
+    @Transactional
+    public void supprimer(UUID programmeId, UtilisateurPrincipal principal) {
+        ProgrammeMentorat programme = chargerPourGestion(programmeId, principal);
+        if (programme.getStatut() != StatutProgramme.BROUILLON || mentoratRepository.existsByProgramme_Id(programmeId)) {
+            throw new ConflitMentoratException("Seul un brouillon se supprime. Clôturez plutôt ce programme.");
+        }
+        jalonRepository.deleteByProgramme_Id(programmeId);
+        programmeRepository.delete(programme);
+    }
+
+    private void appliquer(ProgrammeMentorat programme, ProgrammeRequest request) {
+        programme.setTitre(request.titre().strip());
+        programme.setDescription(texteOuNull(request.description()));
+        programme.setDateDebut(request.dateDebut());
+        programme.setDateFin(request.dateFin());
+    }
+
+    /**
+     * Remplace les étapes par la liste reçue, dans son ordre. Les places sont d'abord libérées
+     * (ordres négatifs) pour que la contrainte d'unicité (programme, ordre) tienne pendant l'échange.
+     */
+    private void remplacerEtapes(ProgrammeMentorat programme, List<ProgrammeRequest.Etape> etapes) {
+        Map<UUID, JalonProgramme> existantes = jalonRepository.findByProgramme_IdOrderByOrdreAsc(programme.getId())
+            .stream().collect(Collectors.toMap(JalonProgramme::getId, Function.identity()));
+        Set<UUID> conservees = new HashSet<>();
+        for (ProgrammeRequest.Etape etape : etapes) {
+            if (etape.id() == null) continue;
+            if (!existantes.containsKey(etape.id())) {
+                throw new IllegalArgumentException("Une des étapes n'appartient pas à ce programme.");
+            }
+            if (!conservees.add(etape.id())) {
+                throw new IllegalArgumentException("Une étape ne peut apparaître qu'une fois.");
+            }
+        }
+        List<UUID> retirees = existantes.keySet().stream().filter(id -> !conservees.contains(id)).toList();
+        if (!retirees.isEmpty() && jalonRepository.estFranchieParUnMentorat(retirees)) {
+            throw new ConflitMentoratException("Une étape déjà franchie par un mentorat ne peut pas être retirée.");
+        }
+        jalonRepository.deleteAllById(retirees);
+
+        short provisoire = -1;
+        for (UUID id : conservees) existantes.get(id).setOrdre(provisoire--);
+        jalonRepository.flush();
+
+        List<JalonProgramme> resultat = new ArrayList<>();
+        for (int i = 0; i < etapes.size(); i++) {
+            ProgrammeRequest.Etape etape = etapes.get(i);
+            JalonProgramme jalon = etape.id() != null ? existantes.get(etape.id()) : new JalonProgramme();
+            jalon.setProgramme(programme);
+            jalon.setTitre(etape.titre().strip());
+            jalon.setDescription(texteOuNull(etape.description()));
+            jalon.setOrdre((short) (i + 1));
+            resultat.add(jalon);
+        }
+        jalonRepository.saveAllAndFlush(resultat);
+    }
+
+    private List<ProgrammeResponse> versResponses(List<ProgrammeMentorat> programmes, UtilisateurPrincipal principal) {
+        if (programmes.isEmpty()) return List.of();
+        List<UUID> ids = programmes.stream().map(ProgrammeMentorat::getId).toList();
+        Map<UUID, List<ProgrammeResponse.Etape>> etapes = jalonRepository.findByProgramme_IdInOrderByOrdreAsc(ids).stream()
+            .collect(Collectors.groupingBy(jalon -> jalon.getProgramme().getId(), Collectors.mapping(
+                jalon -> new ProgrammeResponse.Etape(jalon.getId(), jalon.getTitre(), jalon.getDescription(), jalon.getOrdre()),
+                Collectors.toList())));
+        Map<UUID, Long> mentorats = mentoratRepository.compterParProgrammes(ids).stream().collect(Collectors.toMap(
+            MentoratRepository.NombreParProgrammeProjection::getProgrammeId,
+            MentoratRepository.NombreParProgrammeProjection::getNombre));
+        return programmes.stream().map(programme -> new ProgrammeResponse(
+            programme.getId(),
+            programme.getTitre(),
+            programme.getDescription(),
+            programme.getDateDebut(),
+            programme.getDateFin(),
+            programme.getStatut(),
+            mapper.participant(programme.getResponsable()),
+            etapes.getOrDefault(programme.getId(), List.of()),
+            mentorats.getOrDefault(programme.getId(), 0L),
+            peutGerer(programme, principal))).toList();
+    }
+
+    /** Introuvable pour qui ne voit pas un brouillon ; interdit pour qui voit le programme sans le gérer. */
+    private ProgrammeMentorat chargerPourGestion(UUID programmeId, UtilisateurPrincipal principal) {
+        ProgrammeMentorat programme = programmeRepository.findByIdForUpdate(programmeId)
+            .orElseThrow(ProgrammeMentoratService::introuvable);
+        if (!peutGerer(programme, principal)) {
+            if (programme.getStatut() == StatutProgramme.BROUILLON) throw introuvable();
+            throw new SecurityException("Seul le responsable du programme ou l'administration peut le gérer.");
+        }
+        return programme;
+    }
+
+    private static boolean peutGerer(ProgrammeMentorat programme, UtilisateurPrincipal principal) {
+        Utilisateur moi = principal.getUtilisateur();
+        return moi.getRole() == TypeRole.ADMIN || programme.getResponsable().getId().equals(moi.getId());
+    }
+
+    private static void exigerGestionnaire(UtilisateurPrincipal principal) {
+        if (!GESTIONNAIRES.contains(principal.getUtilisateur().getRole())) {
+            throw new SecurityException("Les programmes sont gérés par le personnel de l'EPT et l'administration.");
+        }
+    }
+
+    private static MentoratIntrouvableException introuvable() {
+        return new MentoratIntrouvableException("Ce programme est introuvable.");
+    }
+
+    private static String libelle(StatutProgramme statut) {
+        return switch (statut) {
+            case BROUILLON -> "Brouillon";
+            case OUVERT -> "Ouvert";
+            case EN_COURS -> "En cours";
+            case CLOS -> "Clos";
+        };
+    }
+
+    private static String texteOuNull(String texte) {
+        return texte == null || texte.isBlank() ? null : texte.strip();
+    }
+}

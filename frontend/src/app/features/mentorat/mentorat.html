@@ -2,7 +2,14 @@
   <app-fil-ariane [etapes]="[{ libelle: 'Accueil', lien: '/accueil' }, { libelle: 'Mentorat' }]" />
 
   <header class="entete-mentorat">
-    <h1>Mentorat</h1>
+    <div class="titre-mentorat">
+      <h1>Mentorat</h1>
+      @if (gereProgrammes()) {
+        <a class="lien-gestion" routerLink="/mentorat/gestion-programmes">
+          <i class="pi pi-flag" aria-hidden="true"></i>Gérer les programmes
+        </a>
+      }
+    </div>
     <p class="introduction">Faites-vous accompagner par un membre de l’EPT, ou accompagnez-en un à votre tour.</p>
   </header>
 

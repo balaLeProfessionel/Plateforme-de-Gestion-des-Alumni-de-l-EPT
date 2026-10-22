@@ -24,8 +24,11 @@ import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.mentorat.repository.DomaineMentoratRepository;
 import ept.edu.sn.alumni_backend.mentorat.repository.EvaluationMentoratRepository;
+import ept.edu.sn.alumni_backend.mentorat.repository.JalonProgrammeRepository;
 import ept.edu.sn.alumni_backend.mentorat.repository.MentoratRepository;
 import ept.edu.sn.alumni_backend.mentorat.repository.ProfilMentorRepository;
+import ept.edu.sn.alumni_backend.mentorat.repository.ProgrammeMentoratRepository;
+import ept.edu.sn.alumni_backend.mentorat.repository.ProgressionJalonRepository;
 import ept.edu.sn.alumni_backend.mentorat.repository.SeanceMentoratRepository;
 import ept.edu.sn.alumni_backend.security.JwtService;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
@@ -58,13 +61,25 @@ abstract class MentoratTestsBase {
     @Autowired
     protected ProfilMentorRepository profilMentorRepository;
 
+    @Autowired
+    protected ProgrammeMentoratRepository programmeRepository;
+
+    @Autowired
+    protected JalonProgrammeRepository jalonRepository;
+
+    @Autowired
+    protected ProgressionJalonRepository progressionRepository;
+
     /** Les autres classes de test vident les utilisateurs : on retire ce qui les référence. */
     @AfterEach
     void nettoyerMentorat() {
         evaluationRepository.deleteAll();
         seanceRepository.deleteAll();
+        progressionRepository.deleteAll();
         mentoratRepository.deleteAll();
         profilMentorRepository.deleteAll();
+        jalonRepository.deleteAll();
+        programmeRepository.deleteAll();
     }
 
     protected Utilisateur creerUtilisateur(TypeRole role, String nom) {

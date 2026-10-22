@@ -105,7 +105,8 @@ public class MentoratMapper {
         return profil.getDomaines().stream().sorted(ORDRE_DOMAINES).map(this::versResponse).toList();
     }
 
-    private ParticipantMentoratResponse participant(Utilisateur utilisateur) {
+    /** Identité publique d'une personne (jamais ses coordonnées). */
+    public ParticipantMentoratResponse participant(Utilisateur utilisateur) {
         return new ParticipantMentoratResponse(
             utilisateur.getId(),
             utilisateur.getNom(),

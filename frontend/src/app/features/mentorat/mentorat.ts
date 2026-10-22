@@ -2,7 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
-import { participeAuMentorat } from '../../core/services/models/mentorat.model';
+import { gereLesProgrammes, participeAuMentorat } from '../../core/services/models/mentorat.model';
 import { GuideMentorat } from './guide-mentorat/guide-mentorat';
 import { FilAriane } from '../../shared/fil-ariane/fil-ariane';
 
@@ -48,6 +48,7 @@ export class MentoratPage {
 
   protected readonly role = computed(() => this.authService.utilisateur()?.role);
   protected readonly participe = computed(() => participeAuMentorat(this.role()));
+  protected readonly gereProgrammes = computed(() => gereLesProgrammes(this.role()));
   protected readonly groupes = computed(() => this.participe() ? GROUPES : []);
 
   constructor() {

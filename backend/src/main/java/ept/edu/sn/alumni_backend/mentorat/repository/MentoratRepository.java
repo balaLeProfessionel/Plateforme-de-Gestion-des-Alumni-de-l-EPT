@@ -57,6 +57,21 @@ public interface MentoratRepository extends JpaRepository<Mentorat, UUID> {
         @Param("mentoreId") UUID mentoreId,
         @Param("statuts") Collection<StatutMentorat> statuts);
 
+    boolean existsByProgramme_Id(UUID programmeId);
+
+    @Query("""
+        select mentorat.programme.id as programmeId, count(mentorat) as nombre
+        from Mentorat mentorat
+        where mentorat.programme.id in :programmeIds
+        group by mentorat.programme.id
+        """)
+    List<NombreParProgrammeProjection> compterParProgrammes(@Param("programmeIds") Collection<UUID> programmeIds);
+
+    interface NombreParProgrammeProjection {
+        UUID getProgrammeId();
+        Long getNombre();
+    }
+
     interface NombreParProfilProjection {
         UUID getProfilMentorId();
         Long getNombre();
