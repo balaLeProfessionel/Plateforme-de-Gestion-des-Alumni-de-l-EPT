@@ -16,7 +16,7 @@
 
   <ol class="liste">
     @for (etape of etapes(); track etape.id) {
-      <li [class.franchie]="etape.franchieLe">
+      <li [id]="'etape-' + etape.id" [class.franchie]="etape.franchieLe">
         <span class="repere" aria-hidden="true">
           @if (etape.franchieLe) { <i class="pi pi-check"></i> } @else { {{ etape.ordre }} }
         </span>
@@ -41,7 +41,7 @@
                 </small>
                 <div class="boutons">
                   <button type="submit" class="principal" [disabled]="envoiEnCours()">Confirmer</button>
-                  <button type="button" class="secondaire" (click)="enValidation.set(null)">Annuler</button>
+                  <button type="button" class="secondaire" (click)="fermerValidation(etape.id)">Annuler</button>
                 </div>
               </form>
             } @else if (etape.franchieLe) {

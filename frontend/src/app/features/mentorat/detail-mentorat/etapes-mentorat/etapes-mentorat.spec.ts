@@ -55,6 +55,8 @@ describe('EtapesMentorat', () => {
     afficher(deuxEtapes());
     bouton('Valider l’étape')?.click();
     fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement?.id).toBe('commentaire-e2');
     saisir(racine.querySelector('#commentaire-e2') as HTMLTextAreaElement, '  Visite faite.  ');
     soumettre(racine.querySelector('form.confirmation') as HTMLFormElement);
     await fixture.whenStable();
@@ -65,6 +67,20 @@ describe('EtapesMentorat', () => {
     requete.flush(uneEtape({ id: 'e2', franchieLe: '2026-10-23T10:00:00Z' }));
     await fixture.whenStable();
     expect(modifications).toBe(1);
+  });
+
+  it('rend le focus au bouton de l’étape quand l’avancement revient à jour', async () => {
+    document.body.appendChild(racine);
+    afficher(deuxEtapes());
+    bouton('Annuler la validation')?.click();
+    http.expectOne('/api/mentorat/mentorats/m1/etapes/e1').flush(uneEtape());
+    await fixture.whenStable();
+    fixture.componentRef.setInput('etapes', [uneEtape(), deuxEtapes()[1]]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement?.textContent).toContain('Valider l’étape');
+    expect(document.activeElement?.closest('li')?.id).toBe('etape-e1');
+    racine.remove();
   });
 
   it('annule une validation et affiche le refus du serveur', async () => {
