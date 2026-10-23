@@ -88,7 +88,16 @@ describe('PageProgramme', () => {
     // Ma carte n’est pas listée (on ne se sollicite pas soi-même) : pas de « aucun mentor » contradictoire.
     expect(racine.querySelector('.vide')).toBeNull();
 
+    // Quitter demande une confirmation : les demandes en attente du programme seront annulées.
     bouton('Ne plus participer')?.click();
+    fixture.detectChanges();
+    expect(racine.querySelector('.confirmation')?.textContent).toContain('Vos demandes en attente dans ce programme seront annulées');
+    bouton('Rester volontaire')?.click();
+    fixture.detectChanges();
+    expect(racine.querySelector('.confirmation')).toBeNull();
+    bouton('Ne plus participer')?.click();
+    fixture.detectChanges();
+    bouton('Quitter le programme')?.click();
     http.expectOne((r) => r.method === 'DELETE' && r.url === '/api/mentorat/programmes/p1/participation')
       .flush(unProgramme({ statut: 'OUVERT', jeParticipe: false }));
     await fixture.whenStable();
@@ -102,6 +111,14 @@ describe('PageProgramme', () => {
     afficher();
     await repondre(unProgramme({ statut: 'OUVERT', jeParticipe: true, nombreMentors: 1 }), true, []);
     expect(racine.querySelector('.vide')?.textContent).toContain('Vous êtes pour l’instant le seul mentor volontaire.');
+  });
+
+  it('ferme un programme ouvert dont la date de fin est passée', async () => {
+    afficher();
+    await repondre(unProgramme({ statut: 'OUVERT', termine: true, dateFin: '2026-06-30' }), true);
+    expect(racine.textContent).toMatch(/Ce programme est terminé depuis le 30 (juin|June) 2026/);
+    expect(bouton('Je participe comme mentor')).toBeUndefined();
+    expect(racine.querySelector('app-carte-mentor')).toBeNull();
   });
 
   it('invite à proposer du mentorat avant de participer', async () => {

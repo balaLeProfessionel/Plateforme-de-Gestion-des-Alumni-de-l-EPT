@@ -49,7 +49,9 @@ export class PageProgramme {
   protected readonly confirmation = signal<string | null>(null);
 
   protected readonly participe = computed(() => participeAuMentorat(this.authService.utilisateur()?.role));
-  protected readonly ouvert = computed(() => this.programme()?.statut === 'OUVERT');
+  /** Ouvert et pas encore terminé : on peut y demander un mentorat ou y devenir mentor. */
+  protected readonly ouvert = computed(() => this.programme()?.statut === 'OUVERT' && !this.programme()?.termine);
+  protected readonly confirmationDepart = signal(false);
 
   constructor() {
     if (this.participe()) {
@@ -83,7 +85,9 @@ export class PageProgramme {
   }
 
   protected seRetirer(): void {
-    this.changerParticipation((id) => this.programmeService.seRetirer(id), 'Vous ne participez plus à ce programme.');
+    this.confirmationDepart.set(false);
+    this.changerParticipation((id) => this.programmeService.seRetirer(id),
+      'Vous ne participez plus à ce programme. Vos demandes en attente y ont été annulées.');
   }
 
   protected demandeEnvoyee(): void {

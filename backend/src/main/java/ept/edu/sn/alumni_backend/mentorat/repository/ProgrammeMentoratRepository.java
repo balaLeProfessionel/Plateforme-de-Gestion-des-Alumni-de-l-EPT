@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.mentorat.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,8 +19,9 @@ public interface ProgrammeMentoratRepository extends JpaRepository<ProgrammeMent
     @EntityGraph(attributePaths = "responsable")
     List<ProgrammeMentorat> findAllByOrderByCreeLeDesc();
 
+    /** Programmes d'un statut dont la date de fin n'est pas passée. */
     @EntityGraph(attributePaths = "responsable")
-    List<ProgrammeMentorat> findByStatutOrderByDateDebutAscTitreAsc(StatutProgramme statut);
+    List<ProgrammeMentorat> findByStatutAndDateFinGreaterThanEqualOrderByDateDebutAscTitreAsc(StatutProgramme statut, LocalDate aujourdhui);
 
     /** Modifier un programme (étapes, statut) se fait sous verrou : deux gestionnaires ne se marchent pas dessus. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)

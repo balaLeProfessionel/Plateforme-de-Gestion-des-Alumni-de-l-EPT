@@ -227,10 +227,12 @@ export interface Programme {
   nombreMentorats: number;
   /** Mentors volontaires inscrits au programme. */
   nombreMentors: number;
-  /** Je peux le modifier : responsable ou administration. */
+  /** Je peux le modifier : administration. */
   gerable: boolean;
   /** J’y suis mentor volontaire. */
   jeParticipe: boolean;
+  /** Sa date de fin est passée : plus de nouvelle demande ni de nouveau mentor volontaire. */
+  termine: boolean;
 }
 
 /** Liste complète des étapes dans l’ordre voulu ; une étape sans id est créée, une étape absente retirée. */

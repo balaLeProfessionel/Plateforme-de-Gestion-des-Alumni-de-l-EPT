@@ -20,6 +20,9 @@
             · <a [routerLink]="['/mentorat/gestion-programmes', programme.id, 'tableau']">Tableau de bord</a>
           }
         </p>
+        @if (programme.termine && programme.statut !== 'CLOS' && programme.statut !== 'BROUILLON') {
+          <p class="alerte-fin"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i>Date de fin dépassée : pensez à clore le programme.</p>
+        }
       } @else {
         <p class="introduction">Le programme reste un brouillon, visible de l’administration seule, tant que vous ne l’ouvrez pas.</p>
       }

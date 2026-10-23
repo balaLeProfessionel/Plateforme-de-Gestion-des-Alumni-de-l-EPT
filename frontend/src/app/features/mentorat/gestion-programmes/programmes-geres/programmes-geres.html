@@ -44,6 +44,9 @@
               · {{ programme.nombreMentorats }} mentorat{{ programme.nombreMentorats > 1 ? 's' : '' }}
               · responsable : {{ programme.responsable.prenom }} {{ programme.responsable.nom }}
             </p>
+            @if (programme.termine && programme.statut !== 'CLOS' && programme.statut !== 'BROUILLON') {
+              <p class="alerte-fin"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i>Date de fin dépassée : pensez à clore le programme.</p>
+            }
             @if (programme.statut !== 'BROUILLON') {
               <a class="lien-tableau" [routerLink]="['/mentorat/gestion-programmes', programme.id, 'tableau']">
                 <i class="pi pi-chart-bar" aria-hidden="true"></i>Tableau de bord<span class="sr-only"> de « {{ programme.titre }} »</span>

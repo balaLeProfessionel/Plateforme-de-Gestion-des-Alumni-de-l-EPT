@@ -47,13 +47,24 @@
         <h2 id="titre-mentors">Mentors volontaires <span class="nombre">{{ programme.nombreMentors }}</span></h2>
         @if (participe() && ouvert()) {
           @if (programme.jeParticipe) {
-            <button type="button" class="secondaire" [disabled]="enCours()" (click)="seRetirer()">Ne plus participer</button>
+            @if (!confirmationDepart()) {
+              <button type="button" class="secondaire" [disabled]="enCours()" (click)="confirmationDepart.set(true)">Ne plus participer</button>
+            }
           } @else if (aUneOffre()) {
             <button type="button" class="principal" [disabled]="enCours()" (click)="participer()">Je participe comme mentor</button>
           }
         }
       </div>
 
+      @if (confirmationDepart()) {
+        <div class="confirmation" role="group" aria-labelledby="texte-depart">
+          <p id="texte-depart">Quitter le programme ? Vos demandes en attente dans ce programme seront annulées et leurs auteurs prévenus. Vos mentorats en cours continuent.</p>
+          <div class="boutons">
+            <button type="button" class="principal" [disabled]="enCours()" (click)="seRetirer()">Quitter le programme</button>
+            <button type="button" class="secondaire" (click)="confirmationDepart.set(false)">Rester volontaire</button>
+          </div>
+        </div>
+      }
       @if (messageAction(); as message) { <p class="message" role="status">{{ message }}</p> }
       @if (participe() && ouvert() && aUneOffre() === false) {
         <p class="aide">Pour participer comme mentor, proposez d’abord du mentorat : <a routerLink="/mentorat/offre">Mon offre</a>.</p>
@@ -62,7 +73,9 @@
         <p class="aide">Vous êtes mentor volontaire : les participants du programme peuvent vous solliciter.</p>
       }
 
-      @if (!ouvert()) {
+      @if (programme.termine && programme.statut === 'OUVERT') {
+        <p class="aide">Ce programme est terminé depuis le {{ programme.dateFin | date: 'd MMMM y' }} : il n’accepte plus de nouvelles demandes.</p>
+      } @else if (!ouvert()) {
         <p class="aide">Ce programme n’accepte plus de nouveaux mentorats.</p>
       } @else if (confirmation(); as message) {
         <p class="message" role="status"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ message }}

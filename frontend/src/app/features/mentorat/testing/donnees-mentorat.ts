@@ -78,7 +78,7 @@ export function unProgramme(valeurs: Partial<Programme> = {}): Programme {
       { id: 'e1', titre: 'Premier échange', description: null, ordre: 1 },
       { id: 'e2', titre: 'Visite de l’EPT', description: null, ordre: 2 },
     ],
-    nombreMentorats: 0, nombreMentors: 0, gerable: true, jeParticipe: false,
+    nombreMentorats: 0, nombreMentors: 0, gerable: true, jeParticipe: false, termine: false,
     ...valeurs,
   };
 }

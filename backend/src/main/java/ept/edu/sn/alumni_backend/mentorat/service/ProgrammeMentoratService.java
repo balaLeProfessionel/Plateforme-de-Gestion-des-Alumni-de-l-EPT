@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.mentorat.service;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -9,17 +10,21 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.mentorat.StatutMentorat;
 import ept.edu.sn.alumni_backend.mentorat.StatutProgramme;
 import ept.edu.sn.alumni_backend.mentorat.dto.ProgrammeRequest;
 import ept.edu.sn.alumni_backend.mentorat.dto.ProgrammeResponse;
 import ept.edu.sn.alumni_backend.mentorat.entity.JalonProgramme;
+import ept.edu.sn.alumni_backend.mentorat.entity.Mentorat;
 import ept.edu.sn.alumni_backend.mentorat.entity.ParticipationProgramme;
 import ept.edu.sn.alumni_backend.mentorat.entity.ProfilMentor;
 import ept.edu.sn.alumni_backend.mentorat.entity.ProgrammeMentorat;
+import ept.edu.sn.alumni_backend.mentorat.evenement.NotificationMentorat;
 import ept.edu.sn.alumni_backend.mentorat.exception.ConflitMentoratException;
 import ept.edu.sn.alumni_backend.mentorat.exception.MentoratIntrouvableException;
 import ept.edu.sn.alumni_backend.mentorat.repository.JalonProgrammeRepository;
@@ -46,6 +51,7 @@ public class ProgrammeMentoratService {
     private final ProfilMentorRepository profilMentorRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final MentoratMapper mapper;
+    private final ApplicationEventPublisher evenements;
 
     /** Tous les programmes, pour l'administration qui les gère. */
     @Transactional(readOnly = true)
@@ -54,10 +60,11 @@ public class ProgrammeMentoratService {
         return versResponses(programmeRepository.findAllByOrderByCreeLeDesc(), principal);
     }
 
-    /** Programmes ouverts aux rattachements, proposés à tous les membres. */
+    /** Programmes ouverts et pas encore terminés, proposés à tous les membres. */
     @Transactional(readOnly = true)
     public List<ProgrammeResponse> listerOuverts(UtilisateurPrincipal principal) {
-        return versResponses(programmeRepository.findByStatutOrderByDateDebutAscTitreAsc(StatutProgramme.OUVERT), principal);
+        return versResponses(programmeRepository.findByStatutAndDateFinGreaterThanEqualOrderByDateDebutAscTitreAsc(
+            StatutProgramme.OUVERT, ProgrammeMentorat.aujourdhui()), principal);
     }
 
     @Transactional(readOnly = true)
@@ -120,6 +127,10 @@ public class ProgrammeMentoratService {
         if (programme.getStatut() != StatutProgramme.OUVERT) {
             throw new ConflitMentoratException("On ne rejoint un programme que lorsqu'il est ouvert.");
         }
+        if (programme.estTermine()) {
+            throw new ConflitMentoratException("Ce programme est terminé depuis le "
+                + programme.dateFinEnToutesLettres() + " : on ne le rejoint plus.");
+        }
         ProfilMentor profil = profilMentorRepository.findByUtilisateur_Id(principal.getUtilisateur().getId())
             .orElseThrow(() -> new ConflitMentoratException(
                 "Proposez d'abord du mentorat (Mon offre) pour participer au programme comme mentor."));
@@ -132,13 +143,27 @@ public class ProgrammeMentoratService {
         return obtenir(programmeId, principal);
     }
 
-    /** Je ne suis plus mentor volontaire ; les mentorats déjà rattachés continuent. */
+    /**
+     * Je ne suis plus mentor volontaire : mes demandes en attente dans ce programme sont annulées et
+     * leurs auteurs prévenus ; les mentorats déjà acceptés continuent.
+     */
     @Transactional
     public ProgrammeResponse seRetirer(UUID programmeId, UtilisateurPrincipal principal) {
-        chargerVisible(programmeId, principal);
-        participationRepository.findByProgramme_IdAndProfilMentor_Utilisateur_Id(programmeId, principal.getUtilisateur().getId())
+        ProgrammeMentorat programme = chargerVisible(programmeId, principal);
+        Utilisateur moi = principal.getUtilisateur();
+        participationRepository.findByProgramme_IdAndProfilMentor_Utilisateur_Id(programmeId, moi.getId())
             .ifPresent(participationRepository::delete);
         participationRepository.flush();
+        Instant maintenant = Instant.now();
+        for (Mentorat demande : mentoratRepository.findByProgramme_IdAndProfilMentor_Utilisateur_IdAndStatut(
+                programmeId, moi.getId(), StatutMentorat.EN_ATTENTE)) {
+            demande.setStatut(StatutMentorat.ANNULEE);
+            demande.setClotureLe(maintenant);
+            evenements.publishEvent(new NotificationMentorat(demande.getMentore().getEmail(),
+                "Demande de mentorat annulée",
+                (moi.getPrenom() + " " + moi.getNom()).trim() + " ne participe plus au programme « " + programme.getTitre()
+                    + " » : votre demande a été annulée. Vous pouvez solliciter un autre mentor du programme."));
+        }
         return obtenir(programmeId, principal);
     }
 
@@ -224,7 +249,8 @@ public class ProgrammeMentoratService {
             mentorats.getOrDefault(programme.getId(), 0L),
             mentors.getOrDefault(programme.getId(), 0L),
             peutGerer(programme, principal),
-            mesParticipations.contains(programme.getId()))).toList();
+            mesParticipations.contains(programme.getId()),
+            programme.estTermine())).toList();
     }
 
     private static Map<UUID, Long> parProgramme(List<MentoratRepository.NombreParProgrammeProjection> nombres) {

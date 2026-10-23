@@ -62,6 +62,9 @@ public interface MentoratRepository extends JpaRepository<Mentorat, UUID> {
     @EntityGraph(attributePaths = {"mentore", "profilMentor", "profilMentor.utilisateur"})
     List<Mentorat> findByProgramme_IdOrderByCreeLeDesc(UUID programmeId);
 
+    @EntityGraph(attributePaths = "mentore")
+    List<Mentorat> findByProgramme_IdAndProfilMentor_Utilisateur_IdAndStatut(UUID programmeId, UUID mentorId, StatutMentorat statut);
+
     @Query("""
         select mentorat.programme.id as programmeId, count(mentorat) as nombre
         from Mentorat mentorat

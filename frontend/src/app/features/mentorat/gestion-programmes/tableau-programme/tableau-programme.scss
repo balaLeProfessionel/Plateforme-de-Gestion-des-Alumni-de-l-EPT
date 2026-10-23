@@ -143,3 +143,5 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--ept-sky); outli
   .chiffres dd { font-size: 1.35rem; }
   .chiffres .progression { grid-column: 1 / -1; }
 }
+
+.entete .alerte-fin { display: flex; gap: 0.45rem; align-items: baseline; margin: 0; color: var(--ept-gold-dark); font-size: 0.88rem; font-weight: 700; }

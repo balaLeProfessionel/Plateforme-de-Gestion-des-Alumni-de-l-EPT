@@ -2,6 +2,9 @@ package ept.edu.sn.alumni_backend.mentorat.entity;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.UUID;
 
 import org.hibernate.annotations.Check;
@@ -23,7 +26,7 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-/** Programme de mentorat encadré par l'école (étape 2 : pas encore exposé par l'API). */
+/** Programme de mentorat encadré par l'école, sur une période en jours calendaires. */
 @Entity
 @Table(name = "programmes_mentorat")
 @Check(name = "ck_programme_mentorat_dates", constraints = "date_fin >= date_debut")
@@ -60,5 +63,19 @@ public class ProgrammeMentorat {
     @PrePersist
     void initialiserDate() {
         creeLe = Instant.now();
+    }
+
+    /** Les dates d'un programme sont des jours à Thiès : on les compare au jour qu'il y est. */
+    public static LocalDate aujourdhui() {
+        return LocalDate.now(ZoneId.of("Africa/Dakar"));
+    }
+
+    /** Sa date de fin est passée : plus de nouvelle demande ni de nouveau mentor volontaire. */
+    public boolean estTermine() {
+        return dateFin.isBefore(aujourdhui());
+    }
+
+    public String dateFinEnToutesLettres() {
+        return dateFin.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.FRENCH));
     }
 }

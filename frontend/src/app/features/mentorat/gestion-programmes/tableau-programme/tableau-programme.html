@@ -17,6 +17,9 @@
         <p class="surtitre">Tableau de bord · <span class="statut" [attr.data-statut]="programme.statut">{{ libellesProgramme[programme.statut] }}</span></p>
         <h1>{{ programme.titre }}</h1>
         <p class="periode">Du {{ programme.dateDebut | date: 'd MMMM y' }} au {{ programme.dateFin | date: 'd MMMM y' }}</p>
+        @if (programme.termine && programme.statut !== 'CLOS' && programme.statut !== 'BROUILLON') {
+          <p class="alerte-fin"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i>Date de fin dépassée : pensez à clore le programme.</p>
+        }
         <nav class="liens" aria-label="Autour du programme">
           <a [routerLink]="['/mentorat/gestion-programmes', programme.id]"><i class="pi pi-pencil" aria-hidden="true"></i>Gérer le programme</a>
           @if (programme.statut !== 'BROUILLON') {

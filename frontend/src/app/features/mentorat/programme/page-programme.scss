@@ -81,6 +81,19 @@ button {
 .message { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; margin: 0; padding: 0.6rem 0.8rem; border-radius: 8px; background: var(--ept-success-light); color: var(--ept-success-dark); }
 .aide, .vide { margin: 0; color: var(--ept-text-secondary); font-size: 0.9rem; }
 
+.confirmation {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--ept-gold);
+  border-radius: 10px;
+  background: var(--ept-gold-light);
+
+  p { margin: 0; color: var(--ept-primary-dark); }
+}
+
+.boutons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
 .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); gap: 1.25rem; margin: 0.5rem 0 0; padding: 0; list-style: none; }
 
 .etat {

@@ -178,6 +178,10 @@ public class MentoratService {
         if (programme.getStatut() != StatutProgramme.OUVERT) {
             throw new ConflitMentoratException("Ce programme n'accepte plus de nouvelles demandes.");
         }
+        if (programme.estTermine()) {
+            throw new ConflitMentoratException("Ce programme est terminé depuis le "
+                + programme.dateFinEnToutesLettres() + " : il n'accepte plus de nouvelles demandes.");
+        }
         if (!participationProgrammeRepository.existsByProgramme_IdAndProfilMentor_Id(programmeId, profil.getId())) {
             throw new ConflitMentoratException("Ce mentor ne participe pas à ce programme.");
         }

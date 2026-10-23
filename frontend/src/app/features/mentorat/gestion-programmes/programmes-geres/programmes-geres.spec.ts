@@ -43,6 +43,14 @@ describe('ProgrammesGeres', () => {
     // Un brouillon n’a pas encore de suivi ; un programme ouvert mène à son tableau de bord.
     expect(lignes[0].querySelector('.lien-tableau')).toBeNull();
     expect(lignes[1].querySelector('.lien-tableau')?.getAttribute('href')).toBe('/mentorat/gestion-programmes/p2/tableau');
+    expect(racine.querySelector('.alerte-fin')).toBeNull();
+  });
+
+  it('avertit qu’un programme encore ouvert a dépassé sa date de fin', async () => {
+    await repondre([unProgramme({ statut: 'OUVERT', termine: true }), unProgramme({ id: 'p2', statut: 'CLOS', termine: true })]);
+    const lignes = [...racine.querySelectorAll('.programme')] as HTMLElement[];
+    expect(lignes[0].querySelector('.alerte-fin')?.textContent).toContain('Date de fin dépassée : pensez à clore le programme.');
+    expect(lignes[1].querySelector('.alerte-fin')).toBeNull();
     expect(racine.querySelector('.action-principale')?.getAttribute('href')).toBe('/mentorat/gestion-programmes/nouveau');
   });
 

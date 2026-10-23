@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -498,6 +499,68 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
             .andExpect(status().isForbidden());
         mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}/tableau", UUID.randomUUID()), admin))
             .andExpect(status().isNotFound());
+    }
+
+    // ---------- Dates du programme et départ d'un mentor ----------
+
+    @Test
+    void f01_unProgrammeTermineNAccepteNiDemandeNiMentorEtSortDesProgrammesOuverts() throws Exception {
+        UUID id = creer(gestionnaire, "Orientation", "Étape");
+        changerStatutProgramme(id, "OUVERT", gestionnaire);
+        UUID data = domaine("DATA_IA");
+        Utilisateur mentor = creerUtilisateur(TypeRole.ALUMNI, "Volontaire");
+        UUID profilId = creerProfil(mentor, true, 2, data);
+        participer(id, mentor);
+        mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}", id), etudiant))
+            .andExpect(jsonPath("$.termine").value(false));
+
+        // La période est passée (les dates d'une requête ne peuvent pas être antérieures : on les pose en base).
+        var programme = programmeRepository.findById(id).orElseThrow();
+        programme.setDateDebut(LocalDate.of(2025, 9, 1));
+        programme.setDateFin(LocalDate.of(2026, 6, 30));
+        programmeRepository.saveAndFlush(programme);
+
+        mockMvc.perform(authentifie(get("/api/mentorat/programmes/ouverts"), etudiant))
+            .andExpect(jsonPath("$").isEmpty());
+        mockMvc.perform(authentifie(get("/api/mentorat/programmes/geres"), gestionnaire))
+            .andExpect(jsonPath("$[0].termine").value(true))
+            .andExpect(jsonPath("$[0].statut").value("OUVERT"));
+        envoyer(post("/api/mentorat/mentorats"), etudiant, demandeDansProgramme(profilId, data, id))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value("Ce programme est terminé depuis le 30 juin 2026 : il n'accepte plus de nouvelles demandes."));
+        Utilisateur retardataire = creerUtilisateur(TypeRole.ALUMNI, "Retard");
+        creerProfil(retardataire, true, 2, data);
+        mockMvc.perform(authentifie(post("/api/mentorat/programmes/{id}/participation", id), retardataire))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value("Ce programme est terminé depuis le 30 juin 2026 : on ne le rejoint plus."));
+        // Une demande libre au même mentor reste possible.
+        envoyer(post("/api/mentorat/mentorats"), etudiant, demande(profilId, data)).andExpect(status().isCreated());
+    }
+
+    @Test
+    void f02_leMentorQuiQuitteLeProgrammeAnnuleSesDemandesEnAttenteDuProgrammeSeulement() throws Exception {
+        UUID id = creer(gestionnaire, "Orientation", "Étape");
+        changerStatutProgramme(id, "OUVERT", gestionnaire);
+        UUID data = domaine("DATA_IA");
+        Utilisateur mentor = creerUtilisateur(TypeRole.ALUMNI, "Partant");
+        UUID profilId = creerProfil(mentor, true, 3, data);
+        participer(id, mentor);
+        UUID enAttente = demanderDansProgramme(etudiant, profilId, data, id);
+        UUID acceptee = demanderDansProgramme(creerUtilisateur(TypeRole.ETUDIANT, "Acceptee"), profilId, data, id);
+        changerStatut(acceptee, "accepter", mentor);
+        UUID libre = demander(creerUtilisateur(TypeRole.VISITEUR, "Libre"), profilId, data);
+
+        mockMvc.perform(authentifie(delete("/api/mentorat/programmes/{id}/participation", id), mentor))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.jeParticipe").value(false));
+
+        assertThat(mentoratRepository.findById(enAttente).orElseThrow().getStatut()).isEqualTo(StatutMentorat.ANNULEE);
+        assertThat(mentoratRepository.findById(enAttente).orElseThrow().getClotureLe()).isNotNull();
+        assertThat(mentoratRepository.findById(acceptee).orElseThrow().getStatut()).isEqualTo(StatutMentorat.ACCEPTEE);
+        assertThat(mentoratRepository.findById(libre).orElseThrow().getStatut()).isEqualTo(StatutMentorat.EN_ATTENTE);
+        // Le mentoré peut solliciter un autre mentor du programme : sa demande n'est plus en cours.
+        mockMvc.perform(authentifie(get("/api/mentorat/mentorats/compteurs"), etudiant))
+            .andExpect(jsonPath("$.demandesEnvoyeesEnAttente").value(0));
     }
 
     private UUID demanderDansProgramme(Utilisateur mentore, UUID profilId, UUID domaineId, UUID programmeId) throws Exception {
