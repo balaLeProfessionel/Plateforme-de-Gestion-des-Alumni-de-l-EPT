@@ -14,7 +14,7 @@ const section = (titre: string, role: RoleMentorat, statuts: StatutMentorat[]): 
   ({ titre, role, statuts });
 
 export const MENTORAT_ROUTES: Routes = [
-  // Gestion des programmes : hors des onglets, réservée au personnel et à l’administration.
+  // Gestion des programmes : hors des onglets, réservée à l’administration.
   {
     path: 'gestion-programmes',
     title: 'Programmes de mentorat | EPT Alumni',
@@ -28,6 +28,13 @@ export const MENTORAT_ROUTES: Routes = [
     canActivate: [roleGuard],
     data: GESTIONNAIRES,
     loadComponent: () => import('./gestion-programmes/formulaire-programme/formulaire-programme').then((m) => m.FormulaireProgramme)
+  },
+  {
+    path: 'gestion-programmes/:id/tableau',
+    title: 'Tableau de bord du programme | EPT Alumni',
+    canActivate: [roleGuard],
+    data: GESTIONNAIRES,
+    loadComponent: () => import('./gestion-programmes/tableau-programme/tableau-programme').then((m) => m.TableauProgrammePage)
   },
   {
     path: 'gestion-programmes/:id',

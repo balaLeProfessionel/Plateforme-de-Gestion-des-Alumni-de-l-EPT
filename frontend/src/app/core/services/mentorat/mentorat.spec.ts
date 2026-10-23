@@ -87,6 +87,7 @@ describe('ProgrammeService', () => {
 
     service.listerGeres().subscribe();
     service.listerOuverts().subscribe();
+    service.tableau('p1').subscribe();
     service.participer('p1').subscribe();
     service.obtenir('p 1').subscribe();
     service.changerStatut('p1', 'OUVERT').subscribe();
@@ -94,6 +95,7 @@ describe('ProgrammeService', () => {
 
     http.expectOne('/api/mentorat/programmes/geres').flush([]);
     http.expectOne('/api/mentorat/programmes/ouverts').flush([]);
+    http.expectOne('/api/mentorat/programmes/p1/tableau').flush({});
     expect(http.expectOne('/api/mentorat/programmes/p1/participation').request.method).toBe('POST');
     http.expectOne('/api/mentorat/programmes/p%201').flush({});
     const statut = http.expectOne('/api/mentorat/programmes/p1/statut');

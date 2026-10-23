@@ -40,6 +40,9 @@ describe('ProgrammesGeres', () => {
     expect(lignes[0].querySelector('.statut')?.textContent).toContain('Brouillon');
     expect(lignes[0].querySelector('.periode')?.textContent).toMatch(/Du 1 nov\.? 2026 au 31 mars? 2027/i);
     expect(lignes[1].querySelector('.chiffres')?.textContent).toContain('3 mentorats');
+    // Un brouillon n’a pas encore de suivi ; un programme ouvert mène à son tableau de bord.
+    expect(lignes[0].querySelector('.lien-tableau')).toBeNull();
+    expect(lignes[1].querySelector('.lien-tableau')?.getAttribute('href')).toBe('/mentorat/gestion-programmes/p2/tableau');
     expect(racine.querySelector('.action-principale')?.getAttribute('href')).toBe('/mentorat/gestion-programmes/nouveau');
   });
 
@@ -50,10 +53,10 @@ describe('ProgrammesGeres', () => {
 
   it('affiche le refus du serveur', async () => {
     http.expectOne('/api/mentorat/programmes/geres').flush(
-      { message: 'Les programmes sont gérés par le personnel de l’EPT et l’administration.' },
+      { message: 'Les programmes sont créés et gérés par l’administration.' },
       { status: 403, statusText: 'Forbidden' });
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(racine.querySelector('[role="alert"]')?.textContent).toContain('gérés par le personnel');
+    expect(racine.querySelector('[role="alert"]')?.textContent).toContain('gérés par l’administration');
   });
 });

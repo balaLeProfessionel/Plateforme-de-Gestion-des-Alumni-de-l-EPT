@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
-import { Programme, ProgrammeRequest, StatutProgramme } from '../models/mentorat.model';
+import { Programme, ProgrammeRequest, StatutProgramme, TableauProgramme } from '../models/mentorat.model';
 
 const API = '/api/mentorat/programmes';
 
@@ -29,6 +29,10 @@ export class ProgrammeService {
 
   obtenir(id: string) {
     return this.http.get<Programme>(`${API}/${encodeURIComponent(id)}`);
+  }
+
+  tableau(id: string) {
+    return this.http.get<TableauProgramme>(`${API}/${encodeURIComponent(id)}/tableau`);
   }
 
   creer(programme: ProgrammeRequest) {

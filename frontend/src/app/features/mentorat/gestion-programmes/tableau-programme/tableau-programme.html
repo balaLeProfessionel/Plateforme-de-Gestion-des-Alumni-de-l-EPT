@@ -1,0 +1,126 @@
+<div class="tableau-page">
+  <app-bouton-retour secours="/mentorat/gestion-programmes" />
+
+  @if (etat(); as etat) {
+    @if (etat.erreur) {
+      <section class="etat" role="alert">
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        <h1>Tableau de bord indisponible</h1>
+        <p>{{ etat.erreur }}</p>
+      </section>
+    } @else if (etat.programme && etat.tableau) {
+      @let programme = etat.programme;
+      @let tableau = etat.tableau;
+      @let nombreEtapes = tableau.etapes.length;
+
+      <header class="entete">
+        <p class="surtitre">Tableau de bord · <span class="statut" [attr.data-statut]="programme.statut">{{ libellesProgramme[programme.statut] }}</span></p>
+        <h1>{{ programme.titre }}</h1>
+        <p class="periode">Du {{ programme.dateDebut | date: 'd MMMM y' }} au {{ programme.dateFin | date: 'd MMMM y' }}</p>
+        <nav class="liens" aria-label="Autour du programme">
+          <a [routerLink]="['/mentorat/gestion-programmes', programme.id]"><i class="pi pi-pencil" aria-hidden="true"></i>Gérer le programme</a>
+          @if (programme.statut !== 'BROUILLON') {
+            <a [routerLink]="['/mentorat/programmes', programme.id]"><i class="pi pi-eye" aria-hidden="true"></i>Page vue par les membres</a>
+          }
+        </nav>
+      </header>
+
+      <section aria-labelledby="titre-chiffres">
+        <h2 id="titre-chiffres" class="sr-only">Chiffres clés</h2>
+        <dl class="chiffres">
+          <div><dt>Mentors volontaires</dt><dd>{{ tableau.mentors.length }}</dd></div>
+          <div><dt>Demandes en attente</dt><dd>{{ tableau.enAttente }}</dd></div>
+          <div><dt>Mentorats en cours</dt><dd>{{ tableau.enCours }}</dd></div>
+          <div><dt>Mentorats terminés</dt><dd>{{ tableau.terminees }}</dd></div>
+          <div class="progression">
+            <dt>Avancement moyen</dt>
+            <dd>{{ tableau.progressionMoyenne }} %</dd>
+            <span class="barre" aria-hidden="true"><span [style.width.%]="tableau.progressionMoyenne"></span></span>
+          </div>
+        </dl>
+      </section>
+
+      <div class="colonnes">
+        <section class="bloc" aria-labelledby="titre-etapes">
+          <h2 id="titre-etapes">Avancement par étape</h2>
+          @if (nombreEtapes === 0) {
+            <p class="vide">Ce programme n’a pas encore d’étape.</p>
+          } @else {
+            @if (tableau.etapes[0].suivis === 0) {
+              <p class="aide">Les étapes se valident une fois le mentorat accepté : aucun mentorat n’est encore en cours.</p>
+            }
+            <ol class="etapes">
+              @for (etape of tableau.etapes; track etape.id) {
+                <li>
+                  <span class="titre-etape"><span class="numero" aria-hidden="true">{{ etape.ordre }}</span>{{ etape.titre }}</span>
+                  <span class="compte">{{ etape.franchies }} / {{ etape.suivis }}<span class="sr-only"> mentorats l’ont franchie</span></span>
+                  <span class="barre" aria-hidden="true"><span [style.width.%]="part(etape.franchies, etape.suivis)"></span></span>
+                </li>
+              }
+            </ol>
+          }
+        </section>
+
+        <section class="bloc" aria-labelledby="titre-mentors">
+          <h2 id="titre-mentors">Mentors volontaires</h2>
+          @if (tableau.mentors.length === 0) {
+            <p class="vide">Aucun mentor volontaire pour l’instant.</p>
+          } @else {
+            <ul class="mentors">
+              @for (volontaire of tableau.mentors; track volontaire.mentor.id) {
+                <li>
+                  <app-avatar-membre [urlPhoto]="volontaire.mentor.urlPhoto" [prenom]="volontaire.mentor.prenom"
+                    [nom]="volontaire.mentor.nom" [roleMembre]="volontaire.mentor.role" [taille]="2.4" />
+                  <span class="identite">
+                    <a [routerLink]="['/profil', volontaire.mentor.id]">{{ volontaire.mentor.prenom }} {{ volontaire.mentor.nom }}</a>
+                    <span class="details">
+                      {{ volontaire.mentoresEnCours }} mentoré{{ volontaire.mentoresEnCours > 1 ? 's' : '' }} en cours
+                      · {{ volontaire.disponible ? 'disponible' : 'indisponible' }}
+                    </span>
+                  </span>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      </div>
+
+      <section class="bloc" aria-labelledby="titre-mentorats">
+        <h2 id="titre-mentorats">Mentorats du programme</h2>
+        <p class="aide">Objectifs, séances et évaluations restent entre mentor et mentoré : seul l’avancement apparaît ici.</p>
+        <div class="filtres" role="group" aria-label="Filtrer les mentorats par statut">
+          @for (option of filtres(); track option.valeur) {
+            <button type="button" [attr.aria-pressed]="filtre() === option.valeur" (click)="filtre.set(option.valeur)">
+              {{ option.libelle }} <span class="nombre">{{ option.nombre }}</span>
+            </button>
+          }
+        </div>
+
+        @if (mentoratsAffiches().length === 0) {
+          <p class="vide">{{ tableau.mentorats.length === 0 ? 'Aucune demande n’a encore été faite dans ce programme.' : 'Aucun mentorat dans ce statut.' }}</p>
+        } @else {
+          <ul class="mentorats" aria-live="polite">
+            @for (mentorat of mentoratsAffiches(); track mentorat.id) {
+              <li [attr.data-statut]="mentorat.statut">
+                <div class="binome">
+                  <span class="personne"><small>Mentor</small>{{ mentorat.mentor.prenom }} {{ mentorat.mentor.nom }} <app-etiquette-role [role]="mentorat.mentor.role" /></span>
+                  <i class="pi pi-arrow-right" aria-hidden="true"></i>
+                  <span class="personne"><small>Mentoré</small>{{ mentorat.mentore.prenom }} {{ mentorat.mentore.nom }} <app-etiquette-role [role]="mentorat.mentore.role" /></span>
+                </div>
+                <div class="suivi">
+                  <span class="statut-mentorat">{{ libellesStatut[mentorat.statut] }}</span>
+                  @if (mentorat.statut === 'ACCEPTEE' || mentorat.statut === 'TERMINEE') {
+                    <span>{{ mentorat.etapesFranchies }} / {{ nombreEtapes }} étapes</span>
+                  }
+                  <span>Demande du {{ mentorat.creeLe | date: 'd MMM y' }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement du tableau de bord"></div>
+  }
+</div>

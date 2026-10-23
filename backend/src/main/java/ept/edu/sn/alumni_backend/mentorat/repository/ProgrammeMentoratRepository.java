@@ -19,9 +19,6 @@ public interface ProgrammeMentoratRepository extends JpaRepository<ProgrammeMent
     List<ProgrammeMentorat> findAllByOrderByCreeLeDesc();
 
     @EntityGraph(attributePaths = "responsable")
-    List<ProgrammeMentorat> findByResponsable_IdOrderByCreeLeDesc(UUID responsableId);
-
-    @EntityGraph(attributePaths = "responsable")
     List<ProgrammeMentorat> findByStatutOrderByDateDebutAscTitreAsc(StatutProgramme statut);
 
     /** Modifier un programme (étapes, statut) se fait sous verrou : deux gestionnaires ne se marchent pas dessus. */

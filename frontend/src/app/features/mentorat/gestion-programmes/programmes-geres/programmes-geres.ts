@@ -13,7 +13,7 @@ interface EtatListe {
   erreur: string | null;
 }
 
-/** Les programmes que je gère : les miens pour le personnel, tous pour l’administration. */
+/** Tous les programmes, gérés par l’administration. */
 @Component({
   selector: 'app-programmes-geres',
   imports: [DatePipe, RouterLink, FilAriane],

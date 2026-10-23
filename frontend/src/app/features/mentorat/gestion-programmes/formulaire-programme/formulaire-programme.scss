@@ -6,6 +6,7 @@
   h1 { margin: 0; color: var(--ept-primary-dark); font-size: clamp(1.5rem, 3vw, 1.9rem); line-height: 1.15; }
   .introduction, .etat-programme { margin: 0.4rem 0 0; color: var(--ept-text-secondary); }
   .etat-programme { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+  .etat-programme a { color: var(--ept-primary); font-weight: 700; }
 }
 
 .statut {

@@ -12,6 +12,8 @@ scripts/donnees-demo/charger.sh adresse.du.compte@modele
 - La pile Docker doit tourner (`docker compose up`).
 - Les comptes de démonstration (`…@demo.ept-alumni.invalid`) reprennent le mot de passe du compte
   modèle passé en argument ; sans argument, on ne peut pas s'y connecter.
+- `admin@demo.ept-alumni.invalid` (Mame Diarra Ndour) est le compte d'administration : seul rôle qui
+  crée et gère les programmes de mentorat et consulte leur tableau de bord.
 - Rejouable sans doublon : les identifiants sont stables. Les dates des événements sont calculées
   par rapport au jour du premier chargement.
 - Pour modifier les données, éditer `generer-sql.py` puis régénérer :

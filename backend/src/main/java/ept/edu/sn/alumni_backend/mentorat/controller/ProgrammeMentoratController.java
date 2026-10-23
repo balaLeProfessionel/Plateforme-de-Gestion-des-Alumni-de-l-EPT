@@ -20,7 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 import ept.edu.sn.alumni_backend.mentorat.dto.ProgrammeRequest;
 import ept.edu.sn.alumni_backend.mentorat.dto.ProgrammeResponse;
 import ept.edu.sn.alumni_backend.mentorat.dto.StatutProgrammeRequest;
+import ept.edu.sn.alumni_backend.mentorat.dto.TableauProgrammeResponse;
 import ept.edu.sn.alumni_backend.mentorat.service.ProgrammeMentoratService;
+import ept.edu.sn.alumni_backend.mentorat.service.TableauProgrammeService;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class ProgrammeMentoratController {
     private final ProgrammeMentoratService programmeService;
+    private final TableauProgrammeService tableauService;
 
     @GetMapping("/geres")
     public ResponseEntity<List<ProgrammeResponse>> listerGeres(@AuthenticationPrincipal UtilisateurPrincipal principal) {
@@ -54,6 +57,14 @@ public class ProgrammeMentoratController {
             @PathVariable UUID id,
             @AuthenticationPrincipal UtilisateurPrincipal principal) {
         return ResponseEntity.ok(programmeService.seRetirer(id, principal));
+    }
+
+    /** Tableau de bord du programme, pour l'administration. */
+    @GetMapping("/{id}/tableau")
+    public ResponseEntity<TableauProgrammeResponse> tableau(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(tableauService.obtenir(id, principal));
     }
 
     @GetMapping("/{id}")

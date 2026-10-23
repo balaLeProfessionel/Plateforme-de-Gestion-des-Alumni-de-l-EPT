@@ -193,8 +193,8 @@ export const LIBELLES_MODALITE: Record<ModaliteSeance, string> = {
 
 export type StatutProgramme = 'BROUILLON' | 'OUVERT' | 'EN_COURS' | 'CLOS';
 
-/** Le personnel de l’EPT crée les programmes ; l’administration les gère tous. */
-export const ROLES_GESTION_PROGRAMMES: readonly string[] = ['PERSONNEL', 'ADMIN'];
+/** Seule l’administration crée et gère les programmes. */
+export const ROLES_GESTION_PROGRAMMES: readonly string[] = ['ADMIN'];
 
 export function gereLesProgrammes(role: string | null | undefined): boolean {
   return ROLES_GESTION_PROGRAMMES.includes(role ?? '');
@@ -240,4 +240,42 @@ export interface ProgrammeRequest {
   dateDebut: string;
   dateFin: string;
   etapes: { id: string | null; titre: string; description: string | null }[];
+}
+
+/** Tableau de bord d’un programme pour l’administration : avancement, sans le contenu des mentorats. */
+export interface TableauProgramme {
+  enAttente: number;
+  enCours: number;
+  terminees: number;
+  /** Demandes refusées ou annulées. */
+  sansSuite: number;
+  /** Part des étapes franchies par les mentorats suivis (en cours ou terminés), en %. */
+  progressionMoyenne: number;
+  etapes: AvancementEtape[];
+  mentorats: MentoratDeProgramme[];
+  mentors: MentorVolontaire[];
+}
+
+export interface AvancementEtape {
+  id: string;
+  ordre: number;
+  titre: string;
+  franchies: number;
+  /** Mentorats en cours ou terminés, qui peuvent franchir l’étape. */
+  suivis: number;
+}
+
+export interface MentoratDeProgramme {
+  id: string;
+  statut: StatutMentorat;
+  mentor: ParticipantMentorat;
+  mentore: ParticipantMentorat;
+  etapesFranchies: number;
+  creeLe: string;
+}
+
+export interface MentorVolontaire {
+  mentor: ParticipantMentorat;
+  mentoresEnCours: number;
+  disponible: boolean;
 }

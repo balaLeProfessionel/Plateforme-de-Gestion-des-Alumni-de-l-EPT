@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, Injector, computed, inject, signal } from '@angular/core';
 import { FormField, applyEach, form, maxLength, required, submit, validate } from '@angular/forms/signals';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable, firstValueFrom } from 'rxjs';
 import { ProgrammeService } from '../../../../core/services/mentorat/programmes';
 import {
@@ -58,7 +58,7 @@ const VIERGE: SaisieProgramme = { titre: '', description: '', dateDebut: '', dat
 /** Créer ou modifier un programme : présentation, période et étapes, puis son cycle de vie. */
 @Component({
   selector: 'app-formulaire-programme',
-  imports: [FormField, BoutonRetour],
+  imports: [FormField, RouterLink, BoutonRetour],
   templateUrl: './formulaire-programme.html',
   styleUrl: './formulaire-programme.scss',
 })

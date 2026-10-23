@@ -236,6 +236,14 @@ for n, (i_mentor, i_etudiant, statut) in enumerate(SCENARIOS):
             f"insert into evaluations_mentorat (id, mentorat_id, auteur_id, note, commentaire, cree_le)\n"
             f"values ({q(uid('evaluation', mt, e))}, {q(mt)}, {q(e)}, 5, 'Des conseils concrets et une vraie disponibilité. Merci !', now()) on conflict do nothing;")
 
+# Compte d'administration : seul rôle qui crée et gère les programmes de mentorat.
+# Ajouté en dernier pour ne pas décaler les tirages aléatoires des données précédentes.
+lignes.append(
+    f"insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, ville_residence, poste_actuel, bio, date_creation)\n"
+    f"select {q(uid('membre', 'Mame Diarra', 'Ndour'))}, 'admin@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,\n"
+    f"  'Mame Diarra', 'Ndour', 'ADMIN', 'ACTIF', 'Thiès', 'Administratrice de la plateforme', 'Administratrice de la plateforme EPT Alumni.', now() - interval '400 days'\n"
+    f"on conflict do nothing;")
+
 lignes.append('commit;\n')
 open(sys.argv[1], 'w', encoding='utf-8', newline='\n').write('\n'.join(lignes))
 print('lignes', len(lignes), 'événements avec image', [(uid('evenement', e[0]), e[9]) for e in EVENEMENTS if e[9]])

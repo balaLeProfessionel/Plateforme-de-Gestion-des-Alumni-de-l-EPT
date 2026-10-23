@@ -33,14 +33,12 @@ import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Programmes de mentorat encadrés par l'école : le personnel les crée et en devient responsable,
- * l'administration les gère tous. Un brouillon n'est visible que de ceux qui le gèrent.
+ * Programmes de mentorat encadrés par l'école : seule l'administration les crée et les gère.
+ * Un brouillon n'est visible que d'elle.
  */
 @Service
 @RequiredArgsConstructor
 public class ProgrammeMentoratService {
-    private static final Set<TypeRole> GESTIONNAIRES = Set.of(TypeRole.PERSONNEL, TypeRole.ADMIN);
-
     private final ProgrammeMentoratRepository programmeRepository;
     private final JalonProgrammeRepository jalonRepository;
     private final MentoratRepository mentoratRepository;
@@ -49,15 +47,11 @@ public class ProgrammeMentoratService {
     private final UtilisateurRepository utilisateurRepository;
     private final MentoratMapper mapper;
 
-    /** Programmes que je gère : tous pour l'administration, les miens pour le personnel. */
+    /** Tous les programmes, pour l'administration qui les gère. */
     @Transactional(readOnly = true)
     public List<ProgrammeResponse> listerGeres(UtilisateurPrincipal principal) {
         exigerGestionnaire(principal);
-        Utilisateur moi = principal.getUtilisateur();
-        List<ProgrammeMentorat> programmes = moi.getRole() == TypeRole.ADMIN
-            ? programmeRepository.findAllByOrderByCreeLeDesc()
-            : programmeRepository.findByResponsable_IdOrderByCreeLeDesc(moi.getId());
-        return versResponses(programmes, principal);
+        return versResponses(programmeRepository.findAllByOrderByCreeLeDesc(), principal);
     }
 
     /** Programmes ouverts aux rattachements, proposés à tous les membres. */
@@ -248,23 +242,33 @@ public class ProgrammeMentoratService {
 
     /** Introuvable pour qui ne voit pas un brouillon ; interdit pour qui voit le programme sans le gérer. */
     private ProgrammeMentorat chargerPourGestion(UUID programmeId, UtilisateurPrincipal principal) {
-        ProgrammeMentorat programme = programmeRepository.findByIdForUpdate(programmeId)
-            .orElseThrow(ProgrammeMentoratService::introuvable);
+        return exigerGestion(programmeRepository.findByIdForUpdate(programmeId)
+            .orElseThrow(ProgrammeMentoratService::introuvable), principal);
+    }
+
+    /** Programme lu pour son tableau de bord : mêmes règles que pour le gérer, sans verrou. */
+    @Transactional(readOnly = true)
+    public ProgrammeMentorat chargerPourTableau(UUID programmeId, UtilisateurPrincipal principal) {
+        return exigerGestion(programmeRepository.findById(programmeId)
+            .orElseThrow(ProgrammeMentoratService::introuvable), principal);
+    }
+
+    private static ProgrammeMentorat exigerGestion(ProgrammeMentorat programme, UtilisateurPrincipal principal) {
         if (!peutGerer(programme, principal)) {
             if (programme.getStatut() == StatutProgramme.BROUILLON) throw introuvable();
-            throw new SecurityException("Seul le responsable du programme ou l'administration peut le gérer.");
+            throw new SecurityException("Seule l'administration peut gérer ce programme.");
         }
         return programme;
     }
 
+    /** Le programme garde son responsable (l'administrateur qui l'a créé), mais toute l'administration le gère. */
     private static boolean peutGerer(ProgrammeMentorat programme, UtilisateurPrincipal principal) {
-        Utilisateur moi = principal.getUtilisateur();
-        return moi.getRole() == TypeRole.ADMIN || programme.getResponsable().getId().equals(moi.getId());
+        return principal.getUtilisateur().getRole() == TypeRole.ADMIN;
     }
 
     private static void exigerGestionnaire(UtilisateurPrincipal principal) {
-        if (!GESTIONNAIRES.contains(principal.getUtilisateur().getRole())) {
-            throw new SecurityException("Les programmes sont gérés par le personnel de l'EPT et l'administration.");
+        if (principal.getUtilisateur().getRole() != TypeRole.ADMIN) {
+            throw new SecurityException("Les programmes sont créés et gérés par l'administration.");
         }
     }
 

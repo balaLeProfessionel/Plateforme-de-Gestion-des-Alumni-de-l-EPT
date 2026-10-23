@@ -44,6 +44,11 @@
               · {{ programme.nombreMentorats }} mentorat{{ programme.nombreMentorats > 1 ? 's' : '' }}
               · responsable : {{ programme.responsable.prenom }} {{ programme.responsable.nom }}
             </p>
+            @if (programme.statut !== 'BROUILLON') {
+              <a class="lien-tableau" [routerLink]="['/mentorat/gestion-programmes', programme.id, 'tableau']">
+                <i class="pi pi-chart-bar" aria-hidden="true"></i>Tableau de bord<span class="sr-only"> de « {{ programme.titre }} »</span>
+              </a>
+            }
           </li>
         }
       </ul>

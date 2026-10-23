@@ -32,34 +32,37 @@ import ept.edu.sn.alumni_backend.mentorat.entity.Mentorat;
 import ept.edu.sn.alumni_backend.mentorat.entity.ProgressionJalon;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 
-/** Cas G-* (gestion, lot 1), V-* (programme visible et mentors volontaires, lot 2) D-* (demande rattachée, lot 3) et E-* (étapes dans le suivi, lot 4). */
+/** Cas G-* (gestion, lot 1), V-* (programme visible et mentors volontaires, lot 2) D-* (demande rattachée, lot 3), E-* (étapes dans le suivi, lot 4) et T-* (tableau de bord, lot 5). */
 @SpringBootTest
 @AutoConfigureMockMvc
 class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
-    private static final String MESSAGE_ROLE = "Les programmes sont gérés par le personnel de l'EPT et l'administration.";
+    private static final String MESSAGE_ROLE = "Les programmes sont créés et gérés par l'administration.";
 
-    private Utilisateur personnel;
-    private Utilisateur autrePersonnel;
+    /** Administrateur qui crée les programmes des tests. */
+    private Utilisateur gestionnaire;
+    private Utilisateur autreAdmin;
     private Utilisateur admin;
+    private Utilisateur personnel;
     private Utilisateur etudiant;
 
     @BeforeEach
     void preparer() {
-        personnel = creerUtilisateur(TypeRole.PERSONNEL, "Faye");
-        autrePersonnel = creerUtilisateur(TypeRole.PERSONNEL, "Ka");
+        gestionnaire = creerUtilisateur(TypeRole.ADMIN, "Faye");
+        autreAdmin = creerUtilisateur(TypeRole.ADMIN, "Ka");
+        personnel = creerUtilisateur(TypeRole.PERSONNEL, "Personnel");
         admin = creerUtilisateur(TypeRole.ADMIN, "Admin");
         etudiant = creerUtilisateur(TypeRole.ETUDIANT, "Ndiaye");
     }
 
     @Test
-    void g01_lePersonnelCreeUnBrouillonAvecSesEtapesDansLOrdre() throws Exception {
-        envoyer(post("/api/mentorat/programmes"), personnel, programme("  Orientation lycée 2026  ",
+    void g01_lAdministrationCreeUnBrouillonAvecSesEtapesDansLOrdre() throws Exception {
+        envoyer(post("/api/mentorat/programmes"), gestionnaire, programme("  Orientation lycée 2026  ",
                 etape(null, "Premier échange"), etape(null, "Visite de l'EPT"), etape(null, "Choix de filière")))
             .andExpect(status().isCreated())
             .andExpect(header().string("Location", containsString("/api/mentorat/programmes/")))
             .andExpect(jsonPath("$.titre").value("Orientation lycée 2026"))
             .andExpect(jsonPath("$.statut").value("BROUILLON"))
-            .andExpect(jsonPath("$.responsable.id").value(personnel.getId().toString()))
+            .andExpect(jsonPath("$.responsable.id").value(gestionnaire.getId().toString()))
             .andExpect(jsonPath("$.responsable.email").doesNotExist())
             .andExpect(jsonPath("$.etapes[*].titre").value(contains("Premier échange", "Visite de l'EPT", "Choix de filière")))
             .andExpect(jsonPath("$.etapes[*].ordre").value(contains(1, 2, 3)))
@@ -68,8 +71,8 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TypeRole.class, names = {"ETUDIANT", "ALUMNI", "VISITEUR", "ORGANISME"})
-    void g02_seulsLePersonnelEtLAdministrationGerentLesProgrammes(TypeRole role) throws Exception {
+    @EnumSource(value = TypeRole.class, names = {"PERSONNEL", "ETUDIANT", "ALUMNI", "VISITEUR", "ORGANISME"})
+    void g02_seuleLAdministrationCreeEtGereLesProgrammes(TypeRole role) throws Exception {
         Utilisateur membre = creerUtilisateur(role, "Membre");
         envoyer(post("/api/mentorat/programmes"), membre, programme("Programme", etape(null, "Étape")))
             .andExpect(status().isForbidden())
@@ -87,47 +90,55 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
         "{\"titre\":\"Programme\",\"dateDebut\":\"2026-11-01\",\"dateFin\":\"2027-03-31\",\"etapes\":[{\"titre\":\" \"}]}",
     })
     void g03_unProgrammeInvalideEstRefuse(String corps) throws Exception {
-        envoyer(post("/api/mentorat/programmes"), personnel, corps).andExpect(status().isBadRequest());
+        envoyer(post("/api/mentorat/programmes"), gestionnaire, corps).andExpect(status().isBadRequest());
     }
 
     @Test
     void g04_auPlusDixEtapesEtPasDEtapeExistanteDansUnNouveauProgramme() throws Exception {
         String[] onze = new String[11];
         for (int i = 0; i < onze.length; i++) onze[i] = etape(null, "Étape " + i);
-        envoyer(post("/api/mentorat/programmes"), personnel, programme("Programme", onze))
+        envoyer(post("/api/mentorat/programmes"), gestionnaire, programme("Programme", onze))
             .andExpect(status().isBadRequest());
-        envoyer(post("/api/mentorat/programmes"), personnel, programme("Programme", etape(UUID.randomUUID(), "Étape")))
+        envoyer(post("/api/mentorat/programmes"), gestionnaire, programme("Programme", etape(UUID.randomUUID(), "Étape")))
             .andExpect(status().isBadRequest());
     }
 
     @Test
-    void g05_unBrouillonNExistePasPourLesAutresMaisLAdministrationLeGere() throws Exception {
-        UUID id = creer(personnel, "Brouillon", "Étape");
+    void g05_unBrouillonNExistePasHorsDeLAdministrationQuiLeGereEnEntier() throws Exception {
+        UUID id = creer(gestionnaire, "Brouillon", "Étape");
 
-        mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}", id), autrePersonnel)).andExpect(status().isNotFound());
+        mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}", id), personnel)).andExpect(status().isNotFound());
         mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}", id), etudiant)).andExpect(status().isNotFound());
-        envoyer(put("/api/mentorat/programmes/{id}", id), autrePersonnel, programme("Pris", etape(null, "Étape")))
+        envoyer(put("/api/mentorat/programmes/{id}", id), personnel, programme("Pris", etape(null, "Étape")))
             .andExpect(status().isNotFound());
 
+        // Un autre administrateur gère aussi ce programme.
         mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}", id), admin))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.gerable").value(true));
-        creer(autrePersonnel, "Autre", "Étape");
-        mockMvc.perform(authentifie(get("/api/mentorat/programmes/geres"), personnel))
-            .andExpect(jsonPath("$[*].titre").value(contains("Brouillon")));
-        mockMvc.perform(authentifie(get("/api/mentorat/programmes/geres"), admin))
-            .andExpect(jsonPath("$.length()").value(2));
+        creer(autreAdmin, "Autre", "Étape");
+        mockMvc.perform(authentifie(get("/api/mentorat/programmes/geres"), gestionnaire))
+            .andExpect(jsonPath("$[*].titre").value(contains("Autre", "Brouillon")));
+
+        // Ouvert, le programme se consulte mais ne se gère pas hors de l'administration.
+        changerStatutProgramme(id, "OUVERT", gestionnaire);
+        mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}", id), personnel))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.gerable").value(false));
+        envoyer(put("/api/mentorat/programmes/{id}", id), personnel, programme("Pris", etape(null, "Étape")))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.message").value("Seule l'administration peut gérer ce programme."));
     }
 
     @Test
     void g06_modifierReordonneRenommeAjouteEtRetireLesEtapesEnGardantLeursIdentifiants() throws Exception {
-        String reponse = envoyer(post("/api/mentorat/programmes"), personnel,
+        String reponse = envoyer(post("/api/mentorat/programmes"), gestionnaire,
                 programme("Programme", etape(null, "A"), etape(null, "B"), etape(null, "C")))
             .andReturn().getResponse().getContentAsString();
         UUID id = UUID.fromString(JsonPath.read(reponse, "$.id"));
         List<String> ids = JsonPath.read(reponse, "$.etapes[*].id");
 
-        envoyer(put("/api/mentorat/programmes/{id}", id), personnel, programme("Programme revu",
+        envoyer(put("/api/mentorat/programmes/{id}", id), gestionnaire, programme("Programme revu",
                 etape(UUID.fromString(ids.get(2)), "C renommée"), etape(null, "D"), etape(UUID.fromString(ids.get(0)), "A")))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.titre").value("Programme revu"))
@@ -136,72 +147,72 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
             .andExpect(jsonPath("$.etapes[2].id").value(ids.get(0)))
             .andExpect(jsonPath("$.etapes[*].ordre").value(contains(1, 2, 3)));
 
-        UUID etrangere = UUID.fromString(JsonPath.read(envoyer(post("/api/mentorat/programmes"), personnel,
+        UUID etrangere = UUID.fromString(JsonPath.read(envoyer(post("/api/mentorat/programmes"), gestionnaire,
             programme("Autre", etape(null, "X"))).andReturn().getResponse().getContentAsString(), "$.etapes[0].id"));
-        envoyer(put("/api/mentorat/programmes/{id}", id), personnel, programme("Programme", etape(etrangere, "X")))
+        envoyer(put("/api/mentorat/programmes/{id}", id), gestionnaire, programme("Programme", etape(etrangere, "X")))
             .andExpect(status().isBadRequest());
-        envoyer(put("/api/mentorat/programmes/{id}", id), personnel, programme("Programme",
+        envoyer(put("/api/mentorat/programmes/{id}", id), gestionnaire, programme("Programme",
                 etape(UUID.fromString(ids.get(0)), "A"), etape(UUID.fromString(ids.get(0)), "A bis")))
             .andExpect(status().isBadRequest());
     }
 
     @Test
     void g07_cycleDeVieOuvertureEnCoursClotureEtProgrammeFige() throws Exception {
-        UUID vide = creer(personnel, "Sans étape");
-        changerStatutProgramme(vide, "OUVERT", personnel)
+        UUID vide = creer(gestionnaire, "Sans étape");
+        changerStatutProgramme(vide, "OUVERT", gestionnaire)
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.message").value("Ajoutez au moins une étape avant d'ouvrir le programme."));
 
-        UUID id = creer(personnel, "Orientation", "Premier échange");
-        changerStatutProgramme(id, "OUVERT", personnel).andExpect(status().isOk()).andExpect(jsonPath("$.statut").value("OUVERT"));
+        UUID id = creer(gestionnaire, "Orientation", "Premier échange");
+        changerStatutProgramme(id, "OUVERT", gestionnaire).andExpect(status().isOk()).andExpect(jsonPath("$.statut").value("OUVERT"));
         mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}", id), etudiant))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.gerable").value(false));
         envoyer(put("/api/mentorat/programmes/{id}", id), etudiant, programme("Pris", etape(null, "X")))
             .andExpect(status().isForbidden());
-        envoyer(put("/api/mentorat/programmes/{id}", id), personnel, programme("Orientation"))
+        envoyer(put("/api/mentorat/programmes/{id}", id), gestionnaire, programme("Orientation"))
             .andExpect(status().isConflict());
 
-        changerStatutProgramme(id, "EN_COURS", personnel).andExpect(status().isOk());
+        changerStatutProgramme(id, "EN_COURS", gestionnaire).andExpect(status().isOk());
         changerStatutProgramme(id, "CLOS", admin).andExpect(status().isOk()).andExpect(jsonPath("$.statut").value("CLOS"));
-        changerStatutProgramme(id, "OUVERT", personnel)
+        changerStatutProgramme(id, "OUVERT", gestionnaire)
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.message").value("Ce programme ne peut pas passer de « Clos » à « Ouvert »."));
-        envoyer(put("/api/mentorat/programmes/{id}", id), personnel, programme("Orientation", etape(null, "X")))
+        envoyer(put("/api/mentorat/programmes/{id}", id), gestionnaire, programme("Orientation", etape(null, "X")))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.message").value("Un programme clos ne se modifie plus."));
     }
 
     @Test
     void g08_unProgrammeSuiviParUnMentoratNeRedevientPasBrouillonEtNeSeSupprimePas() throws Exception {
-        UUID id = creer(personnel, "Orientation", "Premier échange");
-        changerStatutProgramme(id, "OUVERT", personnel);
+        UUID id = creer(gestionnaire, "Orientation", "Premier échange");
+        changerStatutProgramme(id, "OUVERT", gestionnaire);
         rattacherUnMentorat(id);
 
-        changerStatutProgramme(id, "BROUILLON", personnel)
+        changerStatutProgramme(id, "BROUILLON", gestionnaire)
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.message").value("Des mentorats suivent déjà ce programme : il ne peut plus redevenir un brouillon."));
-        mockMvc.perform(authentifie(delete("/api/mentorat/programmes/{id}", id), personnel)).andExpect(status().isConflict());
-        mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}", id), personnel))
+        mockMvc.perform(authentifie(delete("/api/mentorat/programmes/{id}", id), gestionnaire)).andExpect(status().isConflict());
+        mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}", id), gestionnaire))
             .andExpect(jsonPath("$.nombreMentorats").value(1));
     }
 
     @Test
     void g09_seulUnBrouillonSansMentoratSeSupprime() throws Exception {
-        UUID id = creer(personnel, "À jeter", "Étape");
-        mockMvc.perform(authentifie(delete("/api/mentorat/programmes/{id}", id), autrePersonnel)).andExpect(status().isNotFound());
-        mockMvc.perform(authentifie(delete("/api/mentorat/programmes/{id}", id), personnel)).andExpect(status().isNoContent());
-        mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}", id), personnel)).andExpect(status().isNotFound());
+        UUID id = creer(gestionnaire, "À jeter", "Étape");
+        mockMvc.perform(authentifie(delete("/api/mentorat/programmes/{id}", id), personnel)).andExpect(status().isNotFound());
+        mockMvc.perform(authentifie(delete("/api/mentorat/programmes/{id}", id), gestionnaire)).andExpect(status().isNoContent());
+        mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}", id), gestionnaire)).andExpect(status().isNotFound());
     }
 
     @Test
     void g10_uneEtapeDejaFranchieNePeutPlusEtreRetiree() throws Exception {
-        String reponse = envoyer(post("/api/mentorat/programmes"), personnel,
+        String reponse = envoyer(post("/api/mentorat/programmes"), gestionnaire,
                 programme("Orientation", etape(null, "Premier échange"), etape(null, "Visite")))
             .andReturn().getResponse().getContentAsString();
         UUID id = UUID.fromString(JsonPath.read(reponse, "$.id"));
         List<String> ids = JsonPath.read(reponse, "$.etapes[*].id");
-        changerStatutProgramme(id, "OUVERT", personnel);
+        changerStatutProgramme(id, "OUVERT", gestionnaire);
         Mentorat mentorat = rattacherUnMentorat(id);
         ProgressionJalon progression = new ProgressionJalon();
         progression.setMentorat(mentorat);
@@ -210,11 +221,11 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
         progression.setValidePar(etudiant);
         progressionRepository.saveAndFlush(progression);
 
-        envoyer(put("/api/mentorat/programmes/{id}", id), personnel, programme("Orientation", etape(UUID.fromString(ids.get(1)), "Visite")))
+        envoyer(put("/api/mentorat/programmes/{id}", id), gestionnaire, programme("Orientation", etape(UUID.fromString(ids.get(1)), "Visite")))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.message").value("Une étape déjà franchie par un mentorat ne peut pas être retirée."));
         // Renommer ou retirer une étape encore jamais franchie reste possible.
-        envoyer(put("/api/mentorat/programmes/{id}", id), personnel, programme("Orientation", etape(UUID.fromString(ids.get(0)), "Premier contact")))
+        envoyer(put("/api/mentorat/programmes/{id}", id), gestionnaire, programme("Orientation", etape(UUID.fromString(ids.get(0)), "Premier contact")))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.etapes[*].titre").value(contains("Premier contact")));
     }
@@ -223,12 +234,12 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
 
     @Test
     void v01_seulsLesProgrammesOuvertsSontProposesATousLesMembres() throws Exception {
-        UUID ouvert = creer(personnel, "Orientation", "Étape");
-        changerStatutProgramme(ouvert, "OUVERT", personnel);
-        creer(personnel, "Brouillon", "Étape");
-        UUID enCours = creer(autrePersonnel, "Insertion", "Étape");
-        changerStatutProgramme(enCours, "OUVERT", autrePersonnel);
-        changerStatutProgramme(enCours, "EN_COURS", autrePersonnel);
+        UUID ouvert = creer(gestionnaire, "Orientation", "Étape");
+        changerStatutProgramme(ouvert, "OUVERT", gestionnaire);
+        creer(gestionnaire, "Brouillon", "Étape");
+        UUID enCours = creer(autreAdmin, "Insertion", "Étape");
+        changerStatutProgramme(enCours, "OUVERT", autreAdmin);
+        changerStatutProgramme(enCours, "EN_COURS", autreAdmin);
 
         mockMvc.perform(authentifie(get("/api/mentorat/programmes/ouverts"), etudiant))
             .andExpect(status().isOk())
@@ -239,8 +250,8 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
 
     @Test
     void v02_unMembreAvecUneOffreDevientMentorVolontairePuisSeRetire() throws Exception {
-        UUID id = creer(personnel, "Orientation", "Étape");
-        changerStatutProgramme(id, "OUVERT", personnel);
+        UUID id = creer(gestionnaire, "Orientation", "Étape");
+        changerStatutProgramme(id, "OUVERT", gestionnaire);
         UUID data = domaine("DATA_IA");
         Utilisateur mentor = creerUtilisateur(TypeRole.ALUMNI, "Volontaire");
         creerProfil(mentor, true, 2, data);
@@ -270,18 +281,18 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
 
     @Test
     void v03_ilFautUneOffreEtUnProgrammeOuvertPourParticiper() throws Exception {
-        UUID id = creer(personnel, "Orientation", "Étape");
+        UUID id = creer(gestionnaire, "Orientation", "Étape");
         Utilisateur sansOffre = creerUtilisateur(TypeRole.ALUMNI, "SansOffre");
         Utilisateur mentor = creerUtilisateur(TypeRole.ALUMNI, "Mentor");
         creerProfil(mentor, true, 2, domaine("DATA_IA"));
 
         mockMvc.perform(authentifie(post("/api/mentorat/programmes/{id}/participation", id), mentor))
             .andExpect(status().isNotFound());
-        changerStatutProgramme(id, "OUVERT", personnel);
+        changerStatutProgramme(id, "OUVERT", gestionnaire);
         mockMvc.perform(authentifie(post("/api/mentorat/programmes/{id}/participation", id), sansOffre))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.message").value("Proposez d'abord du mentorat (Mon offre) pour participer au programme comme mentor."));
-        changerStatutProgramme(id, "EN_COURS", personnel);
+        changerStatutProgramme(id, "EN_COURS", gestionnaire);
         mockMvc.perform(authentifie(post("/api/mentorat/programmes/{id}/participation", id), mentor))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.message").value("On ne rejoint un programme que lorsqu'il est ouvert."));
@@ -291,8 +302,8 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
 
     @Test
     void d01_uneDemandeFaiteDepuisLeProgrammeLuiEstRattachee() throws Exception {
-        UUID id = creer(personnel, "Orientation", "Étape");
-        changerStatutProgramme(id, "OUVERT", personnel);
+        UUID id = creer(gestionnaire, "Orientation", "Étape");
+        changerStatutProgramme(id, "OUVERT", gestionnaire);
         UUID data = domaine("DATA_IA");
         Utilisateur mentor = creerUtilisateur(TypeRole.ALUMNI, "Volontaire");
         UUID profilId = creerProfil(mentor, true, 2, data);
@@ -316,7 +327,7 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
 
     @Test
     void d02_leProgrammeDoitEtreOuvertEtLeMentorVolontaire() throws Exception {
-        UUID id = creer(personnel, "Orientation", "Étape");
+        UUID id = creer(gestionnaire, "Orientation", "Étape");
         UUID data = domaine("DATA_IA");
         Utilisateur volontaire = creerUtilisateur(TypeRole.ALUMNI, "Volontaire");
         UUID profilVolontaire = creerProfil(volontaire, true, 2, data);
@@ -326,12 +337,12 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
         envoyer(post("/api/mentorat/mentorats"), etudiant, demandeDansProgramme(profilVolontaire, data, id))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.message").value("Ce programme est introuvable."));
-        changerStatutProgramme(id, "OUVERT", personnel);
+        changerStatutProgramme(id, "OUVERT", gestionnaire);
         participer(id, volontaire);
         envoyer(post("/api/mentorat/mentorats"), etudiant, demandeDansProgramme(profilLibre, data, id))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.message").value("Ce mentor ne participe pas à ce programme."));
-        changerStatutProgramme(id, "EN_COURS", personnel);
+        changerStatutProgramme(id, "EN_COURS", gestionnaire);
         envoyer(post("/api/mentorat/mentorats"), etudiant, demandeDansProgramme(profilVolontaire, data, id))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.message").value("Ce programme n'accepte plus de nouvelles demandes."));
@@ -342,8 +353,8 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
 
     @Test
     void d03_unProgrammeSuiviParUneDemandeNeSeSupprimePlus() throws Exception {
-        UUID id = creer(personnel, "Orientation", "Étape");
-        changerStatutProgramme(id, "OUVERT", personnel);
+        UUID id = creer(gestionnaire, "Orientation", "Étape");
+        changerStatutProgramme(id, "OUVERT", gestionnaire);
         UUID data = domaine("DATA_IA");
         Utilisateur mentor = creerUtilisateur(TypeRole.ALUMNI, "Volontaire");
         UUID profilId = creerProfil(mentor, true, 2, data);
@@ -351,7 +362,7 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
         envoyer(post("/api/mentorat/mentorats"), etudiant, demandeDansProgramme(profilId, data, id))
             .andExpect(status().isCreated());
 
-        changerStatutProgramme(id, "BROUILLON", personnel)
+        changerStatutProgramme(id, "BROUILLON", gestionnaire)
             .andExpect(status().isConflict());
     }
 
@@ -406,12 +417,12 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
     void e03_lesEtapesSeValidentPendantLeMentoratEtSeulementParSesParticipants() throws Exception {
         MentoratDeProgramme m = mentoratDeProgramme("Étape");
         UUID etape = m.etapes().get(0);
-        mockMvc.perform(authentifie(put("/api/mentorat/mentorats/{id}/etapes/{etape}", m.mentoratId(), etape), personnel))
+        mockMvc.perform(authentifie(put("/api/mentorat/mentorats/{id}/etapes/{etape}", m.mentoratId(), etape), gestionnaire))
             .andExpect(status().isNotFound());
         mockMvc.perform(authentifie(put("/api/mentorat/mentorats/{id}/etapes/{etape}", m.mentoratId(), UUID.randomUUID()), etudiant))
             .andExpect(status().isNotFound());
 
-        changerStatutProgramme(m.programmeId(), "CLOS", personnel).andExpect(status().isOk());
+        changerStatutProgramme(m.programmeId(), "CLOS", gestionnaire).andExpect(status().isOk());
         mockMvc.perform(authentifie(put("/api/mentorat/mentorats/{id}/etapes/{etape}", m.mentoratId(), etape), etudiant))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.message").value("Ce programme est clos : ses étapes ne se valident plus."));
@@ -424,13 +435,90 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
         assertThat(progressionRepository.count()).isZero();
     }
 
+    // ---------- Lot 5 : tableau de bord de l'administration ----------
+
+    @Test
+    void t01_leTableauDeBordResumeMentoratsEtapesEtMentorsSansLeurContenu() throws Exception {
+        UUID id = creer(gestionnaire, "Orientation", "Premier échange", "Visite");
+        changerStatutProgramme(id, "OUVERT", gestionnaire);
+        UUID data = domaine("DATA_IA");
+        Utilisateur mentorA = creerUtilisateur(TypeRole.ALUMNI, "MentorA");
+        UUID profilA = creerProfil(mentorA, true, 3, data);
+        Utilisateur mentorB = creerUtilisateur(TypeRole.ETUDIANT, "MentorB");
+        UUID profilB = creerProfil(mentorB, true, 3, data);
+        participer(id, mentorA);
+        participer(id, mentorB);
+        List<String> etapes = JsonPath.read(mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}", id), etudiant))
+            .andReturn().getResponse().getContentAsString(), "$.etapes[*].id");
+
+        UUID enCours = demanderDansProgramme(etudiant, profilA, data, id);
+        changerStatut(enCours, "accepter", mentorA);
+        validerEtape(enCours, etapes.get(0), etudiant);
+        demanderDansProgramme(creerUtilisateur(TypeRole.VISITEUR, "Lyceenne"), profilA, data, id);
+        UUID termine = demanderDansProgramme(creerUtilisateur(TypeRole.ETUDIANT, "Termine"), profilB, data, id);
+        changerStatut(termine, "accepter", mentorB);
+        validerEtape(termine, etapes.get(0), mentorB);
+        validerEtape(termine, etapes.get(1), mentorB);
+        changerStatut(termine, "terminer", mentorB);
+        changerStatut(demanderDansProgramme(creerUtilisateur(TypeRole.ALUMNI, "Refuse"), profilB, data, id), "refuser", mentorB);
+
+        mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}/tableau", id), admin))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.enAttente").value(1))
+            .andExpect(jsonPath("$.enCours").value(1))
+            .andExpect(jsonPath("$.terminees").value(1))
+            .andExpect(jsonPath("$.sansSuite").value(1))
+            // 3 étapes franchies sur 2 mentorats suivis × 2 étapes.
+            .andExpect(jsonPath("$.progressionMoyenne").value(75))
+            .andExpect(jsonPath("$.etapes[*].franchies").value(contains(2, 1)))
+            .andExpect(jsonPath("$.etapes[0].suivis").value(2))
+            .andExpect(jsonPath("$.mentorats.length()").value(4))
+            .andExpect(jsonPath("$.mentorats[?(@.id == '%s')].etapesFranchies".formatted(termine)).value(contains(2)))
+            .andExpect(jsonPath("$.mentorats[?(@.id == '%s')].mentor.id".formatted(enCours)).value(contains(mentorA.getId().toString())))
+            .andExpect(jsonPath("$.mentorats[0].objectif").doesNotExist())
+            .andExpect(jsonPath("$.mentorats[0].mentore.email").doesNotExist())
+            .andExpect(jsonPath("$.mentors[*].mentor.id").value(contains(mentorA.getId().toString(), mentorB.getId().toString())))
+            .andExpect(jsonPath("$.mentors[*].mentoresEnCours").value(contains(1, 0)));
+    }
+
+    @Test
+    void t02_seuleLAdministrationConsulteLeTableauDeBord() throws Exception {
+        UUID id = creer(gestionnaire, "Orientation", "Étape");
+        mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}/tableau", id), personnel)).andExpect(status().isNotFound());
+        mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}/tableau", id), autreAdmin))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.progressionMoyenne").value(0))
+            .andExpect(jsonPath("$.mentorats").isEmpty())
+            .andExpect(jsonPath("$.etapes[0].suivis").value(0));
+
+        changerStatutProgramme(id, "OUVERT", gestionnaire);
+        mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}/tableau", id), personnel))
+            .andExpect(status().isForbidden());
+        mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}/tableau", id), etudiant))
+            .andExpect(status().isForbidden());
+        mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}/tableau", UUID.randomUUID()), admin))
+            .andExpect(status().isNotFound());
+    }
+
+    private UUID demanderDansProgramme(Utilisateur mentore, UUID profilId, UUID domaineId, UUID programmeId) throws Exception {
+        String reponse = envoyer(post("/api/mentorat/mentorats"), mentore, demandeDansProgramme(profilId, domaineId, programmeId))
+            .andExpect(status().isCreated())
+            .andReturn().getResponse().getContentAsString();
+        return UUID.fromString(JsonPath.read(reponse, "$.id"));
+    }
+
+    private void validerEtape(UUID mentoratId, String etapeId, Utilisateur auteur) throws Exception {
+        mockMvc.perform(authentifie(put("/api/mentorat/mentorats/{id}/etapes/{etape}", mentoratId, etapeId), auteur))
+            .andExpect(status().isOk());
+    }
+
     private record MentoratDeProgramme(UUID programmeId, UUID mentoratId, Utilisateur mentor, List<UUID> etapes) {
     }
 
     /** Programme ouvert, mentor volontaire, demande de l'étudiant faite dans le programme et acceptée. */
     private MentoratDeProgramme mentoratDeProgramme(String... etapes) throws Exception {
-        UUID id = creer(personnel, "Orientation", etapes);
-        changerStatutProgramme(id, "OUVERT", personnel);
+        UUID id = creer(gestionnaire, "Orientation", etapes);
+        changerStatutProgramme(id, "OUVERT", gestionnaire);
         UUID data = domaine("DATA_IA");
         Utilisateur mentor = creerUtilisateur(TypeRole.ALUMNI, "Volontaire");
         UUID profilId = creerProfil(mentor, true, 2, data);

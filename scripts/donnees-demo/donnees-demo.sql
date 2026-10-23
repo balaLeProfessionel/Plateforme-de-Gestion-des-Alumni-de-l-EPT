@@ -837,4 +837,8 @@ from domaines_mentorat d where d.code = 'DEV_LOGICIEL' on conflict (id) do nothi
 insert into mentorats (id, mentore_id, profil_mentor_id, domaine_id, objectif, statut, motif_refus, cree_le, repondu_le, cloture_le, version)
 select '68a3441b-9d46-5939-9088-8f2511597db8', '6904214d-a1f0-5cf9-b47d-c8344e8ff2c0', 'd306496e-6d4a-534b-9b86-04bdaf9281a4', d.id, 'Préparer mon stage de fin d’études et mes entretiens.', 'EN_ATTENTE', null, now() - interval '58 days', null, null, 0
 from domaines_mentorat d where d.code = 'DEV_LOGICIEL' on conflict (id) do nothing;
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, ville_residence, poste_actuel, bio, date_creation)
+select 'f7de9858-2346-53fe-a544-d2cc267a6f17', 'admin@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
+  'Mame Diarra', 'Ndour', 'ADMIN', 'ACTIF', 'Thiès', 'Administratrice de la plateforme', 'Administratrice de la plateforme EPT Alumni.', now() - interval '400 days'
+on conflict do nothing;
 commit;

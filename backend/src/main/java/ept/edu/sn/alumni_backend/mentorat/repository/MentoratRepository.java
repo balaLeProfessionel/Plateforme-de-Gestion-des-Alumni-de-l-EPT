@@ -59,6 +59,9 @@ public interface MentoratRepository extends JpaRepository<Mentorat, UUID> {
 
     boolean existsByProgramme_Id(UUID programmeId);
 
+    @EntityGraph(attributePaths = {"mentore", "profilMentor", "profilMentor.utilisateur"})
+    List<Mentorat> findByProgramme_IdOrderByCreeLeDesc(UUID programmeId);
+
     @Query("""
         select mentorat.programme.id as programmeId, count(mentorat) as nombre
         from Mentorat mentorat

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,6 +18,9 @@ public interface ParticipationProgrammeRepository extends JpaRepository<Particip
     boolean existsByProgramme_IdAndProfilMentor_Id(UUID programmeId, UUID profilMentorId);
 
     void deleteByProgramme_Id(UUID programmeId);
+
+    @EntityGraph(attributePaths = {"profilMentor", "profilMentor.utilisateur"})
+    List<ParticipationProgramme> findByProgramme_IdOrderByCreeLeAsc(UUID programmeId);
 
     @Query("""
         select participation.programme.id as programmeId, count(participation) as nombre

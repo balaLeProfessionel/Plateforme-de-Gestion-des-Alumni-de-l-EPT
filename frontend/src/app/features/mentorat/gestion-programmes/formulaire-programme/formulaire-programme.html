@@ -16,9 +16,12 @@
         <p class="etat-programme">
           <span class="statut" [attr.data-statut]="programme.statut">{{ libellesStatut[programme.statut] }}</span>
           {{ programme.nombreMentorats }} mentorat{{ programme.nombreMentorats > 1 ? 's' : '' }} rattaché{{ programme.nombreMentorats > 1 ? 's' : '' }}
+          @if (programme.statut !== 'BROUILLON') {
+            · <a [routerLink]="['/mentorat/gestion-programmes', programme.id, 'tableau']">Tableau de bord</a>
+          }
         </p>
       } @else {
-        <p class="introduction">Le programme reste un brouillon, visible de vous seul, tant que vous ne l’ouvrez pas.</p>
+        <p class="introduction">Le programme reste un brouillon, visible de l’administration seule, tant que vous ne l’ouvrez pas.</p>
       }
     </header>
 

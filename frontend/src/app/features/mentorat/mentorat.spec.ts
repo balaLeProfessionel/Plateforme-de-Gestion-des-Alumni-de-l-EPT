@@ -51,17 +51,18 @@ describe('MentoratPage', () => {
   });
 
   it.each([
-    ['PERSONNEL', true], ['ADMIN', true], ['ETUDIANT', false], ['ALUMNI', false], ['VISITEUR', false],
-  ])('propose « Gérer les programmes » au personnel et à l’administration (%s)', (role, visible) => {
+    ['ADMIN', true], ['PERSONNEL', false], ['ETUDIANT', false], ['ALUMNI', false], ['VISITEUR', false],
+  ])('propose « Gérer les programmes » à l’administration seule (%s)', (role, visible) => {
     const lien = afficher(role).querySelector('.lien-gestion');
     expect(lien !== null).toBe(visible);
     if (lien) expect(lien.getAttribute('href')).toBe('/mentorat/gestion-programmes');
   });
 
-  it('réserve la gestion des programmes au personnel et à l’administration', () => {
+  it('réserve la gestion des programmes et leur tableau de bord à l’administration', () => {
     const gestion = MENTORAT_ROUTES.filter((route) => route.path?.startsWith('gestion-programmes'));
-    expect(gestion.map((route) => route.path)).toEqual(['gestion-programmes', 'gestion-programmes/nouveau', 'gestion-programmes/:id']);
-    for (const route of gestion) expect(route.data?.['roles']).toEqual(['PERSONNEL', 'ADMIN']);
+    expect(gestion.map((route) => route.path)).toEqual(
+      ['gestion-programmes', 'gestion-programmes/nouveau', 'gestion-programmes/:id/tableau', 'gestion-programmes/:id']);
+    for (const route of gestion) expect(route.data?.['roles']).toEqual(['ADMIN']);
   });
 
   it.each(['ORGANISME', 'ADMIN'])('présente le module aux comptes qui n’y participent pas (%s)', (role) => {
