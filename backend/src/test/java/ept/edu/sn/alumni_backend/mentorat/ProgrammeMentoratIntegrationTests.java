@@ -32,7 +32,7 @@ import ept.edu.sn.alumni_backend.mentorat.entity.Mentorat;
 import ept.edu.sn.alumni_backend.mentorat.entity.ProgressionJalon;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 
-/** Cas G-* (gestion, lot 1), V-* (programme visible et mentors volontaires, lot 2) et D-* (demande rattachée, lot 3). */
+/** Cas G-* (gestion, lot 1), V-* (programme visible et mentors volontaires, lot 2) D-* (demande rattachée, lot 3) et E-* (étapes dans le suivi, lot 4). */
 @SpringBootTest
 @AutoConfigureMockMvc
 class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
@@ -353,6 +353,97 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
 
         changerStatutProgramme(id, "BROUILLON", personnel)
             .andExpect(status().isConflict());
+    }
+
+    // ---------- Lot 4 : étapes dans le suivi ----------
+
+    @Test
+    void e01_mentorEtMentoreValidentLesEtapesDansNImporteQuelOrdre() throws Exception {
+        MentoratDeProgramme m = mentoratDeProgramme("Premier échange", "Visite de l'EPT");
+        mockMvc.perform(authentifie(get("/api/mentorat/mentorats/{id}", m.mentoratId()), etudiant))
+            .andExpect(jsonPath("$.etapes[*].titre").value(contains("Premier échange", "Visite de l'EPT")))
+            .andExpect(jsonPath("$.etapes[0].franchieLe").doesNotExist());
+
+        envoyer(put("/api/mentorat/mentorats/{id}/etapes/{etape}", m.mentoratId(), m.etapes().get(1)), etudiant,
+                "{\"commentaire\":\"  Visite faite avec ma classe.  \"}")
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.franchieLe").exists())
+            .andExpect(jsonPath("$.valideePar").value(etudiant.getPrenom() + " " + etudiant.getNom()))
+            .andExpect(jsonPath("$.commentaire").value("Visite faite avec ma classe."));
+        // Sans corps, puis une seconde fois : la première validation fait foi.
+        mockMvc.perform(authentifie(put("/api/mentorat/mentorats/{id}/etapes/{etape}", m.mentoratId(), m.etapes().get(0)), m.mentor()))
+            .andExpect(status().isOk());
+        envoyer(put("/api/mentorat/mentorats/{id}/etapes/{etape}", m.mentoratId(), m.etapes().get(0)), etudiant, "{}")
+            .andExpect(jsonPath("$.valideePar").value(m.mentor().getPrenom() + " " + m.mentor().getNom()));
+        assertThat(progressionRepository.count()).isEqualTo(2);
+
+        mockMvc.perform(authentifie(get("/api/mentorat/mentorats/{id}", m.mentoratId()), m.mentor()))
+            .andExpect(jsonPath("$.etapes[0].franchieLe").exists())
+            .andExpect(jsonPath("$.etapes[1].commentaire").value("Visite faite avec ma classe."));
+
+        mockMvc.perform(authentifie(delete("/api/mentorat/mentorats/{id}/etapes/{etape}", m.mentoratId(), m.etapes().get(1)), m.mentor()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.franchieLe").doesNotExist());
+        assertThat(progressionRepository.count()).isEqualTo(1);
+    }
+
+    @Test
+    void e02_unMentoratLibreNAPasDEtapes() throws Exception {
+        UUID data = domaine("DATA_IA");
+        Utilisateur mentor = creerUtilisateur(TypeRole.ALUMNI, "Libre");
+        UUID mentoratId = demander(etudiant, creerProfil(mentor, true, 2, data), data);
+        changerStatut(mentoratId, "accepter", mentor);
+        MentoratDeProgramme autre = mentoratDeProgramme("Étape");
+
+        mockMvc.perform(authentifie(get("/api/mentorat/mentorats/{id}", mentoratId), etudiant))
+            .andExpect(jsonPath("$.etapes").isEmpty());
+        mockMvc.perform(authentifie(put("/api/mentorat/mentorats/{id}/etapes/{etape}", mentoratId, autre.etapes().get(0)), etudiant))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value("Cette étape est introuvable."));
+    }
+
+    @Test
+    void e03_lesEtapesSeValidentPendantLeMentoratEtSeulementParSesParticipants() throws Exception {
+        MentoratDeProgramme m = mentoratDeProgramme("Étape");
+        UUID etape = m.etapes().get(0);
+        mockMvc.perform(authentifie(put("/api/mentorat/mentorats/{id}/etapes/{etape}", m.mentoratId(), etape), personnel))
+            .andExpect(status().isNotFound());
+        mockMvc.perform(authentifie(put("/api/mentorat/mentorats/{id}/etapes/{etape}", m.mentoratId(), UUID.randomUUID()), etudiant))
+            .andExpect(status().isNotFound());
+
+        changerStatutProgramme(m.programmeId(), "CLOS", personnel).andExpect(status().isOk());
+        mockMvc.perform(authentifie(put("/api/mentorat/mentorats/{id}/etapes/{etape}", m.mentoratId(), etape), etudiant))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value("Ce programme est clos : ses étapes ne se valident plus."));
+
+        MentoratDeProgramme termine = mentoratDeProgramme("Étape");
+        changerStatut(termine.mentoratId(), "terminer", termine.mentor());
+        mockMvc.perform(authentifie(put("/api/mentorat/mentorats/{id}/etapes/{etape}", termine.mentoratId(), termine.etapes().get(0)), etudiant))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value("Les étapes se valident uniquement pendant un mentorat en cours."));
+        assertThat(progressionRepository.count()).isZero();
+    }
+
+    private record MentoratDeProgramme(UUID programmeId, UUID mentoratId, Utilisateur mentor, List<UUID> etapes) {
+    }
+
+    /** Programme ouvert, mentor volontaire, demande de l'étudiant faite dans le programme et acceptée. */
+    private MentoratDeProgramme mentoratDeProgramme(String... etapes) throws Exception {
+        UUID id = creer(personnel, "Orientation", etapes);
+        changerStatutProgramme(id, "OUVERT", personnel);
+        UUID data = domaine("DATA_IA");
+        Utilisateur mentor = creerUtilisateur(TypeRole.ALUMNI, "Volontaire");
+        UUID profilId = creerProfil(mentor, true, 2, data);
+        participer(id, mentor);
+        String reponse = envoyer(post("/api/mentorat/mentorats"), etudiant, demandeDansProgramme(profilId, data, id))
+            .andExpect(status().isCreated())
+            .andReturn().getResponse().getContentAsString();
+        UUID mentoratId = UUID.fromString(JsonPath.read(reponse, "$.id"));
+        changerStatut(mentoratId, "accepter", mentor);
+        String programme = mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}", id), etudiant))
+            .andReturn().getResponse().getContentAsString();
+        List<String> ids = JsonPath.read(programme, "$.etapes[*].id");
+        return new MentoratDeProgramme(id, mentoratId, mentor, ids.stream().map(UUID::fromString).toList());
     }
 
     private void participer(UUID programmeId, Utilisateur mentor) throws Exception {

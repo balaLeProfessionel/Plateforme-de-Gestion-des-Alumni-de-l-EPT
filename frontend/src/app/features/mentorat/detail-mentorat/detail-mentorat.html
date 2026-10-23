@@ -54,8 +54,14 @@
     @if (erreurAction(); as message) { <p class="erreur" role="alert">{{ message }}</p> }
 
     <div class="colonnes">
-      <app-seances-mentorat [mentoratId]="mentorat.id" [seances]="detail.seances"
-        [modifiable]="mentorat.statut === 'ACCEPTEE'" [intitule]="intitule()" (modifiee)="actualiser()" />
+      <div class="colonne">
+        @if (mentorat.programme && detail.etapes.length) {
+          <app-etapes-mentorat [mentoratId]="mentorat.id" [programme]="mentorat.programme" [etapes]="detail.etapes"
+            [modifiable]="mentorat.statut === 'ACCEPTEE'" (modifiee)="actualiser()" />
+        }
+        <app-seances-mentorat [mentoratId]="mentorat.id" [seances]="detail.seances"
+          [modifiable]="mentorat.statut === 'ACCEPTEE'" [intitule]="intitule()" (modifiee)="actualiser()" />
+      </div>
 
       <aside class="cote">
         <app-evaluation-mentorat [mentoratId]="mentorat.id" [evaluations]="detail.evaluations"

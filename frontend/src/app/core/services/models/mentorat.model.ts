@@ -111,7 +111,20 @@ export interface MentoratDetail {
   mentorat: Mentorat;
   seances: SeanceMentorat[];
   evaluations: EvaluationMentorat[];
+  /** Étapes du programme et leur avancement ; vide pour un mentorat libre. */
+  etapes: EtapeSuivie[];
   peutEvaluer: boolean;
+}
+
+/** Une étape du programme vue depuis un mentorat ; `franchieLe` est null tant qu’elle n’est pas validée. */
+export interface EtapeSuivie {
+  id: string;
+  ordre: number;
+  titre: string;
+  description: string | null;
+  franchieLe: string | null;
+  valideePar: string | null;
+  commentaire: string | null;
 }
 
 export interface SeanceMentoratRequest {

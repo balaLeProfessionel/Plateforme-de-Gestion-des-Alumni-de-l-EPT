@@ -26,7 +26,7 @@ import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
 
-/** Suivi d'un mentorat : séances planifiées ou consignées, puis évaluation de fin. */
+/** Suivi d'un mentorat : séances planifiées ou consignées, étapes du programme, puis évaluation de fin. */
 @Service
 @RequiredArgsConstructor
 public class SuiviMentoratService {
@@ -35,6 +35,7 @@ public class SuiviMentoratService {
     private final EvaluationMentoratRepository evaluationRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final MentoratMapper mapper;
+    private final EtapesMentoratService etapes;
     private final ApplicationEventPublisher evenements;
 
     @Transactional(readOnly = true)
@@ -47,6 +48,7 @@ public class SuiviMentoratService {
             mapper.versResponse(mentorat, moi),
             seanceRepository.findByMentorat_IdOrderByDebutDesc(mentoratId).stream().map(mapper::versResponse).toList(),
             evaluations.stream().map(mapper::versResponse).toList(),
+            etapes.lister(mentorat),
             mentorat.getStatut() == StatutMentorat.TERMINEE && !dejaEvalue);
     }
 

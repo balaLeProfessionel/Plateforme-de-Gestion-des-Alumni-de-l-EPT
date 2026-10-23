@@ -1,4 +1,4 @@
-import { Mentor, Mentorat, MentoratDetail, Page, Programme, SeanceMentorat } from '../../../core/services/models/mentorat.model';
+import { EtapeSuivie, Mentor, Mentorat, MentoratDetail, Page, Programme, SeanceMentorat } from '../../../core/services/models/mentorat.model';
 
 /** Données de test partagées par les specs du mentorat. */
 export function unMentor(valeurs: Partial<Mentor> = {}): Mentor {
@@ -39,7 +39,11 @@ export function uneSeance(valeurs: Partial<SeanceMentorat> = {}): SeanceMentorat
 }
 
 export function unDetail(valeurs: Partial<MentoratDetail> = {}): MentoratDetail {
-  return { mentorat: unMentorat(), seances: [], evaluations: [], peutEvaluer: false, ...valeurs };
+  return { mentorat: unMentorat(), seances: [], evaluations: [], etapes: [], peutEvaluer: false, ...valeurs };
+}
+
+export function uneEtape(valeurs: Partial<EtapeSuivie> = {}): EtapeSuivie {
+  return { id: 'e1', ordre: 1, titre: 'Premier échange', description: null, franchieLe: null, valideePar: null, commentaire: null, ...valeurs };
 }
 
 export function unePage<T>(contenu: T[]): Page<T> {

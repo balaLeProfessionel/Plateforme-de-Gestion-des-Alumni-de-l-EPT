@@ -5,7 +5,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { of } from 'rxjs';
 
 import { MentoratDetail } from '../../../core/services/models/mentorat.model';
-import { unDetail, unMentorat } from '../testing/donnees-mentorat';
+import { unDetail, uneEtape, unMentorat } from '../testing/donnees-mentorat';
 import { DetailMentorat } from './detail-mentorat';
 
 describe('DetailMentorat', () => {
@@ -66,6 +66,15 @@ describe('DetailMentorat', () => {
     const lien = racine.querySelector('a.programme') as HTMLAnchorElement;
     expect(lien.getAttribute('href')).toBe('/mentorat/programmes/prog1');
     expect(lien.textContent).toContain('Programme « Orientation lycée 2026 »');
+  });
+
+  it('affiche les étapes d’un mentorat de programme et rien pour un mentorat libre', async () => {
+    await charger(unDetail({
+      mentorat: unMentorat({ statut: 'ACCEPTEE', programme: { id: 'prog1', titre: 'Orientation lycée 2026' } }),
+      etapes: [uneEtape()],
+    }));
+    expect(racine.querySelector('app-etapes-mentorat')?.textContent).toContain('Premier échange');
+    expect(racine.querySelector('app-etapes-mentorat button')?.textContent).toContain('Valider l’étape');
   });
 
   it('demande une confirmation avant de terminer, puis recharge', async () => {

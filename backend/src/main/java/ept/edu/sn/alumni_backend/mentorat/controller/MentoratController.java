@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,6 +26,7 @@ import ept.edu.sn.alumni_backend.mentorat.dto.CompteursMentoratResponse;
 import ept.edu.sn.alumni_backend.mentorat.dto.DemandeMentoratRequest;
 import ept.edu.sn.alumni_backend.mentorat.dto.DomaineMentoratResponse;
 import ept.edu.sn.alumni_backend.mentorat.dto.EvaluationMentoratRequest;
+import ept.edu.sn.alumni_backend.mentorat.dto.EtapeSuivieResponse;
 import ept.edu.sn.alumni_backend.mentorat.dto.EvaluationMentoratResponse;
 import ept.edu.sn.alumni_backend.mentorat.dto.MentorResponse;
 import ept.edu.sn.alumni_backend.mentorat.dto.MentoratDetailResponse;
@@ -35,6 +37,8 @@ import ept.edu.sn.alumni_backend.mentorat.dto.RefusMentoratRequest;
 import ept.edu.sn.alumni_backend.mentorat.dto.SeanceMentoratRequest;
 import ept.edu.sn.alumni_backend.mentorat.dto.SeanceMentoratResponse;
 import ept.edu.sn.alumni_backend.mentorat.dto.SuiviSeanceRequest;
+import ept.edu.sn.alumni_backend.mentorat.dto.ValidationEtapeRequest;
+import ept.edu.sn.alumni_backend.mentorat.service.EtapesMentoratService;
 import ept.edu.sn.alumni_backend.mentorat.service.MentoratService;
 import ept.edu.sn.alumni_backend.mentorat.service.ProfilMentorService;
 import ept.edu.sn.alumni_backend.mentorat.service.SuiviMentoratService;
@@ -53,6 +57,7 @@ public class MentoratController {
     private final ProfilMentorService profilMentorService;
     private final MentoratService mentoratService;
     private final SuiviMentoratService suiviService;
+    private final EtapesMentoratService etapesService;
 
     @GetMapping("/domaines")
     public ResponseEntity<List<DomaineMentoratResponse>> listerDomaines() {
@@ -172,13 +177,32 @@ public class MentoratController {
         return ResponseEntity.ok(suiviService.modifier(id, seanceId, request, principal));
     }
 
-        @PatchMapping("/mentorats/{id}/seances/{seanceId}")
+    @PatchMapping("/mentorats/{id}/seances/{seanceId}")
     public ResponseEntity<SeanceMentoratResponse> suivreSeance(
             @PathVariable UUID id,
             @PathVariable UUID seanceId,
             @Valid @RequestBody SuiviSeanceRequest request,
             @AuthenticationPrincipal UtilisateurPrincipal principal) {
         return ResponseEntity.ok(suiviService.suivre(id, seanceId, request, principal));
+    }
+
+    /** Valide une étape du programme (mentor ou mentoré, dans n'importe quel ordre). */
+    @PutMapping("/mentorats/{id}/etapes/{etapeId}")
+    public ResponseEntity<EtapeSuivieResponse> validerEtape(
+            @PathVariable UUID id,
+            @PathVariable UUID etapeId,
+            @Valid @RequestBody(required = false) ValidationEtapeRequest request,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        String commentaire = request != null ? request.commentaire() : null;
+        return ResponseEntity.ok(etapesService.valider(id, etapeId, commentaire, principal));
+    }
+
+    @DeleteMapping("/mentorats/{id}/etapes/{etapeId}")
+    public ResponseEntity<EtapeSuivieResponse> annulerValidationEtape(
+            @PathVariable UUID id,
+            @PathVariable UUID etapeId,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(etapesService.annulerValidation(id, etapeId, principal));
     }
 
     @PostMapping("/mentorats/{id}/evaluation")

@@ -4,6 +4,7 @@ import {
   CompteursMentorat,
   CriteresMentors,
   DomaineMentorat,
+  EtapeSuivie,
   EvaluationMentorat,
   Mentor,
   Mentorat,
@@ -98,6 +99,16 @@ export class MentoratService {
     return this.http.patch<SeanceMentorat>(
       `${API}/mentorats/${encodeURIComponent(id)}/seances/${encodeURIComponent(seanceId)}`,
       { statut, compteRendu });
+  }
+
+  validerEtape(id: string, etapeId: string, commentaire: string | null) {
+    return this.http.put<EtapeSuivie>(
+      `${API}/mentorats/${encodeURIComponent(id)}/etapes/${encodeURIComponent(etapeId)}`, { commentaire });
+  }
+
+  annulerValidationEtape(id: string, etapeId: string) {
+    return this.http.delete<EtapeSuivie>(
+      `${API}/mentorats/${encodeURIComponent(id)}/etapes/${encodeURIComponent(etapeId)}`);
   }
 
   evaluer(id: string, note: number, commentaire: string | null) {

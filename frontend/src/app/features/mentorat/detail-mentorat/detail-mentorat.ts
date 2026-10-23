@@ -15,11 +15,12 @@ import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
 import { EtiquetteRole } from '../../../shared/roles/etiquette-role';
 import { EvaluationMentoratCarte } from './evaluation-mentorat/evaluation-mentorat';
+import { EtapesMentorat } from './etapes-mentorat/etapes-mentorat';
 import { SeancesMentorat } from './seances-mentorat/seances-mentorat';
 
 @Component({
   selector: 'app-detail-mentorat',
-  imports: [DatePipe, RouterLink, BoutonRetour, SeancesMentorat, EvaluationMentoratCarte, AvatarMembre, EtiquetteRole],
+  imports: [DatePipe, RouterLink, BoutonRetour, EtapesMentorat, SeancesMentorat, EvaluationMentoratCarte, AvatarMembre, EtiquetteRole],
   templateUrl: './detail-mentorat.html',
   styleUrl: './detail-mentorat.scss',
 })
