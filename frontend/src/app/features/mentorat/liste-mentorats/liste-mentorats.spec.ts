@@ -108,6 +108,19 @@ describe('ListeMentorats', () => {
     expect(ligne.querySelectorAll('a.lien-etire')).toHaveLength(1);
   });
 
+  it('explique une demande annulée parce que le mentor a quitté le programme', async () => {
+    demarrer(vue('MENTORE', ['ANNULEE']));
+    http.expectOne((req) => req.url === '/api/mentorat/mentorats').flush(page([{
+      ...mentorat(), monRole: 'MENTORE', statut: 'ANNULEE',
+      motifAnnulation: 'Annulée car Awa Diop a quitté le programme « Orientation ». Vous pouvez solliciter un autre mentor du programme.',
+    }]));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const explication = fixture.nativeElement.querySelector('.explication')?.textContent;
+    expect(explication).toContain('Annulée car Awa Diop a quitté le programme');
+    expect(explication).not.toContain('Vous avez annulé');
+  });
+
   it('propose à l’étudiant d’annuler une demande en attente', async () => {
     demarrer(vue('MENTORE', ['EN_ATTENTE']));
     http.expectOne((req) => req.url === '/api/mentorat/mentorats')
@@ -136,6 +149,7 @@ function mentorat(): Mentorat {
     domaine: { id: 'd1', code: 'DATA_IA', libelle: 'Data & IA' },
     objectif: 'Préparer mon stage',
     motifRefus: null,
+    motifAnnulation: null,
     creeLe: '2026-10-02T10:00:00Z',
     reponduLe: null,
     clotureLe: null,

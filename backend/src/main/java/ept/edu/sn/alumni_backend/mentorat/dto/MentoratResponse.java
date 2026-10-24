@@ -12,6 +12,7 @@ public record MentoratResponse(
     DomaineMentoratResponse domaine,
     String objectif,
     String motifRefus,
+    String motifAnnulation,
     Instant creeLe,
     Instant reponduLe,
     Instant clotureLe,

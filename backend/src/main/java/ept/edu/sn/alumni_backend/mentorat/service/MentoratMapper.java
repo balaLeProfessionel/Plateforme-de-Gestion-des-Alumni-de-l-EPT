@@ -72,6 +72,7 @@ public class MentoratMapper {
             versResponse(mentorat.getDomaine()),
             mentorat.getObjectif(),
             mentorat.getMotifRefus(),
+            mentorat.getMotifAnnulation(),
             mentorat.getCreeLe(),
             mentorat.getReponduLe(),
             mentorat.getClotureLe(),

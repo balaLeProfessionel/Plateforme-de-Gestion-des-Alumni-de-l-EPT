@@ -34,7 +34,7 @@
             <i class="pi pi-flag" aria-hidden="true"></i>Programme « {{ programme.titre }} »</a>
         }
       </div>
-      <p class="explication">{{ explications[mentorat.statut][mentorat.monRole] }}</p>
+      <p class="explication">{{ explication(mentorat) }}</p>
 
       <h1 class="sr-only">Mentorat {{ mentorat.domaine.libelle }} avec {{ mentorat.monRole === 'MENTOR' ? mentorat.mentore.prenom : mentorat.mentor.prenom }}</h1>
       <blockquote>{{ mentorat.objectif }}</blockquote>

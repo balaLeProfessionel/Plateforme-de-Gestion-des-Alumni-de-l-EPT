@@ -73,6 +73,8 @@ export interface Mentorat {
   domaine: DomaineMentorat;
   objectif: string;
   motifRefus: string | null;
+  /** Annulation décidée par la plateforme (le mentor a quitté le programme), déjà rédigée. */
+  motifAnnulation: string | null;
   creeLe: string;
   reponduLe: string | null;
   clotureLe: string | null;
@@ -182,6 +184,13 @@ export const EXPLICATIONS_STATUT_MENTORAT: Record<StatutMentorat, Record<RoleMen
     MENTOR: 'Ce mentorat est clôturé. Ses séances restent consultables et vous pouvez l’évaluer.',
   },
 };
+
+/** L’explication d’un mentorat : le motif d’une annulation par la plateforme prime sur le texte du statut. */
+export function explicationMentorat(mentorat: Pick<Mentorat, 'statut' | 'monRole' | 'motifAnnulation'>): string {
+  return mentorat.statut === 'ANNULEE' && mentorat.motifAnnulation
+    ? mentorat.motifAnnulation
+    : EXPLICATIONS_STATUT_MENTORAT[mentorat.statut][mentorat.monRole];
+}
 
 export const LIBELLES_MODALITE: Record<ModaliteSeance, string> = {
   VISIO: 'Visio',

@@ -62,6 +62,10 @@ public class Mentorat {
     @Column(length = 500)
     private String motifRefus;
 
+    /** Annulation décidée par la plateforme (le mentor a quitté le programme) : la phrase montrée aux deux. */
+    @Column(length = 500)
+    private String motifAnnulation;
+
     @Column(nullable = false, updatable = false)
     private Instant creeLe;
 

@@ -19,6 +19,7 @@ export function unMentorat(valeurs: Partial<Mentorat> = {}): Mentorat {
     domaine: { id: 'd1', code: 'DATA_IA', libelle: 'Data & IA' },
     objectif: 'Préparer mon stage',
     motifRefus: null,
+    motifAnnulation: null,
     creeLe: '2026-10-02T10:00:00Z',
     reponduLe: null,
     clotureLe: null,

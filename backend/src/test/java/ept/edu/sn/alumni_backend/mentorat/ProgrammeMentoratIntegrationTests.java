@@ -556,6 +556,12 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
 
         assertThat(mentoratRepository.findById(enAttente).orElseThrow().getStatut()).isEqualTo(StatutMentorat.ANNULEE);
         assertThat(mentoratRepository.findById(enAttente).orElseThrow().getClotureLe()).isNotNull();
+        mockMvc.perform(authentifie(get("/api/mentorat/mentorats/{id}", enAttente), etudiant))
+            .andExpect(jsonPath("$.mentorat.motifAnnulation").value(
+                "Annulée car " + mentor.getPrenom() + " " + mentor.getNom() + " a quitté le programme « Orientation ». "
+                    + "Vous pouvez solliciter un autre mentor du programme."));
+        mockMvc.perform(authentifie(get("/api/mentorat/mentorats/{id}", acceptee), mentor))
+            .andExpect(jsonPath("$.mentorat.motifAnnulation").doesNotExist());
         assertThat(mentoratRepository.findById(acceptee).orElseThrow().getStatut()).isEqualTo(StatutMentorat.ACCEPTEE);
         assertThat(mentoratRepository.findById(libre).orElseThrow().getStatut()).isEqualTo(StatutMentorat.EN_ATTENTE);
         // Le mentoré peut solliciter un autre mentor du programme : sa demande n'est plus en cours.

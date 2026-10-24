@@ -155,14 +155,14 @@ public class ProgrammeMentoratService {
             .ifPresent(participationRepository::delete);
         participationRepository.flush();
         Instant maintenant = Instant.now();
+        String motif = "Annulée car " + (moi.getPrenom() + " " + moi.getNom()).trim() + " a quitté le programme « "
+            + programme.getTitre() + " ». Vous pouvez solliciter un autre mentor du programme.";
         for (Mentorat demande : mentoratRepository.findByProgramme_IdAndProfilMentor_Utilisateur_IdAndStatut(
                 programmeId, moi.getId(), StatutMentorat.EN_ATTENTE)) {
             demande.setStatut(StatutMentorat.ANNULEE);
             demande.setClotureLe(maintenant);
-            evenements.publishEvent(new NotificationMentorat(demande.getMentore().getEmail(),
-                "Demande de mentorat annulée",
-                (moi.getPrenom() + " " + moi.getNom()).trim() + " ne participe plus au programme « " + programme.getTitre()
-                    + " » : votre demande a été annulée. Vous pouvez solliciter un autre mentor du programme."));
+            demande.setMotifAnnulation(motif);
+            evenements.publishEvent(new NotificationMentorat(demande.getMentore().getEmail(), "Demande de mentorat annulée", motif));
         }
         return obtenir(programmeId, principal);
     }
