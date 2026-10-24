@@ -10,8 +10,11 @@ temporaire="$(mktemp -d)"
 trap 'rm -rf "$temporaire"' EXIT
 
 python "$dossier/generer-images.py" "$temporaire" > /dev/null
+# Données étendues : portraits illustrés, logos d'organismes et visuels d'événements supplémentaires.
+python "$dossier/generer-visuels.py" "$temporaire" "$dossier/visuels-etendus.json" > /dev/null
 # MSYS_NO_PATHCONV : Git Bash (Windows) convertirait les chemins /data/… du conteneur en chemins Windows.
 MSYS_NO_PATHCONV=1 docker exec alumni-api mkdir -p /data/alumni/photos/evenements
-tar -C "$temporaire/evenements" -cf - . | MSYS_NO_PATHCONV=1 docker exec -i alumni-api tar -C /data/alumni/photos/evenements -xf -
+tar -C "$temporaire" -cf - . | MSYS_NO_PATHCONV=1 docker exec -i alumni-api tar -C /data/alumni/photos -xf -
 docker exec -i alumni-db psql -q -U root -d alumni_db -v compte_modele="$compte_modele" < "$dossier/donnees-demo.sql"
+docker exec -i alumni-db psql -q -U root -d alumni_db -v compte_modele="$compte_modele" < "$dossier/donnees-demo-etendues.sql"
 echo "Données de démonstration chargées."
