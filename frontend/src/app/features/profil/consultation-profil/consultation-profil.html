@@ -63,7 +63,7 @@
       @if (tuiles().length) {
         <dl class="tuiles">
           @for (tuile of tuiles(); track tuile.libelle) {
-            <div><dt><i [class]="'pi ' + tuile.icone" aria-hidden="true"></i>{{ tuile.libelle }}</dt><dd>{{ tuile.valeur }}</dd></div>
+            <div [class.large]="tuile.valeur.length > 18"><dt><i [class]="'pi ' + tuile.icone" aria-hidden="true"></i>{{ tuile.libelle }}</dt><dd>{{ tuile.valeur }}</dd></div>
           }
         </dl>
       }

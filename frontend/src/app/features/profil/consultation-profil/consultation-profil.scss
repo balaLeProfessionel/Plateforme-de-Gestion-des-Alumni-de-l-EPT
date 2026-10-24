@@ -43,7 +43,10 @@
 
 /* Séparateurs tracés par l’espace d’1px sur fond de bordure : ils suivent le retour à la ligne. */
 .tuiles { display: flex; flex-wrap: wrap; gap: 1px; margin: 0; border-top: 1px solid var(--ept-border); background: var(--ept-border); }
-.tuiles > div { display: grid; flex: 1 1 7rem; gap: 0.15rem; min-width: 0; padding: 0.85rem 1.75rem; background: var(--ept-surface); }
+/* minmax(0, 1fr) : un mot long ne force pas la tuile au-delà de la place disponible. */
+.tuiles > div { display: grid; flex: 1 1 7rem; grid-template-columns: minmax(0, 1fr); gap: 0.15rem; min-width: 0; padding: 0.85rem 1.75rem; background: var(--ept-surface); }
+/* Une valeur longue (filière en toutes lettres) prend plus de place, toute la ligne sur mobile. */
+.tuiles > .large { flex: 2 1 14rem; }
 .tuiles dt { display: flex; align-items: center; gap: 0.4rem; color: var(--ept-text-secondary); font-size: 0.78rem; font-weight: 600; }
 .tuiles dd { margin: 0; overflow-wrap: break-word; font-weight: 700; }
 
