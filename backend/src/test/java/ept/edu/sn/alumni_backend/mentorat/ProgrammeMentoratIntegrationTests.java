@@ -538,6 +538,31 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
     }
 
     @Test
+    void f03_uneDateDeFinPasseeEstRefuseeALaCreationEtSiOnLaChange() throws Exception {
+        String passe = programme("Ancien", etape(null, "Étape")).replace("\"dateFin\":\"2027-03-31\"", "\"dateFin\":\"2026-01-31\"")
+            .replace("\"dateDebut\":\"2026-11-01\"", "\"dateDebut\":\"2025-11-01\"");
+        envoyer(post("/api/mentorat/programmes"), gestionnaire, passe)
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("La date de fin d'un programme ne peut pas être déjà passée."));
+
+        // Un programme déjà terminé se corrige encore, tant que sa date de fin ne change pas.
+        UUID id = creer(gestionnaire, "Orientation", "Étape");
+        var programme = programmeRepository.findById(id).orElseThrow();
+        programme.setDateDebut(LocalDate.of(2025, 11, 1));
+        programme.setDateFin(LocalDate.of(2026, 1, 31));
+        programmeRepository.saveAndFlush(programme);
+        String etapeId = JsonPath.read(mockMvc.perform(authentifie(get("/api/mentorat/programmes/{id}", id), gestionnaire))
+            .andReturn().getResponse().getContentAsString(), "$.etapes[0].id");
+        envoyer(put("/api/mentorat/programmes/{id}", id), gestionnaire,
+                passe.replace("Ancien", "Orientation revue").replace("{\"titre\":\"Étape\"}", etape(UUID.fromString(etapeId), "Étape")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.titre").value("Orientation revue"));
+        envoyer(put("/api/mentorat/programmes/{id}", id), gestionnaire,
+                passe.replace("2026-01-31", "2026-02-28").replace("{\"titre\":\"Étape\"}", etape(UUID.fromString(etapeId), "Étape")))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void f02_leMentorQuiQuitteLeProgrammeAnnuleSesDemandesEnAttenteDuProgrammeSeulement() throws Exception {
         UUID id = creer(gestionnaire, "Orientation", "Étape");
         changerStatutProgramme(id, "OUVERT", gestionnaire);

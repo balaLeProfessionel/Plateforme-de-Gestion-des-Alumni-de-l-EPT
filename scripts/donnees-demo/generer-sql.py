@@ -244,6 +244,49 @@ lignes.append(
     f"  'Mame Diarra', 'Ndour', 'ADMIN', 'ACTIF', 'Thiès', 'Administratrice de la plateforme', 'Administratrice de la plateforme EPT Alumni.', now() - interval '400 days'\n"
     f"on conflict do nothing;")
 
+# Programmes de mentorat (gérés par l'administration), dates relatives au jour du chargement :
+# l'un en cours avec une mentore volontaire et deux demandes, l'autre terminé mais pas encore clos.
+ADMIN = uid('membre', 'Mame Diarra', 'Ndour')
+AWA, BINETA, MODOU = (membres_ids[n][0] for n in ('Awa Thiam', 'Bineta Camara', 'Modou Wade'))
+PROFIL_AWA = f"(select id from profils_mentor where utilisateur_id = {q(AWA)})"
+DOMAINE_AWA = DOMAINES_PAR_FILIERE[membres_ids['Awa Thiam'][2]][0]
+PROGRAMMES = [
+    ('orientation', 'Orientation des lycéens', 'Des élèves et étudiants de l’EPT accompagnent les lycéens dans leur choix d’orientation : filières, concours, vie à l’école.',
+     "current_date - 7", "current_date + interval '6 months'",
+     [('Premier échange', 'Faire connaissance et cerner le projet du lycéen.'), ('Découverte des filières', None), ('Préparation au concours', None)]),
+    ('concours', 'Préparation aux concours', 'Accompagnement des candidats aux concours d’entrée de l’EPT.',
+     "current_date - interval '1 year'", "current_date - 60",
+     [('Bilan de départ', None), ('Concours blanc', None)]),
+]
+for cle, titre, description, debut, fin, etapes in PROGRAMMES:
+    pg = uid('programme', cle)
+    lignes.append(
+        f"insert into programmes_mentorat (id, titre, description, date_debut, date_fin, statut, responsable_id, cree_le)\n"
+        f"values ({q(pg)}, {q(titre)}, {q(description)}, {debut}, {fin}, 'OUVERT', {q(ADMIN)}, now() - interval '30 days')\n"
+        f"on conflict (id) do nothing;")
+    for ordre, (titre_etape, description_etape) in enumerate(etapes, start=1):
+        lignes.append(
+            f"insert into jalons_programme (id, programme_id, titre, description, ordre)\n"
+            f"values ({q(uid('jalon', cle, ordre))}, {q(pg)}, {q(titre_etape)}, {q(description_etape)}, {ordre}) on conflict (id) do nothing;")
+
+orientation = uid('programme', 'orientation')
+lignes.append(
+    f"insert into participations_programme (id, programme_id, profil_mentor_id, cree_le)\n"
+    f"select {q(uid('participation', 'orientation', AWA))}, {q(orientation)}, {PROFIL_AWA}, now() - interval '20 days'\n"
+    f"on conflict do nothing;")
+for mentore, statut, objectif, jours in [
+        (BINETA, 'ACCEPTEE', 'Aider des lycéens de Thiès à choisir entre classes préparatoires et école d’ingénieur.', 12),
+        (MODOU, 'EN_ATTENTE', 'Préparer une présentation de l’EPT pour mon ancien lycée.', 2)]:
+    repondu = f"now() - interval '{jours - 1} days'" if statut == 'ACCEPTEE' else 'null'
+    lignes.append(
+        f"insert into mentorats (id, mentore_id, profil_mentor_id, domaine_id, programme_id, objectif, statut, cree_le, repondu_le, version)\n"
+        f"select {q(uid('mentorat-programme', mentore))}, {q(mentore)}, {PROFIL_AWA}, d.id, {q(orientation)}, {q(objectif)}, '{statut}', now() - interval '{jours} days', {repondu}, 0\n"
+        f"from domaines_mentorat d where d.code = '{DOMAINE_AWA}' on conflict (id) do nothing;")
+lignes.append(
+    f"insert into progression_jalons (id, mentorat_id, jalon_id, atteint_le, valide_par_id, commentaire)\n"
+    f"values ({q(uid('progression', BINETA, 1))}, {q(uid('mentorat-programme', BINETA))}, {q(uid('jalon', 'orientation', 1))}, now() - interval '5 days', {q(AWA)},\n"
+    f"  'Premier appel d’une heure : projet clarifié, vise les classes préparatoires.') on conflict do nothing;")
+
 lignes.append('commit;\n')
 open(sys.argv[1], 'w', encoding='utf-8', newline='\n').write('\n'.join(lignes))
 print('lignes', len(lignes), 'événements avec image', [(uid('evenement', e[0]), e[9]) for e in EVENEMENTS if e[9]])

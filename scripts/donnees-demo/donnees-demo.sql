@@ -841,4 +841,32 @@ insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de
 select 'f7de9858-2346-53fe-a544-d2cc267a6f17', 'admin@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
   'Mame Diarra', 'Ndour', 'ADMIN', 'ACTIF', 'Thiès', 'Administratrice de la plateforme', 'Administratrice de la plateforme EPT Alumni.', now() - interval '400 days'
 on conflict do nothing;
+insert into programmes_mentorat (id, titre, description, date_debut, date_fin, statut, responsable_id, cree_le)
+values ('481f3bc0-b1fd-5fd9-b487-8b794889479b', 'Orientation des lycéens', 'Des élèves et étudiants de l’EPT accompagnent les lycéens dans leur choix d’orientation : filières, concours, vie à l’école.', current_date - 7, current_date + interval '6 months', 'OUVERT', 'f7de9858-2346-53fe-a544-d2cc267a6f17', now() - interval '30 days')
+on conflict (id) do nothing;
+insert into jalons_programme (id, programme_id, titre, description, ordre)
+values ('1c9e7ba9-f390-56e3-a9b1-563749f7e848', '481f3bc0-b1fd-5fd9-b487-8b794889479b', 'Premier échange', 'Faire connaissance et cerner le projet du lycéen.', 1) on conflict (id) do nothing;
+insert into jalons_programme (id, programme_id, titre, description, ordre)
+values ('913fc772-f589-57fb-bd00-9439977de51f', '481f3bc0-b1fd-5fd9-b487-8b794889479b', 'Découverte des filières', null, 2) on conflict (id) do nothing;
+insert into jalons_programme (id, programme_id, titre, description, ordre)
+values ('b3c52294-f0f3-5d84-be98-dd50b6c1f8df', '481f3bc0-b1fd-5fd9-b487-8b794889479b', 'Préparation au concours', null, 3) on conflict (id) do nothing;
+insert into programmes_mentorat (id, titre, description, date_debut, date_fin, statut, responsable_id, cree_le)
+values ('fcf2fc0e-bb73-577c-a735-49fd499aa81f', 'Préparation aux concours', 'Accompagnement des candidats aux concours d’entrée de l’EPT.', current_date - interval '1 year', current_date - 60, 'OUVERT', 'f7de9858-2346-53fe-a544-d2cc267a6f17', now() - interval '30 days')
+on conflict (id) do nothing;
+insert into jalons_programme (id, programme_id, titre, description, ordre)
+values ('5411dfc2-ce91-5534-833d-0043879723a6', 'fcf2fc0e-bb73-577c-a735-49fd499aa81f', 'Bilan de départ', null, 1) on conflict (id) do nothing;
+insert into jalons_programme (id, programme_id, titre, description, ordre)
+values ('d0477497-03e9-58fa-8951-19ade48f0704', 'fcf2fc0e-bb73-577c-a735-49fd499aa81f', 'Concours blanc', null, 2) on conflict (id) do nothing;
+insert into participations_programme (id, programme_id, profil_mentor_id, cree_le)
+select '49fe1e32-191b-5ee4-b7cb-2efb20e04b1e', '481f3bc0-b1fd-5fd9-b487-8b794889479b', (select id from profils_mentor where utilisateur_id = 'cb4ae14b-a5ae-5be3-87f5-03bdebba98db'), now() - interval '20 days'
+on conflict do nothing;
+insert into mentorats (id, mentore_id, profil_mentor_id, domaine_id, programme_id, objectif, statut, cree_le, repondu_le, version)
+select 'a6af9efc-f2ca-5cef-8322-5ab0c9297475', '4d33cf28-2592-56c3-b033-855cffb14776', (select id from profils_mentor where utilisateur_id = 'cb4ae14b-a5ae-5be3-87f5-03bdebba98db'), d.id, '481f3bc0-b1fd-5fd9-b487-8b794889479b', 'Aider des lycéens de Thiès à choisir entre classes préparatoires et école d’ingénieur.', 'ACCEPTEE', now() - interval '12 days', now() - interval '11 days', 0
+from domaines_mentorat d where d.code = 'GENIE_CIVIL' on conflict (id) do nothing;
+insert into mentorats (id, mentore_id, profil_mentor_id, domaine_id, programme_id, objectif, statut, cree_le, repondu_le, version)
+select '1285041e-7619-5e93-a5e4-77ff825d18ba', '57518406-14da-54a4-bab0-408d9f6bb421', (select id from profils_mentor where utilisateur_id = 'cb4ae14b-a5ae-5be3-87f5-03bdebba98db'), d.id, '481f3bc0-b1fd-5fd9-b487-8b794889479b', 'Préparer une présentation de l’EPT pour mon ancien lycée.', 'EN_ATTENTE', now() - interval '2 days', null, 0
+from domaines_mentorat d where d.code = 'GENIE_CIVIL' on conflict (id) do nothing;
+insert into progression_jalons (id, mentorat_id, jalon_id, atteint_le, valide_par_id, commentaire)
+values ('8c80ca3c-5ab4-5cc2-90dc-0c09d12b47ec', 'a6af9efc-f2ca-5cef-8322-5ab0c9297475', '1c9e7ba9-f390-56e3-a9b1-563749f7e848', now() - interval '5 days', 'cb4ae14b-a5ae-5be3-87f5-03bdebba98db',
+  'Premier appel d’une heure : projet clarifié, vise les classes préparatoires.') on conflict do nothing;
 commit;

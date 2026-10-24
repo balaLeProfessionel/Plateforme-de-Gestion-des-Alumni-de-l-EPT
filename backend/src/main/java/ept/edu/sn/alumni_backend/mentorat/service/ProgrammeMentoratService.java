@@ -78,6 +78,7 @@ public class ProgrammeMentoratService {
         if (request.etapes().stream().anyMatch(etape -> etape.id() != null)) {
             throw new IllegalArgumentException("Un nouveau programme ne peut pas reprendre des étapes existantes.");
         }
+        exigerFinAVenir(request);
         ProgrammeMentorat programme = new ProgrammeMentorat();
         programme.setResponsable(utilisateurRepository.getReferenceById(principal.getUtilisateur().getId()));
         appliquer(programme, request);
@@ -94,6 +95,10 @@ public class ProgrammeMentoratService {
         }
         if (programme.getStatut() != StatutProgramme.BROUILLON && request.etapes().isEmpty()) {
             throw new ConflitMentoratException("Un programme ouvert garde au moins une étape.");
+        }
+        // Un programme déjà terminé reste modifiable (titre, étapes…) tant qu'on ne repousse pas sa fin dans le passé.
+        if (!request.dateFin().equals(programme.getDateFin())) {
+            exigerFinAVenir(request);
         }
         appliquer(programme, request);
         remplacerEtapes(programme, request.etapes());
@@ -290,6 +295,12 @@ public class ProgrammeMentoratService {
     /** Le programme garde son responsable (l'administrateur qui l'a créé), mais toute l'administration le gère. */
     private static boolean peutGerer(ProgrammeMentorat programme, UtilisateurPrincipal principal) {
         return principal.getUtilisateur().getRole() == TypeRole.ADMIN;
+    }
+
+    private static void exigerFinAVenir(ProgrammeRequest request) {
+        if (request.dateFin().isBefore(ProgrammeMentorat.aujourdhui())) {
+            throw new IllegalArgumentException("La date de fin d'un programme ne peut pas être déjà passée.");
+        }
     }
 
     private static void exigerGestionnaire(UtilisateurPrincipal principal) {
