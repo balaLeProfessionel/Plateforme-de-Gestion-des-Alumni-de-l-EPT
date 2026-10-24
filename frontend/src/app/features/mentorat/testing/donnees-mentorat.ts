@@ -52,13 +52,8 @@ export function unePage<T>(contenu: T[]): Page<T> {
 }
 
 /** jsdom n'implémente pas la fenêtre modale native. */
-export function simulerDialogue(): void {
-  HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) { this.open = true; };
-  HTMLDialogElement.prototype.close ??= function (this: HTMLDialogElement) {
-    this.open = false;
-    this.dispatchEvent(new Event('close'));
-  };
-}
+/** Simulation de `<dialog>` commune à toutes les specs. */
+export { simulerDialogue } from '../../../testing/dialogue';
 
 export function saisir(element: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement, valeur: string): void {
   element.value = valeur;

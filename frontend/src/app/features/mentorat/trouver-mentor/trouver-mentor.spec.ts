@@ -10,6 +10,7 @@ import { CompteurDemandesMentorat } from '../../../core/services/mentorat/compte
 import { Mentor, Page, Programme } from '../../../core/services/models/mentorat.model';
 import { unProgramme } from '../testing/donnees-mentorat';
 import { TrouverMentor } from './trouver-mentor';
+import { simulerDialogue } from '../../../testing/dialogue';
 
 describe('TrouverMentor', () => {
   const envoyees = signal(0);
@@ -38,8 +39,7 @@ describe('TrouverMentor', () => {
     }).compileComponents();
     http = TestBed.inject(HttpTestingController);
     navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
-    HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) { this.open = true; };
-    HTMLDialogElement.prototype.close ??= function (this: HTMLDialogElement) { this.open = false; };
+    simulerDialogue();
   });
 
   afterEach(() => http.verify());
