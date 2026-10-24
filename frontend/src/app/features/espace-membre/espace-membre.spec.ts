@@ -114,9 +114,9 @@ describe('Navigation de l’espace membre', () => {
     fixture.detectChanges();
 
     const entrees = [...document.querySelectorAll('#menu-compte [role="menuitem"]')];
-    expect(entrees.map((entree) => entree.textContent?.trim())).toEqual(['Mon profil', 'Paramètres', 'Déconnexion']);
+    expect(entrees.map((entree) => entree.textContent?.trim())).toEqual(['Mon profil', 'Déconnexion']);
     expect(document.querySelector('#menu-compte a[href="/profil"]')).not.toBeNull();
-    expect(document.querySelector('#menu-compte a[href="/profil/parametres"]')).not.toBeNull();
+    expect(document.querySelector('#menu-compte a[href="/profil/parametres"]')).toBeNull();
 
     (document.querySelector('#menu-compte [role="menuitem"]:last-child a') as HTMLElement | null)?.click();
     fixture.detectChanges();

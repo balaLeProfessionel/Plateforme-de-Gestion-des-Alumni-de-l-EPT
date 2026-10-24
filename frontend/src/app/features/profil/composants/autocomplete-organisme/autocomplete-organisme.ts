@@ -52,7 +52,8 @@ export class AutocompleteOrganisme {
   // c'est le seul cas ou un nouvel organisme sera cree.
   protected readonly creeraNouvelOrganisme = computed(() => {
     const saisi = this.texte().trim();
-    if (saisi.length === 0 || this.selection() !== null) {
+    // Texte inchangé d'une carte existante : c'est l'organisme déjà lié, rien ne sera créé.
+    if (saisi.length === 0 || this.selection() !== null || saisi === this.valeurInitiale().trim()) {
       return false;
     }
     return !this.suggestions().some(

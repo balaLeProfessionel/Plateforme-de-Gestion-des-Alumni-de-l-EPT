@@ -63,8 +63,8 @@ export class FenetreParcours {
     const formation = this.formation();
     return formation ? LIBELLES_FORMATION[formation.typeFormation] : '';
   });
-  protected readonly lienModification = computed(() =>
-    ['/completer-profil', this.parcours()?.type === 'formation' ? 'formations' : 'experiences']);
+  /** Ancre de la carte dans « Modifier mon profil ». */
+  protected readonly ancreModification = computed(() => this.parcours()?.type === 'formation' ? 'formations' : 'parcours');
 
   constructor() {
     effect(() => {

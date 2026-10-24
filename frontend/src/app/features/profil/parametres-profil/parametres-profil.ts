@@ -13,6 +13,7 @@ import { FORMAT_PHOTO_PROFIL } from '../../../shared/images/recadrage';
 import { RecadreurImage } from '../../../shared/images/recadreur-image';
 import { InfosPersonnelles } from '../composants/infos-personnelles/infos-personnelles';
 import { MessageSection } from '../composants/message-section.model';
+import { SectionParcours } from './section-parcours/section-parcours';
 
 interface ModeleMotDePasse {
   actuel: string;
@@ -22,7 +23,7 @@ interface ModeleMotDePasse {
 
 @Component({
   selector: 'app-parametres-profil',
-  imports: [FormField, InfosPersonnelles, InputText, RouterLink, BoutonRetour, AvatarMembre, RecadreurImage],
+  imports: [FormField, InfosPersonnelles, InputText, RouterLink, BoutonRetour, AvatarMembre, RecadreurImage, SectionParcours],
   templateUrl: './parametres-profil.html',
   styleUrl: './parametres-profil.scss'
 })

@@ -11,11 +11,6 @@
     <a [routerLink]="destination" routerLinkActive="actif" [routerLinkActiveOptions]="{ exact: true }"
       (click)="fermer()"><i class="pi pi-user" aria-hidden="true"></i>Mon profil</a>
   }
-  @if (lienParametres(); as destination) {
-    <a [routerLink]="destination" routerLinkActive="actif" (click)="fermer()">
-      <i class="pi pi-cog" aria-hidden="true"></i>Paramètres du profil
-    </a>
-  }
   @if (liens().length) {
     <p class="titre-panneau">Rubriques</p>
     @for (lien of liens(); track lien.route) {

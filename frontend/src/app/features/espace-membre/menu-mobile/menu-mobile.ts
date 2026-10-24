@@ -25,7 +25,6 @@ export interface RubriqueMenu extends RubriqueAVenir {
 export class MenuMobile {
   readonly ouvert = model(false);
   readonly lienProfil = input<string | null>(null);
-  readonly lienParametres = input<string | null>(null);
   readonly liens = input<readonly RubriqueMenu[]>([]);
   readonly rubriques = input<readonly RubriqueAVenir[]>([]);
   readonly deconnexion = output();

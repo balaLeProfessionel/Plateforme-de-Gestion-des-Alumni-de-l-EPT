@@ -3,6 +3,9 @@
 .entete-page { display: flex; justify-content: space-between; gap: 2rem; align-items: flex-start; margin-bottom: 1.5rem; }
 .entete-page h1 { margin: .2rem 0 .45rem; color: var(--ept-primary); font-family: var(--ept-font-heading); font-size: clamp(1.8rem, 5vw, 2.65rem); }
 .entete-page p { margin: 0; color: var(--ept-text-muted); }
+.voir-profil { display: inline-flex; flex: none; align-items: center; gap: .45rem; min-height: 2.6rem; padding: .5rem .9rem; border: 1px solid var(--ept-primary); color: var(--ept-primary); font-weight: 700; text-decoration: none; }
+.voir-profil:hover { background: var(--ept-primary); color: white; }
+.voir-profil:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
 .sur-titre { text-transform: uppercase; letter-spacing: .09em; font-size: .78rem; font-weight: 700; }
 .navigation-sections { position: sticky; top: .75rem; z-index: 2; display: flex; gap: .35rem; width: fit-content; margin: 0 0 1rem; padding: .3rem; border: 1px solid var(--ept-border); border-radius: 2px; background: rgba(255,255,255,.96); box-shadow: 0 6px 24px rgba(15, 45, 65, .08); }
 .navigation-sections a { padding: .55rem .85rem; border-radius: 2px; color: var(--ept-primary); font-weight: 700; text-decoration: none; }
@@ -33,4 +36,4 @@ button:disabled { opacity: .6; cursor: wait; }
 .squelette { height: 34rem; border-radius: 2px; background: linear-gradient(90deg, #edf1f3 25%, #f7f9fa 50%, #edf1f3 75%); background-size: 200% 100%; animation: charge 1.3s infinite; }
 .etat-erreur { padding: 2rem; text-align: center; border: 1px solid var(--ept-border); border-radius: 2px; background: white; }
 @keyframes charge { to { background-position: -200% 0; } }
-@media (max-width: 640px) { .page-parametres { width: min(100% - 1rem, 960px); padding-top: 1rem; }.entete-page { display: grid; }.navigation-sections { width: 100%; justify-content: safe center; overflow-x: auto; }.navigation-sections a { flex: 0 0 auto; padding-inline: clamp(.5rem, 3vw, .85rem); }.gestion-photo { align-items: flex-start; }.champs-lecture-seule { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) { .page-parametres { width: min(100% - 1rem, 960px); padding-top: 1rem; }.entete-page { display: grid; }.navigation-sections { position: static; display: grid; grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr)); width: 100%; box-sizing: border-box; }.carte-parametres { scroll-margin-top: 1rem; }.navigation-sections a { text-align: center; padding-inline: .5rem; }.gestion-photo { align-items: flex-start; }.champs-lecture-seule { grid-template-columns: minmax(0, 1fr); } }

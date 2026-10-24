@@ -18,10 +18,9 @@ describe('Menu mobile « Mon espace »', () => {
     });
   });
 
-  function creerMenu(lienProfil: string | null, lienParametres: string | null) {
+  function creerMenu(lienProfil: string | null) {
     const fixture = TestBed.createComponent(MenuMobile);
     fixture.componentRef.setInput('lienProfil', lienProfil);
-    fixture.componentRef.setInput('lienParametres', lienParametres);
     fixture.componentRef.setInput('rubriques', rubriques);
     fixture.detectChanges();
     const racine = fixture.nativeElement as HTMLElement;
@@ -36,7 +35,7 @@ describe('Menu mobile « Mon espace »', () => {
   }
 
   it('s’ouvre en modal et n’y rend cliquables que les actions disponibles', () => {
-    const { fixture, racine, dialogue } = creerMenu('/profil', '/profil/parametres');
+    const { fixture, racine, dialogue } = creerMenu('/profil');
     const defilementInitial = document.documentElement.style.overflow;
 
     ouvrir(fixture);
@@ -46,7 +45,8 @@ describe('Menu mobile « Mon espace »', () => {
     expect(dialogue.getAttribute('aria-labelledby')).toBe('titre-menu-mobile');
     expect(racine.querySelectorAll('.rubrique-a-venir')).toHaveLength(3);
     expect(racine.querySelector('.menu-mobile a[href="/profil"]')?.textContent).toContain('Mon profil');
-    expect(racine.querySelector('.menu-mobile a[href="/profil/parametres"]')).not.toBeNull();
+    // Le profil s’ouvre en lecture ; « Modifier mon profil » y mène, pas d’entrée séparée.
+    expect(racine.querySelector('.menu-mobile a[href="/profil/parametres"]')).toBeNull();
 
     (racine.querySelector('.fermer-menu') as HTMLButtonElement).click();
     fixture.detectChanges();
@@ -56,7 +56,7 @@ describe('Menu mobile « Mon espace »', () => {
   });
 
   it('garde le focus dans le menu avec Tab et Maj+Tab', () => {
-    const { fixture, racine, dialogue } = creerMenu('/profil', null);
+    const { fixture, racine, dialogue } = creerMenu('/profil');
     ouvrir(fixture);
     const fermer = racine.querySelector('.fermer-menu') as HTMLButtonElement;
     const deconnexion = racine.querySelector('.deconnexion-menu') as HTMLButtonElement;
@@ -71,7 +71,7 @@ describe('Menu mobile « Mon espace »', () => {
   });
 
   it('ferme le menu avant de demander la déconnexion', () => {
-    const { fixture, racine, dialogue } = creerMenu(null, null);
+    const { fixture, racine, dialogue } = creerMenu(null);
     const deconnexion = vi.fn();
     fixture.componentInstance.deconnexion.subscribe(deconnexion);
     ouvrir(fixture);
@@ -89,7 +89,7 @@ describe('Menu mobile « Mon espace »', () => {
     let mobile = true;
     Object.defineProperty(formatMobile, 'matches', { get: () => mobile });
     vi.stubGlobal('matchMedia', vi.fn(() => formatMobile));
-    const { fixture, dialogue } = creerMenu('/profil', null);
+    const { fixture, dialogue } = creerMenu('/profil');
     try {
       const defilementInitial = document.documentElement.style.overflow;
       ouvrir(fixture);

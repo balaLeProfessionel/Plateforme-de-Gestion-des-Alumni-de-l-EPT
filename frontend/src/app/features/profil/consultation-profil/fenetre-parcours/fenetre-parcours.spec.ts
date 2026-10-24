@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 
 import { Experience } from '../../../../core/services/models/profil.model';
 import { ProfilService } from '../../../../core/services/profil/profil-service';
+import { simulerDialogue } from '../../../../testing/dialogue';
 import { FenetreParcours, ParcoursOuvert } from './fenetre-parcours';
 
 describe('FenetreParcours', () => {
@@ -13,11 +14,7 @@ describe('FenetreParcours', () => {
   const service = { supprimerExperience: vi.fn(), supprimerFormation: vi.fn() };
 
   beforeEach(() => {
-    HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) { this.setAttribute('open', ''); };
-    HTMLDialogElement.prototype.close ??= function (this: HTMLDialogElement) {
-      this.removeAttribute('open');
-      this.dispatchEvent(new Event('close'));
-    };
+    simulerDialogue();
     service.supprimerExperience.mockReset();
     TestBed.configureTestingModule({
       imports: [FenetreParcours],
@@ -69,7 +66,7 @@ describe('FenetreParcours', () => {
     fixture.componentInstance.supprime.subscribe((parcours) => supprimes.push(parcours.item.id));
     ouvrir({ type: 'experience', item: experience() }, true);
     const modifier = [...racine.querySelectorAll('a')].find((a) => a.textContent?.includes('Modifier'));
-    expect(modifier?.getAttribute('href')).toBe('/completer-profil/experiences?modifier=exp-1');
+    expect(modifier?.getAttribute('href')).toBe('/profil/parametres?modifier=exp-1&type=experience#parcours');
 
     bouton('Supprimer')?.click();
     fixture.detectChanges();

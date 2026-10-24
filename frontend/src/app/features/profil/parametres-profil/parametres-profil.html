@@ -3,9 +3,10 @@
   <header class="entete-page">
     <div>
       <p class="sur-titre">Mon profil</p>
-      <h1>Paramètres du profil</h1>
-      <p>Gérez les informations visibles sur votre profil et la sécurité de votre compte.</p>
+      <h1>Modifier mon profil</h1>
+      <p>Votre photo, vos informations, votre parcours et la sécurité de votre compte, au même endroit.</p>
     </div>
+    <a class="voir-profil" routerLink="/profil"><i class="pi pi-eye" aria-hidden="true"></i>Voir mon profil</a>
   </header>
 
   @if (enChargement()) {
@@ -19,6 +20,7 @@
     <nav class="navigation-sections" aria-label="Sections des paramètres">
       <a routerLink="/profil/parametres" fragment="photo">Photo</a>
       <a routerLink="/profil/parametres" fragment="informations">Informations</a>
+      <a routerLink="/profil/parametres" fragment="parcours">Parcours</a>
       <a routerLink="/profil/parametres" fragment="securite">Sécurité</a>
     </nav>
 
@@ -66,6 +68,14 @@
       </div>
       <app-infos-personnelles [profil]="membre" [enSauvegarde]="enSauvegarde()"
         [message]="messageInformations()" (sauvegarder)="enregistrerInformations($event)" />
+    </section>
+
+    <!-- Parcours : chaque liste porte son propre titre (« Expériences professionnelles », « Formations »). -->
+    <section class="carte-parametres" id="parcours" aria-labelledby="titre-experiences">
+      <app-section-parcours type="experience" />
+    </section>
+    <section class="carte-parametres" id="formations" aria-labelledby="titre-formations">
+      <app-section-parcours type="formation" />
     </section>
 
     <section class="carte-parametres" id="securite" aria-labelledby="titre-securite">

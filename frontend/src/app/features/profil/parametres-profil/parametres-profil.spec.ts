@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { Profil } from '../../../core/services/models/profil.model';
+import { OrganismeService } from '../../../core/services/organisme/organisme-service';
 import { ProfilService } from '../../../core/services/profil/profil-service';
 import { ParametresProfil } from './parametres-profil';
 
@@ -33,8 +34,10 @@ describe('ParametresProfil', () => {
       obtenirProfil: vi.fn().mockReturnValue(of(profil())),
       majProfil: vi.fn().mockReturnValue(of({ ...profil(), prenom: 'Aminata' })),
       modifierPhoto: vi.fn().mockReturnValue(of({ ...profil(), urlPhoto: '/api/photos/photo.png' })),
-      supprimerPhoto: vi.fn().mockReturnValue(of({ ...profil(), urlPhoto: null }))
-    };
+      supprimerPhoto: vi.fn().mockReturnValue(of({ ...profil(), urlPhoto: null })),
+      listerExperiences: vi.fn().mockReturnValue(of([])),
+      listerFormations: vi.fn().mockReturnValue(of([]))
+    } as typeof profilService;
     authService = {
       synchroniserProfil: vi.fn(),
       changerMotDePasse: vi.fn().mockReturnValue(of({}))
@@ -45,7 +48,8 @@ describe('ParametresProfil', () => {
       providers: [
         provideRouter([]),
         { provide: ProfilService, useValue: profilService },
-        { provide: AuthService, useValue: authService }
+        { provide: AuthService, useValue: authService },
+        { provide: OrganismeService, useValue: { rechercherOrganismes: vi.fn().mockReturnValue(of([])) } }
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(ParametresProfil);
@@ -55,6 +59,12 @@ describe('ParametresProfil', () => {
 
   it('affiche les sections et les informations non modifiables', () => {
     const contenu = fixture.nativeElement.textContent;
+    expect(fixture.nativeElement.querySelector('h1')?.textContent).toContain('Modifier mon profil');
+    expect([...fixture.nativeElement.querySelectorAll('.navigation-sections a')].map((a: Element) => a.textContent?.trim()))
+      .toEqual(['Photo', 'Informations', 'Parcours', 'Sécurité']);
+    expect(fixture.nativeElement.querySelector('.voir-profil')?.getAttribute('href')).toBe('/profil');
+    expect(contenu).toContain('Expériences professionnelles');
+    expect(contenu).toContain('Formations');
     expect(contenu).toContain('Photo de profil');
     expect(contenu).toContain('Identité et informations');
     expect(contenu).toContain('Sécurité');
@@ -205,7 +215,7 @@ describe('ParametresProfil', () => {
       .map((lien: HTMLAnchorElement) => lien.getAttribute('href'));
 
     expect(liens).toEqual([
-      '/profil/parametres#photo', '/profil/parametres#informations', '/profil/parametres#securite'
+      '/profil/parametres#photo', '/profil/parametres#informations', '/profil/parametres#parcours', '/profil/parametres#securite'
     ]);
   });
 

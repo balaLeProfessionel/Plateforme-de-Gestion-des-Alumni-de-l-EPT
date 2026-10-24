@@ -8,6 +8,7 @@ import { vi } from 'vitest';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { ProfilPublic } from '../../../core/services/models/profil.model';
 import { ProfilService } from '../../../core/services/profil/profil-service';
+import { simulerDialogue } from '../../../testing/dialogue';
 import { ConsultationProfil } from './consultation-profil';
 
 describe('ConsultationProfil', () => {
@@ -69,7 +70,7 @@ describe('ConsultationProfil', () => {
     expect(contenu).toContain('Informations privées');
     expect(contenu).toContain('awa@example.com');
     expect(contenu).toContain('Votre parcours est vide');
-    expect(fixture.nativeElement.querySelector('a[href="/completer-profil/experiences"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('a[href="/profil/parametres#parcours"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.modifier')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('app-bouton-retour')?.textContent).toContain('Retour');
   });
@@ -139,8 +140,7 @@ describe('ConsultationProfil', () => {
   });
 
   it('ouvre la fenêtre de l’étape demandée par l’adresse et passe à la suivante', async () => {
-    HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) { this.setAttribute('open', ''); };
-    HTMLDialogElement.prototype.close ??= function (this: HTMLDialogElement) { this.removeAttribute('open'); };
+    simulerDialogue();
     service.obtenirProfilPublic.mockReturnValue(of({ ...profilPublic(), experiences: [experience()], formations: [formation()] }));
     requete.next(convertToParamMap({ experience: 'exp-1' }));
     creerComposant();

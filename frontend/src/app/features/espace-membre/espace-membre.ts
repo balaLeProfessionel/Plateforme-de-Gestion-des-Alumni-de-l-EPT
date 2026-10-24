@@ -60,20 +60,13 @@ export class EspaceMembre implements OnDestroy {
     return null;
   });
 
-  protected readonly lienParametres = computed(() =>
-    ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'].includes(
-      this.authService.utilisateur()?.role ?? ''
-    ) ? '/profil/parametres' : null
-  );
-
   protected readonly elementsMenuCompte = computed<MenuItem[]>(() => {
+    // Pas d’entrée « Paramètres » : le profil s’ouvre en lecture et « Modifier mon profil » y mène.
     const profil = this.lienProfil();
-    const parametres = this.lienParametres();
     const organisme = this.authService.utilisateur()?.role === 'ORGANISME';
     return [
       ...(profil ? [{ label: organisme ? 'Mon organisme' : 'Mon profil', icon: 'pi pi-user', routerLink: profil }] : []),
-      ...(parametres ? [{ label: 'Paramètres', icon: 'pi pi-cog', routerLink: parametres }] : []),
-      ...(profil || parametres ? [{ separator: true }] : []),
+      ...(profil ? [{ separator: true }] : []),
       { label: 'Déconnexion', icon: 'pi pi-sign-out', command: () => this.seDeconnecter() },
     ];
   });

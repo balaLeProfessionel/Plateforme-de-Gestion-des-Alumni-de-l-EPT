@@ -194,7 +194,7 @@ export const routes: Routes = [
       },
       {
         path: 'profil/parametres',
-        title: 'Paramètres du profil | EPT Alumni',
+        title: 'Modifier mon profil | EPT Alumni',
         canActivate: [authGuard, changementInitialRequisGuard, roleGuard],
         data: { roles: ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'] },
         loadComponent: () =>

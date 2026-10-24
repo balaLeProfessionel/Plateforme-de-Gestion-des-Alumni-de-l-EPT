@@ -57,7 +57,7 @@
             </div>
           } @else {
             <div class="gestion">
-              <a class="secondaire" [routerLink]="lienModification()" [queryParams]="{ modifier: item.id }">
+              <a class="secondaire" routerLink="/profil/parametres" [queryParams]="{ modifier: item.id, type: ouvert.type }" [fragment]="ancreModification()">
                 <i class="pi pi-pencil" aria-hidden="true"></i>Modifier
               </a>
               <button type="button" class="secondaire" (click)="confirmationSuppression.set(true)">
