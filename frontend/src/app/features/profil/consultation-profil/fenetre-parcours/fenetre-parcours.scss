@@ -1,0 +1,101 @@
+.fenetre {
+  width: min(100% - 2rem, 36rem);
+  max-height: min(100% - 2rem, 44rem);
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  color: var(--ept-primary-dark);
+  box-shadow: 0 20px 50px rgba(1, 46, 69, 0.25);
+
+  &::backdrop { background: rgba(1, 46, 69, 0.45); }
+  /* La fenêtre reçoit le focus à l’ouverture : pas de contour sur le cadre, ses contrôles gardent le leur. */
+  &:focus { outline: none; }
+}
+
+article { display: grid; gap: 1.1rem; padding: 1.4rem; border-top: 5px solid var(--ept-primary); }
+article.ept { border-top-color: var(--ept-gold); }
+
+header {
+  position: relative;
+  padding-right: 2.75rem;
+
+  h2 { margin: 0.35rem 0 0; overflow-wrap: anywhere; font-size: 1.35rem; line-height: 1.2; }
+}
+
+.sur-titre { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; margin: 0; color: var(--ept-text-secondary); font-size: 0.82rem; font-weight: 700; }
+.marque-ept { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.1rem 0.5rem 0.1rem 0.25rem; border-radius: 999px; background: var(--ept-gold-light); color: var(--ept-gold-dark); }
+.organisme { margin: 0.25rem 0 0; overflow-wrap: anywhere; color: var(--ept-primary); font-weight: 600; }
+
+.fermer {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.35rem;
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ept-text-secondary);
+  cursor: pointer;
+
+  &:hover { background: var(--ept-bg); }
+}
+
+.informations {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  background: var(--ept-bg);
+
+  div { display: grid; gap: 0.15rem; min-width: 0; }
+  dt { color: var(--ept-text-secondary); font-size: 0.75rem; font-weight: 700; }
+  dd { margin: 0; overflow-wrap: break-word; font-weight: 600; }
+}
+.ept .informations { background: var(--ept-gold-light); }
+
+.description {
+  h3 { margin: 0; font-size: 1rem; }
+  p { margin: 0.4rem 0 0; overflow-wrap: anywhere; color: var(--ept-text-secondary); line-height: 1.65; white-space: pre-line; }
+  .non-renseigne { font-style: italic; }
+}
+
+.erreur { margin: 0; padding: 0.65rem 0.8rem; border-radius: 8px; background: var(--ept-error-light); color: var(--ept-error-dark); }
+
+footer { display: grid; gap: 0.75rem; padding-top: 0.9rem; border-top: 1px solid var(--ept-border); }
+.gestion, .navigation, .confirmation { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.navigation { justify-content: space-between; }
+.confirmation p { flex-basis: 100%; margin: 0; font-weight: 600; }
+
+.secondaire, .danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.6rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--ept-primary);
+  border-radius: 8px;
+  background: white;
+  color: var(--ept-primary);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:disabled { border-color: var(--ept-border); color: var(--ept-text-secondary); cursor: default; }
+}
+.danger { border-color: var(--ept-error); background: var(--ept-error); color: white; }
+
+button:focus-visible, a:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+
+/* Sur téléphone, la fenêtre monte du bas de l’écran. */
+@media (max-width: 560px) {
+  .fenetre { width: 100%; max-width: 100%; margin: auto 0 0; border-radius: 16px 16px 0 0; }
+  article { padding: 1.15rem; }
+  .navigation .secondaire { flex: 1 1 0; justify-content: center; }
+}

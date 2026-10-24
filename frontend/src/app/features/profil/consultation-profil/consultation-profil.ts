@@ -1,7 +1,7 @@
-import { DatePipe, DOCUMENT, NgOptimizedImage } from '@angular/common';
+import { DatePipe, DOCUMENT, Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin, map, switchMap, tap } from 'rxjs';
 
@@ -17,21 +17,8 @@ import { ProfilService } from '../../../core/services/profil/profil-service';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
 import { OffreMentoratProfil } from '../../mentorat/offre-mentorat-profil/offre-mentorat-profil';
-
-/** Une expérience ou une formation sur la frise du parcours. */
-interface ElementParcours {
-  type: 'experience' | 'formation';
-  id: string;
-  titre: string;
-  organisme: string;
-  libelleType: string;
-  description: string | null;
-  periode: string;
-  ept: boolean;
-  enCours: boolean;
-  /** Clé de tri : en cours d’abord, puis du plus récent au plus ancien. */
-  tri: string;
-}
+import { FenetreParcours, ParcoursOuvert } from './fenetre-parcours/fenetre-parcours';
+import { ElementParcours, FriseParcours, parametresEtape } from './frise-parcours/frise-parcours';
 
 interface Tuile {
   libelle: string;
@@ -47,7 +34,7 @@ interface ProfilAffiche extends ProfilPublic {
 
 @Component({
   selector: 'app-consultation-profil',
-  imports: [DatePipe, NgOptimizedImage, RouterLink, BoutonRetour, AvatarMembre, OffreMentoratProfil],
+  imports: [DatePipe, RouterLink, BoutonRetour, AvatarMembre, OffreMentoratProfil, FenetreParcours, FriseParcours],
   templateUrl: './consultation-profil.html',
   styleUrl: './consultation-profil.scss'
 })
@@ -58,6 +45,9 @@ export class ConsultationProfil {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly document = inject(DOCUMENT);
+  private readonly location = inject(Location);
+  /** La fenêtre a été ouverte depuis la frise : la fermer revient en arrière dans l’historique. */
+  private ouvertureInterne = false;
 
   protected readonly profil = signal<ProfilAffiche | null>(null);
   protected readonly estMonProfil = signal(false);
@@ -108,6 +98,30 @@ export class ConsultationProfil {
     return elements.sort((a, b) => b.tri.localeCompare(a.tri));
   });
 
+  /** Étape demandée par l’adresse : ?experience=<id> ou ?formation=<id>. */
+  private readonly etapeDemandee = toSignal(this.route.queryParamMap.pipe(map((parametres) => {
+    const experience = parametres.get('experience');
+    const formation = parametres.get('formation');
+    if (experience) return { type: 'experience' as const, id: experience };
+    return formation ? { type: 'formation' as const, id: formation } : null;
+  })), { initialValue: null });
+
+  /** Place de l’étape ouverte dans la frise, pour aller à la plus récente ou à la plus ancienne. */
+  protected readonly indexOuvert = computed(() => {
+    const demandee = this.etapeDemandee();
+    return demandee ? this.parcours().findIndex((element) => element.type === demandee.type && element.id === demandee.id) : -1;
+  });
+
+  protected readonly parcoursOuvert = computed((): ParcoursOuvert | null => {
+    const demandee = this.etapeDemandee();
+    const profil = this.profil();
+    if (!demandee || !profil) return null;
+    const item = demandee.type === 'experience'
+      ? profil.experiences.find((experience) => experience.id === demandee.id)
+      : profil.formations.find((formation) => formation.id === demandee.id);
+    return item ? { type: demandee.type, item } : null;
+  });
+
   constructor() {
     this.route.paramMap.pipe(
       tap(() => {
@@ -138,6 +152,35 @@ export class ConsultationProfil {
     });
   }
 
+
+  protected ouvrirDepuisFrise(): void {
+    this.ouvertureInterne = true;
+  }
+
+  protected fermerFenetre(): void {
+    if (!this.etapeDemandee()) return;
+    if (this.ouvertureInterne) {
+      this.ouvertureInterne = false;
+      this.location.back();
+    } else {
+      void this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+    }
+  }
+
+  protected allerA(decalage: number): void {
+    const element = this.parcours()[this.indexOuvert() + decalage];
+    if (!element) return;
+    void this.router.navigate([], { relativeTo: this.route, queryParams: parametresEtape(element), replaceUrl: true });
+  }
+
+  protected retirerDuParcours(supprime: ParcoursOuvert): void {
+    this.profil.update((profil) => profil && ({
+      ...profil,
+      experiences: profil.experiences.filter((experience) => experience.id !== supprime.item.id),
+      formations: profil.formations.filter((formation) => formation.id !== supprime.item.id),
+    }));
+    this.fermerFenetre();
+  }
 
   protected async copierLien(): Promise<void> {
     const fenetre = this.document.defaultView;

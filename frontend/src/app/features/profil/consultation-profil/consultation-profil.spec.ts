@@ -13,6 +13,7 @@ import { ConsultationProfil } from './consultation-profil';
 describe('ConsultationProfil', () => {
   let fixture: ComponentFixture<ConsultationProfil>;
   let parametres: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
+  let requete: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
   let service: {
     obtenirProfilPublic: ReturnType<typeof vi.fn>;
     obtenirProfil: ReturnType<typeof vi.fn>;
@@ -22,6 +23,7 @@ describe('ConsultationProfil', () => {
 
   beforeEach(async () => {
     parametres = new BehaviorSubject(convertToParamMap({ id: 'membre-1' }));
+    requete = new BehaviorSubject(convertToParamMap({}));
     service = {
       obtenirProfilPublic: vi.fn().mockReturnValue(of(profilPublic())),
       obtenirProfil: vi.fn().mockReturnValue(of({
@@ -35,7 +37,7 @@ describe('ConsultationProfil', () => {
       imports: [ConsultationProfil],
       providers: [
         provideRouter([]),
-        { provide: ActivatedRoute, useValue: { paramMap: parametres } },
+        { provide: ActivatedRoute, useValue: { paramMap: parametres, queryParamMap: requete } },
         { provide: ProfilService, useValue: service },
         { provide: AuthService, useValue: { utilisateur: signal({ id: 'moi', role: 'ALUMNI' }) } }
       ]
@@ -130,17 +132,51 @@ describe('ConsultationProfil', () => {
     expect(elements.map((li) => li.querySelector('strong')?.textContent)).toEqual(['Assistant de recherche', 'Diplôme d ingénieur']);
     expect(elements.every((li) => li.classList.contains('ept'))).toBe(true);
     expect(elements[0].querySelector('strong')?.getAttribute('title')).toBe('Assistant de recherche');
-    expect(elements[0].querySelector('a')?.getAttribute('href')).toBe('/profil/membre-1/experience/exp-1');
+    expect(elements[0].querySelector('a')?.getAttribute('href')).toContain('experience=exp-1');
     expect(elements[0].querySelector('.periode')?.textContent).toContain('Depuis 2024');
-    expect(elements[1].querySelector('a')?.getAttribute('href')).toBe('/profil/membre-1/formation/formation-1');
+    expect(elements[1].querySelector('a')?.getAttribute('href')).toContain('formation=formation-1');
     expect(elements[0].querySelector('.marque-ept')?.textContent).toContain('EPT');
+  });
+
+  it('ouvre la fenêtre de l’étape demandée par l’adresse et passe à la suivante', async () => {
+    HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) { this.setAttribute('open', ''); };
+    HTMLDialogElement.prototype.close ??= function (this: HTMLDialogElement) { this.removeAttribute('open'); };
+    service.obtenirProfilPublic.mockReturnValue(of({ ...profilPublic(), experiences: [experience()], formations: [formation()] }));
+    requete.next(convertToParamMap({ experience: 'exp-1' }));
+    creerComposant();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const fenetre = fixture.nativeElement.querySelector('app-fenetre-parcours dialog') as HTMLDialogElement;
+    expect(fenetre.open).toBe(true);
+    expect(fenetre.querySelector('h2')?.textContent).toContain('Assistant de recherche');
+    const navigation = TestBed.inject(Router);
+    const naviguer = vi.spyOn(navigation, 'navigate').mockResolvedValue(true);
+    ([...fenetre.querySelectorAll('button')].find((b) => b.textContent?.includes('Plus ancien')) as HTMLButtonElement).click();
+    expect(naviguer).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { formation: 'formation-1' }, replaceUrl: true }));
   });
 
   function creerComposant(): void {
     fixture = TestBed.createComponent(ConsultationProfil);
   }
 
-  function profilPublic(): ProfilPublic {
+  function experience() {
+  return {
+    id: 'exp-1', poste: 'Assistant de recherche', description: 'Analyse de données', typeContrat: 'CDD' as const,
+    dateDebut: '2024-01-01', dateFin: null, estStage: false, enCours: true,
+    organismeId: 'ept', nomOrganisme: 'École Polytechnique de Thiès (EPT)', etablissementEpt: true
+  };
+}
+
+function formation() {
+  return {
+    id: 'formation-1', libelle: 'Diplôme d ingénieur', description: null, typeFormation: 'DIPLOMANTE' as const,
+    dateDebut: '2019-01-01', dateFin: '2024-01-01', estStage: false, enCours: false,
+    organismeId: 'ept', nomOrganisme: 'École Polytechnique de Thiès (EPT)', etablissementEpt: true
+  };
+}
+
+function profilPublic(): ProfilPublic {
     return {
       id: 'membre-1', nom: 'Diop', prenom: 'Awa', role: 'ALUMNI', statutCompte: 'ACTIF',
       bio: null, villeResidence: 'Thiès', posteActuel: null, lienLinkedin: null,

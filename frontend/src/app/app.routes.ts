@@ -203,24 +203,16 @@ export const routes: Routes = [
           )
       },
       {
+        // Ancienne page de détail : le profil s’ouvre avec la fenêtre de l’étape (les liens partagés restent valides).
         path: 'profil/:id/experience/:parcoursId',
-        title: 'Détail de l’expérience | EPT Alumni',
-        canActivate: [authGuard, changementInitialRequisGuard],
-        data: { typeParcours: 'experience' },
-        loadComponent: () =>
-          import('./features/profil/detail-parcours/detail-parcours').then(
-            (m) => m.DetailParcours
-          )
+        redirectTo: ({ params }) =>
+          inject(Router).createUrlTree(['/profil', params['id']], { queryParams: { experience: params['parcoursId'] } })
       },
       {
+        // Ancienne page de détail : le profil s’ouvre avec la fenêtre de l’étape (les liens partagés restent valides).
         path: 'profil/:id/formation/:parcoursId',
-        title: 'Détail de la formation | EPT Alumni',
-        canActivate: [authGuard, changementInitialRequisGuard],
-        data: { typeParcours: 'formation' },
-        loadComponent: () =>
-          import('./features/profil/detail-parcours/detail-parcours').then(
-            (m) => m.DetailParcours
-          )
+        redirectTo: ({ params }) =>
+          inject(Router).createUrlTree(['/profil', params['id']], { queryParams: { formation: params['parcoursId'] } })
       },
       {
         path: 'profil/:id',

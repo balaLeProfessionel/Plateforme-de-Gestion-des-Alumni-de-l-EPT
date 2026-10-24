@@ -1,0 +1,21 @@
+<ol class="frise">
+  @for (element of elements(); track element.type + element.id) {
+    <li [class.ept]="element.ept" [class.en-cours]="element.enCours">
+      <span class="periode">{{ element.periode }}</span>
+      <span class="point" aria-hidden="true"></span>
+      <a class="element" [routerLink]="[]" [queryParams]="parametresEtape(element)" (click)="ouverture.emit()"
+        aria-haspopup="dialog" [attr.aria-label]="(element.type === 'experience' ? 'Expérience : ' : 'Formation : ') + element.titre + ', ' + element.organisme + ', ' + element.periode">
+        <span class="type">
+          <i class="pi" [class.pi-briefcase]="element.type === 'experience'" [class.pi-graduation-cap]="element.type === 'formation'" aria-hidden="true"></i>
+          {{ element.libelleType }}
+          @if (element.ept) {
+            <span class="marque-ept"><img ngSrc="/images/logo-ept.png" width="16" height="16" alt="" />EPT</span>
+          }
+        </span>
+        <strong [attr.title]="element.titre">{{ element.titre }}</strong>
+        <span class="organisme" [attr.title]="element.organisme">{{ element.organisme }}</span>
+        @if (element.description) { <span class="description">{{ element.description }}</span> }
+      </a>
+    </li>
+  }
+</ol>
