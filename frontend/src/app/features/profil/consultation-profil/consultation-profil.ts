@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DOCUMENT, NgOptimizedImage } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -18,6 +18,27 @@ import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
 import { OffreMentoratProfil } from '../../mentorat/offre-mentorat-profil/offre-mentorat-profil';
 
+/** Une expérience ou une formation sur la frise du parcours. */
+interface ElementParcours {
+  type: 'experience' | 'formation';
+  id: string;
+  titre: string;
+  organisme: string;
+  libelleType: string;
+  description: string | null;
+  periode: string;
+  ept: boolean;
+  enCours: boolean;
+  /** Clé de tri : en cours d’abord, puis du plus récent au plus ancien. */
+  tri: string;
+}
+
+interface Tuile {
+  libelle: string;
+  valeur: string;
+  icone: string;
+}
+
 interface ProfilAffiche extends ProfilPublic {
   email?: string;
   telephone?: string | null;
@@ -26,7 +47,7 @@ interface ProfilAffiche extends ProfilPublic {
 
 @Component({
   selector: 'app-consultation-profil',
-  imports: [DatePipe, RouterLink, BoutonRetour, AvatarMembre, OffreMentoratProfil],
+  imports: [DatePipe, NgOptimizedImage, RouterLink, BoutonRetour, AvatarMembre, OffreMentoratProfil],
   templateUrl: './consultation-profil.html',
   styleUrl: './consultation-profil.scss'
 })
@@ -36,12 +57,14 @@ export class ConsultationProfil {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly document = inject(DOCUMENT);
 
   protected readonly profil = signal<ProfilAffiche | null>(null);
   protected readonly estMonProfil = signal(false);
   protected readonly participeAuMentorat = participeAuMentorat;
   protected readonly enChargement = signal(true);
   protected readonly messageErreur = signal<string | null>(null);
+  protected readonly lienCopie = signal(false);
 
   protected readonly badgeRole = computed(() => ({
     ETUDIANT: 'Étudiant',
@@ -50,26 +73,40 @@ export class ConsultationProfil {
     VISITEUR: 'Visiteur'
   } as Record<string, string>)[this.profil()?.role ?? ''] ?? this.profil()?.role);
 
-  protected readonly aLiens = computed(() => {
+  /** L’employeur actuel, déduit de l’expérience en cours. */
+  protected readonly organismeActuel = computed(() =>
+    this.profil()?.experiences.find((experience) => experience.enCours)?.nomOrganisme ?? null);
+
+  protected readonly tuiles = computed((): Tuile[] => {
     const profil = this.profil();
-    return Boolean(profil?.lienLinkedin || profil?.lienPortfolio);
+    if (!profil) return [];
+    const tuiles: Tuile[] = [];
+    if (profil.anneeSortie) tuiles.push({ libelle: 'Promotion', valeur: String(profil.anneeSortie), icone: 'pi-graduation-cap' });
+    if (profil.filiere) tuiles.push({ libelle: 'Filière', valeur: profil.filiere, icone: 'pi-building-columns' });
+    if (profil.villeResidence) tuiles.push({ libelle: 'Ville', valeur: profil.villeResidence, icone: 'pi-map-marker' });
+    return tuiles;
   });
 
-  protected readonly experiencesEpt = computed(() =>
-    this.profil()?.experiences.filter((experience) => experience.etablissementEpt) ?? []
-  );
-  protected readonly formationsEpt = computed(() =>
-    this.profil()?.formations.filter((formation) => formation.etablissementEpt) ?? []
-  );
-  protected readonly experiencesHorsEpt = computed(() =>
-    this.profil()?.experiences.filter((experience) => !experience.etablissementEpt) ?? []
-  );
-  protected readonly formationsHorsEpt = computed(() =>
-    this.profil()?.formations.filter((formation) => !formation.etablissementEpt) ?? []
-  );
-  protected readonly aParcoursEpt = computed(() =>
-    this.experiencesEpt().length > 0 || this.formationsEpt().length > 0
-  );
+  /** Expériences et formations sur une seule frise, l’EPT mise en valeur. */
+  protected readonly parcours = computed((): ElementParcours[] => {
+    const profil = this.profil();
+    if (!profil) return [];
+    const elements: ElementParcours[] = [
+      ...profil.experiences.map((experience): ElementParcours => ({
+        type: 'experience', id: experience.id, titre: experience.poste, organisme: experience.nomOrganisme,
+        libelleType: this.libelleContrat(experience.typeContrat), description: experience.description,
+        periode: this.periode(experience), ept: experience.etablissementEpt, enCours: experience.enCours,
+        tri: this.cleTri(experience),
+      })),
+      ...profil.formations.map((formation): ElementParcours => ({
+        type: 'formation', id: formation.id, titre: formation.libelle, organisme: formation.nomOrganisme,
+        libelleType: this.libelleFormation(formation.typeFormation), description: formation.description,
+        periode: this.periode(formation), ept: formation.etablissementEpt, enCours: formation.enCours,
+        tri: this.cleTri(formation),
+      })),
+    ];
+    return elements.sort((a, b) => b.tri.localeCompare(a.tri));
+  });
 
   constructor() {
     this.route.paramMap.pipe(
@@ -101,6 +138,17 @@ export class ConsultationProfil {
     });
   }
 
+
+  protected async copierLien(): Promise<void> {
+    const fenetre = this.document.defaultView;
+    try {
+      await fenetre?.navigator.clipboard.writeText(fenetre.location.href);
+      this.lienCopie.set(true);
+      fenetre?.setTimeout(() => this.lienCopie.set(false), 2500);
+    } catch {
+      this.lienCopie.set(false);
+    }
+  }
 
   protected periode(item: Experience | Formation): string {
     if (item.enCours) {
@@ -135,6 +183,10 @@ export class ConsultationProfil {
 
   private assembler(profil: Profil, experiences: Experience[], formations: Formation[]): ProfilAffiche {
     return { ...profil, experiences, formations };
+  }
+
+  private cleTri(item: Experience | Formation): string {
+    return (item.enCours ? '9' : '0') + (item.dateFin ?? item.dateDebut) + item.dateDebut;
   }
 
   private annee(date: string): string {

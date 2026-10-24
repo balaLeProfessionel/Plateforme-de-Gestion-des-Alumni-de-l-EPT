@@ -66,8 +66,8 @@ describe('ConsultationProfil', () => {
     expect(service.obtenirProfil).toHaveBeenCalled();
     expect(contenu).toContain('Informations privées');
     expect(contenu).toContain('awa@example.com');
-    expect(contenu).toContain('Aucune expérience renseignée.');
-    expect(contenu).toContain('Aucune formation renseignée.');
+    expect(contenu).toContain('Votre parcours est vide');
+    expect(fixture.nativeElement.querySelector('a[href="/completer-profil/experiences"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.modifier')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('app-bouton-retour')?.textContent).toContain('Retour');
   });
@@ -106,7 +106,7 @@ describe('ConsultationProfil', () => {
     expect(navigationSecours).toHaveBeenCalledWith('/annuaire');
   });
 
-  it('met les expériences et formations de l EPT dans une section dédiée', async () => {
+  it('réunit expériences et formations sur une frise où l’EPT ressort', async () => {
     service.obtenirProfilPublic.mockReturnValue(of({
       ...profilPublic(),
       experiences: [{
@@ -125,15 +125,15 @@ describe('ConsultationProfil', () => {
     creerComposant();
     await fixture.whenStable();
 
-    const section = fixture.nativeElement.querySelector('.parcours-ept');
-    expect(section?.textContent).toContain('Parcours à l’EPT');
-    expect(section?.textContent).toContain('Assistant de recherche');
-    expect(section?.textContent).toContain('Diplôme d ingénieur');
-    expect(section?.querySelector('h4')?.getAttribute('title')).toBe('Assistant de recherche');
-    expect(section?.querySelector('a[href="/profil/membre-1/experience/exp-1"]')).not.toBeNull();
-    const logo = section?.querySelector('.logo-ept') as HTMLImageElement | undefined;
-    expect(logo?.getAttribute('src')).toBe('/images/logo-ept.png');
-    expect(logo?.getAttribute('alt')).toBe('Logo de l’École Polytechnique de Thiès');
+    // Une seule frise, de la plus récente à la plus ancienne ; l’EPT est marquée.
+    const elements = [...fixture.nativeElement.querySelectorAll('.frise li')] as HTMLElement[];
+    expect(elements.map((li) => li.querySelector('strong')?.textContent)).toEqual(['Assistant de recherche', 'Diplôme d ingénieur']);
+    expect(elements.every((li) => li.classList.contains('ept'))).toBe(true);
+    expect(elements[0].querySelector('strong')?.getAttribute('title')).toBe('Assistant de recherche');
+    expect(elements[0].querySelector('a')?.getAttribute('href')).toBe('/profil/membre-1/experience/exp-1');
+    expect(elements[0].querySelector('.periode')?.textContent).toContain('Depuis 2024');
+    expect(elements[1].querySelector('a')?.getAttribute('href')).toBe('/profil/membre-1/formation/formation-1');
+    expect(elements[0].querySelector('.marque-ept')?.textContent).toContain('EPT');
   });
 
   function creerComposant(): void {
