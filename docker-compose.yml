@@ -63,6 +63,10 @@ services:
         - action: sync
           path: ./frontend/src
           target: /app/src
+        # Images et fichiers statiques (photos de la page de connexion, logo…)
+        - action: sync
+          path: ./frontend/public
+          target: /app/public
         - action: rebuild
           path: ./frontend/package.json
 

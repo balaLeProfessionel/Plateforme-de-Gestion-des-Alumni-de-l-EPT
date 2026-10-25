@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { DOCUMENT, NgOptimizedImage } from '@angular/common';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { Router, RouterLink } from '@angular/router';
 import { email, form, required, FormField } from '@angular/forms/signals';
@@ -9,13 +10,22 @@ import { MessageModule } from 'primeng/message';
 
 @Component({
   selector: 'app-connexion',
-  imports: [FormField, InputTextModule, PasswordModule, MessageModule, RouterLink],
+  imports: [NgOptimizedImage, FormField, InputTextModule, PasswordModule, MessageModule, RouterLink],
   templateUrl: './connexion.html',
   styleUrl: './connexion.scss',
 })
 export class Connexion {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  /** Complément du `@media (max-width: 900px)` qui masque le panneau de marque dans connexion.scss. */
+  private readonly formatGrandEcran = inject(DOCUMENT).defaultView?.matchMedia?.('(min-width: 901px)');
+  protected readonly grandEcran = signal(this.formatGrandEcran?.matches ?? false);
+
+  constructor() {
+    const changement = (evenement: MediaQueryListEvent) => this.grandEcran.set(evenement.matches);
+    this.formatGrandEcran?.addEventListener('change', changement);
+    inject(DestroyRef).onDestroy(() => this.formatGrandEcran?.removeEventListener('change', changement));
+  }
 
   protected readonly modele = signal({
     email: '',

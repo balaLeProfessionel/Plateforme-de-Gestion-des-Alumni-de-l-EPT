@@ -1,6 +1,11 @@
 <div class="connexion-page">
 
   <aside class="panneau-marque">
+    <!-- Photo décorative (alt vide), rendue seulement quand le panneau est affiché : rien n’est téléchargé sur mobile. -->
+    @if (grandEcran()) {
+      <img class="photo-campus" ngSrc="/images/connexion-campus.jpg" fill priority sizes="50vw" alt="" />
+    }
+    <div class="voile" aria-hidden="true"></div>
     <div class="marque-contenu">
       <div class="logo">
         <img src="/images/logo-ept.png" alt="" />
