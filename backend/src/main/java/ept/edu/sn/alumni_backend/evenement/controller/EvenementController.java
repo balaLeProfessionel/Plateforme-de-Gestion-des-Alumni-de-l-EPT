@@ -28,7 +28,6 @@ import ept.edu.sn.alumni_backend.evenement.dto.EvenementResponse;
 import ept.edu.sn.alumni_backend.evenement.dto.PageEvenementsResponse;
 import ept.edu.sn.alumni_backend.evenement.dto.PageParticipantsResponse;
 import ept.edu.sn.alumni_backend.evenement.dto.ReponseParticipationRequest;
-import ept.edu.sn.alumni_backend.evenement.dto.StatutOfficielRequest;
 import ept.edu.sn.alumni_backend.evenement.service.EvenementService;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import jakarta.validation.Valid;
@@ -131,12 +130,4 @@ public class EvenementController {
         return ResponseEntity.ok(evenementService.annuler(id, principal));
     }
 
-    @PatchMapping("/{id}/officiel")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<EvenementResponse> definirStatutOfficiel(
-            @PathVariable UUID id,
-            @Valid @RequestBody StatutOfficielRequest request,
-            @AuthenticationPrincipal UtilisateurPrincipal principal) {
-        return ResponseEntity.ok(evenementService.definirStatutOfficiel(id, request, principal));
-    }
 }

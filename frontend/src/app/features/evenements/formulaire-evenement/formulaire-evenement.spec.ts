@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -5,11 +6,14 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
+import { AuthService } from '../../../core/services/auth/auth-service';
 import { EvenementService } from '../../../core/services/evenements/evenement';
 import { Evenement } from '../../../core/services/models/evenement';
 import { FormulaireEvenement } from './formulaire-evenement';
 
 describe('FormulaireEvenement', () => {
+  const utilisateur = signal<Record<string, string> | null>({ role: 'ALUMNI' });
+
   let fixture: ComponentFixture<FormulaireEvenement>;
   let routeParams: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
   let creer: ReturnType<typeof vi.fn>;
@@ -33,6 +37,7 @@ describe('FormulaireEvenement', () => {
         { provide: Location, useValue: { back: vi.fn(), getState: vi.fn(() => null) } },
         { provide: ActivatedRoute, useValue: { paramMap: routeParams } },
         { provide: EvenementService, useValue: { creer, modifier, obtenir, joindreImage, supprimerImage } },
+        { provide: AuthService, useValue: { utilisateur } },
       ],
     }).compileComponents();
     router = TestBed.inject(Router);
@@ -194,4 +199,13 @@ describe('FormulaireEvenement', () => {
       nombreParticipants: 0, maReponse: null, ...modifications,
     };
   }
+
+  it('prévient l’administration que son événement sera officiel EPT', async () => {
+    utilisateur.set({ role: 'ADMIN' });
+    fixture = TestBed.createComponent(FormulaireEvenement);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.note-officielle')?.textContent).toContain('événement officiel de l’EPT');
+    utilisateur.set({ role: 'ALUMNI' });
+  });
 });

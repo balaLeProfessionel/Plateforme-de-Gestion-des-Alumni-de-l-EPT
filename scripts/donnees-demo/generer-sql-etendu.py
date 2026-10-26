@@ -410,6 +410,10 @@ for index, m in enumerate(mentors):
                       f"select {q(p)}, d.id from domaines_mentorat d where d.code = '{code}'\n"
                       f"  and not exists (select 1 from profil_mentor_domaines x where x.profil_mentor_id = {q(p)} and x.domaine_id = d.id);")
 
+# Un événement officiel de l'EPT est publié par l'administration (mise à jour pour garder les mêmes tirages).
+lignes.append("update evenements set organisateur_id = " + q(uid('membre', 'Mame Diarra', 'Ndour'))
+              + " where officiel_ept and id in (" + ", ".join(q(uid('evenement-etendu', n)) for n in range(len(EVENEMENTS))) + ");")
+
 # ---------------- Programmes ----------------
 admin = uid('membre', 'Mame Diarra', 'Ndour')
 PROGRAMMES = [

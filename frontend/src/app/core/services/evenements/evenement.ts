@@ -63,9 +63,6 @@ export class EvenementService {
     return this.http.patch<Evenement>(`/api/evenements/${encodeURIComponent(id)}/annuler`, {});
   }
 
-  definirStatutOfficiel(id: string, officielEpt: boolean) {
-    return this.http.patch<Evenement>(`/api/evenements/${encodeURIComponent(id)}/officiel`, { officielEpt });
-  }
 }
 
 /** Seuls les critères renseignés partent dans la requête. */

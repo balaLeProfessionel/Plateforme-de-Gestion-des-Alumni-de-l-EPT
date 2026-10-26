@@ -5,6 +5,10 @@
     <p class="sur-titre">La vie du réseau</p>
     <h1>{{ modeEdition() ? 'Modifier l’événement' : 'Créer un événement' }}</h1>
     <p>Partagez une rencontre avec les membres concernés de la communauté EPT.</p>
+    @if (publieParAdministration()) {
+      <p class="note-officielle"><i class="pi pi-verified" aria-hidden="true"></i>
+        Publié par l’administration, cet événement est présenté comme un événement officiel de l’EPT.</p>
+    }
   </header>
 
   @if (enChargement()) {

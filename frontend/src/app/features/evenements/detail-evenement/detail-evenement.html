@@ -128,13 +128,6 @@
                 <i class="pi pi-ban" aria-hidden="true"></i>Annuler l’événement
               </button>
             }
-            @if (estAdmin()) {
-              <button class="action-secondaire" type="button" [disabled]="actionEnCours()"
-                (click)="basculerStatutOfficiel()">
-                <i class="pi pi-verified" aria-hidden="true"></i>
-                {{ item.officielEpt ? 'Retirer le statut officiel' : 'Marquer officiel EPT' }}
-              </button>
-            }
           </div>
           @if (confirmationAnnulation()) {
             <div class="confirmation-detail" role="group" aria-label="Confirmation d’annulation">

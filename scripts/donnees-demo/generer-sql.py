@@ -244,6 +244,12 @@ lignes.append(
     f"  'Mame Diarra', 'Ndour', 'ADMIN', 'ACTIF', 'Thiès', 'Administratrice de la plateforme', 'Administratrice de la plateforme EPT Alumni.', now() - interval '400 days'\n"
     f"on conflict do nothing;")
 
+# Un événement officiel de l'EPT est publié par l'administration : elle en devient l'organisatrice.
+# (Mise à jour plutôt que changement de tirage, pour ne pas décaler les données aléatoires précédentes.)
+lignes.append(
+    "update evenements set organisateur_id = " + q(uid('membre', 'Mame Diarra', 'Ndour'))
+    + " where officiel_ept and id in (" + ", ".join(q(uid('evenement', cle)) for cle, *_ in EVENEMENTS) + ");")
+
 # Programmes de mentorat (gérés par l'administration), dates relatives au jour du chargement :
 # l'un en cours avec une mentore volontaire et deux demandes, l'autre terminé mais pas encore clos.
 ADMIN = uid('membre', 'Mame Diarra', 'Ndour')

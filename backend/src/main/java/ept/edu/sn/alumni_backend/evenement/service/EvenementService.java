@@ -35,7 +35,6 @@ import ept.edu.sn.alumni_backend.evenement.dto.PageParticipantsResponse;
 import ept.edu.sn.alumni_backend.evenement.dto.PageEvenementsResponse;
 import ept.edu.sn.alumni_backend.evenement.dto.ParticipantEvenementResponse;
 import ept.edu.sn.alumni_backend.evenement.dto.ReponseParticipationRequest;
-import ept.edu.sn.alumni_backend.evenement.dto.StatutOfficielRequest;
 import ept.edu.sn.alumni_backend.evenement.entity.Evenement;
 import ept.edu.sn.alumni_backend.evenement.entity.ParticipationEvenement;
 import ept.edu.sn.alumni_backend.evenement.exception.EvenementIntrouvableException;
@@ -155,7 +154,8 @@ public class EvenementService {
         Evenement evenement = new Evenement();
         appliquer(evenement, request);
         evenement.setOrganisateur(organisateur);
-        evenement.setOfficielEpt(false);
+        // Un événement officiel de l'EPT est un événement publié par l'administration, et seulement lui.
+        evenement.setOfficielEpt(organisateur.getRole() == TypeRole.ADMIN);
         evenement.setStatut(StatutEvenement.PUBLIE);
         return evenementMapper.versResponse(evenementRepository.save(evenement), 0);
     }
@@ -204,21 +204,6 @@ public class EvenementService {
         Evenement evenement = trouverPourGestion(evenementId, principal);
         evenement.setStatut(StatutEvenement.ANNULE);
         return reponsePourUtilisateur(evenementRepository.save(evenement), principal);
-    }
-
-    @Transactional
-    public EvenementResponse definirStatutOfficiel(
-            UUID evenementId,
-            StatutOfficielRequest request,
-            UtilisateurPrincipal principal) {
-        if (principal.getUtilisateur().getRole() != TypeRole.ADMIN) {
-            throw new AccessDeniedException("Seule l’administration peut modifier le statut officiel.");
-        }
-        Evenement evenement = evenementRepository.findById(evenementId)
-            .orElseThrow(EvenementIntrouvableException::new);
-        evenement.setOfficielEpt(request.officielEpt());
-        Evenement actualise = evenementRepository.save(evenement);
-        return reponsePourUtilisateur(actualise, principal);
     }
 
     @Transactional

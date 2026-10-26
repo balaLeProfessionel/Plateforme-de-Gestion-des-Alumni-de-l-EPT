@@ -191,21 +191,6 @@ export class DetailEvenement {
     }
   }
 
-  protected async basculerStatutOfficiel(): Promise<void> {
-    const evenement = this.evenement();
-    if (!evenement || !this.estAdmin() || this.actionEnCours()) return;
-    this.actionEnCours.set(true);
-    this.erreurAction.set(null);
-    try {
-      this.evenement.set(await firstValueFrom(
-        this.evenementService.definirStatutOfficiel(evenement.id, !evenement.officielEpt)));
-    } catch {
-      this.erreurAction.set('Impossible de modifier le statut officiel. Réessayez.');
-    } finally {
-      this.actionEnCours.set(false);
-    }
-  }
-
   protected libelleRole(role: string): string {
     return ({ ETUDIANT: 'Étudiant', ALUMNI: 'Alumni', PERSONNEL: 'Personnel', VISITEUR: 'Visiteur' } as Record<string, string>)[role]
       ?? 'Membre';

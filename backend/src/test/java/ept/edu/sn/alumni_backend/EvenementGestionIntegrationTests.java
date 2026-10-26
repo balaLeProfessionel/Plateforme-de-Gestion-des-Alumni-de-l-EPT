@@ -92,7 +92,8 @@ class EvenementGestionIntegrationTests {
                     .content(corps(requeteValide())))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.organisateurId").value(createur.getId().toString()))
-                .andExpect(jsonPath("$.officielEpt").value(false))
+                // Officiel EPT seulement quand c'est l'administration qui publie.
+                .andExpect(jsonPath("$.officielEpt").value(role == TypeRole.ADMIN))
                 .andExpect(jsonPath("$.statut").value("PUBLIE"));
         }
     }
@@ -368,23 +369,23 @@ class EvenementGestionIntegrationTests {
     }
 
     @Test
-    void seulAdminPeutDefinirOuRetirerLeCaractereOfficiel() throws Exception {
-        Evenement evenement = creerEvenement(alumni);
-        String vrai = "{\"officielEpt\":true}";
-        String faux = "{\"officielEpt\":false}";
-
-        mockMvc.perform(requeteAuthentifie(patch("/api/evenements/{id}/officiel", evenement.getId()), alumni)
-                .contentType(MediaType.APPLICATION_JSON).content(vrai))
-            .andExpect(status().isForbidden());
-
-        mockMvc.perform(requeteAuthentifie(patch("/api/evenements/{id}/officiel", evenement.getId()), admin)
-                .contentType(MediaType.APPLICATION_JSON).content(vrai))
-            .andExpect(status().isOk())
+    void seulUnEvenementPublieParLAdministrationEstOfficiel() throws Exception {
+        mockMvc.perform(requeteAuthentifie(post("/api/evenements"), admin)
+                .contentType(MediaType.APPLICATION_JSON).content(corps(requeteValide("Cérémonie de rentrée", AudienceEvenement.TOUS))))
+            .andExpect(status().isCreated())
             .andExpect(jsonPath("$.officielEpt").value(true));
-        mockMvc.perform(requeteAuthentifie(patch("/api/evenements/{id}/officiel", evenement.getId()), admin)
-                .contentType(MediaType.APPLICATION_JSON).content(faux))
-            .andExpect(status().isOk())
+        Utilisateur personnel = creerUtilisateur(TypeRole.PERSONNEL, StatutCompte.ACTIF, true);
+        mockMvc.perform(requeteAuthentifie(post("/api/evenements"), personnel)
+                .contentType(MediaType.APPLICATION_JSON).content(corps(requeteValide("Atelier du personnel", AudienceEvenement.TOUS))))
+            .andExpect(status().isCreated())
             .andExpect(jsonPath("$.officielEpt").value(false));
+
+        // Le caractère officiel ne se bascule plus à la main : il découle de qui publie.
+        Evenement evenement = creerEvenement(alumni);
+        mockMvc.perform(requeteAuthentifie(patch("/api/evenements/{id}/officiel", evenement.getId()), admin)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"officielEpt\":true}"))
+            .andExpect(result -> org.junit.jupiter.api.Assertions.assertTrue(result.getResponse().getStatus() >= 400));
+        org.junit.jupiter.api.Assertions.assertFalse(evenementRepository.findById(evenement.getId()).orElseThrow().isOfficielEpt());
     }
 
     @Test

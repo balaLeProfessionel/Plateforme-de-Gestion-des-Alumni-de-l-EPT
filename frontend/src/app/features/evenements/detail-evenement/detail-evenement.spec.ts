@@ -43,7 +43,7 @@ describe('DetailEvenement', () => {
           lister: vi.fn(), obtenir, listerParticipants,
           repondre,
           annuler: vi.fn().mockReturnValue(of(evenement({ statut: 'ANNULE' }))),
-          definirStatutOfficiel: vi.fn().mockReturnValue(of(evenement({ officielEpt: false })))
+
         } },
         { provide: AuthService, useValue: { utilisateur } },
         { provide: Location, useValue: { back: vi.fn() } }
@@ -201,13 +201,15 @@ describe('DetailEvenement', () => {
     expect(fixture.nativeElement.querySelector('.gestion-evenement')).toBeNull();
   });
 
-  it('permet à l’administrateur de gérer le caractère officiel', async () => {
+  it('laisse l’administrateur gérer un événement, sans bascule du caractère officiel', async () => {
     utilisateur.set({ id: 'admin-1', role: 'ADMIN' });
     parametres.next(convertToParamMap({ id: 'event-1' }));
     await fixture.whenStable();
 
     expect(listerParticipants).toHaveBeenCalledWith('event-1', 0);
-    expect(fixture.nativeElement.textContent).toContain('Retirer le statut officiel');
+    // Officiel = publié par l'administration : rien à basculer à la main.
+    expect(fixture.nativeElement.textContent).not.toContain('statut officiel');
+    expect(fixture.nativeElement.textContent).not.toContain('Marquer officiel');
   });
 
   function evenement(modifications: Partial<Evenement> = {}): Evenement {
