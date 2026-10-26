@@ -1,0 +1,96 @@
+<app-page-admin titre="Importer une promotion" [parents]="parents"
+  introduction="Créez d’un coup les comptes d’une promotion à partir d’un fichier CSV exporté de votre tableur. Chaque personne reçoit son mot de passe provisoire par e-mail.">
+  <a actionsPage class="bouton" routerLink="/admin/comptes/nouveau"><i class="pi pi-user-plus" aria-hidden="true"></i>Créer un seul compte</a>
+
+  @if (resultat(); as r) {
+    <section class="carte" aria-labelledby="titre-rapport">
+      <h2 id="titre-rapport">Rapport d’import</h2>
+      <p class="message" [class.erreur]="r.crees === 0" role="status">
+        {{ r.crees }} {{ r.crees > 1 ? 'comptes créés' : 'compte créé' }} sur {{ r.lignes.length }}
+        @if (r.lignes.length - r.crees > 0) { · {{ r.lignes.length - r.crees }} à reprendre }
+      </p>
+      <div class="tableau" tabindex="0" role="region" aria-label="Résultat de chaque ligne, défilable">
+        <table>
+          <caption class="sr-only">Résultat de chaque ligne du fichier</caption>
+          <thead><tr><th scope="col">Ligne</th><th scope="col">Personne</th><th scope="col">E-mail</th><th scope="col">Résultat</th></tr></thead>
+          <tbody>
+            @for (ligne of r.lignes; track ligne.numero) {
+              <tr [class.echec]="!ligne.creee">
+                <td>{{ ligne.numero }}</td>
+                <td>@if (ligne.id) { <a [routerLink]="['/admin/comptes', ligne.id]">{{ nomDeLigne(ligne.numero) }}</a> } @else { {{ nomDeLigne(ligne.numero) }} }</td>
+                <td>{{ ligne.email }}</td>
+                <td>{{ ligne.creee ? 'Créé' : ligne.message }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="boutons">
+        @if (r.crees > 0) {
+          <button type="button" class="bouton principal" (click)="telechargerMotsDePasse()">
+            <i class="pi pi-download" aria-hidden="true"></i>Télécharger les mots de passe provisoires
+          </button>
+        }
+        <button type="button" class="bouton" (click)="recommencer()">Importer un autre fichier</button>
+      </div>
+    </section>
+  } @else {
+    <section class="carte" aria-labelledby="titre-fichier">
+      <h2 id="titre-fichier">1. Le fichier</h2>
+      <p class="aide">Colonnes reconnues : prénom, nom, e-mail (obligatoires), filière, année d’entrée, année de sortie.
+        Séparateur point-virgule ou virgule. 300 comptes au plus.
+        <button type="button" class="lien-aide" (click)="telechargerModele()">Télécharger un modèle</button></p>
+      <div class="grille-champs">
+        <div class="champ">
+          <label for="import-fichier">Fichier CSV</label>
+          <input #champFichier id="import-fichier" type="file" accept=".csv,text/csv" (change)="choisirFichier(champFichier)" />
+        </div>
+        <div class="champ">
+          <label for="import-role">Type des comptes</label>
+          <select #choixRole id="import-role" [value]="role()" (change)="choisirRole(choixRole.value)">
+            @for (r of roles; track r) { <option [value]="r">{{ libellesRole[r] }}</option> }
+          </select>
+        </div>
+        <div class="champ large">
+          <label for="import-texte">Ou collez le contenu du fichier</label>
+          <textarea #champTexte id="import-texte" rows="5" placeholder="prenom;nom;email;filiere;annee_entree"
+            (input)="lire(champTexte.value)"></textarea>
+        </div>
+      </div>
+    </section>
+
+    @if (lecture(); as l) {
+      <section class="carte" aria-labelledby="titre-apercu">
+        <h2 id="titre-apercu">2. Vérifiez avant de créer</h2>
+        @if (l.erreur) {
+          <p class="message erreur" role="alert">{{ l.erreur }}</p>
+        } @else {
+          <p class="aide" role="status">{{ l.lignes.length }} {{ l.lignes.length > 1 ? 'lignes lues' : 'ligne lue' }}
+            @if (nomFichier()) { dans {{ nomFichier() }} }
+            @if (aCorriger() > 0) { · <strong>{{ aCorriger() }} à corriger</strong> : elles seront refusées, les autres créées. }
+          </p>
+          <div class="tableau" tabindex="0" role="region" aria-label="Aperçu des comptes à créer, défilable">
+            <table>
+              <caption class="sr-only">Aperçu des comptes à créer</caption>
+              <thead><tr><th scope="col">Ligne</th><th scope="col">Prénom</th><th scope="col">Nom</th><th scope="col">E-mail</th><th scope="col">Filière</th><th scope="col">Entrée</th><th scope="col">État</th></tr></thead>
+              <tbody>
+                @for (ligne of l.lignes; track ligne.numero) {
+                  <tr [class.echec]="ligne.probleme">
+                    <td>{{ ligne.numero }}</td><td>{{ ligne.prenom }}</td><td>{{ ligne.nom }}</td><td>{{ ligne.email }}</td>
+                    <td>{{ ligne.filiere }}</td><td>{{ ligne.anneeEntree }}</td><td>{{ ligne.probleme ?? 'Prêt' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          @if (messageErreur(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+          <div class="boutons">
+            <button type="button" class="bouton principal" [disabled]="enCours()" (click)="importer()">
+              Créer {{ l.lignes.length - aCorriger() }} {{ l.lignes.length - aCorriger() > 1 ? 'comptes' : 'compte' }} ({{ libellesRole[role()] }})
+            </button>
+          </div>
+        }
+      </section>
+    }
+  }
+</app-page-admin>

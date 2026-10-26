@@ -14,11 +14,12 @@
   @if (liens().length) {
     <p class="titre-panneau">Rubriques</p>
     @for (lien of liens(); track lien.route) {
-      <a [routerLink]="lien.route" routerLinkActive="actif" ariaCurrentWhenActive="page" (click)="fermer()">
+      <a [routerLink]="lien.route" routerLinkActive="actif" ariaCurrentWhenActive="page"
+        [routerLinkActiveOptions]="{ exact: lien.exact ?? false }" (click)="fermer()">
         <i class="pi" [class]="'pi ' + lien.icone" aria-hidden="true"></i>{{ lien.libelle }}
         @if (lien.compteur) {
           <span class="compteur" aria-hidden="true">{{ lien.compteur }}</span>
-          <span class="sr-only">, {{ lien.compteur }} demandes en attente</span>
+          <span class="sr-only">, {{ lien.compteur }} {{ lien.libelleCompteur ?? 'demandes en attente' }}</span>
         }
       </a>
     }

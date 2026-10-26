@@ -29,6 +29,13 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
       : req;
   return next(requeteAvecToken).pipe(
     catchError((erreur: HttpErrorResponse) => {
+      // Compte suspendu pendant la session : inutile de rafraîchir, on déconnecte en expliquant pourquoi.
+      if (erreur.status === 401 && erreur.error?.code === 'COMPTE_SUSPENDU') {
+        authService.logout();
+        router.navigate(['/connexion'], { state: { erreur: erreur.error.message } });
+        return throwError(() => erreur);
+      }
+
       // Si ce n'est pas un 401, ou si c'est un appel d'auth, on ne tente pas de rafraîchir
       if (erreur.status !== 401 || estAppelAuth) {
         return throwError(() => erreur);

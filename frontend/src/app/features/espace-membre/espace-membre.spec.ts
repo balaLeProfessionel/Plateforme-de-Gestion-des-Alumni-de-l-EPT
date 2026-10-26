@@ -1,9 +1,10 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { vi } from 'vitest';
 
 import { AuthService } from '../../core/services/auth/auth-service';
+import { CompteurInscriptions } from '../../core/services/admin/compteur-inscriptions';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
 import { EspaceMembre } from './espace-membre';
 
@@ -16,18 +17,31 @@ describe('Navigation de l’espace membre', () => {
   const logout = vi.fn();
   const demandesEnAttente = signal(0);
   const actualiserCompteur = vi.fn();
+  const resynchroniser = vi.fn();
+  const inscriptionsEnAttente = signal(0);
+  const actualiserInscriptions = vi.fn();
 
   beforeEach(() => {
     utilisateur.set({ role: 'ALUMNI', nom: 'Diop', prenom: 'Awa' });
     logout.mockClear();
     demandesEnAttente.set(0);
     actualiserCompteur.mockClear();
+    resynchroniser.mockClear();
+    inscriptionsEnAttente.set(0);
+    actualiserInscriptions.mockClear();
     TestBed.configureTestingModule({
       imports: [EspaceMembre],
       providers: [
         provideRouter([{ path: '**', children: [] }]),
-        { provide: AuthService, useValue: { utilisateur, logout } },
-        { provide: CompteurDemandesMentorat, useValue: { nombre: demandesEnAttente, actualiser: actualiserCompteur } }
+        {
+          provide: AuthService,
+          useValue: {
+            utilisateur, logout, resynchroniser,
+            aPermission: (permission: string) => utilisateur()?.['role'] === 'ADMIN' && permission !== '',
+          },
+        },
+        { provide: CompteurDemandesMentorat, useValue: { nombre: demandesEnAttente, actualiser: actualiserCompteur } },
+        { provide: CompteurInscriptions, useValue: { nombre: inscriptionsEnAttente, actualiser: actualiserInscriptions } }
       ]
     });
   });
@@ -148,20 +162,63 @@ describe('Navigation de l’espace membre', () => {
     const racine = fixture.nativeElement as HTMLElement;
 
     expect(actualiserCompteur).toHaveBeenCalledOnce();
-    expect(racine.querySelector('.badge-mentorat')?.textContent?.trim()).toBe('3');
+    expect(racine.querySelector('.badge-compteur')?.textContent?.trim()).toBe('3');
     expect(racine.querySelector('.barre-laterale a[href="/mentorat"]')?.textContent)
       .toContain('3 demandes en attente');
     expect(racine.querySelector('.menu-mobile a[href="/mentorat"] .compteur')?.textContent?.trim()).toBe('3');
   });
 
-  it('n’affiche pas de lien de profil indisponible pour l’administration', () => {
+  it('n’allume qu’une rubrique du panneau mobile : le tableau de bord ne reste pas actif sur ses sous-pages', async () => {
     utilisateur.set({ role: 'ADMIN', nom: 'EPT', prenom: 'Admin' });
+    const fixture = TestBed.createComponent(EspaceMembre);
+    await TestBed.inject(Router).navigateByUrl('/admin/inscriptions');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const racine = fixture.nativeElement as HTMLElement;
+
+    expect([...racine.querySelectorAll('.menu-mobile a.actif')].map((lien) => lien.getAttribute('href'))).toEqual(['/admin/inscriptions']);
+    expect([...racine.querySelectorAll('.barre-laterale nav a[aria-current="page"]')].map((lien) => lien.getAttribute('href')))
+      .toEqual(['/admin/inscriptions']);
+  });
+
+  it('marque le bouton du compte comme page courante sur son propre profil, pas sur celui d’un autre', async () => {
+    const fixture = TestBed.createComponent(EspaceMembre);
+    const routeur = TestBed.inject(Router);
+    const bouton = () => (fixture.nativeElement as HTMLElement).querySelector('.bouton-compte-lateral');
+    await routeur.navigateByUrl('/profil');
+    fixture.detectChanges();
+    expect(bouton()?.getAttribute('data-active')).toBe('true');
+    await routeur.navigateByUrl('/profil/un-autre-membre');
+    fixture.detectChanges();
+    expect(bouton()?.getAttribute('data-active')).not.toBe('true');
+  });
+
+  it('relit le compte au chargement : statut et permissions ont pu changer depuis la connexion', () => {
+    TestBed.createComponent(EspaceMembre).detectChanges();
+    expect(resynchroniser).toHaveBeenCalledOnce();
+  });
+
+  it('range la navigation de l’administration par domaine, sans lien de profil indisponible', () => {
+    utilisateur.set({ role: 'ADMIN', nom: 'EPT', prenom: 'Admin' });
+    inscriptionsEnAttente.set(4);
     const fixture = TestBed.createComponent(EspaceMembre);
     fixture.detectChanges();
     const racine = fixture.nativeElement as HTMLElement;
 
-    // Seule la rubrique Mentorat reste : aucun lien de profil pour l'administration.
-    expect([...racine.querySelectorAll('.menu-mobile a')].map((lien) => lien.getAttribute('href'))).toEqual(['/mentorat']);
+    expect(actualiserInscriptions).toHaveBeenCalledOnce();
+    expect(actualiserCompteur).not.toHaveBeenCalled();
+    expect([...racine.querySelectorAll('.barre-laterale p-sidebar-group-label')].map((titre) => titre.textContent?.trim()))
+      .toEqual(['Pilotage', 'Membres', 'Contenus', 'Système', 'Plateforme', 'À découvrir bientôt']);
+    expect([...racine.querySelectorAll('.barre-laterale nav a')].map((lien) => lien.getAttribute('href'))).toEqual([
+      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/evenements', '/mentorat/gestion-programmes',
+      '/admin/journal', '/annuaire',
+    ]);
+    expect(racine.querySelector('.barre-laterale a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
+    // Le panneau mobile reprend les rubriques d'administration ; Annuaire et Événements sont dans la barre du bas.
+    expect([...racine.querySelectorAll('.menu-mobile a')].map((lien) => lien.getAttribute('href'))).toEqual([
+      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/mentorat/gestion-programmes', '/admin/journal',
+    ]);
+    expect(racine.querySelector('.menu-mobile a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
     expect(racine.querySelectorAll('.navigation-mobile a')).toHaveLength(3);
     expect(racine.querySelector('.deconnexion-menu')).not.toBeNull();
   });

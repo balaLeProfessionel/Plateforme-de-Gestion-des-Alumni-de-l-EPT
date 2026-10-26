@@ -49,6 +49,24 @@
   text-transform: uppercase;
 }
 
+/* Barre repliée : les titres de groupe (invisibles) ne laissent plus de vide, un filet sépare les groupes. */
+.barre-laterale[data-collapsible='icon'] .p-sidebar-group-label { height: 0; overflow: hidden; }
+.barre-laterale[data-collapsible='icon'] p-sidebar-group + p-sidebar-group { border-top: 1px solid rgba(255, 255, 255, 0.14); }
+
+.barre-laterale .pastille-compteur { display: none; }
+.barre-laterale[data-collapsible='icon'] .p-sidebar-menu-button { position: relative; }
+.barre-laterale[data-collapsible='icon'] .pastille-compteur {
+  position: absolute;
+  top: 0.2rem;
+  right: 0.2rem;
+  display: block;
+  width: 0.6rem;
+  height: 0.6rem;
+  border: 2px solid var(--ept-gold-dark);
+  border-radius: 50%;
+  background: var(--ept-gold-light);
+}
+
 .barre-laterale .p-sidebar-menu-button {
   color: var(--nav-texte);
   font-size: 0.9rem;
@@ -76,6 +94,17 @@
   pointer-events: none;
   /* Attend la fin du dépliement pour ne pas chevaucher les icônes. */
   animation: apparition-badge 300ms steps(1, end);
+}
+
+/* Compteur (demandes de mentorat, inscriptions à examiner) : lisible, y compris sur la rubrique active. */
+.barre-laterale .p-sidebar-menu-badge.badge-compteur {
+  min-width: 1.35rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--ept-gold-light);
+  color: var(--ept-gold-dark);
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 @keyframes apparition-badge {
@@ -150,6 +179,12 @@
 
   strong { overflow: hidden; font-size: 0.85rem; text-overflow: ellipsis; white-space: nowrap; }
   small { color: var(--nav-attenue); font-size: 0.7rem; font-weight: 400; }
+}
+
+/* Sur son profil, le bouton du compte prend le fond clair de la rubrique active : texte foncé lisible. */
+.bouton-compte-lateral[data-active='true'] .identite-compte {
+  strong { color: var(--ept-primary); }
+  small { color: var(--ept-primary); }
 }
 
 .contenu-membre { min-width: 0; }

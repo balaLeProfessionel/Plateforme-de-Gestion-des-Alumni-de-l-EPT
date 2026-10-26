@@ -41,7 +41,8 @@ export class Connexion {
   )
 
   protected readonly enChargement = signal(false);
-  protected readonly messageErreur = signal<string | null>(null);
+  /** Message d’une déconnexion forcée (compte suspendu), transmis par l’intercepteur. */
+  protected readonly messageErreur = signal<string | null>(history.state?.erreur ?? null);
   protected readonly messageSucces = signal<string | null>(history.state?.message ?? null);
   protected readonly afficherMdp = signal(false);
 

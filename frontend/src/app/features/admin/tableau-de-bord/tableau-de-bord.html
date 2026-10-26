@@ -1,0 +1,91 @@
+<app-page-admin titre="Tableau de bord" [racine]="true"
+  introduction="Ce qui attend une décision, et l’état de la communauté EPT Alumni.">
+  @if (erreur(); as message) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Chargement impossible</h2>
+      <p>{{ message }}</p>
+    </div>
+  } @else if (tableau(); as t) {
+    <section aria-labelledby="titre-a-traiter">
+      <h2 id="titre-a-traiter">À traiter</h2>
+      <div class="files">
+        <a class="file" routerLink="/admin/inscriptions" [class.urgente]="t.aTraiter.inscriptionsEnAttente > 0">
+          <i class="pi pi-user-plus" aria-hidden="true"></i>
+          <span>
+            @if (t.aTraiter.inscriptionsEnAttente > 0) {
+              <strong>{{ t.aTraiter.inscriptionsEnAttente > 1 ? 'Inscriptions' : 'Inscription' }} à examiner</strong>
+              @if (joursAttente(); as jours) {
+                <small>La plus ancienne attend depuis {{ jours }} {{ jours > 1 ? 'jours' : 'jour' }}.</small>
+              } @else {
+                <small>La plus ancienne est arrivée aujourd’hui.</small>
+              }
+            } @else {
+              <strong>Aucune inscription à examiner</strong>
+              <small>Toutes les inscriptions ont été traitées.</small>
+            }
+          </span>
+          @if (t.aTraiter.inscriptionsEnAttente > 0) {
+            <span class="nombre">{{ t.aTraiter.inscriptionsEnAttente }}<span class="sr-only"> en attente</span></span>
+          }
+          <i class="pi pi-arrow-right" aria-hidden="true"></i>
+        </a>
+        <div class="file a-venir">
+          <i class="pi pi-flag" aria-hidden="true"></i>
+          <span><strong>Signalements et offres à modérer</strong>
+            <small>Arriveront avec les modules Actualités et Offres d’emploi.</small></span>
+        </div>
+        <div class="file a-venir">
+          <i class="pi pi-linkedin" aria-hidden="true"></i>
+          <span><strong>Propositions LinkedIn</strong>
+            <small>Arriveront avec la synchronisation des profils.</small></span>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="titre-communaute">
+      <h2 id="titre-communaute">La communauté</h2>
+      <ul class="indicateurs">
+        <li><a routerLink="/admin/comptes" [queryParams]="{ statut: 'ACTIF' }">
+          <strong>{{ t.communaute.comptesActifs }}</strong><span>Comptes actifs</span></a></li>
+        <li><div><strong>{{ t.communaute.inscritsCeMois }}</strong><span>Inscrits ce mois-ci</span></div></li>
+        <li><div><strong>{{ t.communaute.mentoratsEnCours }}</strong><span>Mentorats en cours</span></div></li>
+        <li><a routerLink="/mentorat/gestion-programmes">
+          <strong>{{ t.communaute.programmesOuverts }}</strong><span>Programmes de mentorat ouverts</span></a></li>
+        <li><a routerLink="/evenements">
+          <strong>{{ t.communaute.evenementsAVenir }}</strong><span>Événements à venir</span></a></li>
+      </ul>
+    </section>
+
+    <div class="colonnes">
+      <section aria-labelledby="titre-decisions" class="carte">
+        <div class="titre-carte">
+          <h2 id="titre-decisions">Dernières décisions</h2>
+          <a routerLink="/admin/journal">Tout le journal</a>
+        </div>
+        @if (t.dernieresDecisions.length === 0) {
+          <p class="vide">Aucune décision pour l’instant.</p>
+        } @else {
+          <ol class="decisions">
+            @for (decision of t.dernieresDecisions; track decision.id) {
+              <li>
+                <span class="type" [attr.data-type]="decision.type">{{ libellesAction[decision.type] }}</span>
+                <a [routerLink]="['/admin/comptes', decision.cibleId]">{{ decision.cibleNom }}</a>
+                <small>{{ decision.dateAction | date: 'd MMM, HH:mm' }} · {{ decision.auteur }}</small>
+              </li>
+            }
+          </ol>
+        }
+      </section>
+      <section aria-labelledby="titre-insertion" class="carte">
+        <h2 id="titre-insertion">Insertion des diplômés</h2>
+        <p class="vide">Les indicateurs d’insertion (taux par promotion, délai du premier emploi, secteurs et zones)
+          arriveront avec l’enquête annuelle.</p>
+      </section>
+    </div>
+  } @else {
+    <div class="chargement" aria-busy="true" aria-label="Chargement du tableau de bord">
+      @for (item of [1, 2, 3]; track item) { <div class="squelette" aria-hidden="true"></div> }
+    </div>
+  }
+</app-page-admin>

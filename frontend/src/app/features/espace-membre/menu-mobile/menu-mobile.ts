@@ -13,6 +13,10 @@ export interface RubriqueAVenir {
 export interface RubriqueMenu extends RubriqueAVenir {
   route: string;
   compteur?: number;
+  /** Ce que compte le badge, lu par les lecteurs d’écran (« demandes en attente » par défaut). */
+  libelleCompteur?: string;
+  /** Rubrique active seulement sur son adresse exacte (le tableau de bord /admin, parent des autres). */
+  exact?: boolean;
 }
 
 /** Panneau « Mon espace » des petits écrans : dialog modal, focus piégé, défilement de la page bloqué. */

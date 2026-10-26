@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { Routes, Router } from '@angular/router';
 import {
   authGuard,
-  changementInitialRequisGuard,
+  changementInitialRequisGuard, accueilAdministrationGuard,
   changementInitialSeulementGuard,
   roleGuard
 } from './core/guards/auth.guard';
@@ -115,7 +115,7 @@ export const routes: Routes = [
       {
         path: 'accueil',
         title: 'Accueil | EPT Alumni',
-        canActivate: [authGuard, changementInitialRequisGuard],
+        canActivate: [authGuard, changementInitialRequisGuard, accueilAdministrationGuard],
         loadComponent: () =>
           import('./features/accueil/accueil').then((m) => m.Accueil)
       },
@@ -172,6 +172,11 @@ export const routes: Routes = [
         path: 'mentorat',
         canActivate: [authGuard, changementInitialRequisGuard],
         loadChildren: () => import('./features/mentorat/mentorat.routes').then((m) => m.MENTORAT_ROUTES)
+      },
+      {
+        path: 'admin',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES)
       },
       {
         path: 'organismes/:id',

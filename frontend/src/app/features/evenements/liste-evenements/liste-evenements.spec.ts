@@ -71,7 +71,18 @@ describe('ListeEvenements', () => {
     expect(visuels[0].querySelector('.affiche')?.getAttribute('aria-hidden')).toBe('true');
     expect(visuels[1].querySelector('.affiche')).toBeNull();
     expect(visuels[1].querySelector('img')?.getAttribute('src')).toBe('/api/evenement-images/affiche.png');
-    expect(visuels[1].querySelector('img')?.getAttribute('loading')).toBe('lazy');
+    // Les trois premières affiches sont visibles d'emblée : chargées tout de suite, les suivantes en différé.
+    expect(visuels[1].querySelector('img')?.hasAttribute('loading')).toBe(false);
+  });
+
+  it('diffère le chargement des affiches au-delà des trois premières', async () => {
+    lister.mockReturnValueOnce(of(page({ contenu: [1, 2, 3, 4].map((n) =>
+      evenement({ id: `event-${n}`, urlImage: `/api/evenement-images/${n}.png` })), totalElements: 4, totalPages: 1 })));
+    parametres.next(convertToParamMap({}));
+    await fixture.whenStable();
+
+    const images = [...fixture.nativeElement.querySelectorAll('.visuel-evenement img')] as HTMLImageElement[];
+    expect(images.map((image) => image.getAttribute('loading'))).toEqual([null, null, null, 'lazy']);
   });
 
   it('rend toute la carte cliquable avec un seul lien, nommé par le titre', async () => {

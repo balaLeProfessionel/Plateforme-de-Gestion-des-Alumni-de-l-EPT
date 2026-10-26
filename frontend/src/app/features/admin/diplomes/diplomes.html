@@ -1,0 +1,86 @@
+<app-page-admin titre="Diplômés"
+  introduction="Choisissez une promotion d’entrée, cochez les étudiants diplômés et indiquez leur année de sortie : ils deviennent alumni, gardent leur parcours et en sont prévenus par e-mail.">
+  @if (resultat(); as r) {
+    <p class="message" role="status">
+      {{ r.resultat.diplomes }} {{ r.resultat.diplomes > 1 ? 'étudiants sont désormais alumni' : 'étudiant est désormais alumni' }} (promotion {{ r.annee }}).
+      @for (ignore of r.resultat.ignores; track ignore.id) { <br />{{ ignore.nom ?? 'Un compte' }} : {{ ignore.raison }} }
+    </p>
+  }
+
+  <section class="carte" aria-labelledby="titre-promotion">
+    <h2 id="titre-promotion">1. La promotion</h2>
+    @if (promotions(); as liste) {
+      @if (liste.length === 0) {
+        <p class="aide">Aucun étudiant inscrit pour l’instant : il n’y a personne à faire passer alumni.</p>
+      } @else {
+        <div class="champ">
+          <label for="diplomes-promotion">Promotion d’entrée et filière</label>
+          <!-- [selected] sur chaque option : la liste arrive après la promotion lue dans l’URL. -->
+          <select #choixPromotion id="diplomes-promotion" (change)="choisirPromotion(choixPromotion.value)">
+            <option value="|" [selected]="cleChoisie() === '|'">Choisir…</option>
+            @for (promotion of liste; track cleDe(promotion)) {
+              <option [value]="cleDe(promotion)" [selected]="cleDe(promotion) === cleChoisie()">{{ libellePromotion(promotion) }}</option>
+            }
+          </select>
+        </div>
+      }
+    } @else {
+      <p class="aide" aria-busy="true">Chargement des promotions…</p>
+    }
+  </section>
+
+  @if (erreur(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+
+  @if (etudiants(); as liste) {
+    <section class="carte" aria-labelledby="titre-etudiants">
+      <div class="titre-section">
+        <h2 id="titre-etudiants">2. Les étudiants diplômés</h2>
+        @if (liste.length > 1) {
+          <button type="button" class="bouton petit" (click)="toutBasculer()">{{ selection().size === liste.length ? 'Tout décocher' : 'Tout cocher' }}</button>
+        }
+      </div>
+      @if (liste.length === 0) {
+        <p class="aide">Plus aucun étudiant dans cette promotion.</p>
+      } @else {
+        <ul class="etudiants">
+          @for (etudiant of liste; track etudiant.id) {
+            <li>
+              <label>
+                <input type="checkbox" [checked]="selection().has(etudiant.id)" (change)="basculer(etudiant.id)" />
+                <span>{{ nomDuCompte(etudiant) }}</span>
+              </label>
+              <small>{{ etudiant.email }}</small>
+              <a [routerLink]="['/admin/comptes', etudiant.id]" [attr.aria-label]="'Ouvrir la fiche de ' + nomDuCompte(etudiant)">Fiche</a>
+            </li>
+          }
+        </ul>
+
+        <div class="champ annee">
+          <label for="diplomes-sortie">Année de sortie (promotion)</label>
+          <input id="diplomes-sortie" type="text" inputmode="numeric" [formField]="formulaire.anneeSortie"
+            [attr.aria-invalid]="formulaire.anneeSortie().touched() && formulaire.anneeSortie().invalid()" aria-describedby="erreur-diplomes-sortie" />
+          @if (formulaire.anneeSortie().touched() && formulaire.anneeSortie().errors()[0]; as e) {
+            <small id="erreur-diplomes-sortie" class="erreur-champ">{{ e.message }}</small>
+          }
+        </div>
+
+        @if (confirmation()) {
+          <div class="confirmation" role="group" aria-label="Confirmer la diplomation">
+            <p>Marquer <strong>{{ selection().size }}</strong> {{ selection().size > 1 ? 'étudiants diplômés' : 'étudiant diplômé' }} de la promotion
+              <strong>{{ modele().anneeSortie }}</strong> ? Chacun recevra un e-mail.</p>
+            <div class="boutons">
+              <button type="button" class="bouton principal" [disabled]="enCours()" (click)="marquer()">Confirmer</button>
+              <button type="button" class="bouton" (click)="confirmation.set(false)">Annuler</button>
+            </div>
+          </div>
+        } @else {
+          <div class="boutons">
+            <button type="button" class="bouton principal" [disabled]="selection().size === 0" (click)="demanderConfirmation()">
+              <i class="pi pi-graduation-cap" aria-hidden="true"></i>Marquer {{ selection().size }} {{ selection().size > 1 ? 'diplômés' : 'diplômé' }}
+            </button>
+          </div>
+        }
+      }
+    </section>
+  }
+</app-page-admin>

@@ -1,0 +1,43 @@
+@let c = compte();
+<article #article class="ligne" tabindex="-1" [attr.data-statut]="c.statutCompte" [attr.aria-labelledby]="'nom-' + c.id">
+  <app-avatar-membre [urlPhoto]="c.urlPhoto" [prenom]="c.prenom" [nom]="c.nom" [roleMembre]="c.role" />
+
+  <div class="contenu">
+    <div class="entete">
+      <h3 [id]="'nom-' + c.id">{{ nomComplet() }}@if (estMoi()) { <span class="moi">(vous)</span> }</h3>
+      <span class="role">{{ libellesRole[c.role] }}</span>
+      <span class="statut">{{ libellesStatut[c.statutCompte] }}</span>
+    </div>
+
+    <p class="details">
+      <a [href]="'mailto:' + c.email">{{ c.email }}</a>
+      @if (c.telephone) { <span>{{ c.telephone }}</span> }
+      @if (c.nomOrganisme) { <span>{{ c.nomOrganisme }}</span> }
+      @if (c.filiere) { <span>{{ c.filiere }}</span> }
+      @if (c.anneeSortie) { <span>Promotion {{ c.anneeSortie }}</span> }
+      @else if (c.anneeEntree) { <span>Entrée en {{ c.anneeEntree }}</span> }
+      <span>Inscrit le {{ c.dateCreation | date: 'd MMM y' }}</span>
+    </p>
+
+    @if (c.statutCompte === 'SUSPENDU' && c.motifSuspension) {
+      <p class="motif">Motif : {{ c.motifSuspension }}</p>
+    }
+
+    <app-decisions-compte [compte]="c" (modifie)="modifie.emit($event)" (validationDemandee)="validationDemandee.emit()">
+      <a class="voir-fiche" [routerLink]="['/admin/comptes', c.id]" [attr.aria-label]="'Ouvrir la fiche de ' + nomComplet()">
+        <i class="pi pi-id-card" aria-hidden="true"></i>Ouvrir la fiche
+      </a>
+      @if (historiqueDisponible()) {
+        <button type="button" class="lien" [attr.aria-expanded]="historiqueOuvert()"
+          [attr.aria-controls]="'historique-' + c.id" (click)="historiqueOuvert.set(!historiqueOuvert())">
+          <i class="pi" [class]="historiqueOuvert() ? 'pi pi-chevron-up' : 'pi pi-history'" aria-hidden="true"></i>Historique
+          ({{ c.nombreDecisions }})
+        </button>
+      }
+    </app-decisions-compte>
+
+    @if (historiqueOuvert()) {
+      <app-historique-compte [id]="'historique-' + c.id" [compteId]="c.id" />
+    }
+  </div>
+</article>

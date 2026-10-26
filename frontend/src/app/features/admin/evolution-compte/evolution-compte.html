@@ -1,0 +1,66 @@
+@if (disponible()) {
+  @let c = compte();
+  <section class="carte" aria-labelledby="titre-evolution">
+    <h2 id="titre-evolution">Rôle et parcours</h2>
+    @if (erreur(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+
+    @switch (panneau()) {
+      @case ('role') {
+        <div class="panneau" (keydown.escape)="panneau.set(null)">
+          <div class="grille-champs">
+            <div class="champ">
+              <label for="evolution-role">Nouveau rôle</label>
+              <select #premierChamp id="evolution-role" [formField]="formulaire.role"
+                [attr.aria-invalid]="formulaire.role().touched() && formulaire.role().invalid()" aria-describedby="erreur-evolution-role">
+                <option value="">Choisir…</option>
+                @for (role of rolesPossibles(); track role) { <option [value]="role">{{ libellesRole[role] }}</option> }
+              </select>
+              @if (formulaire.role().touched() && formulaire.role().errors()[0]; as e) {
+                <small id="erreur-evolution-role" class="erreur-champ">{{ e.message }}</small>
+              }
+              @if (modele().role === 'ADMIN') { <p class="aide alerte">Ce compte aura accès à toute l’administration.</p> }
+            </div>
+            <div class="champ large">
+              <label for="evolution-motif">Motif (communiqué au membre)</label>
+              <textarea id="evolution-motif" rows="2" [formField]="formulaire.motif"
+                [attr.aria-invalid]="formulaire.motif().touched() && formulaire.motif().invalid()" aria-describedby="erreur-evolution-motif"></textarea>
+              @if (formulaire.motif().touched() && formulaire.motif().errors()[0]; as e) {
+                <small id="erreur-evolution-motif" class="erreur-champ">{{ e.message }}</small>
+              }
+            </div>
+          </div>
+          <div class="boutons">
+            <button type="button" class="bouton principal" [disabled]="enCours()" (click)="confirmer()">Changer le rôle</button>
+            <button type="button" class="bouton" (click)="panneau.set(null)">Annuler</button>
+          </div>
+        </div>
+      }
+      @case ('diplome') {
+        <div class="panneau" (keydown.escape)="panneau.set(null)">
+          <div class="champ">
+            <label for="evolution-sortie">Année de sortie (promotion)</label>
+            <input #premierChamp id="evolution-sortie" type="text" inputmode="numeric" [formField]="formulaire.anneeSortie"
+              [attr.aria-invalid]="formulaire.anneeSortie().touched() && formulaire.anneeSortie().invalid()" aria-describedby="erreur-evolution-sortie aide-evolution-sortie" />
+            @if (formulaire.anneeSortie().touched() && formulaire.anneeSortie().errors()[0]; as e) {
+              <small id="erreur-evolution-sortie" class="erreur-champ">{{ e.message }}</small>
+            }
+            <p id="aide-evolution-sortie" class="aide">{{ c.prenom }} devient alumni et en est prévenu par e-mail ; son parcours et son profil sont conservés.</p>
+          </div>
+          <div class="boutons">
+            <button type="button" class="bouton principal" [disabled]="enCours()" (click)="confirmer()">Marquer diplômé</button>
+            <button type="button" class="bouton" (click)="panneau.set(null)">Annuler</button>
+          </div>
+        </div>
+      }
+      @default {
+        <p class="aide">Rôle actuel : <strong>{{ libellesRole[c.role] }}</strong>.</p>
+        <div class="boutons">
+          @if (c.role === 'ETUDIANT') {
+            <button type="button" class="bouton principal" (click)="ouvrir('diplome')"><i class="pi pi-graduation-cap" aria-hidden="true"></i>Marquer diplômé</button>
+          }
+          <button type="button" class="bouton" (click)="ouvrir('role')"><i class="pi pi-key" aria-hidden="true"></i>Changer le rôle</button>
+        </div>
+      }
+    }
+  </section>
+}

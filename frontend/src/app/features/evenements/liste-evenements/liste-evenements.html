@@ -95,7 +95,7 @@
               </div>
               <div class="visuel-evenement">
                 <app-visuel-evenement [urlImage]="evenement.urlImage" [dateDebut]="evenement.dateDebut"
-                  [lieu]="evenement.lieu" [officiel]="evenement.officielEpt" [chargementDiffere]="true" />
+                  [lieu]="evenement.lieu" [officiel]="evenement.officielEpt" [chargementDiffere]="$index > 2" />
               </div>
               <h2><a class="lien-etire" [routerLink]="urlDetails(evenement)"
                 [queryParams]="{ periode: periode(), page: resultat.page, vue: mesEvenements() ? 'mes' : null }"

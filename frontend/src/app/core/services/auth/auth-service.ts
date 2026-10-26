@@ -4,6 +4,7 @@ import { AuthResponse } from '../models/auth-response.model';
 import { tap } from 'rxjs';
 import { InscriptionResponse } from '../models/InscriptionResponse';
 import { Profil } from '../models/profil.model';
+import { PermissionAdmin, TOUTES_LES_PERMISSIONS } from '../models/admin.model';
 
 @Service()
 export class AuthService {
@@ -16,6 +17,37 @@ export class AuthService {
 
   readonly utilisateur = this.utilisateurSignal.asReadonly();
   readonly estConnecte = computed(() => this.utilisateurSignal() !== null);
+
+  /** Vrai si le compte a cette permission d’administration (voir PermissionAdmin côté serveur). */
+  aPermission(permission: PermissionAdmin): boolean {
+    const utilisateur = this.utilisateurSignal();
+    // Une session ouverte avant l’ajout des permissions ne les porte pas : on les déduit du rôle
+    // le temps que resynchroniser() les relise.
+    const permissions = utilisateur?.permissions ?? (utilisateur?.role === 'ADMIN' ? TOUTES_LES_PERMISSIONS : []);
+    return permissions.includes(permission);
+  }
+
+  /**
+   * Relit le compte auprès du serveur : statut (validé, suspendu), rôle et permissions ont pu changer
+   * depuis la connexion, alors que la session stockée date de ce moment-là.
+   */
+  resynchroniser(): void {
+    if (!this.utilisateurSignal()) return;
+    this.http.get<AuthResponse>('/api/auth/me').subscribe({
+      next: (moi) => {
+        const courant = this.utilisateurSignal();
+        if (!courant) return;
+        const actualise: AuthResponse = {
+          ...courant,
+          nom: moi.nom, prenom: moi.prenom, role: moi.role, statutCompte: moi.statutCompte,
+          doitChangerMotDePasse: moi.doitChangerMotDePasse, urlPhoto: moi.urlPhoto, permissions: moi.permissions,
+        };
+        localStorage.setItem(this.USER_KEY, JSON.stringify(actualise));
+        this.utilisateurSignal.set(actualise);
+      },
+      error: () => {},
+    });
+  }
 
   login(email: string, password: string) {
     return this.http

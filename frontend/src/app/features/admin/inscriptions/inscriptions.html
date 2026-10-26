@@ -1,0 +1,16 @@
+<app-page-admin titre="Inscriptions à examiner"
+  introduction="Ces membres ont vérifié leur adresse e-mail et utilisent déjà la plateforme avec un badge « en attente ». Ouvrez leur fiche pour vérifier, puis validez l’inscription (annulable quelques secondes) ou refusez-la avec un motif : le compte est alors suspendu et la personne est prévenue par e-mail.">
+
+  <div class="types" role="group" aria-label="Filtrer par type de compte">
+    @for (filtre of filtres(); track filtre.libelle) {
+      <button type="button" [attr.aria-pressed]="criteres().role === filtre.valeur" (click)="choisirRole(filtre.valeur)">
+        {{ filtre.libelle }}
+        @if (filtre.nombre !== null) { <span class="nombre">{{ filtre.nombre }}</span> }
+      </button>
+    }
+  </div>
+
+  <app-liste-comptes [criteres]="criteres()" [page]="etat().page" (pageChange)="allerPage($event)"
+    titreVide="Aucune inscription à examiner"
+    texteVide="Toutes les inscriptions de ce type ont été traitées. Les nouvelles arriveront ici." />
+</app-page-admin>

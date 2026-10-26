@@ -19,35 +19,40 @@
 
           <p-sidebar-content>
             <nav aria-label="Navigation principale">
+              @for (groupe of groupesNavigation(); track groupe.titre) {
               <p-sidebar-group>
-                <p-sidebar-group-label>Navigation</p-sidebar-group-label>
+                <p-sidebar-group-label>{{ groupe.titre }}</p-sidebar-group-label>
                 <p-sidebar-group-content>
                   <p-sidebar-menu>
-                    @for (lien of liensNavigation; track lien.route) {
+                    @for (lien of groupe.liens; track lien.route) {
                       <p-sidebar-menu-item>
                         <a pSidebarMenuButton [routerLink]="lien.route" routerLinkActive
                           ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{ exact: lien.exact }"
                           #actif="routerLinkActive" [isActive]="actif.isActive"
-                          [pTooltip]="lien.libelle" tooltipPosition="right" [tooltipDisabled]="sidebarOuverte()">
+                          [pTooltip]="lien.compteur ? lien.libelle + ' (' + lien.compteur + ')' : lien.libelle"
+                          tooltipPosition="right" [tooltipDisabled]="sidebarOuverte()">
                           <i class="pi" [class]="'pi ' + lien.icone" aria-hidden="true"></i><span>{{ lien.libelle }}</span>
-                          @if (lien.route === '/mentorat' && compteurMentorat.nombre() > 0) {
-                            <span class="sr-only">, {{ compteurMentorat.nombre() }} demandes en attente</span>
+                          @if (lien.compteur) {
+                            <span class="sr-only">, {{ lien.compteur }} {{ lien.libelleCompteur }}</span>
+                            <!-- Barre repliée : le badge disparaît avec le libellé, une pastille le remplace sur l’icône. -->
+                            <span class="pastille-compteur" aria-hidden="true"></span>
                           }
                         </a>
-                        @if (lien.route === '/mentorat' && compteurMentorat.nombre() > 0) {
-                          <p-sidebar-menu-badge class="badge-mentorat" aria-hidden="true">{{ compteurMentorat.nombre() }}</p-sidebar-menu-badge>
+                        @if (lien.compteur) {
+                          <p-sidebar-menu-badge class="badge-compteur" aria-hidden="true">{{ lien.compteur }}</p-sidebar-menu-badge>
                         }
                       </p-sidebar-menu-item>
                     }
                   </p-sidebar-menu>
                 </p-sidebar-group-content>
               </p-sidebar-group>
+              }
 
               <p-sidebar-group>
                 <p-sidebar-group-label>À découvrir bientôt</p-sidebar-group-label>
                 <p-sidebar-group-content>
                   <p-sidebar-menu>
-                    @for (rubrique of rubriquesAVenir; track rubrique.libelle) {
+                    @for (rubrique of rubriquesAVenir(); track rubrique.libelle) {
                       <p-sidebar-menu-item>
                         <button type="button" pSidebarMenuButton aria-disabled="true"
                           [attr.aria-label]="rubrique.libelle + ', à venir'"
@@ -67,7 +72,7 @@
           <p-sidebar-footer class="compte-lateral">
             <p-sidebar-menu>
               <p-sidebar-menu-item>
-                <button type="button" pSidebarMenuButton class="bouton-compte-lateral"
+                <button type="button" pSidebarMenuButton class="bouton-compte-lateral" [isActive]="pageCompte()"
                   (click)="menuCompte.toggle($event)" aria-haspopup="menu" aria-controls="menu-compte"
                   [attr.aria-label]="'Menu du compte de ' + nomAffiche() + ', ' + typeMembre()"
                   [pTooltip]="nomAffiche()" tooltipPosition="right" [tooltipDisabled]="sidebarOuverte()">
@@ -125,6 +130,6 @@
   </p-sidebar-layout>
 
   <app-menu-mobile [(ouvert)]="menuOuvert" [lienProfil]="lienProfil()"
-    [liens]="liensMenuMobile()" [rubriques]="rubriquesAVenir" (deconnexion)="seDeconnecter()" />
+    [liens]="liensMenuMobile()" [rubriques]="rubriquesAVenir()" (deconnexion)="seDeconnecter()" />
   <app-navigation-mobile [(menuOuvert)]="menuOuvert" />
 </div>
