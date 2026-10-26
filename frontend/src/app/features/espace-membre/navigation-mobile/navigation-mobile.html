@@ -1,5 +1,5 @@
 <nav class="navigation-mobile" [class.menu-ouvert]="menuOuvert()" aria-label="Navigation mobile">
-  <a routerLink="/accueil" routerLinkActive="actif" ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{ exact: true }"
+  <a [routerLink]="lienAccueil()" routerLinkActive="actif" ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{ exact: true }"
      (click)="fermerMenu()"><i class="pi pi-home" aria-hidden="true"></i><span>Accueil</span></a>
   <a routerLink="/annuaire" routerLinkActive="actif" ariaCurrentWhenActive="page" (click)="fermerMenu()">
     <i class="pi pi-users" aria-hidden="true"></i><span>Annuaire</span>
@@ -11,9 +11,9 @@
           [attr.aria-current]="pageDuMenu() ? 'page' : null" aria-controls="menu-mobile"
           aria-haspopup="dialog" (click)="basculerMenu()">
     <i class="pi pi-bars" aria-hidden="true"></i><span>Menu</span>
-    @if (demandesEnAttente() > 0) {
-      <span class="pastille" aria-hidden="true">{{ demandesEnAttente() }}</span>
-      <span class="sr-only">, {{ demandesEnAttente() }} demandes de mentorat en attente</span>
+    @if (pastille().nombre > 0) {
+      <span class="pastille" aria-hidden="true">{{ pastille().nombre }}</span>
+      <span class="sr-only">, {{ pastille().nombre }} {{ pastille().libelle }}</span>
     }
   </button>
 </nav>
