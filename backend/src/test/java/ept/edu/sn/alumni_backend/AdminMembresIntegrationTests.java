@@ -83,8 +83,7 @@ class AdminMembresIntegrationTests {
         assertThat(cree.getPrenom()).isEqualTo("Awa");
         assertThat(cree.getAnneeSortie()).isEqualTo(2019);
         assertThat(cree.isDoitChangerMotDePasse()).isTrue();
-        verify(emailService).envoyerNotification(eq(email), eq("Votre compte EPT Alumni est prêt"),
-            argThat(message -> message.contains(motDePasse)));
+        verify(emailService).envoyerIdentifiants(eq(email), eq("Awa"), eq(motDePasse));
         mockMvc.perform(authentifie(get("/api/admin/journal"), admin))
             .andExpect(jsonPath("$.contenu[0].type").value("CREATION_COMPTE"))
             .andExpect(jsonPath("$.contenu[0].details").value("ALUMNI"));
@@ -129,6 +128,16 @@ class AdminMembresIntegrationTests {
             .andExpect(jsonPath("$.lignes[4].message").value("Le prénom est obligatoire"));
         assertThat(utilisateurRepository.findByEmail(lot + ".1@example.invalid")).get()
             .extracting(Utilisateur::getRole).isEqualTo(TypeRole.ETUDIANT);
+    }
+
+    @Test
+    void m03b_lImportRefuseLesComptesDAdministration() throws Exception {
+        envoyer(post("/api/admin/comptes/import"), admin, """
+                {"role":"ADMIN","lignes":[{"prenom":"Awa","nom":"Diop","email":"%s.admin@example.invalid"}]}
+                """.formatted(lot))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Un compte d'administration se crée un par un, pas par import."));
+        assertThat(utilisateurRepository.findByEmail(lot + ".admin@example.invalid")).isEmpty();
     }
 
     @Test
@@ -210,6 +219,13 @@ class AdminMembresIntegrationTests {
         mockMvc.perform(authentifie(get("/api/admin/comptes")
                 .param("role", "ETUDIANT").param("anneeEntree", "2031").param("filiere", "f" + lot), admin))
             .andExpect(jsonPath("$.totalElements").value(2));
+
+        // Une promotion « année d'entrée inconnue » reste sélectionnable, sans mélanger les autres années.
+        creerUtilisateur(TypeRole.ETUDIANT, StatutCompte.ACTIF, "SansAnnee", null);
+        mockMvc.perform(authentifie(get("/api/admin/comptes")
+                .param("role", "ETUDIANT").param("sansAnneeEntree", "true").param("filiere", "f" + lot), admin))
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.contenu[0].prenom").value("SansAnnee"));
     }
 
     private Utilisateur creerUtilisateur(TypeRole role, StatutCompte statut, String prenom, Integer anneeEntree) {

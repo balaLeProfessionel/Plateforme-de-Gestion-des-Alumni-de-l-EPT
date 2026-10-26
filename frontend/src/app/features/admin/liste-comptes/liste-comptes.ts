@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   afterNextRender, Component, computed, DestroyRef, ElementRef, inject, Injector, input, model, signal, viewChild, viewChildren,
@@ -9,6 +10,7 @@ import { CompteurInscriptions } from '../../../core/services/admin/compteur-insc
 import { CompteAdmin, CriteresComptes, nomDuCompte } from '../../../core/services/models/admin.model';
 import { Page } from '../../../core/services/models/mentorat.model';
 import { LigneCompte } from '../ligne-compte/ligne-compte';
+import { PaginationAdmin } from '../pagination-admin/pagination-admin';
 
 /** Temps laissé pour annuler une validation avant de l’envoyer au serveur. */
 export const DELAI_ANNULATION_MS = 6000;
@@ -28,9 +30,9 @@ type CibleFocus = { type: 'compte'; id: string; index: number } | { type: 'resum
  */
 @Component({
   selector: 'app-liste-comptes',
-  imports: [LigneCompte],
+  imports: [LigneCompte, PaginationAdmin],
   templateUrl: './liste-comptes.html',
-  styleUrl: './liste-comptes.scss',
+  styleUrls: ['../etats-admin.scss', './liste-comptes.scss'],
 })
 export class ListeComptes {
   private readonly service = inject(AdminComptesService);
@@ -88,6 +90,11 @@ export class ListeComptes {
     });
     // Quitter la page n’annule pas une validation : elle part tout de suite.
     inject(DestroyRef).onDestroy(() => this.envoyerValidation());
+    // Fermer ou recharger l’onglet non plus : la validation part avant que la page disparaisse.
+    const vue = inject(DOCUMENT).defaultView;
+    const auDepart = () => this.validerAuDepart();
+    vue?.addEventListener('pagehide', auDepart);
+    inject(DestroyRef).onDestroy(() => vue?.removeEventListener('pagehide', auDepart));
   }
 
   protected changerPage(numero: number): void {
@@ -136,6 +143,14 @@ export class ListeComptes {
         });
       },
     });
+  }
+
+  private validerAuDepart(): void {
+    this.arreterMinuteur();
+    const compte = this.enSursis();
+    if (!compte) return;
+    this.enSursis.set(null);
+    this.service.validerAuDepart(compte.id);
   }
 
   private recharger(): void {

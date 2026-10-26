@@ -61,6 +61,17 @@ describe('Diplomes', () => {
     expect(navigate).toHaveBeenLastCalledWith([], expect.objectContaining({ queryParams: { entree: '2024', filiere: 'GC' } }));
   });
 
+  it('garde sélectionnable une promotion dont l’année d’entrée est inconnue', async () => {
+    await charger();
+    const choix = racine().querySelector('#diplomes-promotion') as HTMLSelectElement;
+    http.expectNone('/api/admin/comptes/promotions');
+    fixture.componentInstance['promotions'].set([{ anneeEntree: null, filiere: 'GIT', nombre: 3 }]);
+    fixture.detectChanges();
+    choix.value = '|GIT';
+    choix.dispatchEvent(new Event('change'));
+    expect(navigate).toHaveBeenLastCalledWith([], expect.objectContaining({ queryParams: { entree: 'inconnue', filiere: 'GIT' } }));
+  });
+
   it('demande confirmation puis marque diplômés les étudiants cochés', async () => {
     await charger();
     (racine().querySelectorAll('.etudiants input')[1] as HTMLInputElement).click();

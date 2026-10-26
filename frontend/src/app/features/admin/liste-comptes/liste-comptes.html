@@ -43,13 +43,7 @@
       </ul>
     }
 
-    @if (page.totalPages > 1) {
-      <nav class="pagination" aria-label="Pagination des comptes">
-        <button type="button" [disabled]="page.page === 0" (click)="changerPage(page.page - 1)">Précédent</button>
-        <span>Page {{ page.page + 1 }} sur {{ page.totalPages }}</span>
-        <button type="button" [disabled]="page.page + 1 >= page.totalPages"
-          (click)="changerPage(page.page + 1)">Suivant</button>
-      </nav>
-    }
+    <app-pagination-admin [page]="page.page" [totalPages]="page.totalPages" libelle="Pagination des comptes"
+      (changer)="changerPage($event)" />
   }
 </div>

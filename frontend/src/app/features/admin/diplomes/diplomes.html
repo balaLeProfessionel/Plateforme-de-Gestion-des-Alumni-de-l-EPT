@@ -17,9 +17,9 @@
           <label for="diplomes-promotion">Promotion d’entrée et filière</label>
           <!-- [selected] sur chaque option : la liste arrive après la promotion lue dans l’URL. -->
           <select #choixPromotion id="diplomes-promotion" (change)="choisirPromotion(choixPromotion.value)">
-            <option value="|" [selected]="cleChoisie() === '|'">Choisir…</option>
+            <option value="" [selected]="!choix().choisie">Choisir…</option>
             @for (promotion of liste; track cleDe(promotion)) {
-              <option [value]="cleDe(promotion)" [selected]="cleDe(promotion) === cleChoisie()">{{ libellePromotion(promotion) }}</option>
+              <option [value]="cleDe(promotion)" [selected]="choix().choisie && cleDe(promotion) === cleChoisie()">{{ libellePromotion(promotion) }}</option>
             }
           </select>
         </div>

@@ -31,7 +31,7 @@ describe('ListeComptes', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         { provide: CompteurInscriptions, useValue: { actualiser } },
-        { provide: AuthService, useValue: { utilisateur: signal({ id: 'moi' }) } },
+        { provide: AuthService, useValue: { utilisateur: signal({ id: 'moi' }), getToken: () => 'jeton' } },
       ],
     });
     http = TestBed.inject(HttpTestingController);
@@ -82,6 +82,23 @@ describe('ListeComptes', () => {
     expect(noms()).toEqual(['Awa Diop', 'Binta Diop']);
     expect(racine().querySelector('.annonce')?.textContent).toContain('Validation de Awa Diop annulée.');
     expect(document.activeElement?.getAttribute('aria-labelledby')).toBe('nom-a');
+  });
+
+  it('envoie la validation en sursis si l’onglet se ferme pendant le délai', async () => {
+    const fetch = vi.fn().mockResolvedValue(new Response(null));
+    vi.stubGlobal('fetch', fetch);
+    await charger([awa, binta]);
+    valider(0);
+
+    window.dispatchEvent(new Event('pagehide'));
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(fetch.mock.calls[0][0]).toBe('/api/admin/comptes/a/valider');
+    expect(fetch.mock.calls[0][1]).toEqual(expect.objectContaining({
+      method: 'PATCH', keepalive: true, headers: { Authorization: 'Bearer jeton' },
+    }));
+    vi.advanceTimersByTime(DELAI_ANNULATION_MS);
+    http.expectNone('/api/admin/comptes/a/valider');
+    vi.unstubAllGlobals();
   });
 
   it('envoie la validation après le délai, recharge la liste et les compteurs', async () => {

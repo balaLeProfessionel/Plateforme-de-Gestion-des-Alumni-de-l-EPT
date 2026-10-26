@@ -16,12 +16,13 @@ describe('Comptes', () => {
   let fixture: ComponentFixture<Comptes>;
   let http: HttpTestingController;
   let navigate: ReturnType<typeof vi.fn>;
+  let parametres: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
   const actualiser = vi.fn();
   const resume = signal<ResumeComptes | null>({ enAttente: 2, actifs: 40, suspendus: 1, enAttenteParRole: { ALUMNI: 2 } });
 
   beforeEach(() => {
     actualiser.mockClear();
-    const parametres = new BehaviorSubject(convertToParamMap({ statut: 'SUSPENDU', recherche: 'diop', role: 'INCONNU', page: '3' }));
+    parametres = new BehaviorSubject(convertToParamMap({ statut: 'SUSPENDU', recherche: 'diop', role: 'INCONNU', page: '3' }));
     TestBed.configureTestingModule({
       imports: [Comptes],
       providers: [
@@ -82,6 +83,16 @@ describe('Comptes', () => {
     expect(navigate).toHaveBeenLastCalledWith([], expect.objectContaining({
       queryParams: { recherche: 'diop', statut: 'SUSPENDU', page: '4' }, replaceUrl: false,
     }));
+  });
+
+  it('reprend dans le champ la recherche de l’URL après un retour arrière', async () => {
+    http.expectOne((req) => req.url === '/api/admin/comptes').flush(page([]));
+    parametres.next(convertToParamMap({ recherche: 'sow' }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    http.expectOne((req) => req.url === '/api/admin/comptes' && req.params.get('recherche') === 'sow').flush(page([]));
+    expect((fixture.nativeElement.querySelector('#recherche-compte') as HTMLInputElement).value).toBe('sow');
   });
 
   it('recharge la liste et les compteurs après une décision', async () => {

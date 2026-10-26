@@ -27,18 +27,20 @@ export const MODELE_CSV = 'prenom;nom;email;filiere;annee_entree\nAwa;Diop;awa.d
  * majuscules ignorés), séparateur « ; » ou « , », champs éventuellement entre guillemets.
  */
 export function lireCsvComptes(texte: string): LectureCsv {
-  const lignesTexte = texte.replace(/^\uFEFF/, '').split(/\r?\n/).filter((ligne) => ligne.trim() !== '');
-  if (lignesTexte.length < 2) return { lignes: [], erreur: 'Le fichier doit contenir une ligne d’en-têtes puis au moins un compte.' };
-  const separateur = (lignesTexte[0].match(/;/g)?.length ?? 0) >= (lignesTexte[0].match(/,/g)?.length ?? 0) ? ';' : ',';
-  const entetes = decouper(lignesTexte[0], separateur).map((entete) => COLONNES[normaliser(entete)] ?? null);
+  const contenu = texte.replace(/^\uFEFF/, '');
+  const premiereLigne = contenu.split(/\r?\n/, 1)[0] ?? '';
+  const separateur = (premiereLigne.match(/;/g)?.length ?? 0) >= (premiereLigne.match(/,/g)?.length ?? 0) ? ';' : ',';
+  const enregistrements = lireEnregistrements(contenu, separateur)
+    .filter((valeurs) => valeurs.some((valeur) => valeur.trim() !== ''));
+  if (enregistrements.length < 2) return { lignes: [], erreur: 'Le fichier doit contenir une ligne d’en-têtes puis au moins un compte.' };
+  const entetes = enregistrements[0].map((entete) => COLONNES[normaliser(entete)] ?? null);
   const manquantes = (['prenom', 'nom', 'email'] as const).filter((colonne) => !entetes.includes(colonne));
   if (manquantes.length) {
     return { lignes: [], erreur: 'Colonnes obligatoires absentes : ' + manquantes.map((c) => ({ prenom: 'prénom', nom: 'nom', email: 'e-mail' })[c]).join(', ') + '.' };
   }
-  if (lignesTexte.length - 1 > LIGNES_MAX) return { lignes: [], erreur: `${LIGNES_MAX} comptes au plus par import : découpez le fichier.` };
+  if (enregistrements.length - 1 > LIGNES_MAX) return { lignes: [], erreur: `${LIGNES_MAX} comptes au plus par import : découpez le fichier.` };
 
-  const lignes = lignesTexte.slice(1).map((texteLigne, index) => {
-    const valeurs = decouper(texteLigne, separateur);
+  const lignes = enregistrements.slice(1).map((valeurs, index) => {
     const brut: Record<string, string> = {};
     entetes.forEach((colonne, i) => { if (colonne) brut[colonne] = (valeurs[i] ?? '').trim(); });
     const ligne: LigneLue = {
@@ -61,23 +63,38 @@ export function lireCsvComptes(texte: string): LectureCsv {
   return { lignes, erreur: null };
 }
 
-function decouper(ligne: string, separateur: string): string[] {
-  const valeurs: string[] = [];
+/** Découpe tout le texte en enregistrements (RFC 4180) : un champ entre guillemets peut contenir un retour à la ligne. */
+function lireEnregistrements(texte: string, separateur: string): string[][] {
+  const enregistrements: string[][] = [];
+  let valeurs: string[] = [];
   let courante = '';
   let entreGuillemets = false;
-  for (let i = 0; i < ligne.length; i++) {
-    const caractere = ligne[i];
-    if (caractere === '"') {
-      if (entreGuillemets && ligne[i + 1] === '"') { courante += '"'; i++; } else entreGuillemets = !entreGuillemets;
-    } else if (caractere === separateur && !entreGuillemets) {
+  for (let i = 0; i < texte.length; i++) {
+    const caractere = texte[i];
+    if (entreGuillemets) {
+      if (caractere === '"' && texte[i + 1] === '"') { courante += '"'; i++; }
+      else if (caractere === '"') entreGuillemets = false;
+      else courante += caractere;
+    } else if (caractere === '"') {
+      entreGuillemets = true;
+    } else if (caractere === separateur) {
       valeurs.push(courante);
+      courante = '';
+    } else if (caractere === '\n' || caractere === '\r') {
+      if (caractere === '\r' && texte[i + 1] === '\n') i++;
+      valeurs.push(courante);
+      enregistrements.push(valeurs);
+      valeurs = [];
       courante = '';
     } else {
       courante += caractere;
     }
   }
-  valeurs.push(courante);
-  return valeurs;
+  if (courante !== '' || valeurs.length) {
+    valeurs.push(courante);
+    enregistrements.push(valeurs);
+  }
+  return enregistrements;
 }
 
 function normaliser(entete: string): string {

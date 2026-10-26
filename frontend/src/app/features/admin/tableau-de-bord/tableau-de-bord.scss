@@ -66,13 +66,4 @@ a.file:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
 .chargement { display: grid; gap: 0.75rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-.etat {
-  display: grid; justify-items: center; gap: 0.5rem; padding: 3rem 1rem;
-  border: 1px dashed var(--ept-border); border-radius: 12px; text-align: center;
-  > i { color: var(--ept-primary); font-size: 1.6rem; }
-  h2, p { margin: 0; }
-  p { color: var(--ept-text-secondary); }
-}
-.squelette { min-height: 6rem; border-radius: 12px; background: #edf1f3; }
-
 @media (max-width: 760px) { .colonnes { grid-template-columns: minmax(0, 1fr); } }

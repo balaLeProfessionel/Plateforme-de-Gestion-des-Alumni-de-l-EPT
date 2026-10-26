@@ -52,6 +52,10 @@ export class Comptes {
   });
 
   constructor() {
+    // Retour / avance du navigateur : le champ reprend la recherche de l’URL.
+    toObservable(this.criteres).pipe(takeUntilDestroyed()).subscribe(({ recherche }) => {
+      if (this.modele().recherche.trim() !== recherche) this.modele.set({ recherche });
+    });
     toObservable(this.modele).pipe(
       skip(1),
       debounceTime(DELAI_SAISIE_MS),

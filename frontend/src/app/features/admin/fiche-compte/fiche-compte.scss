@@ -46,15 +46,5 @@ dl {
   &.erreur { background: var(--ept-error-light); color: var(--ept-error-dark); }
 }
 
-.etat {
-  display: grid; justify-items: center; gap: 0.5rem; padding: 3rem 1rem;
-  border: 1px dashed var(--ept-border); border-radius: 12px; text-align: center;
-  > i { color: var(--ept-primary); font-size: 1.6rem; }
-  h2, p { margin: 0; }
-  p { color: var(--ept-text-secondary); }
-}
-.squelette { min-height: 6rem; border-radius: 12px; background: #edf1f3; }
-
-.etat a { color: var(--ept-primary); font-weight: 600; }
-.squelette { min-height: 12rem; }
 @media (max-width: 560px) { .identite { flex-direction: column; } }
+.squelette.haute { min-height: 12rem; }

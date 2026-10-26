@@ -9,7 +9,11 @@ import { CompteAdmin, nomDuCompte, PromotionEtudiante, ResultatDiplomation } fro
 import { PageAdmin } from '../page-admin/page-admin';
 import { erreurAnnee } from '../saisie-annee';
 
-interface Choix { anneeEntree: number | null; filiere: string | null }
+/** Promotion choisie ; `choisie` distingue « aucune sélection » d’une promotion à année ou filière inconnue. */
+interface Choix { anneeEntree: number | null; filiere: string | null; choisie: boolean }
+
+/** Valeur d’URL d’une année d’entrée ou d’une filière non renseignée. */
+const INCONNUE = 'inconnue';
 
 /** Faire passer alumni les étudiants d’une promotion d’entrée, en une fois (GAEPT-33). */
 @Component({
@@ -49,8 +53,12 @@ export class Diplomes {
     ).subscribe((promotions) => this.promotions.set(promotions));
 
     toObservable(computed(() => ({ choix: this.choix(), version: this.version() }))).pipe(
-      switchMap(({ choix }) => choix.anneeEntree === null && choix.filiere === null ? of({ etudiants: null, erreur: null })
-        : this.service.rechercher({ recherche: '', role: 'ETUDIANT', statut: null, ...choix }, 0, 100).pipe(
+      switchMap(({ choix }) => !choix.choisie ? of({ etudiants: null, erreur: null })
+        : this.service.rechercher({
+          recherche: '', role: 'ETUDIANT', statut: null,
+          anneeEntree: choix.anneeEntree, sansAnneeEntree: choix.anneeEntree === null,
+          filiere: choix.filiere, sansFiliere: choix.filiere === null,
+        }, 0, 100).pipe(
           map((page) => ({ etudiants: page.contenu.filter((compte) => compte.statutCompte !== 'SUSPENDU'), erreur: null })),
           catchError((erreur: HttpErrorResponse) => of({ etudiants: null, erreur: erreur.error?.message ?? 'Impossible de charger les étudiants.' })))),
       takeUntilDestroyed()
@@ -72,10 +80,9 @@ export class Diplomes {
 
   protected choisirPromotion(valeur: string): void {
     const promotion = this.promotions()?.find((p) => cle(p) === valeur);
-    const queryParams: Record<string, string> = {};
-    if (promotion?.anneeEntree) queryParams['entree'] = String(promotion.anneeEntree);
-    if (promotion?.filiere) queryParams['filiere'] = promotion.filiere;
-    if (promotion && !promotion.anneeEntree && !promotion.filiere) queryParams['entree'] = 'aucune';
+    const queryParams: Record<string, string> = promotion
+      ? { entree: promotion.anneeEntree ? String(promotion.anneeEntree) : INCONNUE, filiere: promotion.filiere ?? INCONNUE }
+      : {};
     this.resultat.set(null);
     void this.router.navigate([], { relativeTo: this.route, queryParams, replaceUrl: true });
   }
@@ -118,14 +125,16 @@ export class Diplomes {
   }
 }
 
-function cle(choix: Choix): string {
+function cle(choix: Pick<Choix, 'anneeEntree' | 'filiere'>): string {
   return `${choix.anneeEntree ?? ''}|${choix.filiere ?? ''}`;
 }
 
 function choixDepuis(params: ParamMap): Choix {
   const entree = Number(params.get('entree'));
+  const filiere = params.get('filiere');
   return {
     anneeEntree: Number.isInteger(entree) && entree >= 1975 ? entree : null,
-    filiere: params.get('filiere') || null,
+    filiere: filiere && filiere !== INCONNUE ? filiere : null,
+    choisie: params.has('entree') || params.has('filiere'),
   };
 }

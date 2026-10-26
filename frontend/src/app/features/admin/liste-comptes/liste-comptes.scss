@@ -1,6 +1,5 @@
 .liste { display: grid; gap: 0.85rem; margin: 0; padding: 0; list-style: none; }
 .actualisation { opacity: 0.55; }
-.squelette { min-height: 7rem; border-radius: 12px; background: #edf1f3; }
 .resume {
   margin: 0 0 0.75rem; color: var(--ept-text-secondary); font-size: 0.88rem; scroll-margin-top: 5rem;
   &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
@@ -23,24 +22,3 @@
   }
 }
 
-.etat {
-  display: grid; justify-items: center; gap: 0.5rem; padding: 3.5rem 1rem;
-  border: 1px dashed var(--ept-border); border-radius: 12px; text-align: center;
-
-  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
-  > i { color: var(--ept-primary); font-size: 1.7rem; }
-  h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1.1rem; }
-  p { max-width: 30rem; margin: 0; color: var(--ept-text-secondary); }
-}
-
-.pagination {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.75rem;
-  margin-top: 1.5rem; color: var(--ept-text-secondary); font-size: 0.85rem;
-
-  button {
-    min-height: 2.5rem; padding: 0.45rem 0.9rem; border: 1px solid var(--ept-border); border-radius: 8px;
-    background: white; color: var(--ept-primary); font: inherit; font-weight: 600; cursor: pointer;
-    &:disabled { opacity: 0.45; cursor: default; }
-    &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
-  }
-}

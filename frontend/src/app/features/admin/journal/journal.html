@@ -42,13 +42,8 @@
             </li>
           }
         </ol>
-        @if (page.totalPages > 1) {
-          <nav class="pagination" aria-label="Pagination du journal">
-            <button type="button" [disabled]="page.page === 0" (click)="allerPage(page.page - 1)">Précédent</button>
-            <span>Page {{ page.page + 1 }} sur {{ page.totalPages }}</span>
-            <button type="button" [disabled]="page.page + 1 >= page.totalPages" (click)="allerPage(page.page + 1)">Suivant</button>
-          </nav>
-        }
+        <app-pagination-admin [page]="page.page" [totalPages]="page.totalPages" libelle="Pagination du journal"
+          (changer)="allerPage($event)" />
       }
     } @else {
       <div class="squelette" aria-hidden="true"></div>

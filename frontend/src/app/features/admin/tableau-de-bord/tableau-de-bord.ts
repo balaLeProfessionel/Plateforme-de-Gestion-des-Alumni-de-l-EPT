@@ -13,7 +13,7 @@ const JOUR_MS = 86_400_000;
   selector: 'app-tableau-de-bord',
   imports: [DatePipe, RouterLink, PageAdmin],
   templateUrl: './tableau-de-bord.html',
-  styleUrl: './tableau-de-bord.scss',
+  styleUrls: ['../etats-admin.scss', './tableau-de-bord.scss'],
 })
 export class TableauDeBord {
   protected readonly libellesAction = LIBELLES_ACTION_ADMIN;

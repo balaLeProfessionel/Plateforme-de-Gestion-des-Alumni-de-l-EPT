@@ -5,6 +5,8 @@ import org.springframework.stereotype.Component;
 
 import ept.edu.sn.alumni_backend.admin.TypeActionAdmin;
 import ept.edu.sn.alumni_backend.admin.entity.ActionAdmin;
+import ept.edu.sn.alumni_backend.admin.NomCompte;
+import ept.edu.sn.alumni_backend.admin.evenement.IdentifiantsCompte;
 import ept.edu.sn.alumni_backend.admin.evenement.NotificationCompte;
 import ept.edu.sn.alumni_backend.admin.repository.ActionAdminRepository;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
@@ -24,5 +26,10 @@ public class TraceCompte {
 
     public void notifier(Utilisateur compte, String sujet, String message) {
         evenements.publishEvent(new NotificationCompte(compte.getEmail(), sujet, message));
+    }
+
+    /** Mot de passe provisoire d'un compte créé : un message à part, jamais écrit dans les journaux. */
+    public void envoyerIdentifiants(Utilisateur compte, String motDePasseProvisoire) {
+        evenements.publishEvent(new IdentifiantsCompte(compte.getEmail(), NomCompte.salutation(compte), motDePasseProvisoire));
     }
 }

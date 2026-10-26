@@ -97,10 +97,12 @@ public class AdminCompteController {
             @RequestParam(required = false) TypeRole role,
             @RequestParam(required = false) StatutCompte statut,
             @RequestParam(required = false) @Min(1975) @Max(2200) Integer anneeEntree,
+            @RequestParam(defaultValue = "false") boolean sansAnneeEntree,
             @RequestParam(required = false) @Size(max = 120) String filiere,
+            @RequestParam(defaultValue = "false") boolean sansFiliere,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int taille) {
-        return ResponseEntity.ok(gestionComptesService.rechercher(recherche, role, statut, anneeEntree, filiere, page, taille));
+        return ResponseEntity.ok(gestionComptesService.rechercher(recherche, role, statut, anneeEntree, sansAnneeEntree, filiere, sansFiliere, page, taille));
     }
 
     @GetMapping("/resume")

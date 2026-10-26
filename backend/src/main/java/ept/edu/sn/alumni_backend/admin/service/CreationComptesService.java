@@ -1,6 +1,5 @@
 package ept.edu.sn.alumni_backend.admin.service;
 
-import ept.edu.sn.alumni_backend.admin.NomCompte;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -56,15 +55,15 @@ public class CreationComptesService {
         CompteCreeResponse cree = authService.creerCompteParAdmin(request);
         Utilisateur compte = utilisateurRepository.findById(cree.id()).orElseThrow();
         trace.consigner(principal, compte, TypeActionAdmin.CREATION_COMPTE, null, compte.getRole().name());
-        trace.notifier(compte, "Votre compte EPT Alumni est prêt",
-            "Bonjour " + NomCompte.salutation(compte) + ", l'administration de l'EPT vous a créé un compte sur EPT Alumni. "
-            + "Connectez-vous avec cette adresse et le mot de passe provisoire " + cree.motDePasseTemporaire()
-            + " : vous choisirez votre propre mot de passe à la première connexion.");
+        trace.envoyerIdentifiants(compte, cree.motDePasseTemporaire());
         return cree;
     }
 
     /** Chaque ligne est créée dans sa propre transaction : une ligne en erreur n'empêche pas les autres. */
     public ResultatImportResponse importer(ImportComptesRequest request, UtilisateurPrincipal principal) {
+        if (request.role() == TypeRole.ADMIN) {
+            throw new IllegalArgumentException("Un compte d'administration se crée un par un, pas par import.");
+        }
         List<ResultatImportResponse.Ligne> lignes = new ArrayList<>();
         Set<String> emailsVus = new HashSet<>();
         int crees = 0;

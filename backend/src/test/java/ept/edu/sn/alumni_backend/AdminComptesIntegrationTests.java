@@ -234,6 +234,18 @@ class AdminComptesIntegrationTests {
     }
 
     @Test
+    void a07b_reactiverUnRefusRemetLInscriptionEnAttenteSansLaValider() throws Exception {
+        Utilisateur inscrit = creerUtilisateur(TypeRole.ALUMNI, StatutCompte.EN_ATTENTE, "Reexamen");
+        envoyer(patch("/api/admin/comptes/{id}/refuser", inscrit.getId()), admin, "{\"motif\":\"Pièce manquante\"}")
+            .andExpect(status().isOk());
+        envoyer(patch("/api/admin/comptes/{id}/reactiver", inscrit.getId()), admin, "{\"motif\":\"Pièce reçue\"}")
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.statutCompte").value("EN_ATTENTE"));
+        verify(emailService).envoyerNotification(eq(inscrit.getEmail()), eq("Votre inscription est de nouveau examinée"), anyString());
+        mockMvc.perform(authentifie(get("/api/auth/me"), inscrit)).andExpect(status().isOk());
+    }
+
+    @Test
     void a08_leResumeCompteLesInscriptionsAExaminer() throws Exception {
         String avant = mockMvc.perform(authentifie(get("/api/admin/comptes/resume"), admin))
             .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();

@@ -44,9 +44,11 @@ export interface CriteresComptes {
   recherche: string;
   role: RoleCompte | null;
   statut: StatutCompte | null;
-  /** Promotion d’entrée et filière (page Diplômés). */
+  /** Promotion d’entrée et filière (page Diplômés) ; « sans » cible les comptes où le champ est vide. */
   anneeEntree?: number | null;
+  sansAnneeEntree?: boolean;
   filiere?: string | null;
+  sansFiliere?: boolean;
 }
 
 /** Rôles qu’on peut créer ou attribuer depuis l’administration (un organisme a sa propre inscription). */
@@ -114,8 +116,6 @@ export function lienFicheCompte(compte: CompteAdmin): string[] | null {
   if (compte.role === 'ORGANISME') return compte.organismeId ? ['/organismes', compte.organismeId] : null;
   return ROLES_AVEC_PROFIL.includes(compte.role) ? ['/profil', compte.id] : null;
 }
-
-export const ROLES_ADMINISTRATION: readonly RoleCompte[] = ['ADMIN'];
 
 /** Miroir de PermissionAdmin : chaque rubrique de l’administration exige l’une d’elles. */
 export type PermissionAdmin = 'CONSULTER_TABLEAU_DE_BORD' | 'GERER_COMPTES' | 'CONSULTER_JOURNAL';

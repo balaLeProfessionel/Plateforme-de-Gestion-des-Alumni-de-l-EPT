@@ -73,7 +73,7 @@ public class EvolutionComptesService {
                 : compte.getAnneeEntree() != null && anneeSortie < compte.getAnneeEntree()
                     ? "L'année de sortie précède son année d'entrée (" + compte.getAnneeEntree() + ")." : null;
             if (raison != null) {
-                ignores.add(new ResultatDiplomationResponse.Ignore(id, compte == null ? null : nomComplet(compte), raison));
+                ignores.add(new ResultatDiplomationResponse.Ignore(id, compte == null ? null : NomCompte.complet(compte), raison));
                 continue;
             }
             compte.setRole(TypeRole.ALUMNI);
@@ -95,7 +95,4 @@ public class EvolutionComptesService {
             .toList();
     }
 
-    private static String nomComplet(Utilisateur utilisateur) {
-        return NomCompte.complet(utilisateur);
-    }
 }

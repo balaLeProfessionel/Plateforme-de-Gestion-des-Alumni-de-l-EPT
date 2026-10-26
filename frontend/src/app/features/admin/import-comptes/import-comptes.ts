@@ -103,6 +103,7 @@ export class ImportComptes {
     lien.href = vue.URL.createObjectURL(new Blob(['\uFEFF' + contenu], { type: 'text/csv;charset=utf-8' }));
     lien.download = nom;
     lien.click();
-    vue.URL.revokeObjectURL(lien.href);
+    // Certains navigateurs lancent le téléchargement après le clic : on libère l’adresse un peu plus tard.
+    vue.setTimeout(() => vue.URL.revokeObjectURL(lien.href), 1000);
   }
 }

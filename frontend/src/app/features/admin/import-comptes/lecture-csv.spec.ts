@@ -24,6 +24,13 @@ describe('lireCsvComptes', () => {
     ]);
   });
 
+  it('garde un champ entre guillemets qui contient un retour à la ligne', () => {
+    const lecture = lireCsvComptes('prenom;nom;email;filiere\r\nAwa;Diop;awa@ept.sn;"Génie civil\r\noption eau"\r\nBinta;Sow;binta@ept.sn;GIT\r\n');
+    expect(lecture.lignes.map((ligne) => [ligne.prenom, ligne.filiere, ligne.probleme])).toEqual([
+      ['Awa', 'Génie civil\r\noption eau', null], ['Binta', 'GIT', null],
+    ]);
+  });
+
   it('refuse un fichier sans les colonnes obligatoires ou vide', () => {
     expect(lireCsvComptes('prenom;filiere\nAwa;GIT').erreur).toBe('Colonnes obligatoires absentes : nom, e-mail.');
     expect(lireCsvComptes('prenom;nom;email').erreur).toContain('au moins un compte');

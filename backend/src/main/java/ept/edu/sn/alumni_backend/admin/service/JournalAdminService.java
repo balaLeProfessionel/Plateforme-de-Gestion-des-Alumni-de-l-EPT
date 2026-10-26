@@ -34,10 +34,7 @@ public class JournalAdminService {
     EntreeJournalResponse versEntree(ActionAdmin action) {
         Utilisateur cible = action.getCible();
         return new EntreeJournalResponse(action.getId(), action.getType().name(), action.getMotif(), action.getDetails(), action.getDateAction(),
-            nomComplet(action.getAdmin()), cible.getId(), nomComplet(cible), cible.getRole().name());
+            NomCompte.complet(action.getAdmin()), cible.getId(), NomCompte.complet(cible), cible.getRole().name());
     }
 
-    private static String nomComplet(Utilisateur utilisateur) {
-        return NomCompte.complet(utilisateur);
-    }
 }

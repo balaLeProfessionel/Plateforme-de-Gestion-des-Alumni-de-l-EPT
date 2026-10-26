@@ -17,4 +17,10 @@ public class NotificationCompteListener {
         emailService.envoyerNotification(
             notification.destinataire(), notification.sujet(), notification.message());
     }
+
+    @TransactionalEventListener
+    public void envoyerIdentifiants(IdentifiantsCompte identifiants) {
+        emailService.envoyerIdentifiants(
+            identifiants.destinataire(), identifiants.salutation(), identifiants.motDePasseProvisoire());
+    }
 }

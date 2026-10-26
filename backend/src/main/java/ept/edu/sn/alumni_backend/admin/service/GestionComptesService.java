@@ -56,15 +56,13 @@ public class GestionComptesService {
     private final RefreshTokenService refreshTokenService;
     private final ApplicationEventPublisher evenements;
 
-    @Transactional(readOnly = true)
-    public PageResponse<CompteAdminResponse> rechercher(
-            String recherche, TypeRole role, StatutCompte statut, int page, int taille) {
-        return rechercher(recherche, role, statut, null, null, page, taille);
-    }
-
+    /**
+     * Comptes vérifiés selon les critères. sansAnneeEntree / sansFiliere ciblent les comptes où ces champs sont
+     * vides : une promotion « année inconnue » ou « filière non renseignée » doit rester sélectionnable.
+     */
     @Transactional(readOnly = true)
     public PageResponse<CompteAdminResponse> rechercher(String recherche, TypeRole role, StatutCompte statut,
-            Integer anneeEntree, String filiere, int page, int taille) {
+            Integer anneeEntree, boolean sansAnneeEntree, String filiere, boolean sansFiliere, int page, int taille) {
         Specification<Utilisateur> specification = (racine, requete, cb) -> cb.isTrue(racine.get("emailVerifie"));
         if (role != null) {
             specification = specification.and((racine, requete, cb) -> cb.equal(racine.get("role"), role));
@@ -72,10 +70,15 @@ public class GestionComptesService {
         if (statut != null) {
             specification = specification.and((racine, requete, cb) -> cb.equal(racine.get("statutCompte"), statut));
         }
-        if (anneeEntree != null) {
+        if (sansAnneeEntree) {
+            specification = specification.and((racine, requete, cb) -> cb.isNull(racine.get("anneeEntree")));
+        } else if (anneeEntree != null) {
             specification = specification.and((racine, requete, cb) -> cb.equal(racine.get("anneeEntree"), anneeEntree));
         }
-        if (filiere != null && !filiere.isBlank()) {
+        if (sansFiliere) {
+            specification = specification.and((racine, requete, cb) ->
+                cb.or(cb.isNull(racine.get("filiere")), cb.equal(cb.trim(racine.get("filiere")), "")));
+        } else if (filiere != null && !filiere.isBlank()) {
             String valeur = filiere.trim().toLowerCase(Locale.ROOT);
             specification = specification.and((racine, requete, cb) -> cb.equal(cb.lower(racine.get("filiere")), valeur));
         }
@@ -144,7 +147,7 @@ public class GestionComptesService {
         }
         return actionAdminRepository.findByCible_IdOrderByDateActionDesc(id).stream()
             .map(action -> new ActionAdminResponse(action.getId(), action.getType().name(), action.getMotif(),
-                action.getDetails(), action.getDateAction(), nomComplet(action.getAdmin())))
+                action.getDetails(), action.getDateAction(), NomCompte.complet(action.getAdmin())))
             .toList();
     }
 
@@ -206,15 +209,20 @@ public class GestionComptesService {
         if (compte.getStatutCompte() != StatutCompte.SUSPENDU) {
             throw new ConflitCompteException("Ce compte n'est pas suspendu.");
         }
-        compte.setStatutCompte(StatutCompte.ACTIF);
+        // Un refus d'inscription réactivé n'est pas une validation : l'inscription revient en attente d'examen.
+        boolean refusInscription = actionAdminRepository.dernieresActions(List.of(id), ACTIONS_SUSPENDANTES).stream()
+            .anyMatch(action -> action.getType() == TypeActionAdmin.REFUS_INSCRIPTION);
+        StatutCompte nouveauStatut = refusInscription ? StatutCompte.EN_ATTENTE : StatutCompte.ACTIF;
+        compte.setStatutCompte(nouveauStatut);
         if (compte.getOrganisme() != null) {
-            compte.getOrganisme().setStatutValidation(StatutCompte.ACTIF);
+            compte.getOrganisme().setStatutValidation(nouveauStatut);
         }
         String motifNettoye = motif == null || motif.isBlank() ? null : motif.trim();
         journaliser(principal, compte, TypeActionAdmin.REACTIVATION, motifNettoye);
-        notifier(compte, "Votre compte est réactivé",
-            "Bonjour " + NomCompte.salutation(compte) + ", votre compte EPT Alumni est de nouveau actif. "
-            + "Vous pouvez vous reconnecter.");
+        notifier(compte, refusInscription ? "Votre inscription est de nouveau examinée" : "Votre compte est réactivé",
+            "Bonjour " + NomCompte.salutation(compte) + (refusInscription
+                ? ", l'administration de l'EPT réexamine votre inscription : vous pouvez de nouveau vous connecter."
+                : ", votre compte EPT Alumni est de nouveau actif. Vous pouvez vous reconnecter."));
         return versReponse(compte, null, nombreDecisions(compte));
     }
 
@@ -241,9 +249,6 @@ public class GestionComptesService {
         evenements.publishEvent(new NotificationCompte(compte.getEmail(), sujet, message));
     }
 
-    private static String nomComplet(Utilisateur utilisateur) {
-        return NomCompte.complet(utilisateur);
-    }
 
     /** Réponse d'une décision prise ailleurs (rôle, diplomation) : le compte tel qu'il est maintenant. */
     public CompteAdminResponse reponse(Utilisateur compte) {

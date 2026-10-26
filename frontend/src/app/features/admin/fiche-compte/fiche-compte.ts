@@ -23,7 +23,7 @@ import { PageAdmin } from '../page-admin/page-admin';
   selector: 'app-fiche-compte',
   imports: [DatePipe, RouterLink, AvatarMembre, DecisionsCompte, EvolutionCompte, HistoriqueCompte, PageAdmin],
   templateUrl: './fiche-compte.html',
-  styleUrl: './fiche-compte.scss',
+  styleUrls: ['../etats-admin.scss', './fiche-compte.scss'],
 })
 export class FicheComptePage {
   private readonly route = inject(ActivatedRoute);

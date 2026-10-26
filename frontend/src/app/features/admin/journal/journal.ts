@@ -10,6 +10,7 @@ import {
 } from '../../../core/services/models/admin.model';
 import { Page } from '../../../core/services/models/mentorat.model';
 import { PageAdmin } from '../page-admin/page-admin';
+import { PaginationAdmin } from '../pagination-admin/pagination-admin';
 
 interface FiltreJournal {
   cle: string | null;
@@ -29,9 +30,9 @@ interface EtatJournal { filtre: FiltreJournal; page: number }
 /** Journal de toutes les décisions de l’administration ; filtre et page vivent dans l’URL. */
 @Component({
   selector: 'app-journal',
-  imports: [DatePipe, RouterLink, PageAdmin],
+  imports: [DatePipe, RouterLink, PageAdmin, PaginationAdmin],
   templateUrl: './journal.html',
-  styleUrl: './journal.scss',
+  styleUrls: ['../etats-admin.scss', './journal.scss'],
 })
 export class Journal {
   private readonly route = inject(ActivatedRoute);
