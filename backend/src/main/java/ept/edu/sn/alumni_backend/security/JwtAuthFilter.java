@@ -21,6 +21,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UtilisateurDetailsService utilisateurDetailsService;
 
+    static final String CODE_COMPTE_SUSPENDU = "COMPTE_SUSPENDU";
+    private static final String REPONSE_COMPTE_SUSPENDU = "{\"code\":\"" + CODE_COMPTE_SUSPENDU
+        + "\",\"message\":\"Votre compte a été suspendu. Contactez l'administration.\"}";
+
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
@@ -45,7 +49,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 String email = jwtService.extraireEmail(token);
                 UserDetails userDetails = utilisateurDetailsService.loadUserByUsername(email);
 
-                if (userDetails.isEnabled() && userDetails.isAccountNonLocked()) {
+                // Suspendu pendant sa session : 401 explicite, le frontend déconnecte et explique pourquoi.
+                if (!userDetails.isAccountNonLocked()) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write(REPONSE_COMPTE_SUSPENDU);
+                    return;
+                }
+                if (userDetails.isEnabled()) {
                     var authentication = new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());
                     authentication.setDetails(

@@ -183,9 +183,11 @@ class EvenementGestionIntegrationTests {
         mockMvc.perform(requeteAuthentifie(post("/api/evenements"), nonVerifie)
                 .contentType(MediaType.APPLICATION_JSON).content(corps))
             .andExpect(status().isForbidden());
+        // Compte suspendu : 401 explicite, le frontend met fin à la session.
         mockMvc.perform(requeteAuthentifie(post("/api/evenements"), suspendu)
                 .contentType(MediaType.APPLICATION_JSON).content(corps))
-            .andExpect(status().isForbidden());
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value("COMPTE_SUSPENDU"));
     }
 
     @Test

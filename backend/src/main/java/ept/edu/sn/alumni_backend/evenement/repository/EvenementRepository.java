@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.evenement.repository;
 
+import ept.edu.sn.alumni_backend.evenement.StatutEvenement;
 import java.util.UUID;
 import java.time.Instant;
 
@@ -17,6 +18,8 @@ import ept.edu.sn.alumni_backend.evenement.entity.Evenement;
 @Repository
 public interface EvenementRepository extends JpaRepository<Evenement, UUID>, JpaSpecificationExecutor<Evenement> {
     long countByOrganisateur_IdAndCreeLeGreaterThanEqual(UUID organisateurId, Instant creeLe);
+
+    long countByStatutAndDateDebutAfter(StatutEvenement statut, Instant apres);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select evenement from Evenement evenement where evenement.id = :id")

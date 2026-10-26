@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.security;
 
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -84,6 +85,10 @@ public class SecurityConfig {
                 ).permitAll()
                 .requestMatchers("/api/photos/**").permitAll()
                 .requestMatchers("/api/evenement-images/**").permitAll()
+                // Administration : chaque domaine exige sa permission (voir PermissionAdmin).
+                .requestMatchers("/api/admin/tableau-de-bord").hasAuthority(PermissionAdmin.CONSULTER_TABLEAU_DE_BORD.name())
+                .requestMatchers("/api/admin/journal/**", "/api/admin/journal").hasAuthority(PermissionAdmin.CONSULTER_JOURNAL.name())
+                .requestMatchers("/api/admin/comptes/**", "/api/admin/comptes").hasAuthority(PermissionAdmin.GERER_COMPTES.name())
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/organisme/me").hasRole("ORGANISME")
                 .requestMatchers("/api/formations/**", "/api/experiences/**")

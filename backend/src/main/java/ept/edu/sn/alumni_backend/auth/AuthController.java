@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.auth;
 
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -79,7 +80,7 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(null,
             null, u.getId(), u.getEmail(), u.getNom(), u.getPrenom(),
             u.getRole().name(), u.getStatutCompte().name(),
-            u.isDoitChangerMotDePasse(), u.getUrlPhoto(), null));
+            u.isDoitChangerMotDePasse(), u.getUrlPhoto(), null, PermissionAdmin.noms(u.getRole())));
     }
 
     @PostMapping("/refresh")

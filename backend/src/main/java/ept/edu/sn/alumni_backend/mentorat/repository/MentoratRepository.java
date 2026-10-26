@@ -21,6 +21,8 @@ public interface MentoratRepository extends JpaRepository<Mentorat, UUID> {
 
     long countByMentore_IdAndStatut(UUID mentoreId, StatutMentorat statut);
 
+    long countByStatut(StatutMentorat statut);
+
     boolean existsByMentore_IdAndProfilMentor_IdAndStatutIn(
         UUID mentoreId, UUID profilMentorId, Collection<StatutMentorat> statuts);
 

@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
+import ept.edu.sn.alumni_backend.admin.exception.CompteIntrouvableException;
+import ept.edu.sn.alumni_backend.admin.exception.ConflitCompteException;
 import ept.edu.sn.alumni_backend.auth.exception.EmailDejaUtiliseException;
 import ept.edu.sn.alumni_backend.auth.exception.NomOrganismeManquantException;
 import ept.edu.sn.alumni_backend.auth.exception.RoleNonAutoriseException;
@@ -139,6 +141,16 @@ public class GlobalExceptionHandler {
             ? e.getMessage()
             : "Ces informations viennent d'être modifiées. Rechargez la page et réessayez.";
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", message));
+    }
+
+    @ExceptionHandler(CompteIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> gererCompteIntrouvable(CompteIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ConflitCompteException.class)
+    public ResponseEntity<Map<String, String>> gererConflitCompte(ConflitCompteException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
     }
 
     @ExceptionHandler(PhotoIntrouvableException.class)

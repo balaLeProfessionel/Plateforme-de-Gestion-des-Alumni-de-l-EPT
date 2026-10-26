@@ -1,6 +1,7 @@
 package ept.edu.sn.alumni_backend.mentorat.repository;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -16,6 +17,8 @@ import ept.edu.sn.alumni_backend.mentorat.entity.ProgrammeMentorat;
 import jakarta.persistence.LockModeType;
 
 public interface ProgrammeMentoratRepository extends JpaRepository<ProgrammeMentorat, UUID> {
+    long countByStatutIn(Collection<StatutProgramme> statuts);
+
     @EntityGraph(attributePaths = "responsable")
     List<ProgrammeMentorat> findAllByOrderByCreeLeDesc();
 
