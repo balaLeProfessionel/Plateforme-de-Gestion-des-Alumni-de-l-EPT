@@ -1,0 +1,49 @@
+@if (lienProfil(); as lien) {
+  <a class="carte-lien" [routerLink]="lien"
+    [attr.aria-label]="libelleLien()">
+    <ng-container [ngTemplateOutlet]="carte" [ngTemplateOutletContext]="{ $implicit: true }" />
+  </a>
+} @else {
+  <ng-container [ngTemplateOutlet]="carte" [ngTemplateOutletContext]="{ $implicit: false }" />
+}
+
+<ng-template #carte let-cliquable>
+  <article class="carte" [attr.data-role]="membre().role">
+    <div class="bandeau">
+      <span class="role">
+        <i class="pi" [class]="'pi ' + presentation().icone" aria-hidden="true"></i>{{ presentation().libelle }}
+      </span>
+    </div>
+
+    <app-avatar-membre class="avatar" [class.logo]="estOrganisme()" [urlPhoto]="membre().urlPhoto"
+      [prenom]="membre().prenom" [nom]="membre().nom" [roleMembre]="membre().role" [taille]="4.5" />
+
+    <div class="corps">
+      <h2 [attr.title]="nomAffiche()">{{ nomAffiche() }}</h2>
+
+      @if (membre().mentor; as mentor) {
+        <span class="mentor" [class.disponible]="mentor === 'DISPONIBLE'">
+          <i class="pi pi-sitemap" aria-hidden="true"></i>{{ mentor === 'DISPONIBLE' ? 'Mentor disponible' : 'Mentor' }}
+        </span>
+      }
+
+      @if (enAttente()) {
+        <span class="attente"><i class="pi pi-clock" aria-hidden="true"></i>En attente de vérification</span>
+      }
+
+      @if (parcours(); as texte) {
+        <p class="parcours" [attr.title]="texte">{{ texte }}</p>
+      }
+      @if (activite(); as texte) {
+        <p class="activite" [attr.title]="texte">{{ texte }}</p>
+      }
+      @if (!parcours() && !activite()) {
+        <p class="activite a-completer">{{ estOrganisme() ? 'Fiche à compléter' : 'Profil à compléter' }}</p>
+      }
+
+      @if (cliquable) {
+        <span class="action" aria-hidden="true">{{ estOrganisme() ? 'Voir l’organisme' : 'Voir le profil' }}</span>
+      }
+    </div>
+  </article>
+</ng-template>

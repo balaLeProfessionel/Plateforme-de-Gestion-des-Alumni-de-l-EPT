@@ -1,1 +1,173 @@
-/* You can add global styles to this file, and also import other style files */
+@use './styles/pages-mobile';
+
+@import 'primeicons/primeicons.css';
+
+:root {
+  // ===== Typographie =====
+  --ept-font-heading: 'Space Grotesk', system-ui, sans-serif;
+  --ept-font-body: 'Inter', system-ui, sans-serif;
+
+  // Fond et surfaces
+  --ept-bg: #F8F9FA;
+  --ept-surface: #FFFFFF;
+
+  // Bleu foncé — couleur principale (texte, boutons, en-têtes)
+  --ept-primary: #014365;
+  --ept-primary-dark: #012E45;
+  --ept-primary-light: #E3EEF3;   // fond très clair dérivé, pour halos/sélections
+
+  // Bleu ciel — accent secondaire, TOUJOURS combiné au bleu foncé
+  // Règle stricte : texte ciel sur fond foncé, OU fond ciel avec texte foncé.
+  // Jamais de ciel seul sur blanc (contraste insuffisant).
+  --ept-sky: #73DBF2;
+  --ept-sky-text-on: var(--ept-primary);   // texte à utiliser SUR un fond ciel
+  --ept-sky-on-dark: var(--ept-sky);       // couleur à utiliser comme texte SUR fond foncé
+
+  // Doré premium — badges, éléments valorisants
+  --ept-gold: #A9782F;
+  --ept-gold-light: #F3E8D6;
+  --ept-gold-dark: #7C5820;
+
+  // Rouge — échecs, refus, suppressions
+  --ept-error: #B23B3B;
+  --ept-error-light: #F7E4E4;
+  --ept-error-dark: #8B2C2C;
+
+  // Vert — succès, validations (nécessaire en complément, non précisé mais indispensable)
+  --ept-success: #2E7D5B;
+  --ept-success-light: #E4F1EC;
+  --ept-success-dark: #1F6447;   // texte sur --ept-success-light (6.1:1, AA)
+
+  // Textes et bordures
+  --ept-text: #014365;
+  --ept-text-secondary: #536C7D;   // ≥ 4.5:1 sur blanc, --ept-bg, --ept-primary-light et --ept-gold-light
+  --ept-text-on-dark: #FFFFFF;
+  --ept-border: #E0E5E9;
+
+  // Rayons et ombres
+  --ept-radius: 12px;
+  --ept-radius-sm: 10px;
+  --ept-shadow: 0 2px 8px rgba(1, 67, 101, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.marque-obligatoire {
+  color: var(--ept-error);
+  font-weight: 700;
+  margin-left: 0.15rem;
+}
+
+body {
+  margin: 0;
+  background: var(--ept-bg);
+  color: var(--ept-text);
+  font-family: var(--ept-font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--ept-font-heading);
+  font-weight: 600;
+}
+
+.btn-ept {
+  width: 100%;
+  background: var(--ept-primary);
+  border: none;
+  color: var(--ept-text-on-dark);
+  font-family: var(--ept-font-heading);
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.85rem 1.5rem;
+  border-radius: var(--ept-radius-sm);
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) {
+    background: var(--ept-primary-dark);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-primary-dark);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    background: var(--ept-border);
+    color: var(--ept-text-secondary);
+    cursor: default;
+  }
+}
+
+// Bandeaux de message (erreur, succes) — utilises dans les formulaires
+.alerte {
+  padding: 0.75rem 1rem;
+  border-radius: var(--ept-radius-sm);
+  border-left: 4px solid transparent;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  margin-bottom: 1.25rem;
+}
+
+.alerte-erreur {
+  background: var(--ept-error-light);
+  border-left-color: var(--ept-error);
+  color: var(--ept-error-dark);
+}
+
+.alerte-succes {
+  background: var(--ept-success-light);
+  border-left-color: var(--ept-success);
+  color: var(--ept-success-dark);
+}
+
+// Sur mobile, un champ dont le texte fait moins de 16px declenche un zoom
+// automatique sur iOS. On force la taille sur les champs habilles par PrimeNG,
+// qui sont hors de la portee des styles de composants.
+@media (max-width: 560px) {
+  input.p-inputtext,
+  .p-inputtext {
+    font-size: 16px;
+  }
+}
+
+app-consultation-profil .lien-parcours {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1rem;
+  padding: 1.1rem 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+app-consultation-profil .lien-parcours:focus-visible {
+  outline: 3px solid var(--ept-sky);
+  outline-offset: 3px;
+}
+
+app-consultation-profil .lien-parcours:hover h3,
+app-consultation-profil .lien-parcours:hover h4 {
+  color: var(--ept-primary);
+  text-decoration: underline;
+}
+
+app-consultation-profil .indicateur-detail {
+  align-self: center;
+  color: var(--ept-text-secondary);
+  font-size: 0.8rem;
+}
+
+/*
+ * Carte entièrement cliquable (« lien étiré ») : un seul lien, nommé par le titre de la carte,
+ * couvre toute la carte grâce à son ::after. Les autres commandes de la carte (boutons, liens
+ * secondaires, champs) passent au-dessus et restent utilisables ; le lecteur d'écran n'entend
+ * qu'un lien par carte, et le focus clavier entoure toute la carte.
+ */
+.carte-cliquable { position: relative; }
+.carte-cliquable .lien-etire::after { content: ''; position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
+.carte-cliquable .lien-etire:focus-visible { outline: none; }
+.carte-cliquable:has(.lien-etire:focus-visible) { outline: 3px solid var(--ept-sky); outline-offset: 3px; }
+.carte-cliquable :is(button, a:not(.lien-etire), input, select, textarea, label, summary) { position: relative; z-index: 2; }

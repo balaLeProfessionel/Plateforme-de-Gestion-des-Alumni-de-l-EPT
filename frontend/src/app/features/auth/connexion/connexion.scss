@@ -1,0 +1,201 @@
+.connexion-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1fr;
+  min-height: 100vh;
+
+  @media (max-width: 900px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Grand écran : photo du campus en fond, voile aux couleurs de l’EPT qui fonce vers le bas pour la lisibilité. */
+.panneau-marque {
+  position: relative;
+  overflow: hidden;
+  background: var(--ept-primary);
+  color: var(--ept-text-on-dark);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 3rem;
+
+  .photo-campus { object-fit: cover; object-position: 46% 30%; }
+
+  .voile {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(1, 46, 69, 0.15) 0%, rgba(1, 46, 69, 0.55) 40%, rgba(1, 46, 69, 0.94) 70%, rgba(1, 40, 60, 0.98) 100%);
+  }
+
+  .marque-contenu { position: relative; width: 100%; }
+
+  @media (max-width: 900px) {
+    display: none;
+  }
+
+  .marque-contenu {
+    max-width: 420px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-family: var(--ept-font-heading);
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+
+    img {
+      flex: 0 0 4.5rem;
+      width: 4.5rem;
+      height: 4.5rem;
+      padding: 0.3rem;
+      border: 1px solid var(--ept-border);
+      border-radius: 0.35rem;
+      background: white;
+      object-fit: contain;
+    }
+  }
+
+  .tagline {
+    color: var(--ept-sky);
+    font-size: 1.05rem;
+    margin-bottom: 2rem;
+  }
+
+  .stats {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem 2.25rem;
+
+    li {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chiffre {
+      font-family: var(--ept-font-heading);
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .libelle {
+      color: var(--ept-sky);
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.panneau-formulaire {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background: var(--ept-surface);
+
+  .formulaire-contenu {
+    width: 100%;
+    max-width: 380px;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+    margin: 0 0 0.25rem;
+  }
+
+  .sous-titre {
+    color: var(--ept-text-secondary);
+    margin: 0 0 2rem;
+  }
+
+  .message-erreur {
+    margin-bottom: 1.25rem;
+    width: 100%;
+    display: block;
+  }
+
+  .champ {
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+    .champ-mdp {
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      input {
+        width: 100%;
+        padding-right: 2.75rem;
+      }
+
+      .bascule-mdp {
+        position: absolute;
+        right: 0.5rem;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: var(--ept-text-secondary);
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        border-radius: var(--ept-radius-sm);
+
+        &:hover {
+          color: var(--ept-primary);
+        }
+
+        &:focus-visible {
+          outline: 2px solid var(--ept-primary);
+          outline-offset: 2px;
+        }
+      }
+    }
+  }
+
+  .erreur-champ {
+    color: var(--ept-error);
+    font-size: 0.8rem;
+    margin-top: 0.35rem;
+  }
+
+  .lien-mot-de-passe {
+    display: block;
+    width: fit-content;
+    margin: -0.5rem 0 1.25rem auto;
+    color: var(--ept-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .lien-inscription {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--ept-text-secondary);
+
+    a {
+      color: var(--ept-primary);
+      font-weight: 600;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}

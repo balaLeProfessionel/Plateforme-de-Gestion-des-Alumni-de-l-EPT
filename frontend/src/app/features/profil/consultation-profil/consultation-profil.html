@@ -1,0 +1,135 @@
+<div class="page-profil" aria-live="polite" [attr.aria-busy]="enChargement()">
+  <app-bouton-retour [secours]="estMonProfil() ? '/accueil' : '/annuaire'" />
+
+  @if (enChargement()) {
+    <div class="squelette entete-squelette" aria-hidden="true"></div>
+    <div class="grille-profil" aria-hidden="true">
+      <div class="squelette contenu-squelette"></div>
+      <div class="squelette lateral-squelette"></div>
+    </div>
+  } @else if (messageErreur()) {
+    <section class="etat-centre">
+      <i class="pi pi-user-minus" aria-hidden="true"></i>
+      <h1>Profil indisponible</h1>
+      <p>{{ messageErreur() }}</p>
+    </section>
+  } @else if (profil(); as membre) {
+    <!-- Carte de visite : qui c’est, ce qu’on peut faire, l’essentiel en chiffres. -->
+    <header class="carte" [attr.data-role]="membre.role">
+      <div class="bandeau" aria-hidden="true"></div>
+      <div class="corps">
+        <app-avatar-membre class="avatar" [urlPhoto]="membre.urlPhoto" [prenom]="membre.prenom" [nom]="membre.nom"
+          [roleMembre]="membre.role" [taille]="7.5" [libelle]="membre.urlPhoto ? 'Photo de ' + membre.prenom + ' ' + membre.nom : null" />
+
+        <div class="identite">
+          <div class="ligne-nom">
+            <h1>{{ membre.prenom }} {{ membre.nom }}</h1>
+            @if (badgeRole(); as badge) { <span class="badge-role">{{ badge }}</span> }
+            @if (membre.statutCompte === 'EN_ATTENTE') { <span class="badge-attente">En attente</span> }
+          </div>
+          @if (membre.posteActuel || organismeActuel()) {
+            <p class="poste">
+              {{ membre.posteActuel }}
+              @if (membre.posteActuel && organismeActuel()) { <span class="separateur" aria-hidden="true">·</span> }
+              @if (organismeActuel(); as organisme) { <span class="organisme-actuel">{{ organisme }}</span> }
+            </p>
+          }
+        </div>
+
+        <div class="actions">
+          @if (estMonProfil()) {
+            <a class="action principale modifier" routerLink="/profil/parametres">
+              <i class="pi pi-pencil" aria-hidden="true"></i>Modifier mon profil
+            </a>
+          }
+          @if (membre.lienLinkedin) {
+            <a class="action" [href]="membre.lienLinkedin" target="_blank" rel="noopener noreferrer">
+              <i class="pi pi-linkedin" aria-hidden="true"></i>LinkedIn<span class="sr-only"> (nouvel onglet)</span>
+            </a>
+          }
+          @if (membre.lienPortfolio) {
+            <a class="action" [href]="membre.lienPortfolio" target="_blank" rel="noopener noreferrer">
+              <i class="pi pi-globe" aria-hidden="true"></i>Portfolio<span class="sr-only"> (nouvel onglet)</span>
+            </a>
+          }
+          <button type="button" class="action" (click)="copierLien()">
+            <i class="pi" [class.pi-link]="!lienCopie()" [class.pi-check]="lienCopie()" aria-hidden="true"></i>
+            {{ lienCopie() ? 'Lien copié' : 'Copier le lien' }}
+          </button>
+          <span class="sr-only" role="status">{{ lienCopie() ? 'Le lien du profil a été copié.' : '' }}</span>
+        </div>
+      </div>
+
+      @if (tuiles().length) {
+        <dl class="tuiles">
+          @for (tuile of tuiles(); track tuile.libelle) {
+            <div [class.large]="tuile.valeur.length > 18"><dt><i [class]="'pi ' + tuile.icone" aria-hidden="true"></i>{{ tuile.libelle }}</dt><dd>{{ tuile.valeur }}</dd></div>
+          }
+        </dl>
+      }
+    </header>
+
+    <div class="grille-profil">
+      <!-- Avant le parcours dans l’ordre de lecture (et sur mobile) ; à droite sur grand écran. -->
+      <aside class="colonne-laterale" aria-label="Mentorat et informations complémentaires">
+        @if (participeAuMentorat(membre.role)) {
+          <app-offre-mentorat-profil [utilisateurId]="membre.id" [estMonProfil]="estMonProfil()" />
+        }
+
+        @if (estMonProfil()) {
+          <section class="section-profil prive">
+            <div class="titre-prive"><i class="pi pi-lock" aria-hidden="true"></i><h2>Informations privées</h2></div>
+            <p>Visibles uniquement par vous</p>
+            <dl>
+              <div><dt>Email</dt><dd>{{ membre.email }}</dd></div>
+              @if (membre.telephone) { <div><dt>Téléphone</dt><dd>{{ membre.telephone }}</dd></div> }
+              @if (membre.dateNaissance) {
+                <div><dt>Date de naissance</dt><dd>{{ membre.dateNaissance | date:'dd/MM/yyyy':'UTC' }}</dd></div>
+              }
+            </dl>
+          </section>
+        }
+      </aside>
+
+      <div class="colonne-principale">
+        @if (membre.bio) {
+          <section class="section-profil">
+            <h2>À propos</h2>
+            <p class="bio">{{ membre.bio }}</p>
+          </section>
+        }
+
+        @if (parcours().length || estMonProfil()) {
+          <section class="section-profil parcours" aria-labelledby="titre-parcours">
+            <div class="titre-section">
+              <h2 id="titre-parcours">Parcours</h2>
+              @if (estMonProfil()) {
+                <span class="liens-gestion">
+                  <a routerLink="/profil/parametres" fragment="parcours">Gérer les expériences</a>
+                  <a routerLink="/profil/parametres" fragment="formations">Gérer les formations</a>
+                </span>
+              }
+            </div>
+
+            @if (parcours().length) {
+              <app-frise-parcours [elements]="parcours()" (ouverture)="ouvrirDepuisFrise()" />
+            } @else {
+              <p class="etat-vide">Votre parcours est vide : ajoutez vos expériences et vos formations pour le faire apparaître ici.</p>
+            }
+          </section>
+        }
+
+        <app-fenetre-parcours [parcours]="parcoursOuvert()" [proprietaire]="estMonProfil()"
+          [aPrecedent]="indexOuvert() > 0" [aSuivant]="indexOuvert() >= 0 && indexOuvert() < parcours().length - 1"
+          (fermee)="fermerFenetre()" (precedent)="allerA(-1)" (suivant)="allerA(1)" (supprime)="retirerDuParcours($event)" />
+
+        @if (!membre.bio && parcours().length === 0 && !estMonProfil()) {
+          <section class="section-profil etat-vide-public">
+            <i class="pi pi-id-card" aria-hidden="true"></i>
+            <p>Ce membre n’a pas encore complété son parcours.</p>
+          </section>
+        }
+      </div>
+    </div>
+  }
+</div>

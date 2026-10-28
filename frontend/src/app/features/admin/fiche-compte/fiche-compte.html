@@ -1,0 +1,101 @@
+<app-page-admin [titre]="nomComplet()" [parents]="parents">
+  @if (lienPublic(); as lien) {
+    <a actionsPage class="lien-public" [routerLink]="lien">
+      <i class="pi pi-external-link" aria-hidden="true"></i>Voir le profil public
+    </a>
+  }
+
+  <div class="annonce" role="status">
+    @if (annonce(); as message) {
+      <p [class.erreur]="message.erreur">{{ message.texte }}</p>
+    }
+  </div>
+
+  @if (fiche(); as f) {
+    @let c = f.compte;
+    <section class="carte identite" [attr.data-statut]="c.statutCompte" aria-label="Statut et décisions">
+      <app-avatar-membre [urlPhoto]="c.urlPhoto" [prenom]="c.prenom" [nom]="c.nom" [roleMembre]="c.role" [taille]="4" />
+      <div class="resume">
+        <p class="pastilles">
+          <span class="role">{{ libellesRole[c.role] }}</span>
+          <span class="statut">{{ libellesStatut[c.statutCompte] }}</span>
+        </p>
+        <p class="meta">Inscrit le {{ c.dateCreation | date: 'd MMMM y' }}
+          · {{ c.nombreDecisions }} {{ c.nombreDecisions > 1 ? 'décisions' : 'décision' }} au journal</p>
+        @if (c.statutCompte === 'SUSPENDU' && c.motifSuspension) {
+          <p class="motif">Motif : {{ c.motifSuspension }}</p>
+        }
+        <app-decisions-compte [compte]="c" (modifie)="apresDecision($event)" (validationDemandee)="valider()" />
+      </div>
+    </section>
+
+    <app-evolution-compte [compte]="c" (modifie)="apresDecision($event)" />
+
+    <div class="sections">
+      <section class="carte" aria-labelledby="titre-contact">
+        <h2 id="titre-contact">Contact</h2>
+        <dl>
+          <dt>E-mail</dt><dd><a [href]="'mailto:' + c.email">{{ partiesEmail().local }}<wbr />{{ partiesEmail().domaine }}</a></dd>
+          <dt>Téléphone</dt><dd [class.vide]="!c.telephone">{{ c.telephone || 'Non renseigné' }}</dd>
+          <dt>Ville</dt><dd [class.vide]="!f.villeResidence">{{ f.villeResidence || 'Non renseignée' }}</dd>
+        </dl>
+      </section>
+      <section class="carte" aria-labelledby="titre-parcours">
+        <h2 id="titre-parcours">Parcours à l’EPT</h2>
+        <dl>
+          <dt>Filière</dt><dd [class.vide]="!c.filiere">{{ c.filiere || 'Non renseignée' }}</dd>
+          <dt>Entrée</dt><dd [class.vide]="!c.anneeEntree">{{ c.anneeEntree || 'Non renseignée' }}</dd>
+          <dt>Promotion</dt><dd [class.vide]="!c.anneeSortie">{{ c.anneeSortie || 'Non renseignée' }}</dd>
+          <dt>Diplôme</dt><dd [class.vide]="!f.diplome">{{ f.diplome ? (libellesDiplome[f.diplome] ?? f.diplome) : 'Non renseigné' }}</dd>
+        </dl>
+      </section>
+      <section class="carte" aria-labelledby="titre-situation">
+        <h2 id="titre-situation">Situation</h2>
+        <dl>
+          @if (c.nomOrganisme) { <dt>Organisme</dt><dd>{{ c.nomOrganisme }}</dd> }
+          <dt>Poste</dt><dd [class.vide]="!f.posteActuel">{{ f.posteActuel || 'Non renseigné' }}</dd>
+          <dt>LinkedIn</dt>
+          <dd [class.vide]="!f.lienLinkedin">
+            @if (f.lienLinkedin) { <a [href]="f.lienLinkedin" target="_blank" rel="noopener noreferrer">Ouvrir le profil LinkedIn</a> }
+            @else { Non renseigné }
+          </dd>
+          <dt>Portfolio</dt>
+          <dd [class.vide]="!f.lienPortfolio">
+            @if (f.lienPortfolio) { <a [href]="f.lienPortfolio" target="_blank" rel="noopener noreferrer">Ouvrir le portfolio</a> }
+            @else { Non renseigné }
+          </dd>
+        </dl>
+      </section>
+      <section class="carte" aria-labelledby="titre-donnees">
+        <h2 id="titre-donnees">Compte</h2>
+        <dl>
+          <dt>Naissance</dt><dd [class.vide]="!f.dateNaissance">{{ f.dateNaissance ? (f.dateNaissance | date: 'd MMMM y') : 'Non renseignée' }}</dd>
+          <dt>Formations</dt><dd>{{ f.nombreFormations }} saisie{{ f.nombreFormations > 1 ? 's' : '' }}</dd>
+          <dt>Expériences</dt><dd>{{ f.nombreExperiences }} saisie{{ f.nombreExperiences > 1 ? 's' : '' }}</dd>
+          <dt>Mot de passe</dt><dd>{{ f.doitChangerMotDePasse ? 'Provisoire, à changer' : 'Choisi par le membre' }}</dd>
+        </dl>
+      </section>
+    </div>
+
+    @if (f.bio) {
+      <section class="carte" aria-labelledby="titre-presentation">
+        <h2 id="titre-presentation">Présentation</h2>
+        <p class="bio">{{ f.bio }}</p>
+      </section>
+    }
+
+    <section class="carte" aria-labelledby="titre-historique">
+      <h2 id="titre-historique">Historique des décisions</h2>
+      <app-historique-compte [compteId]="c.id" [actualisation]="version()" />
+    </section>
+  } @else if (erreur(); as message) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Fiche indisponible</h2>
+      <p>{{ message }}</p>
+      <a routerLink="/admin/comptes">Retour aux comptes</a>
+    </div>
+  } @else {
+    <div class="squelette haute" aria-busy="true" aria-label="Chargement de la fiche"></div>
+  }
+</app-page-admin>

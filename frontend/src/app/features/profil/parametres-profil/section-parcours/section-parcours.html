@@ -1,0 +1,27 @@
+@if (type() === 'experience') {
+  <app-liste-experiences
+    modeEnregistrement="parCarte"
+    [experiences]="experiences()"
+    [brouillons]="brouillons()"
+    [suggestions]="suggestions()"
+    [enRecherche]="enRechercheOrganisme()"
+    [etat]="etat()"
+    (ajouter)="ajouterBrouillon()"
+    (abandonnerBrouillon)="abandonnerBrouillon($event)"
+    (enregistrerCarte)="enregistrer($event)"
+    (supprimer)="supprimer($event)"
+    (rechercherOrganisme)="rechercherOrganismes($event)" />
+} @else {
+  <app-liste-formations
+    modeEnregistrement="parCarte"
+    [formations]="formations()"
+    [brouillons]="brouillons()"
+    [suggestions]="suggestions()"
+    [enRecherche]="enRechercheOrganisme()"
+    [etat]="etat()"
+    (ajouter)="ajouterBrouillon()"
+    (abandonnerBrouillon)="abandonnerBrouillon($event)"
+    (enregistrerCarte)="enregistrer($event)"
+    (supprimer)="supprimer($event)"
+    (rechercherOrganisme)="rechercherOrganismes($event)" />
+}

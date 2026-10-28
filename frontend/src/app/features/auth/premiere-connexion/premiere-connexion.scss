@@ -1,0 +1,95 @@
+.premiere-connexion-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background: var(--ept-surface);
+}
+
+.carte {
+  width: 100%;
+  max-width: 460px;
+  padding: 2.5rem;
+  border: 1px solid var(--ept-border);
+  border-radius: var(--ept-radius);
+  background: var(--ept-surface);
+  box-shadow: var(--ept-shadow);
+}
+
+.icone {
+  width: 3.5rem;
+  height: 3.5rem;
+  display: grid;
+  place-items: center;
+  margin-bottom: 1.25rem;
+  border-radius: 50%;
+  color: var(--ept-primary);
+  background: var(--ept-primary-light);
+  font-size: 1.4rem;
+}
+
+h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.8rem;
+}
+
+.sous-titre {
+  margin: 0 0 1.75rem;
+  color: var(--ept-text-secondary);
+  line-height: 1.55;
+}
+
+.message-erreur {
+  display: block;
+  margin-bottom: 1.25rem;
+}
+
+.champ {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.25rem;
+
+  label {
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+}
+
+.champ-mdp {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  input {
+    width: 100%;
+    padding-right: 2.75rem;
+  }
+
+  button {
+    position: absolute;
+    right: 0.5rem;
+    display: flex;
+    padding: 0.5rem;
+    border: 0;
+    border-radius: var(--ept-radius-sm);
+    color: var(--ept-text-secondary);
+    background: transparent;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid var(--ept-primary);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.erreur-champ {
+  margin-top: 0.35rem;
+  color: var(--ept-error);
+  font-size: 0.8rem;
+}
+
+.btn-ept {
+  width: 100%;
+}

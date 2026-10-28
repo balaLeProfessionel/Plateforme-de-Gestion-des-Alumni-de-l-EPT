@@ -1,0 +1,106 @@
+package ept.edu.sn.alumni_backend.auth;
+
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import ept.edu.sn.alumni_backend.auth.dto.AuthResponse;
+import ept.edu.sn.alumni_backend.auth.dto.ChangerMotDePasseInitialRequest;
+import ept.edu.sn.alumni_backend.auth.dto.ChangerMotDePasseRequest;
+import ept.edu.sn.alumni_backend.auth.dto.InscriptionResponse;
+import ept.edu.sn.alumni_backend.auth.dto.LoginRequest;
+import ept.edu.sn.alumni_backend.auth.dto.MessageResponse;
+import ept.edu.sn.alumni_backend.auth.dto.MotDePasseOublieRequest;
+import ept.edu.sn.alumni_backend.auth.dto.RefreshRequest;
+import ept.edu.sn.alumni_backend.auth.dto.RegisterRequest;
+import ept.edu.sn.alumni_backend.auth.dto.ReinitialiserMotDePasseRequest;
+import ept.edu.sn.alumni_backend.auth.dto.RenvoyerOtpRequest;
+import ept.edu.sn.alumni_backend.auth.dto.VerifierOtpRequest;
+import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
+import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping("/api/auth")
+@RequiredArgsConstructor
+public class AuthController {
+
+    private final AuthService authService;
+
+    @PostMapping("/register")
+    public ResponseEntity<InscriptionResponse> register(@Valid @RequestBody RegisterRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.inscrire(request));
+    }
+
+    @PostMapping("/verifier-otp")
+    public ResponseEntity<AuthResponse> verifierOtp(@Valid @RequestBody VerifierOtpRequest request) {
+        return ResponseEntity.ok(authService.verifierOtp(request));
+    }
+
+    @PostMapping("/renvoyer-otp")
+    public ResponseEntity<InscriptionResponse> renvoyerOtp(@Valid @RequestBody RenvoyerOtpRequest request) {
+        return ResponseEntity.ok(authService.renvoyerOtp(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.connecter(request));
+    }
+
+    @PostMapping("/mot-de-passe-oublie")
+    public ResponseEntity<MessageResponse> motDePasseOublie(
+            @Valid @RequestBody MotDePasseOublieRequest request) {
+        return ResponseEntity.ok(authService.demanderReinitialisation(request));
+    }
+
+    @PostMapping("/reinitialiser-mot-de-passe")
+    public ResponseEntity<MessageResponse> reinitialiserMotDePasse(
+            @Valid @RequestBody ReinitialiserMotDePasseRequest request) {
+        return ResponseEntity.ok(authService.reinitialiserMotDePasse(request));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestBody(required = false) RefreshRequest request) {
+        if (request != null && request.refreshToken() != null) {
+            authService.deconnecter(request.refreshToken());
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<AuthResponse> me(@AuthenticationPrincipal UtilisateurPrincipal principal) {
+        Utilisateur u = principal.getUtilisateur();
+        return ResponseEntity.ok(new AuthResponse(null,
+            null, u.getId(), u.getEmail(), u.getNom(), u.getPrenom(),
+            u.getRole().name(), u.getStatutCompte().name(),
+            u.isDoitChangerMotDePasse(), u.getUrlPhoto(), null, PermissionAdmin.noms(u.getRole())));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshRequest request) {
+        return ResponseEntity.ok(authService.rafraichir(request));
+    }
+
+    @PostMapping("/changer-mot-de-passe-initial")
+    public ResponseEntity<AuthResponse> changerMotDePasseInitial(
+            @AuthenticationPrincipal UtilisateurPrincipal principal,
+            @Valid @RequestBody ChangerMotDePasseInitialRequest request) {
+        return ResponseEntity.ok(
+            authService.changerMotDePasseInitial(principal.getUtilisateur(), request)
+        );
+    }
+
+    @PostMapping("/changer-mot-de-passe")
+    public ResponseEntity<AuthResponse> changerMotDePasse(
+            @AuthenticationPrincipal UtilisateurPrincipal principal,
+            @Valid @RequestBody ChangerMotDePasseRequest request) {
+        return ResponseEntity.ok(authService.changerMotDePasse(principal.getUtilisateur(), request));
+    }
+}

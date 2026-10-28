@@ -1,0 +1,11 @@
+.resultat {
+  border-color: var(--ept-success);
+  h2 { display: flex; align-items: center; gap: 0.5rem; color: var(--ept-success-dark); }
+}
+.mot-de-passe {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-top: 0.75rem;
+  code {
+    padding: 0.55rem 0.85rem; border: 1px dashed var(--ept-primary); border-radius: 8px; background: var(--ept-primary-light);
+    color: var(--ept-primary-dark); font-size: 1.05rem; letter-spacing: 0.08em; overflow-wrap: anywhere;
+  }
+}

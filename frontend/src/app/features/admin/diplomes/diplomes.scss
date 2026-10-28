@@ -1,0 +1,22 @@
+.titre-section { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; h2 { margin: 0; } }
+.bouton.petit { min-height: 2.25rem; padding: 0.3rem 0.75rem; font-size: 0.82rem; }
+
+.etudiants {
+  display: grid; margin: 0.75rem 0 1rem; padding: 0; list-style: none; border: 1px solid var(--ept-border); border-radius: 8px;
+
+  li { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.85rem; padding: 0.55rem 0.85rem; border-top: 1px solid var(--ept-border); }
+  li:first-child { border-top: 0; }
+  label { display: inline-flex; align-items: center; gap: 0.55rem; min-height: 2.25rem; color: var(--ept-primary-dark); font-weight: 600; cursor: pointer; }
+  input { width: 1.1rem; height: 1.1rem; accent-color: var(--ept-primary); }
+  small { color: var(--ept-text-secondary); overflow-wrap: anywhere; }
+  a { margin-left: auto; color: var(--ept-primary); font-size: 0.85rem; font-weight: 600; }
+  :is(input, a):focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+}
+
+.annee { max-width: 16rem; }
+.confirmation {
+  // Confirmation : bleu clair de la page, l’or reste réservé aux pastilles « en attente ».
+  margin-top: 1rem; padding: 0.85rem 1rem; border: 1px solid var(--ept-primary); border-radius: 8px; background: var(--ept-primary-light);
+  p { margin: 0; color: var(--ept-primary-dark); }
+  .boutons { margin-top: 0.75rem; }
+}

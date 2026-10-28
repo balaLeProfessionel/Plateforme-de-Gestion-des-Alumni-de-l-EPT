@@ -1,0 +1,21 @@
+@use '../mot-de-passe-oublie/mot-de-passe-oublie.scss';
+
+.champ-mdp {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  input { width: 100%; padding-right: 2.75rem; }
+  button {
+    position: absolute;
+    right: 0.5rem;
+    display: flex;
+    padding: 0.5rem;
+    border: 0;
+    border-radius: var(--ept-radius-sm);
+    background: transparent;
+    color: var(--ept-text-secondary);
+    cursor: pointer;
+  }
+  button:focus-visible { outline: 2px solid var(--ept-primary); outline-offset: 2px; }
+}

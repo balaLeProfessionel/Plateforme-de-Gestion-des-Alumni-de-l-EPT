@@ -1,0 +1,61 @@
+<section class="etapes" aria-labelledby="titre-etapes-suivi">
+  <header>
+    <h2 id="titre-etapes-suivi">Étapes du programme</h2>
+    <a [routerLink]="['/mentorat/programmes', programme().id]">{{ programme().titre }}</a>
+  </header>
+
+  <div class="avancement">
+    <progress [value]="franchies()" [max]="etapes().length" aria-labelledby="libelle-avancement"></progress>
+    <span id="libelle-avancement">{{ franchies() }} / {{ etapes().length }} {{ franchies() > 1 ? 'étapes franchies' : 'étape franchie' }}</span>
+  </div>
+  @if (modifiable()) {
+    <p class="aide">Le mentor ou le mentoré valide chaque étape une fois franchie, dans l’ordre qui vous convient.</p>
+  }
+
+  @if (messageErreur(); as message) { <p class="erreur" role="alert">{{ message }}</p> }
+
+  <ol class="liste">
+    @for (etape of etapes(); track etape.id) {
+      <li [id]="'etape-' + etape.id" [class.franchie]="etape.franchieLe">
+        <span class="repere" aria-hidden="true">
+          @if (etape.franchieLe) { <i class="pi pi-check"></i> } @else { {{ etape.ordre }} }
+        </span>
+        <div class="contenu">
+          <strong>{{ etape.titre }}<span class="sr-only">{{ etape.franchieLe ? ' : franchie' : ' : à franchir' }}</span></strong>
+          @if (etape.description) { <p class="description">{{ etape.description }}</p> }
+          @if (etape.franchieLe) {
+            <p class="validation">Franchie le {{ etape.franchieLe | date: 'd MMM y' }} · validée par {{ etape.valideePar }}</p>
+            @if (etape.commentaire) { <blockquote>{{ etape.commentaire }}</blockquote> }
+          }
+
+          @if (modifiable()) {
+            @if (enValidation() === etape.id) {
+              <form class="confirmation" (submit)="valider($event, etape.id)" novalidate>
+                <label [for]="'commentaire-' + etape.id">Commentaire (facultatif)</label>
+                <textarea [id]="'commentaire-' + etape.id" rows="2" [formField]="formulaire.commentaire"
+                  [attr.aria-invalid]="formulaire.commentaire().invalid()"
+                  [attr.aria-describedby]="'aide-commentaire-' + etape.id"></textarea>
+                <small [id]="'aide-commentaire-' + etape.id">
+                  @if (formulaire.commentaire().errors()[0]; as erreur) { {{ erreur.message }} }
+                  @else { {{ saisie().commentaire.length }} / {{ longueurCommentaire }} caractères }
+                </small>
+                <div class="boutons">
+                  <button type="submit" class="principal" [disabled]="envoiEnCours()">Confirmer</button>
+                  <button type="button" class="secondaire" (click)="fermerValidation(etape.id)">Annuler</button>
+                </div>
+              </form>
+            } @else if (etape.franchieLe) {
+              <button type="button" class="lien" [disabled]="envoiEnCours()" (click)="annulerValidation(etape.id)">
+                Annuler la validation<span class="sr-only"> de « {{ etape.titre }} »</span>
+              </button>
+            } @else {
+              <button type="button" class="secondaire" (click)="ouvrirValidation(etape.id)">
+                <i class="pi pi-check" aria-hidden="true"></i>Valider l’étape<span class="sr-only"> « {{ etape.titre }} »</span>
+              </button>
+            }
+          }
+        </div>
+      </li>
+    }
+  </ol>
+</section>

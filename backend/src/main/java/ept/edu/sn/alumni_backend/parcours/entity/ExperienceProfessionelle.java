@@ -1,12 +1,13 @@
 package ept.edu.sn.alumni_backend.parcours.entity;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import ept.edu.sn.alumni_backend.enums.TypeContrat;
 import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -14,27 +15,32 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 public class ExperienceProfessionelle {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     private String poste;
+    @Column(length = 2000)
+    private String description;
     @Enumerated(EnumType.STRING)
     private TypeContrat typeContrat;
-    private Date dateDebut;
-    private Date dateFin;
+    private LocalDate dateDebut;
+    private LocalDate dateFin; // null si poste en cours
     private boolean estStage;
-    private boolean enCours;
-    private boolean estValide;
+    private boolean estValide; // true à la saisie manuelle, false pour futur scraping
 
     @ManyToOne
-    @JoinColumn(name = "organisme_id")
+    @JoinColumn(name = "organisme_id", nullable = false)
     private Organisme organisme;
 
     @ManyToOne
-    @JoinColumn(name = "utilisateur_id")
+    @JoinColumn(name = "utilisateur_id", nullable = false)
     private Utilisateur utilisateur;
 }

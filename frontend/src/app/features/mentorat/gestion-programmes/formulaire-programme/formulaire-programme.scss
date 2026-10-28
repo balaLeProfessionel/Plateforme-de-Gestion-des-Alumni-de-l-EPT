@@ -1,0 +1,131 @@
+.programme-page { display: grid; gap: 1.1rem; width: min(100% - 3rem, 860px); margin: 0 auto; padding: 1.5rem 0 clamp(2.5rem, 6vw, 4rem); }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.entete {
+  h1 { margin: 0; color: var(--ept-primary-dark); font-size: clamp(1.5rem, 3vw, 1.9rem); line-height: 1.15; }
+  .introduction, .etat-programme { margin: 0.4rem 0 0; color: var(--ept-text-secondary); }
+  .etat-programme { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+  .etat-programme a { color: var(--ept-primary); font-weight: 700; }
+}
+
+.statut {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--ept-bg);
+  color: var(--ept-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+
+  &[data-statut='BROUILLON'] { background: var(--ept-gold-light); color: var(--ept-gold-dark); }
+  &[data-statut='OUVERT'] { background: var(--ept-success-light); color: var(--ept-success-dark); }
+  &[data-statut='EN_COURS'] { background: var(--ept-primary-light); color: var(--ept-primary); }
+}
+
+.message { margin: 0; padding: 0.7rem 0.9rem; border-radius: 8px; background: var(--ept-bg); color: var(--ept-primary-dark); }
+.message.erreur { background: var(--ept-error-light); color: var(--ept-error-dark); }
+.message.succes { background: var(--ept-success-light); color: var(--ept-success-dark); }
+
+.cycle, .formulaire > fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 1.15rem;
+  border: 1px solid var(--ept-border);
+  border-radius: 12px;
+  background: var(--ept-surface);
+}
+
+.cycle h2 { margin: 0 0 0.75rem; color: var(--ept-primary-dark); font-size: 1.05rem; }
+.actions, .confirmer { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.confirmer { margin-top: 0.8rem; padding: 0.8rem; border-radius: 8px; background: var(--ept-error-light); p { flex: 1 1 100%; margin: 0; color: var(--ept-error-dark); } }
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.6rem;
+  padding: 0.45rem 0.95rem;
+  border: 1px solid var(--ept-primary);
+  border-radius: 8px;
+  background: white;
+  color: var(--ept-primary);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
+  &.principal { background: var(--ept-primary); color: white; }
+  &.danger { border-color: var(--ept-error-dark); color: var(--ept-error-dark); }
+  &.icone { min-width: 2.6rem; padding: 0.4rem; }
+}
+
+.formulaire { display: grid; gap: 1.1rem; }
+.formulaire > fieldset { display: grid; gap: 0.9rem; }
+/* La légende s’affiche comme un titre dans le cadre, pas posée sur sa bordure. */
+legend { float: left; width: 100%; padding: 0; color: var(--ept-primary-dark); font-weight: 700; }
+legend + * { clear: both; }
+.aide { color: var(--ept-text-secondary); font-size: 0.85rem; font-weight: 400; }
+
+.champ {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.3rem;
+  min-width: 0;
+
+  label { color: var(--ept-primary-dark); font-size: 0.88rem; font-weight: 600; }
+  input, textarea { width: 100%; min-height: 2.6rem; padding: 0.5rem 0.7rem; border: 1px solid var(--ept-border); border-radius: 8px; background: white; color: var(--ept-primary-dark); font: inherit; }
+  textarea { resize: vertical; }
+  input:focus-visible, textarea:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
+}
+
+.obligatoire { color: var(--ept-error-dark); }
+.optionnel { color: var(--ept-text-secondary); font-size: 0.8rem; font-weight: 400; }
+.erreur-champ { color: var(--ept-error-dark); font-size: 0.8rem; }
+[aria-invalid='true'] { border-color: var(--ept-error-dark); }
+
+.periode { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 0.9rem; }
+
+.etapes ol { display: grid; gap: 0.75rem; margin: 0; padding: 0; list-style: none; }
+
+.etape {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border-radius: 10px;
+  background: var(--ept-bg);
+}
+
+.numero { display: inline-grid; width: 1.9rem; height: 1.9rem; place-items: center; margin-top: 1.6rem; border-radius: 50%; background: var(--ept-primary); color: white; font-weight: 700; }
+.champs-etape { display: grid; gap: 0.6rem; min-width: 0; }
+.ordre { display: grid; gap: 0.3rem; margin-top: 1.6rem; }
+.ajouter { justify-self: start; }
+.pied { display: flex; justify-content: flex-end; }
+
+.etat {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 3.5rem 1rem;
+  border: 1px dashed var(--ept-border);
+  text-align: center;
+
+  > i { color: var(--ept-primary); font-size: 1.7rem; }
+  h1, p { margin: 0; }
+}
+
+.squelette { min-height: 20rem; border-radius: 12px; background: #edf1f3; }
+
+@media (max-width: 560px) {
+  .programme-page { width: min(100% - 2rem, 860px); }
+  .etape { grid-template-columns: minmax(0, 1fr); }
+  .numero { margin-top: 0; }
+  .ordre { display: flex; margin-top: 0; }
+  .pied button { width: 100%; }
+}
+
+.alerte-fin { display: flex; gap: 0.45rem; align-items: baseline; margin: 0; color: var(--ept-gold-dark); font-size: 0.88rem; font-weight: 700; }

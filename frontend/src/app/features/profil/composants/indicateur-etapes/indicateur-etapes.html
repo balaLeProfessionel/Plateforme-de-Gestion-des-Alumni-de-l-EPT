@@ -1,0 +1,18 @@
+<nav class="indicateur" [attr.aria-label]="'Progression : étape ' + etape() + ' sur ' + total()">
+
+  <p class="compteur">Étape {{ etape() }} sur {{ total() }}</p>
+
+  <ol class="jalons">
+    @for (e of etapes(); track e.numero) {
+      <li
+        class="jalon"
+        [class.jalon-courant]="e.courante"
+        [class.jalon-franchi]="e.franchie"
+        [attr.aria-current]="e.courante ? 'step' : null">
+        <span class="pastille" aria-hidden="true">{{ e.numero }}</span>
+        <span class="libelle">{{ e.libelle }}</span>
+      </li>
+    }
+  </ol>
+
+</nav>

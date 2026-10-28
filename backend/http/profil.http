@@ -1,0 +1,98 @@
+### =====================================================================
+### FICHIER DE TEST — Infos personnelles du profil
+### Prérequis : être connecté (récupère l'accessToken via auth-test.http)
+### Endpoints : GET /api/profil/me  et  PATCH /api/profil/me
+### =====================================================================
+
+@baseUrl = http://localhost:8080/api
+@token = COLLE_ICI_TON_ACCESS_TOKEN
+
+### =====================================================================
+### 1 — OBTENIR MON PROFIL
+### =====================================================================
+
+GET {{baseUrl}}/profil/me
+Authorization: Bearer {{token}}
+
+# ATTENDU : 200 OK avec id, nom, prenom, email, role, statutCompte
+# et les champs de profil (null au premier appel)
+
+###
+
+### =====================================================================
+### 2 — MISE À JOUR PARTIELLE (bio, ville, poste)
+### =====================================================================
+
+PATCH {{baseUrl}}/profil/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "bio": "Ingénieur passionné par le développement web.",
+  "villeResidence": "Dakar",
+  "posteActuel": "Développeur full-stack"
+}
+
+# ATTENDU : 200 OK, les trois champs renseignés, le reste inchangé
+
+###
+
+### =====================================================================
+### 3 — SECOND PATCH SUR D'AUTRES CHAMPS (ne doit rien écraser)
+### =====================================================================
+
+PATCH {{baseUrl}}/profil/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "lienLinkedin": "https://www.linkedin.com/in/mon-profil",
+  "lienPortfolio": "https://mon-portfolio.dev",
+  "telephone": "+221770000000",
+  "dateNaissance": "2000-05-14"
+}
+
+# ATTENDU : 200 OK — bio / villeResidence / posteActuel de l'étape 2
+# sont TOUJOURS présents (mise à jour partielle façon PATCH)
+
+###
+
+### =====================================================================
+### 4 — PATCH VIDE (aucun champ) : ne change rien
+### =====================================================================
+
+PATCH {{baseUrl}}/profil/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{}
+
+# ATTENDU : 200 OK, profil identique à l'étape 3
+
+###
+
+### =====================================================================
+### 5 — PATCH DE LA PHOTO
+### =====================================================================
+
+PATCH {{baseUrl}}/profil/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "urlPhoto": "https://exemple.com/photos/moi.jpg"
+}
+
+# ATTENDU : 200 OK, urlPhoto renseignée
+
+###
+
+### =====================================================================
+### 6 — SANS TOKEN : accès refusé
+### =====================================================================
+
+GET {{baseUrl}}/profil/me
+
+# ATTENDU : 401 Unauthorized (ou 403 selon la config)
+
+###

@@ -1,0 +1,116 @@
+:host { display: block; height: 100%; }
+
+.carte {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--ept-border);
+  border-radius: 12px;
+  background: var(--ept-surface);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+
+  &:hover { border-color: var(--ept-primary); box-shadow: 0 8px 24px rgba(1, 46, 69, 0.08); }
+  &:hover h2 a { text-decoration: underline; }
+}
+
+/* Comme dans l’annuaire, le bandeau prend la couleur du rôle du mentor. */
+.bandeau {
+  display: flex;
+  height: 4.5rem;
+  flex: 0 0 auto;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--bandeau, var(--ept-sky));
+}
+
+/* Les deux pastilles restent sur une ligne, au-dessus de l’avatar qui chevauche le bas du bandeau. */
+.bandeau app-etiquette-role { flex: 0 0 auto; }
+
+.carte[data-role='ETUDIANT'] { --bandeau: var(--ept-gold); }
+.carte[data-role='PERSONNEL'] { --bandeau: var(--ept-primary); }
+.carte[data-role='VISITEUR'] { --bandeau: var(--ept-border); }
+
+.disponibilite {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: white;
+  color: var(--ept-success);
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex: 0 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+
+  .texte { overflow: hidden; text-overflow: ellipsis; }
+  .point { flex: 0 0 auto; width: 0.45rem; height: 0.45rem; border-radius: 50%; background: currentColor; }
+  &.indisponible { color: var(--ept-text-secondary); }
+}
+
+.avatar { margin: -2.25rem 0 0 1rem; border: 3px solid white; }
+
+.corps { display: flex; flex: 1; flex-direction: column; gap: 0.3rem; min-width: 0; padding: 0.6rem 1rem 1rem; }
+
+h2 {
+  margin: 0;
+  overflow: hidden;
+  color: var(--ept-primary-dark);
+  font-size: 1.05rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  a { color: inherit; text-decoration: none; &:hover { text-decoration: underline; } }
+  a:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+}
+
+.parcours { margin: 0; color: var(--ept-primary); font-size: 0.8rem; font-weight: 600; }
+.poste { display: flex; gap: 0.4rem; margin: 0; color: var(--ept-text-secondary); font-size: 0.82rem; i { margin-top: 0.15rem; font-size: 0.75rem; } }
+.presentation {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0.25rem 0 0;
+  color: var(--ept-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.domaines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.5rem 0 0.75rem;
+  padding: 0;
+  list-style: none;
+
+  li { padding: 0.2rem 0.55rem; border-radius: 999px; background: var(--ept-primary-light); color: var(--ept-primary); font-size: 0.72rem; font-weight: 600; }
+  .plus { background: var(--ept-bg); color: var(--ept-text-secondary); }
+}
+
+.demander {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.6rem;
+  margin-top: auto;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--ept-primary);
+  border-radius: 8px;
+  background: var(--ept-primary);
+  color: white;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: var(--ept-primary-dark); }
+  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+  &:disabled { border-color: var(--ept-border); background: var(--ept-bg); color: var(--ept-text-secondary); cursor: default; }
+}

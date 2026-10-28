@@ -1,0 +1,169 @@
+<div class="annuaire-page">
+  <app-fil-ariane [etapes]="[{ libelle: 'Accueil', lien: '/accueil' }, { libelle: 'Annuaire' }]" />
+
+  <header class="entete-page">
+    <h1>Annuaire des membres</h1>
+    <p class="introduction">Retrouvez les diplômés, étudiants, personnels et partenaires du réseau EPT.</p>
+  </header>
+
+  <form class="filtres" role="search" (submit)="$event.preventDefault(); appliquerFiltres()">
+    <div class="barre-recherche">
+      <div class="champ-recherche">
+        <i class="pi pi-search" aria-hidden="true"></i>
+        <label for="recherche" class="sr-only">Rechercher par nom, prénom ou organisme</label>
+        <input id="recherche" type="search" [formField]="formulaire.recherche"
+          placeholder="Nom, prénom ou organisme…" autocomplete="off"
+          aria-describedby="aide-filtres" (keydown.enter)="$event.preventDefault(); appliquerFiltres()" />
+        <span id="aide-filtres" class="sr-only">Les résultats se mettent à jour automatiquement.</span>
+      </div>
+
+      <button type="button" class="bouton-filtres" (click)="filtresOuverts.update((ouvert) => !ouvert)"
+        [attr.aria-expanded]="filtresOuverts()" aria-controls="panneau-filtres">
+        <i class="pi pi-sliders-h" aria-hidden="true"></i>
+        Filtres avancés
+        @if (nombreFiltresActifs() > 0) {
+          <span class="compte-filtres" [attr.aria-label]="nombreFiltresActifs() + ' actifs'">{{ nombreFiltresActifs() }}</span>
+        }
+        <i class="pi pi-chevron-down chevron" aria-hidden="true"></i>
+      </button>
+
+      <div class="tri">
+        <label for="tri">Trier par</label>
+        <select id="tri" [formField]="formulaire.tri" aria-describedby="aide-filtres">
+          <option value="ALPHABETIQUE">Nom</option>
+          <option value="PROMOTION_DESC">Promo récente</option>
+        </select>
+      </div>
+    </div>
+
+    @if (filtresOuverts()) {
+      <div id="panneau-filtres" class="panneau-filtres">
+        <div>
+          <label for="role">Type de membre</label>
+          <select id="role" [formField]="formulaire.role" aria-describedby="aide-filtres">
+            <option value="ALUMNI">Alumni</option>
+            <option value="TOUS">Tous les membres</option>
+            <option value="ORGANISME">Organismes</option>
+            <option value="ETUDIANT">Étudiants</option>
+            <option value="PERSONNEL">Personnel</option>
+            <option value="VISITEUR">Visiteurs</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="filiere">Filière</label>
+          <select id="filiere" [formField]="formulaire.filiere" aria-describedby="aide-filtres">
+            <option value="">Toutes les filières</option>
+            @for (filiere of filieres; track filiere) {
+              <option [value]="filiere">{{ filiere }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label for="promotion">Promotion</label>
+          <input id="promotion" type="text" inputmode="numeric" autocomplete="off"
+            [formField]="formulaire.promotion" placeholder="Ex. 2025"
+            [attr.aria-invalid]="promotionEnErreur()"
+            [attr.aria-describedby]="promotionEnErreur() ? 'aide-filtres erreur-promotion' : 'aide-filtres'"
+            (keydown.enter)="$event.preventDefault(); appliquerFiltres()" />
+          @if (promotionEnErreur()) {
+            <small id="erreur-promotion" class="erreur-champ" role="alert">{{ formulaire.promotion().errors()[0]?.message }}</small>
+          }
+        </div>
+
+        <div>
+          <label for="ville">Ville</label>
+          <input id="ville" type="text" [formField]="formulaire.ville" placeholder="Ex. Thiès" autocomplete="off"
+            aria-describedby="aide-filtres" (keydown.enter)="$event.preventDefault(); appliquerFiltres()" />
+        </div>
+
+      </div>
+    }
+  </form>
+
+  <div class="ligne-resume">
+    <p class="resume" role="status">
+      @if (resultat(); as pageAnnuaire) {
+        <strong>{{ pageAnnuaire.totalElements }}</strong>
+        {{ pageAnnuaire.totalElements > 1 ? 'membres trouvés' : 'membre trouvé' }}
+      } @else if (enChargement()) {
+        Recherche en cours…
+      }
+    </p>
+
+    <div class="portee-annuaire" role="group" aria-label="Choisir les personnes affichées">
+      <button type="button" [attr.aria-pressed]="modele().role === 'ALUMNI'" (click)="changerPortee('ALUMNI')">
+        Alumni
+      </button>
+      <button type="button" [attr.aria-pressed]="modele().role === 'TOUS'" (click)="changerPortee('TOUS')">
+        Tous les membres
+      </button>
+    </div>
+
+    @for (filtre of filtresActifs(); track filtre.cle) {
+      <button type="button" class="puce-filtre" (click)="retirerFiltre(filtre.cle)"
+        [attr.aria-label]="'Retirer le filtre ' + filtre.libelle">
+        {{ filtre.libelle }}<i class="pi pi-times" aria-hidden="true"></i>
+      </button>
+    }
+
+    @if (filtresActifs().length > 0) {
+      <button type="button" class="reinitialiser" (click)="reinitialiser()">Réinitialiser les critères</button>
+    }
+  </div>
+
+  <section class="resultats" aria-live="polite" [attr.aria-busy]="enChargement()">
+    @if (enChargement() && !resultat()) {
+      <div class="grille" aria-label="Chargement des membres">
+        @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+          <app-carte-membre-squelette class="squelette" />
+        }
+      </div>
+    } @else if (messageErreur()) {
+      <div class="etat-centre erreur">
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        <h2>Chargement impossible</h2>
+        <p>{{ messageErreur() }}</p>
+        <button type="button" (click)="actualiser()">Réessayer</button>
+      </div>
+    } @else if (resultat()?.contenu?.length === 0) {
+      <div class="etat-centre">
+        <i class="pi pi-users" aria-hidden="true"></i>
+        <h2>Aucun membre trouvé</h2>
+        <p>Modifiez vos critères ou réinitialisez les filtres.</p>
+      </div>
+    } @else if (resultat(); as pageAnnuaire) {
+      <ul class="grille" [class.actualisation]="enChargement()">
+        @for (membre of pageAnnuaire.contenu; track membre.id) {
+          <li><app-carte-membre [membre]="membre" /></li>
+        }
+      </ul>
+
+      @if (pageAnnuaire.totalPages > 1) {
+        <nav class="pagination" aria-label="Pagination de l’annuaire">
+          <button type="button" (click)="changerPage(pageAnnuaire.page - 1)"
+            [disabled]="pageAnnuaire.page === 0" aria-label="Page précédente">
+            <i class="pi pi-chevron-left" aria-hidden="true"></i>
+          </button>
+          @for (numero of pagesVisibles(); track $index) {
+            @if (numero === 'ellipsis') {
+              <span class="ellipse" aria-hidden="true">…</span>
+            } @else {
+              <button type="button" (click)="changerPage(numero)"
+                [class.page-active]="numero === pageAnnuaire.page"
+                [attr.aria-current]="numero === pageAnnuaire.page ? 'page' : null"
+                [attr.aria-label]="'Page ' + (numero + 1)">
+                {{ numero + 1 }}
+              </button>
+            }
+          }
+          <button type="button" (click)="changerPage(pageAnnuaire.page + 1)"
+            [disabled]="pageAnnuaire.page + 1 >= pageAnnuaire.totalPages" aria-label="Page suivante">
+            <i class="pi pi-chevron-right" aria-hidden="true"></i>
+          </button>
+        </nav>
+      }
+    }
+  </section>
+</div>

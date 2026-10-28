@@ -1,0 +1,143 @@
+.liste { display: grid; gap: 0.85rem; margin: 0; padding: 0; list-style: none; }
+
+.ligne {
+  --statut-fond: var(--ept-bg);
+  --statut-texte: var(--ept-text-secondary);
+
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--ept-border);
+  border-radius: 12px;
+  background: var(--ept-surface);
+  transition: border-color 0.18s ease;
+
+  &:hover { border-color: var(--ept-primary); }
+  &:hover h3 a { text-decoration: underline; }
+}
+
+.ligne[data-statut='EN_ATTENTE'] { --statut-fond: var(--ept-gold-light); --statut-texte: var(--ept-gold-dark); }
+.ligne[data-statut='ACCEPTEE'] { --statut-fond: var(--ept-success-light); --statut-texte: var(--ept-success-dark); }
+.ligne[data-statut='REFUSEE'], .ligne[data-statut='ANNULEE'] { --statut-fond: var(--ept-error-light); --statut-texte: var(--ept-error-dark); }
+.ligne[data-statut='TERMINEE'] { --statut-fond: var(--ept-primary-light); --statut-texte: var(--ept-primary); }
+
+
+.contenu { display: grid; flex: 1; gap: 0.4rem; min-width: 0; }
+
+.entete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+
+  h3 { margin: 0; color: var(--ept-primary-dark); font-size: 1rem; }
+  h3 a { color: inherit; text-decoration: none; &:hover { text-decoration: underline; } }
+  a:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+}
+
+.statut { padding: 0.2rem 0.6rem; border-radius: 999px; background: var(--statut-fond); color: var(--statut-texte); font-size: 0.75rem; font-weight: 700; }
+
+.details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  margin: 0;
+  color: var(--ept-text-secondary);
+  font-size: 0.8rem;
+
+  .domaine, .programme { padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--ept-primary-light); color: var(--ept-primary); font-weight: 600; }
+  .programme { display: inline-flex; gap: 0.3rem; align-items: center; min-width: 0; background: var(--ept-gold-light); color: var(--ept-gold-dark); overflow-wrap: anywhere; }
+}
+
+.objectif {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: var(--ept-primary-dark);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.motif { margin: 0; color: var(--ept-text-secondary); font-size: 0.82rem; font-style: italic; }
+.explication { margin: 0; color: var(--ept-text-secondary); font-size: 0.82rem; line-height: 1.45; }
+.erreur { margin: 0; color: var(--ept-error); font-size: 0.82rem; }
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+
+  button { min-height: 2.5rem; padding: 0.45rem 0.95rem; border: 1px solid var(--ept-primary); border-radius: 8px; font: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
+  button:disabled { opacity: 0.6; cursor: wait; }
+  button:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
+  .principal { background: var(--ept-primary); color: white; }
+  .secondaire { background: white; color: var(--ept-primary); }
+  .danger { border-color: var(--ept-error); background: var(--ept-error); color: white; }
+}
+
+.panneau-refus {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+  padding: 0.85rem;
+  border: 1px solid var(--ept-error-light);
+  border-radius: 8px;
+  background: #fff8f6;
+
+  label { font-size: 0.82rem; font-weight: 600; }
+  textarea { padding: 0.5rem 0.65rem; border: 1px solid var(--ept-border); border-radius: 8px; font: inherit; resize: vertical; }
+  textarea:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
+}
+
+.lien-suivi {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  justify-self: start;
+  color: var(--ept-primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.squelette { min-height: 7rem; border-radius: 12px; background: #edf1f3; }
+
+.etat {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 4rem 1rem;
+  border: 1px dashed var(--ept-border);
+  text-align: center;
+
+  > i { color: var(--ept-primary); font-size: 1.7rem; }
+  h3, p { margin: 0; }
+  p { max-width: 30rem; color: var(--ept-text-secondary); }
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  color: var(--ept-text-secondary);
+  font-size: 0.85rem;
+
+  button { min-height: 2.5rem; padding: 0.45rem 0.9rem; border: 1px solid var(--ept-border); border-radius: 8px; background: white; color: var(--ept-primary); font: inherit; font-weight: 600; cursor: pointer; }
+  button:disabled { opacity: 0.45; cursor: default; }
+}
+
+@media (max-width: 560px) {
+  .ligne { padding: 0.85rem; }
+}
+
+/* Le type de membre suit le nom ; le statut reste à droite. */
+.entete app-etiquette-role { margin-right: auto; }

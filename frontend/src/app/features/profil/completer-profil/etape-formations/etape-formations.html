@@ -1,0 +1,17 @@
+<app-liste-formations
+  modeEnregistrement="global"
+  libelleEnregistrerTout="Enregistrer et continuer"
+  [formations]="formations()"
+  [brouillons]="brouillons()"
+  [suggestions]="suggestions()"
+  [enRecherche]="enRechercheOrganisme()"
+  [etat]="etat()"
+  (ajouter)="ajouterBrouillon()"
+  (abandonnerBrouillon)="abandonnerBrouillon($event)"
+  (enregistrerTout)="enregistrerTout($event)"
+  (supprimer)="supprimer($event)"
+  (rechercherOrganisme)="rechercherOrganismes($event)" />
+
+<app-navigation-etapes
+  libelleSecondaire="Passer cette étape"
+  (secondaire)="etapeSuivante()" />

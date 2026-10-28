@@ -1,0 +1,27 @@
+/* Frise : années à gauche, un point par étape, l’EPT surlignée. */
+.frise { margin: 1.25rem 0 0; padding: 0; list-style: none; }
+.frise li { position: relative; display: grid; grid-template-columns: 6.5rem 1.25rem minmax(0, 1fr); gap: 0 0.5rem; padding-bottom: 1rem; }
+.frise li:not(:last-child)::before { content: ''; position: absolute; top: 1.1rem; bottom: 0; left: calc(7rem + 0.55rem); width: 2px; background: var(--ept-border); }
+.periode { padding-top: 0.55rem; color: var(--ept-text-secondary); font-size: 0.85rem; font-weight: 600; text-align: right; }
+.point { width: 0.8rem; height: 0.8rem; margin: 0.65rem auto 0; border: 2px solid var(--ept-primary); border-radius: 50%; background: white; }
+.en-cours .point { background: var(--ept-primary); }
+.ept .point { border-color: var(--ept-gold); background: var(--ept-gold); }
+
+.element { display: grid; gap: 0.15rem; min-width: 0; padding: 0.5rem 0.75rem; border-radius: 10px; color: inherit; text-decoration: none; }
+.element:hover { background: var(--ept-bg); }
+.ept .element { background: var(--ept-gold-light); }
+.type { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; color: var(--ept-text-secondary); font-size: 0.8rem; font-weight: 600; }
+.marque-ept { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.05rem 0.45rem 0.05rem 0.2rem; border-radius: 999px; background: white; color: var(--ept-gold-dark); font-weight: 800; }
+.element strong { overflow-wrap: anywhere; font-size: 1rem; }
+.organisme { overflow-wrap: anywhere; color: var(--ept-primary); font-weight: 600; }
+.description { display: -webkit-box; overflow: hidden; color: var(--ept-text-secondary); font-size: 0.9rem; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+
+a:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+
+@media (max-width: 560px) {
+  .frise li { grid-template-columns: 1rem minmax(0, 1fr); }
+  .frise li:not(:last-child)::before { left: 0.45rem; }
+  .periode { grid-column: 2; grid-row: 1; padding: 0 0 0 0.75rem; text-align: left; }
+  .point { grid-column: 1; grid-row: 1 / span 2; margin-top: 0.15rem; }
+  .element { grid-column: 2; }
+}

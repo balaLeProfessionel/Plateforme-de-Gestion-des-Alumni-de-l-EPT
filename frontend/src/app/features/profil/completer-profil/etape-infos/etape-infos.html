@@ -1,0 +1,11 @@
+<app-infos-personnelles
+  [profil]="profil()"
+  [enSauvegarde]="enSauvegarde()"
+  [message]="message()"
+  (sauvegarder)="enregistrer($event)" />
+
+<app-navigation-etapes
+  libellePrincipal="Continuer"
+  libelleSecondaire="Passer cette étape"
+  (principal)="etapeSuivante()"
+  (secondaire)="etapeSuivante()" />

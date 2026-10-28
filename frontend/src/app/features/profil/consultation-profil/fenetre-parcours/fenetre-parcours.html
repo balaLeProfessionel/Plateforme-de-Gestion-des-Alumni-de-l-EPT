@@ -1,0 +1,80 @@
+<dialog #dialogue class="fenetre" aria-labelledby="titre-fenetre-parcours" (close)="fermee.emit()">
+  @if (parcours(); as ouvert) {
+    @let item = ouvert.item;
+    <article [class.ept]="item.etablissementEpt">
+      <header>
+        <p class="sur-titre">
+          <i class="pi" [class.pi-briefcase]="ouvert.type === 'experience'" [class.pi-graduation-cap]="ouvert.type === 'formation'" aria-hidden="true"></i>
+          {{ ouvert.type === 'experience' ? 'Expérience professionnelle' : 'Formation' }}
+          @if (item.etablissementEpt) {
+            <span class="marque-ept"><img ngSrc="/images/logo-ept.png" width="16" height="16" alt="" />Parcours à l’EPT</span>
+          }
+        </p>
+        <h2 id="titre-fenetre-parcours">{{ titre() }}</h2>
+        <p class="organisme">{{ item.nomOrganisme }}</p>
+        <button type="button" class="fermer" aria-label="Fermer" (click)="fermer()">
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <dl class="informations">
+        <div><dt>Type</dt><dd>{{ libelleType() }}</dd></div>
+        <div>
+          <dt>Période</dt>
+          <dd>
+            @if (item.enCours) { Depuis {{ item.dateDebut | date: 'MMMM y' : 'UTC' }} }
+            @else if (item.dateFin) { {{ item.dateDebut | date: 'MMMM y' : 'UTC' }} – {{ item.dateFin | date: 'MMMM y' : 'UTC' }} }
+            @else { {{ item.dateDebut | date: 'MMMM y' : 'UTC' }} }
+          </dd>
+        </div>
+        <div><dt>Statut</dt><dd>{{ item.enCours ? 'En cours' : 'Terminé' }}</dd></div>
+        <div>
+          <dt>{{ ouvert.type === 'experience' ? 'Stage' : 'Alternance ou stage' }}</dt>
+          <dd>{{ item.estStage ? 'Oui' : 'Non' }}</dd>
+        </div>
+      </dl>
+
+      <section class="description" aria-labelledby="titre-description-parcours">
+        <h3 id="titre-description-parcours">{{ ouvert.type === 'experience' ? 'Missions et réalisations' : 'Description' }}</h3>
+        @if (item.description) {
+          <p>{{ item.description }}</p>
+        } @else {
+          <p class="non-renseigne">Aucune description renseignée.</p>
+        }
+      </section>
+
+      @if (messageErreur(); as message) { <p class="erreur" role="alert">{{ message }}</p> }
+
+      <footer>
+        @if (proprietaire()) {
+          @if (confirmationSuppression()) {
+            <div class="confirmation" role="group" aria-labelledby="texte-suppression-parcours">
+              <p id="texte-suppression-parcours">Supprimer définitivement cet élément du parcours ?</p>
+              <button type="button" class="danger" [disabled]="suppressionEnCours()" (click)="supprimer()">
+                {{ suppressionEnCours() ? 'Suppression…' : 'Confirmer la suppression' }}
+              </button>
+              <button type="button" class="secondaire" (click)="confirmationSuppression.set(false)">Annuler</button>
+            </div>
+          } @else {
+            <div class="gestion">
+              <a class="secondaire" routerLink="/profil/parametres" [queryParams]="{ modifier: item.id, type: ouvert.type }" [fragment]="ancreModification()">
+                <i class="pi pi-pencil" aria-hidden="true"></i>Modifier
+              </a>
+              <button type="button" class="secondaire" (click)="confirmationSuppression.set(true)">
+                <i class="pi pi-trash" aria-hidden="true"></i>Supprimer
+              </button>
+            </div>
+          }
+        }
+        <nav class="navigation" aria-label="Autres étapes du parcours">
+          <button type="button" class="secondaire" [disabled]="!aPrecedent()" (click)="precedent.emit()">
+            <i class="pi pi-arrow-left" aria-hidden="true"></i>Plus récent
+          </button>
+          <button type="button" class="secondaire" [disabled]="!aSuivant()" (click)="suivant.emit()">
+            Plus ancien<i class="pi pi-arrow-right" aria-hidden="true"></i>
+          </button>
+        </nav>
+      </footer>
+    </article>
+  }
+</dialog>

@@ -1,0 +1,112 @@
+<div class="programme-page">
+  <app-bouton-retour secours="/mentorat/trouver" />
+
+  @if (erreur(); as message) {
+    <section class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h1>Programme indisponible</h1>
+      <p>{{ message }}</p>
+      <a routerLink="/mentorat">Revenir au mentorat</a>
+    </section>
+  } @else if (programme(); as programme) {
+    <header class="presentation">
+      <div class="etiquettes">
+        <span class="etiquette"><i class="pi pi-flag" aria-hidden="true"></i>Programme</span>
+        <span class="statut" [attr.data-statut]="programme.statut">{{ libellesStatut[programme.statut] }}</span>
+      </div>
+      <h1>{{ programme.titre }}</h1>
+      <p class="infos">
+        <span><i class="pi pi-calendar" aria-hidden="true"></i>Du {{ programme.dateDebut | date: 'd MMMM y' }} au {{ programme.dateFin | date: 'd MMMM y' }}</span>
+        <span><i class="pi pi-user" aria-hidden="true"></i>Proposé par {{ programme.responsable.prenom }} {{ programme.responsable.nom }}</span>
+      </p>
+      @if (programme.description) { <p class="description">{{ programme.description }}</p> }
+      @if (programme.gerable) {
+        <a class="lien-gestion" [routerLink]="['/mentorat/gestion-programmes', programme.id]">
+          <i class="pi pi-pencil" aria-hidden="true"></i>Gérer ce programme
+        </a>
+      }
+    </header>
+
+    <section class="bloc" aria-labelledby="titre-etapes">
+      <h2 id="titre-etapes">Les étapes</h2>
+      <ol class="etapes">
+        @for (etape of programme.etapes; track etape.id) {
+          <li>
+            <span class="numero" aria-hidden="true">{{ etape.ordre }}</span>
+            <div>
+              <strong>{{ etape.titre }}</strong>
+              @if (etape.description) { <p>{{ etape.description }}</p> }
+            </div>
+          </li>
+        }
+      </ol>
+    </section>
+
+    <section class="bloc" aria-labelledby="titre-mentors">
+      <div class="tete-mentors">
+        <h2 id="titre-mentors">Mentors volontaires <span class="nombre">{{ programme.nombreMentors }}</span></h2>
+        @if (participe() && ouvert()) {
+          @if (programme.jeParticipe) {
+            @if (!confirmationDepart()) {
+              <button type="button" class="secondaire" [disabled]="enCours()" (click)="confirmationDepart.set(true)">Ne plus participer</button>
+            }
+          } @else if (aUneOffre()) {
+            <button type="button" class="principal" [disabled]="enCours()" (click)="participer()">Je participe comme mentor</button>
+          }
+        }
+      </div>
+
+      @if (confirmationDepart()) {
+        <div class="confirmation" role="group" aria-labelledby="texte-depart">
+          <p id="texte-depart">Quitter le programme ? Vos demandes en attente dans ce programme seront annulées et leurs auteurs prévenus. Vos mentorats en cours continuent.</p>
+          <div class="boutons">
+            <button type="button" class="principal" [disabled]="enCours()" (click)="seRetirer()">Quitter le programme</button>
+            <button type="button" class="secondaire" (click)="confirmationDepart.set(false)">Rester volontaire</button>
+          </div>
+        </div>
+      }
+      @if (messageAction(); as message) { <p class="message" role="status">{{ message }}</p> }
+      @if (participe() && ouvert() && aUneOffre() === false) {
+        <p class="aide">Pour participer comme mentor, proposez d’abord du mentorat : <a routerLink="/mentorat/offre">Mon offre</a>.</p>
+      }
+      @if (programme.jeParticipe && ouvert()) {
+        <p class="aide">Vous êtes mentor volontaire : les participants du programme peuvent vous solliciter.</p>
+      }
+
+      @if (programme.termine && programme.statut === 'OUVERT') {
+        <p class="aide">Ce programme est terminé depuis le {{ programme.dateFin | date: 'd MMMM y' }} : il n’accepte plus de nouvelles demandes.</p>
+      } @else if (!ouvert()) {
+        <p class="aide">Ce programme n’accepte plus de nouveaux mentorats.</p>
+      } @else if (confirmation(); as message) {
+        <p class="message" role="status"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ message }}
+          <a routerLink="/mentorat/mentorats">Suivre mes demandes</a></p>
+      }
+
+      @if (ouvert()) {
+        @if (mentors(); as liste) {
+          @if (liste.length === 0) {
+            <!-- Ma propre carte n’est jamais listée : on ne se sollicite pas soi-même. -->
+            <p class="vide">{{ programme.jeParticipe ? 'Vous êtes pour l’instant le seul mentor volontaire.' : 'Aucun mentor volontaire pour l’instant.' }}</p>
+          } @else {
+            <ul class="grille">
+              @for (mentor of liste; track mentor.profilId) {
+                <li><app-carte-mentor [mentor]="mentor" [limiteAtteinte]="compteur.limiteAtteinte()" (demander)="mentorSollicite.set($event)" /></li>
+              }
+            </ul>
+            @if (totalMentors() > liste.length) {
+              <p class="aide">{{ liste.length }} mentors affichés sur {{ totalMentors() }}.</p>
+            }
+          }
+        } @else {
+          <div class="grille" aria-hidden="true">
+            @for (item of [1, 2, 3]; track item) { <div class="squelette"></div> }
+          </div>
+        }
+      }
+    </section>
+
+    <app-dialogue-demande [mentor]="mentorSollicite()" [programme]="programme" (envoyee)="demandeEnvoyee()" (fermee)="mentorSollicite.set(null)" />
+  } @else {
+    <div class="squelette grand" aria-busy="true" aria-label="Chargement du programme"></div>
+  }
+</div>

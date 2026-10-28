@@ -12,6 +12,7 @@
 /backend/build/
 /backend/bin/
 /backend/target/
+/backend/data/
 /backend/.settings/
 /backend/.classpath
 /backend/.project
@@ -32,4 +33,8 @@
 Thumbs.db
 *.log
 .env
+.env.*
+!.env.example
+!.env.*.example
 .docker-compose.yml
+/.local/codespaces/

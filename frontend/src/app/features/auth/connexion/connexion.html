@@ -1,0 +1,92 @@
+<div class="connexion-page">
+
+  <aside class="panneau-marque">
+    <!-- Photo décorative (alt vide), rendue seulement quand le panneau est affiché : rien n’est téléchargé sur mobile. -->
+    @if (grandEcran()) {
+      <img class="photo-campus" ngSrc="/images/connexion-campus.jpg" fill priority sizes="50vw" alt="" />
+    }
+    <div class="voile" aria-hidden="true"></div>
+    <div class="marque-contenu">
+      <div class="logo">
+        <img src="/images/logo-ept.png" alt="" />
+        <span>EPT Alumni</span>
+      </div>
+      <p class="tagline">Le réseau des ingénieurs de Thiès</p>
+
+      <ul class="stats">
+        <li><span class="chiffre">2 400+</span><span class="libelle">diplômés</span></li>
+        <li><span class="chiffre">180</span><span class="libelle">entreprises partenaires</span></li>
+        <li><span class="chiffre">92 %</span><span class="libelle">d'insertion</span></li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="panneau-formulaire">
+    <div class="formulaire-contenu">
+      <h1>Connexion</h1>
+      <p class="sous-titre">Accédez à votre espace alumni</p>
+
+      @if (messageErreur()) {
+        <p-message severity="error" class="message-erreur">{{ messageErreur() }}</p-message>
+      }
+      @if (messageSucces()) {
+        <p-message severity="success" class="message-erreur">{{ messageSucces() }}</p-message>
+      }
+
+      <div class="champ">
+        <label for="email">Email <span class="marque-obligatoire" aria-hidden="true">*</span></label>
+        <input
+          pInputText
+          id="email"
+          type="email"
+          [formField]="formulaire.email"
+          placeholder="vous@exemple.com"
+          autocomplete="email"
+          fluid />
+        @if (formulaire.email().touched() && formulaire.email().invalid()) {
+          <small class="erreur-champ">{{ formulaire.email().errors()[0]?.message }}</small>
+        }
+      </div>
+
+      <div class="champ">
+        <label for="password">Mot de passe <span class="marque-obligatoire" aria-hidden="true">*</span></label>
+        <div class="champ-mdp">
+          <input
+            pInputText
+            id="password"
+            [type]="afficherMdp() ? 'text' : 'password'"
+            [formField]="formulaire.password"
+            placeholder="Votre mot de passe"
+            autocomplete="current-password"
+            fluid />
+          <button
+            type="button"
+            class="bascule-mdp"
+            (click)="afficherMdp.set(!afficherMdp())"
+            [attr.aria-label]="afficherMdp() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
+            <i class="pi" [class.pi-eye]="!afficherMdp()" [class.pi-eye-slash]="afficherMdp()"></i>
+          </button>
+        </div>
+        @if (formulaire.password().touched() && formulaire.password().invalid()) {
+          <small class="erreur-champ">{{ formulaire.password().errors()[0]?.message }}</small>
+        }
+      </div>
+
+      <a class="lien-mot-de-passe" routerLink="/mot-de-passe-oublie">Mot de passe oublié ?</a>
+
+      <button
+        type="button"
+        (click)="seConnecter()"
+        [disabled]="enChargement()"
+        class="btn-ept"
+        [attr.aria-busy]="enChargement()">
+        {{ enChargement() ? 'Connexion…' : 'Se connecter' }}
+      </button>
+
+      <p class="lien-inscription">
+        Pas encore de compte ? <a routerLink="/inscription">Créer un compte</a>
+      </p>
+    </div>
+  </main>
+
+</div>

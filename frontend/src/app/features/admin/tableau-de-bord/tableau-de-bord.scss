@@ -1,0 +1,69 @@
+section { margin-bottom: 1.75rem; }
+h2 { margin: 0 0 0.75rem; color: var(--ept-primary-dark); font-size: 1.1rem; }
+
+.files { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); gap: 0.75rem; }
+
+.file {
+  display: flex; align-items: center; gap: 0.85rem; min-width: 0; padding: 1rem 1.1rem;
+  border: 1px solid var(--ept-border); border-radius: 12px; background: white; color: var(--ept-primary-dark); text-decoration: none;
+
+  > .pi:first-child { color: var(--ept-primary); font-size: 1.3rem; }
+  > .pi-arrow-right { margin-left: auto; color: var(--ept-primary); }
+  > .nombre + .pi-arrow-right { margin-left: 0; }
+  span { display: grid; gap: 0.15rem; min-width: 0; }
+  small { color: var(--ept-text-secondary); font-size: 0.82rem; }
+  // À traiter : bleu clair de la page ; l’or reste réservé au nombre, comme partout pour « en attente ».
+  &.urgente { border-color: var(--ept-primary); background: var(--ept-primary-light); }
+  // Le nombre à droite, avant la flèche : il ne passe jamais sous le titre, quelle que soit la largeur.
+  > .nombre {
+    flex-shrink: 0; margin-left: auto; padding: 0.1rem 0.55rem; border-radius: 999px;
+    background: var(--ept-gold-light); color: var(--ept-gold-dark); font-size: 0.85rem; font-weight: 700;
+  }
+  &.a-venir { border-style: dashed; color: var(--ept-text-secondary); > .pi:first-child { color: var(--ept-text-secondary); } }
+}
+a.file:hover strong { text-decoration: underline; }
+a.file:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+
+.indicateurs {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr)); gap: 0.75rem; margin: 0; padding: 0; list-style: none;
+
+  a, div {
+    display: grid; gap: 0.2rem; height: 100%; padding: 0.85rem 1rem; border-radius: 10px;
+    background: var(--ept-primary-light); color: var(--ept-primary-dark); text-decoration: none;
+  }
+  strong { font-family: var(--ept-font-heading); font-size: 1.6rem; line-height: 1; }
+  span { color: var(--ept-text-secondary); font-size: 0.82rem; }
+  a:hover span { text-decoration: underline; }
+  a:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+}
+
+.colonnes { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 0.75rem; }
+
+.carte {
+  margin: 0; padding: 1rem 1.1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: white;
+  h2 { font-size: 1rem; }
+}
+.titre-carte {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.5rem;
+  a { color: var(--ept-primary); font-size: 0.85rem; font-weight: 600; }
+}
+.vide { margin: 0; color: var(--ept-text-secondary); font-size: 0.88rem; line-height: 1.5; }
+
+.decisions {
+  display: grid; gap: 0.6rem; margin: 0; padding: 0; list-style: none; font-size: 0.88rem;
+
+  li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--ept-border); }
+  li:first-child { padding-top: 0; border-top: 0; }
+  a { color: var(--ept-primary); font-weight: 600; overflow-wrap: anywhere; }
+  small { width: 100%; color: var(--ept-text-secondary); font-size: 0.78rem; }
+}
+.type {
+  padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--ept-success-light); color: var(--ept-success-dark); font-size: 0.72rem; font-weight: 700;
+  &[data-type='REFUS_INSCRIPTION'], &[data-type='SUSPENSION'] { background: var(--ept-error-light); color: var(--ept-error-dark); }
+  &[data-type='CREATION_COMPTE'], &[data-type='CHANGEMENT_ROLE'], &[data-type='DIPLOMATION'] { background: var(--ept-primary-light); color: var(--ept-primary); }
+}
+
+.chargement { display: grid; gap: 0.75rem; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@media (max-width: 760px) { .colonnes { grid-template-columns: minmax(0, 1fr); } }
