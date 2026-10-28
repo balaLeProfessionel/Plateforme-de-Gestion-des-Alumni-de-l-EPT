@@ -1,0 +1,90 @@
+<app-page-admin titre="Créer un compte" [parents]="parents"
+  introduction="Le compte est actif tout de suite. Son titulaire reçoit un mot de passe provisoire par e-mail et en choisit un à la première connexion.">
+  <a actionsPage class="bouton" routerLink="/admin/comptes/import"><i class="pi pi-upload" aria-hidden="true"></i>Importer une promotion</a>
+
+  @if (cree(); as compte) {
+    <section class="carte resultat" aria-labelledby="titre-cree">
+      <h2 id="titre-cree"><i class="pi pi-check-circle" aria-hidden="true"></i> Compte créé pour {{ compte.prenom }} {{ compte.nom }}</h2>
+      <p class="aide">Un e-mail avec ce mot de passe provisoire a été envoyé à {{ compte.email }}. Il ne sera plus affiché ensuite.</p>
+      <div class="mot-de-passe">
+        <span class="sr-only">Mot de passe provisoire :</span>
+        <code>{{ compte.motDePasseTemporaire }}</code>
+        <button type="button" class="bouton" (click)="copier(compte.motDePasseTemporaire)">
+          <i class="pi pi-copy" aria-hidden="true"></i>{{ copie() ? 'Copié' : 'Copier' }}
+        </button>
+      </div>
+      <p class="sr-only" role="status">{{ copie() ? 'Mot de passe copié.' : '' }}</p>
+      <div class="boutons">
+        <a class="bouton principal" [routerLink]="['/admin/comptes', compte.id]">Ouvrir la fiche</a>
+        <button type="button" class="bouton" (click)="recommencer()">Créer un autre compte</button>
+      </div>
+    </section>
+  } @else {
+    <form class="carte" (submit)="creer($event)" novalidate>
+      @if (messageErreur(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+      <div class="grille-champs">
+        <div class="champ">
+          <label for="compte-prenom">Prénom</label>
+          <input id="compte-prenom" type="text" autocomplete="off" [formField]="formulaire.prenom"
+            [attr.aria-invalid]="formulaire.prenom().touched() && formulaire.prenom().invalid()" aria-describedby="erreur-prenom" />
+          @if (formulaire.prenom().touched() && formulaire.prenom().errors()[0]; as erreur) {
+            <small id="erreur-prenom" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="compte-nom">Nom</label>
+          <input id="compte-nom" type="text" autocomplete="off" [formField]="formulaire.nom"
+            [attr.aria-invalid]="formulaire.nom().touched() && formulaire.nom().invalid()" aria-describedby="erreur-nom" />
+          @if (formulaire.nom().touched() && formulaire.nom().errors()[0]; as erreur) {
+            <small id="erreur-nom" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ large">
+          <label for="compte-email">Adresse e-mail</label>
+          <input id="compte-email" type="email" autocomplete="off" placeholder="prenom.nom@ept.sn" [formField]="formulaire.email"
+            [attr.aria-invalid]="formulaire.email().touched() && formulaire.email().invalid()" aria-describedby="erreur-email" />
+          @if (formulaire.email().touched() && formulaire.email().errors()[0]; as erreur) {
+            <small id="erreur-email" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="compte-role">Type de compte</label>
+          <select id="compte-role" [formField]="formulaire.role" aria-describedby="aide-role">
+            @for (role of roles; track role) { <option [value]="role">{{ libellesRole[role] }}</option> }
+          </select>
+          <p id="aide-role" class="aide">
+            @if (modele().role === 'ADMIN') { Ce compte aura accès à toute l’administration. }
+            @else { Un organisme s’inscrit lui-même depuis la page d’inscription. }
+          </p>
+        </div>
+        <div class="champ">
+          <label for="compte-filiere">Filière (facultative)</label>
+          <input id="compte-filiere" type="text" autocomplete="off" placeholder="Génie informatique et télécommunications"
+            [formField]="formulaire.filiere" />
+        </div>
+        <div class="champ">
+          <label for="compte-entree">Année d’entrée (facultative)</label>
+          <input id="compte-entree" type="text" inputmode="numeric" autocomplete="off" placeholder="2024" [formField]="formulaire.anneeEntree"
+            [attr.aria-invalid]="formulaire.anneeEntree().touched() && formulaire.anneeEntree().invalid()" aria-describedby="erreur-entree" />
+          @if (formulaire.anneeEntree().touched() && formulaire.anneeEntree().errors()[0]; as erreur) {
+            <small id="erreur-entree" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        @if (avecSortie()) {
+          <div class="champ">
+            <label for="compte-sortie">Promotion (année de sortie)</label>
+            <input id="compte-sortie" type="text" inputmode="numeric" autocomplete="off" placeholder="2019" [formField]="formulaire.anneeSortie"
+              [attr.aria-invalid]="formulaire.anneeSortie().touched() && formulaire.anneeSortie().invalid()" aria-describedby="erreur-sortie" />
+            @if (formulaire.anneeSortie().touched() && formulaire.anneeSortie().errors()[0]; as erreur) {
+              <small id="erreur-sortie" class="erreur-champ">{{ erreur.message }}</small>
+            }
+          </div>
+        }
+      </div>
+      <div class="boutons">
+        <button type="submit" class="bouton principal" [disabled]="enCours()">Créer le compte</button>
+        <a class="bouton" routerLink="/admin/comptes">Annuler</a>
+      </div>
+    </form>
+  }
+</app-page-admin>

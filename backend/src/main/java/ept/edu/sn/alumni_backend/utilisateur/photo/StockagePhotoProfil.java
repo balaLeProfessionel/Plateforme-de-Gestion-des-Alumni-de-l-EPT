@@ -1,7 +1,5 @@
 package ept.edu.sn.alumni_backend.utilisateur.photo;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -21,10 +19,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
 
+import ept.edu.sn.alumni_backend.common.image.FormatImage;
+
 @Service
 public class StockagePhotoProfil {
     private static final Set<String> TYPES_ACCEPTES = Set.of("image/jpeg", "image/png");
-    private static final int DIMENSION_MAXIMALE = 800;
     private static final int DIMENSION_SOURCE_MAXIMALE = 10_000;
     private static final String PREFIXE_PUBLIC = "/api/photos/";
 
@@ -67,16 +66,14 @@ public class StockagePhotoProfil {
                 throw new IllegalArgumentException("Le fichier ne contient pas une image valide.");
             }
 
-            String format = type.equals("image/png") ? "png" : "jpg";
-            String nom = UUID.randomUUID() + "." + format;
+            FormatImage.PHOTO_PROFIL.verifierTailleMinimale(source);
+            String nom = UUID.randomUUID() + ".jpg";
             Files.createDirectories(repertoire);
             Path destination = cheminSecurise(nom);
             Path temporaire = Files.createTempFile(repertoire, "photo-", ".tmp");
             try {
-                BufferedImage redimensionnee = redimensionner(source, format);
-                if (!ImageIO.write(redimensionnee, format, temporaire.toFile())) {
-                    throw new IllegalArgumentException("Le format de l’image ne peut pas être traité.");
-                }
+                // Format imposé : carré de 600 × 600, recadré au centre si besoin.
+                FormatImage.ecrireJpeg(FormatImage.PHOTO_PROFIL.appliquer(source), temporaire);
                 Files.move(temporaire, destination, StandardCopyOption.ATOMIC_MOVE);
             } finally {
                 Files.deleteIfExists(temporaire);
@@ -133,22 +130,5 @@ public class StockagePhotoProfil {
         if ((type.equals("image/jpeg") && !jpeg) || (type.equals("image/png") && !png)) {
             throw new IllegalArgumentException("Le contenu du fichier ne correspond pas à son format.");
         }
-    }
-
-    private BufferedImage redimensionner(BufferedImage source, String format) {
-        double ratio = Math.min(1d, (double) DIMENSION_MAXIMALE / Math.max(source.getWidth(), source.getHeight()));
-        int largeur = Math.max(1, (int) Math.round(source.getWidth() * ratio));
-        int hauteur = Math.max(1, (int) Math.round(source.getHeight() * ratio));
-        int type = format.equals("png") ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
-        BufferedImage cible = new BufferedImage(largeur, hauteur, type);
-        Graphics2D graphics = cible.createGraphics();
-        try {
-            graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-            graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-            graphics.drawImage(source, 0, 0, largeur, hauteur, null);
-        } finally {
-            graphics.dispose();
-        }
-        return cible;
     }
 }

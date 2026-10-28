@@ -1,0 +1,91 @@
+<div class="detail-page">
+  <app-bouton-retour [secours]="secours()" />
+
+  @if (messageErreur(); as message) {
+    <section class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h1>Mentorat indisponible</h1>
+      <p>{{ message }}</p>
+      <a routerLink="/mentorat">Revenir au mentorat</a>
+    </section>
+  } @else if (detail(); as detail) {
+    @let mentorat = detail.mentorat;
+    <header class="carte-entete" [attr.data-statut]="mentorat.statut">
+      <div class="duo">
+        @for (personne of [mentorat.mentor, mentorat.mentore]; track personne.id; let estMentor = $first) {
+          <a class="personne" [routerLink]="['/profil', personne.id]">
+            <app-avatar-membre [urlPhoto]="personne.urlPhoto" [prenom]="personne.prenom" [nom]="personne.nom"
+              [roleMembre]="personne.role" [taille]="3.25" />
+            <span class="identite">
+              <small>{{ estMentor ? 'Mentor' : 'Mentoré' }}</small>
+              <strong>{{ personne.prenom }} {{ personne.nom }}</strong>
+              <app-etiquette-role [role]="personne.role" />
+              @if (personne.posteActuel ?? personne.filiere; as precision) { <span>{{ precision }}</span> }
+            </span>
+          </a>
+        }
+      </div>
+
+      <div class="etiquettes">
+        <span class="statut">{{ libellesStatut[mentorat.statut] }}</span>
+        <span class="domaine">{{ mentorat.domaine.libelle }}</span>
+        @if (mentorat.programme; as programme) {
+          <a class="programme" [routerLink]="['/mentorat/programmes', programme.id]">
+            <i class="pi pi-flag" aria-hidden="true"></i>Programme « {{ programme.titre }} »</a>
+        }
+      </div>
+      <p class="explication">{{ explication(mentorat) }}</p>
+
+      <h1 class="sr-only">Mentorat {{ mentorat.domaine.libelle }} avec {{ mentorat.monRole === 'MENTOR' ? mentorat.mentore.prenom : mentorat.mentor.prenom }}</h1>
+      <blockquote>{{ mentorat.objectif }}</blockquote>
+
+      <ol class="jalons-statut" aria-label="Historique de la demande">
+        <li>Demande envoyée le {{ mentorat.creeLe | date: 'd MMM y' }}</li>
+        @if (mentorat.reponduLe) {
+          <li>{{ mentorat.statut === 'REFUSEE' ? 'Refusée' : 'Acceptée' }} le {{ mentorat.reponduLe | date: 'd MMM y' }}</li>
+        }
+        @if (mentorat.clotureLe) {
+          <li>{{ mentorat.statut === 'ANNULEE' ? 'Annulée' : 'Terminée' }} le {{ mentorat.clotureLe | date: 'd MMM y' }}</li>
+        }
+      </ol>
+      @if (mentorat.motifRefus) { <p class="motif">Motif du refus : {{ mentorat.motifRefus }}</p> }
+    </header>
+
+    @if (erreurAction(); as message) { <p class="erreur" role="alert">{{ message }}</p> }
+
+    <div class="colonnes">
+      <div class="colonne">
+        @if (mentorat.programme && detail.etapes.length) {
+          <app-etapes-mentorat [mentoratId]="mentorat.id" [programme]="mentorat.programme" [etapes]="detail.etapes"
+            [modifiable]="mentorat.statut === 'ACCEPTEE'" (modifiee)="actualiser()" />
+        }
+        <app-seances-mentorat [mentoratId]="mentorat.id" [seances]="detail.seances"
+          [modifiable]="mentorat.statut === 'ACCEPTEE'" [intitule]="intitule()" (modifiee)="actualiser()" />
+      </div>
+
+      <aside class="cote">
+        <app-evaluation-mentorat [mentoratId]="mentorat.id" [evaluations]="detail.evaluations"
+          [peutEvaluer]="detail.peutEvaluer" [termine]="mentorat.statut === 'TERMINEE'" [moi]="moi()"
+          (evaluee)="actualiser()" />
+
+        @if (mentorat.statut === 'ACCEPTEE') {
+          @if (confirmationFin()) {
+            <div class="confirmation">
+              <p>Clôturer ce mentorat ? Les séances restent consultables et chacun pourra l’évaluer.</p>
+              <button type="button" class="principal" [disabled]="actionEnCours()" (click)="terminer(mentorat)">Terminer</button>
+              <button type="button" class="secondaire" (click)="confirmationFin.set(false)">Garder en cours</button>
+            </div>
+          } @else {
+            <button type="button" class="secondaire" (click)="confirmationFin.set(true)">Terminer le mentorat</button>
+          }
+        } @else if (mentorat.statut === 'EN_ATTENTE' && mentorat.monRole === 'MENTORE') {
+          <button type="button" class="danger" [disabled]="actionEnCours()" (click)="annuler(mentorat)">Annuler ma demande</button>
+        } @else if (mentorat.statut === 'EN_ATTENTE') {
+          <a class="secondaire" routerLink="/mentorat/mentores">Répondre à la demande</a>
+        }
+      </aside>
+    </div>
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement du mentorat"></div>
+  }
+</div>

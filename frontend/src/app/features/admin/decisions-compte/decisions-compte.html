@@ -1,0 +1,43 @@
+@let c = compte();
+@if (erreur(); as message) {
+  <p class="erreur" role="alert">{{ message }}</p>
+}
+
+@if (configuration(); as config) {
+  <div class="panneau" [attr.data-panneau]="panneau()" (keydown.escape)="fermer()">
+    <label [for]="'motif-' + c.id">{{ config.libelle }}</label>
+    <textarea #champMotif [id]="'motif-' + c.id" rows="3" [formField]="formulaire.motif"
+      [attr.aria-invalid]="formulaire.motif().touched() && formulaire.motif().invalid()"
+      [attr.aria-describedby]="'compteur-motif-' + c.id + ' erreur-motif-' + c.id"></textarea>
+    <div class="sous-champ">
+      @if (formulaire.motif().touched() && formulaire.motif().errors()[0]; as erreurMotif) {
+        <small class="erreur" [id]="'erreur-motif-' + c.id">{{ erreurMotif.message }}</small>
+      }
+      <small class="compteur" [id]="'compteur-motif-' + c.id"
+        [class.limite]="modele().motif.length >= longueurMax">{{ modele().motif.length }} / {{ longueurMax }} caractères</small>
+    </div>
+    <div class="actions">
+      <button type="button" [class]="panneau() === 'reactivation' ? 'principal' : 'danger'" [disabled]="enCours()"
+        (click)="confirmer()">{{ config.bouton }}</button>
+      <button type="button" class="secondaire" (click)="fermer()">Annuler</button>
+    </div>
+  </div>
+} @else {
+  <div class="actions">
+    @switch (c.statutCompte) {
+      @case ('EN_ATTENTE') {
+        <button type="button" class="principal" data-action="valider" (click)="valider()">Valider</button>
+        <button type="button" class="secondaire" data-action="refus" (click)="ouvrir('refus')">Refuser</button>
+      }
+      @case ('ACTIF') {
+        @if (!estMoi()) {
+          <button type="button" class="secondaire alerte" data-action="suspension" (click)="ouvrir('suspension')">Suspendre</button>
+        }
+      }
+      @case ('SUSPENDU') {
+        <button type="button" class="secondaire" data-action="reactivation" (click)="ouvrir('reactivation')">Réactiver</button>
+      }
+    }
+    <ng-content />
+  </div>
+}

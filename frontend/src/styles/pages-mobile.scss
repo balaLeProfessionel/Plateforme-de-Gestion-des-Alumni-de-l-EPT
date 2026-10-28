@@ -1,0 +1,12 @@
+@media (max-width: 600px) {
+  body .annuaire-page, body .evenements-page { width: min(100% - 2rem, 1240px); padding-top: 0.85rem; }
+  body .annuaire-page .entete-page h1, body .evenements-page .entete-evenements h1 { font-size: clamp(1.45rem, 6.5vw, 1.8rem); line-height: 1.12; }
+
+  body .evenements-page .resultats-evenements { min-height: 0; }
+  body .evenements-page .grille-evenements { gap: 0.7rem; }
+  body .evenements-page .carte-evenement { min-height: 0; padding: 0.8rem; }
+  body .evenements-page .carte-evenement h2 { margin: 0.5rem 0; font-size: 1.08rem; }
+  body .evenements-page .visuel-evenement { min-height: 5rem; max-height: 6rem; margin-top: 0.55rem; }
+  body .evenements-page .description-evenement { margin: 0.55rem 0 0.7rem; -webkit-line-clamp: 2; }
+  body .evenements-page .pied-carte { padding-top: 0.6rem; }
+}

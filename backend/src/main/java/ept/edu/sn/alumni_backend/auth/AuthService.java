@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.auth;
 
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.EnumSet;
@@ -64,9 +65,11 @@ public class AuthService {
                 "L'inscription n'est pas ouverte pour ce type de compte. "
                 + "Les comptes étudiants sont créés par l'administration de l'EPT.");
         }
-        if (utilisateurRepository.existsByEmail(email)) {
-            throw new EmailDejaUtiliseException("Cet email est déjà utilisé");
-        }
+        utilisateurRepository.findByEmail(email).ifPresent(existant -> {
+            throw new EmailDejaUtiliseException(existant.getStatutCompte() == StatutCompte.SUSPENDU
+                ? "Un compte suspendu existe déjà avec cet email. Contactez l'administration de l'EPT pour le réactiver."
+                : "Cet email est déjà utilisé");
+        });
         if (request.role() == TypeRole.ORGANISME
                 && (request.nomOrganisme() == null || request.nomOrganisme().isBlank())) {
             throw new NomOrganismeManquantException("Le nom de l'organisme est obligatoire");
@@ -259,16 +262,18 @@ public class AuthService {
         String motDePasseTemporaire = genererMotDePasseTemporaire();
 
         Utilisateur utilisateur = new Utilisateur();
-        utilisateur.setNom(request.nom());
-        utilisateur.setPrenom(request.prenom());
+        utilisateur.setNom(request.nom().trim());
+        utilisateur.setPrenom(request.prenom().trim());
         utilisateur.setEmail(email);
         utilisateur.setPassword(passwordEncoder.encode(motDePasseTemporaire));
         utilisateur.setRole(request.role());
         utilisateur.setStatutCompte(StatutCompte.ACTIF);
         utilisateur.setEmailVerifie(true);
-        utilisateur.setDoitChangerMotDePasse(request.role() == TypeRole.ETUDIANT);
+        // Le mot de passe vient de l'administration : il est provisoire pour tous les comptes ainsi créés.
+        utilisateur.setDoitChangerMotDePasse(true);
         utilisateur.setAnneeEntree(request.anneeEntree());
-        utilisateur.setFiliere(request.filiere());
+        utilisateur.setAnneeSortie(request.anneeSortie());
+        utilisateur.setFiliere(request.filiere() == null || request.filiere().isBlank() ? null : request.filiere().trim());
 
         utilisateur = utilisateurRepository.save(utilisateur);
 
@@ -293,7 +298,9 @@ public class AuthService {
             utilisateur.getRole().name(),
             utilisateur.getStatutCompte().name(),
             utilisateur.isDoitChangerMotDePasse(),
-            null
+            utilisateur.getUrlPhoto(),
+            null,
+            PermissionAdmin.noms(utilisateur.getRole())
         );
     }
 
@@ -382,7 +389,8 @@ public class AuthService {
 
     private AuthResponse construireReponse(String accessToken, String refreshToken, Utilisateur u, String message) {
         return new AuthResponse(accessToken, refreshToken, u.getId(), u.getEmail(), u.getNom(), u.getPrenom(),
-                u.getRole().name(), u.getStatutCompte().name(), u.isDoitChangerMotDePasse(), message);
+                u.getRole().name(), u.getStatutCompte().name(), u.isDoitChangerMotDePasse(), u.getUrlPhoto(), message,
+                PermissionAdmin.noms(u.getRole()));
     }
 
     public void deconnecter(String refreshToken) {

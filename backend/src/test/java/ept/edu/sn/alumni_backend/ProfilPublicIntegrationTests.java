@@ -19,6 +19,8 @@ import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeContrat;
 import ept.edu.sn.alumni_backend.enums.TypeFormation;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.evenement.repository.EvenementRepository;
+import ept.edu.sn.alumni_backend.evenement.repository.ParticipationEvenementRepository;
 import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
 import ept.edu.sn.alumni_backend.organisme.repository.OrganismeRepository;
 import ept.edu.sn.alumni_backend.parcours.entity.ExperienceProfessionelle;
@@ -47,8 +49,16 @@ class ProfilPublicIntegrationTests {
     @Autowired
     private FormationRepository formationRepository;
 
+    @Autowired
+    private EvenementRepository evenementRepository;
+
+    @Autowired
+    private ParticipationEvenementRepository participationEvenementRepository;
+
     @BeforeEach
     void nettoyer() {
+        participationEvenementRepository.deleteAll();
+        evenementRepository.deleteAll();
         experienceRepository.deleteAll();
         formationRepository.deleteAll();
         organismeRepository.deleteAll();

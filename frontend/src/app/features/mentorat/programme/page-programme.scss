@@ -1,0 +1,118 @@
+.programme-page { display: grid; gap: 1.25rem; width: min(100% - 3rem, 1100px); margin: 0 auto; padding: 1.5rem 0 clamp(2.5rem, 6vw, 4rem); }
+
+.presentation, .bloc {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--ept-border);
+  border-radius: 12px;
+  background: var(--ept-surface);
+}
+
+.presentation { border-top: 4px solid var(--ept-primary); }
+
+h1 { margin: 0; color: var(--ept-primary-dark); font-size: clamp(1.5rem, 3vw, 2rem); line-height: 1.15; overflow-wrap: anywhere; }
+h2 { display: flex; align-items: center; gap: 0.5rem; margin: 0; color: var(--ept-primary-dark); font-size: 1.1rem; }
+
+.etiquettes { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.etiquette, .statut { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; }
+.etiquette { background: var(--ept-primary-light); color: var(--ept-primary); }
+.statut { background: var(--ept-bg); color: var(--ept-text-secondary); }
+.statut[data-statut='OUVERT'] { background: var(--ept-success-light); color: var(--ept-success-dark); }
+
+.infos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  margin: 0;
+  color: var(--ept-text-secondary);
+  font-size: 0.9rem;
+
+  span { display: inline-flex; align-items: center; gap: 0.4rem; }
+}
+
+.description { margin: 0; color: var(--ept-primary-dark); line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
+
+.lien-gestion, .aide a, .message a, .etat a { color: var(--ept-primary); font-weight: 700; }
+.lien-gestion { display: inline-flex; justify-self: start; align-items: center; gap: 0.4rem; min-height: 2.5rem; text-decoration: none; }
+a:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+
+.etapes {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li { display: flex; gap: 0.75rem; align-items: flex-start; min-width: 0; }
+  strong { color: var(--ept-primary-dark); }
+  p { margin: 0.15rem 0 0; color: var(--ept-text-secondary); font-size: 0.9rem; }
+}
+
+.numero { display: inline-grid; flex: none; width: 1.8rem; height: 1.8rem; place-items: center; border-radius: 50%; background: var(--ept-primary); color: white; font-size: 0.85rem; font-weight: 700; }
+
+.tete-mentors { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.nombre { display: inline-grid; min-width: 1.5rem; height: 1.5rem; place-items: center; padding: 0 0.4rem; border-radius: 999px; background: var(--ept-bg); color: var(--ept-text-secondary); font-size: 0.8rem; }
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-height: 2.6rem;
+  padding: 0.45rem 1rem;
+  text-align: center;
+  border: 1px solid var(--ept-primary);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &.principal { background: var(--ept-primary); color: white; }
+  &.secondaire { background: white; color: var(--ept-primary); }
+  &:disabled { opacity: 0.6; cursor: wait; }
+  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+}
+
+.message { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; margin: 0; padding: 0.6rem 0.8rem; border-radius: 8px; background: var(--ept-success-light); color: var(--ept-success-dark); }
+.aide, .vide { margin: 0; color: var(--ept-text-secondary); font-size: 0.9rem; }
+
+.confirmation {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--ept-gold);
+  border-radius: 10px;
+  background: var(--ept-gold-light);
+
+  p { margin: 0; color: var(--ept-primary-dark); }
+}
+
+.boutons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); gap: 1.25rem; margin: 0.5rem 0 0; padding: 0; list-style: none; }
+
+.etat {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 3.5rem 1rem;
+  border: 1px dashed var(--ept-border);
+  text-align: center;
+
+  > i { color: var(--ept-primary); font-size: 1.7rem; }
+  h1 { font-size: 1.3rem; }
+  p { margin: 0; color: var(--ept-text-secondary); }
+}
+
+.squelette { min-height: 18rem; border-radius: 12px; background: #edf1f3; }
+.squelette.grand { min-height: 24rem; }
+
+@media (max-width: 560px) {
+  .programme-page { width: min(100% - 2rem, 1100px); }
+  .tete-mentors button { width: 100%; }
+}

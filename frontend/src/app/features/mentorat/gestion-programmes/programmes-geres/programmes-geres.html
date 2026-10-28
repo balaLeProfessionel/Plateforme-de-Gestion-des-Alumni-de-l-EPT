@@ -1,0 +1,64 @@
+<div class="programmes-page">
+  <app-fil-ariane [etapes]="[{ libelle: 'Accueil', lien: '/accueil' }, { libelle: 'Mentorat', lien: '/mentorat' }, { libelle: 'Programmes' }]" />
+
+  <header class="entete">
+    <div>
+      <h1>Programmes de mentorat</h1>
+      <p class="introduction">Encadrez un accompagnement sur un thème et une période, avec des étapes communes à tous les binômes.</p>
+    </div>
+    <a class="action-principale" routerLink="/mentorat/gestion-programmes/nouveau">
+      <i class="pi pi-plus" aria-hidden="true"></i>Créer un programme
+    </a>
+  </header>
+
+  @if (etat(); as etat) {
+    @if (etat.erreur) {
+      <div class="etat" role="alert">
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        <h2>Chargement impossible</h2>
+        <p>{{ etat.erreur }}</p>
+      </div>
+    } @else if (etat.programmes?.length === 0) {
+      <div class="etat">
+        <i class="pi pi-flag" aria-hidden="true"></i>
+        <h2>Aucun programme pour l’instant</h2>
+        <p>Créez un premier programme : il reste en brouillon tant que vous ne l’ouvrez pas.</p>
+      </div>
+    } @else {
+      <ul class="liste">
+        @for (programme of etat.programmes; track programme.id) {
+          <li class="programme carte-cliquable" [attr.data-statut]="programme.statut">
+            <div class="tete">
+              <h2>
+                <a class="lien-etire" [routerLink]="['/mentorat/gestion-programmes', programme.id]">{{ programme.titre }}</a>
+              </h2>
+              <span class="statut">{{ libellesStatut[programme.statut] }}</span>
+            </div>
+            <p class="periode">
+              <i class="pi pi-calendar" aria-hidden="true"></i>
+              Du {{ programme.dateDebut | date: 'd MMM y' }} au {{ programme.dateFin | date: 'd MMM y' }}
+            </p>
+            <p class="chiffres">
+              {{ programme.etapes.length }} étape{{ programme.etapes.length > 1 ? 's' : '' }}
+              · {{ programme.nombreMentors }} mentor{{ programme.nombreMentors > 1 ? 's' : '' }} volontaire{{ programme.nombreMentors > 1 ? 's' : '' }}
+              · {{ programme.nombreMentorats }} mentorat{{ programme.nombreMentorats > 1 ? 's' : '' }}
+              · responsable : {{ programme.responsable.prenom }} {{ programme.responsable.nom }}
+            </p>
+            @if (programme.termine && programme.statut !== 'CLOS' && programme.statut !== 'BROUILLON') {
+              <p class="alerte-fin"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i>Date de fin dépassée : pensez à clore le programme.</p>
+            }
+            @if (programme.statut !== 'BROUILLON') {
+              <a class="lien-tableau" [routerLink]="['/mentorat/gestion-programmes', programme.id, 'tableau']">
+                <i class="pi pi-chart-bar" aria-hidden="true"></i>Tableau de bord<span class="sr-only"> de « {{ programme.titre }} »</span>
+              </a>
+            }
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <div class="liste" aria-busy="true" aria-label="Chargement des programmes">
+      @for (item of [1, 2]; track item) { <div class="squelette" aria-hidden="true"></div> }
+    </div>
+  }
+</div>

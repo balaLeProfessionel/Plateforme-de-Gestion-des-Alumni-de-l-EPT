@@ -1,40 +1,67 @@
 .connexion-page {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) 1fr;
   min-height: 100vh;
 
   @media (max-width: 900px) {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
+/* Grand écran : photo du campus en fond, voile aux couleurs de l’EPT qui fonce vers le bas pour la lisibilité. */
 .panneau-marque {
+  position: relative;
+  overflow: hidden;
   background: var(--ept-primary);
   color: var(--ept-text-on-dark);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   padding: 3rem;
+
+  .photo-campus { object-fit: cover; object-position: 46% 30%; }
+
+  .voile {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(1, 46, 69, 0.15) 0%, rgba(1, 46, 69, 0.55) 40%, rgba(1, 46, 69, 0.94) 70%, rgba(1, 40, 60, 0.98) 100%);
+  }
+
+  .marque-contenu { position: relative; width: 100%; }
 
   @media (max-width: 900px) {
     display: none;
   }
 
   .marque-contenu {
-    max-width: 360px;
+    max-width: 420px;
   }
 
   .logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
     font-family: var(--ept-font-heading);
     font-size: 2rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
+
+    img {
+      flex: 0 0 4.5rem;
+      width: 4.5rem;
+      height: 4.5rem;
+      padding: 0.3rem;
+      border: 1px solid var(--ept-border);
+      border-radius: 0.35rem;
+      background: white;
+      object-fit: contain;
+    }
   }
 
   .tagline {
     color: var(--ept-sky);
     font-size: 1.05rem;
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
   }
 
   .stats {
@@ -42,8 +69,8 @@
     padding: 0;
     margin: 0;
     display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1.25rem 2.25rem;
 
     li {
       display: flex;

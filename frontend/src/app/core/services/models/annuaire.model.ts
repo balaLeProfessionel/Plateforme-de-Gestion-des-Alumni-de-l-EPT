@@ -14,6 +14,9 @@ export interface AnnuaireMembre {
   filiere: string | null;
   anneeSortie: number | null;
   organismeId: string | null;
+  typeOrganisme: string | null;
+  /** Absent quand le membre ne propose pas de mentorat. */
+  mentor?: 'DISPONIBLE' | 'INDISPONIBLE' | null;
 }
 
 export interface PageAnnuaire {

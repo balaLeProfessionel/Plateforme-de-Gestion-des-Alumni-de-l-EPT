@@ -1,0 +1,52 @@
+<app-page-admin titre="Journal des décisions"
+  introduction="Toutes les décisions de l’administration : qui, quand, sur quel compte, et pourquoi.">
+  <div class="filtres" role="group" aria-label="Filtrer les décisions">
+    @for (filtre of filtres; track filtre.libelle) {
+      <button type="button" [attr.aria-pressed]="etat().filtre === filtre" (click)="choisir(filtre)">{{ filtre.libelle }}</button>
+    }
+  </div>
+
+  <div aria-live="polite" [attr.aria-busy]="enChargement()">
+    @if (erreur(); as message) {
+      <div class="etat" role="alert">
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        <h2>Chargement impossible</h2>
+        <p>{{ message }}</p>
+      </div>
+    } @else if (resultat(); as page) {
+      @if (page.contenu.length === 0) {
+        <div class="etat">
+          <i class="pi pi-history" aria-hidden="true"></i>
+          <h2>Aucune décision</h2>
+          <p>Les validations, refus et suspensions apparaîtront ici dès la première décision.</p>
+        </div>
+      } @else {
+        <p #resume class="resume" tabindex="-1">
+          <strong>{{ page.totalElements }}</strong> {{ page.totalElements > 1 ? 'décisions' : 'décision' }}
+          @if (page.totalPages > 1) { · page {{ page.page + 1 }} sur {{ page.totalPages }} }
+        </p>
+        <ol class="journal" [class.actualisation]="enChargement()">
+          @for (entree of page.contenu; track entree.id) {
+            <li>
+              <time [attr.datetime]="entree.dateAction">{{ entree.dateAction | date: 'd MMM y' }}<small>{{ entree.dateAction | date: 'HH:mm' }}</small></time>
+              <div class="entree">
+                <p>
+                  <span class="type" [attr.data-type]="entree.type">{{ libellesAction[entree.type] }}</span>
+                  <a [routerLink]="['/admin/comptes', entree.cibleId]">{{ entree.cibleNom }}</a>
+                  <span class="role">{{ libellesRole[entree.cibleRole] }}</span>
+                  @if (detailsLisibles(entree.details); as details) { <span class="details">{{ details }}</span> }
+                </p>
+                <p class="auteur">par {{ entree.auteur }}</p>
+                @if (entree.motif) { <p class="motif">{{ entree.motif }}</p> }
+              </div>
+            </li>
+          }
+        </ol>
+        <app-pagination-admin [page]="page.page" [totalPages]="page.totalPages" libelle="Pagination du journal"
+          (changer)="allerPage($event)" />
+      }
+    } @else {
+      <div class="squelette" aria-hidden="true"></div>
+    }
+  </div>
+</app-page-admin>

@@ -1,7 +1,5 @@
-<main class="page-organisme" aria-live="polite" [attr.aria-busy]="enChargement()">
-  <button type="button" class="retour" (click)="retourner()">
-    <i class="pi pi-arrow-left" aria-hidden="true"></i>Retour
-  </button>
+<div class="page-organisme" aria-live="polite" [attr.aria-busy]="enChargement()">
+  <app-bouton-retour secours="/annuaire" />
 
   @if (enChargement()) {
     <div class="squelette entete-squelette" aria-hidden="true"></div>
@@ -18,13 +16,7 @@
     </section>
   } @else if (organisme(); as fiche) {
     <header class="entete-organisme">
-      <div class="logo" aria-hidden="true">
-        @if (fiche.logoUrl && !imageInvalide()) {
-          <img [src]="fiche.logoUrl" alt="" (error)="imageInvalide.set(true)" />
-        } @else {
-          <span>{{ initiales() }}</span>
-        }
-      </div>
+      <app-avatar-membre class="logo" [urlPhoto]="fiche.logoUrl" [nom]="fiche.nom" roleMembre="ORGANISME" [taille]="8" />
       <div class="identite">
         <p class="sur-titre">{{ typeOrganisme() }}</p>
         <div class="ligne-nom">
@@ -88,4 +80,4 @@
       </aside>
     </div>
   }
-</main>
+</div>

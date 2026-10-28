@@ -50,7 +50,7 @@ describe('Annuaire', () => {
       contenu: [{
         id: '1', nom: 'Diop', prenom: 'Awa', role: 'ETUDIANT', statutCompte: 'ACTIF',
         urlPhoto: null, posteActuel: 'Élève ingénieure', villeResidence: 'Thiès', filiere: 'GIT',
-        anneeSortie: 2025, organismeId: null,
+        anneeSortie: 2025, organismeId: null, typeOrganisme: null,
         email: 'awa@example.com', telephone: '770000000', dateNaissance: '2000-01-01'
       } as never],
       page: 2,
@@ -106,27 +106,114 @@ describe('Annuaire', () => {
 
     expect(router.navigate).toHaveBeenCalledWith([], {
       relativeTo: route,
-      queryParams: { recherche: 'Awa', role: 'ETUDIANT', promotion: '2025', ville: 'Thiès' }
+      queryParams: { recherche: 'Awa', role: 'ETUDIANT', promotion: '2025', ville: 'Thiès' },
+      replaceUrl: true
     });
 
     composant['reinitialiser']();
-    expect(router.navigate).toHaveBeenLastCalledWith([], { relativeTo: route, queryParams: {} });
+    expect(router.navigate).toHaveBeenLastCalledWith([], { relativeTo: route, queryParams: {}, replaceUrl: true });
   });
 
-  it('regroupe les filtres avancés dans un panneau pliable', () => {
+  it('lance la recherche pendant la saisie sans bouton ni étape d’historique', async () => {
+    parametres.next(convertToParamMap({ role: 'TOUS', page: '2' }));
     const composant = creerComposant();
     http.expectOne((req) => req.url === '/api/annuaire').flush(page());
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.rechercher')).toBeNull();
 
-    const panneau = fixture.nativeElement.querySelector('.panneau-filtres') as HTMLDetailsElement;
-    expect(panneau.open).toBe(false);
-    expect(panneau.querySelector('summary')?.textContent).toContain('Filtres avancés');
-
-    panneau.open = true;
-    composant['modele'].update((valeurs) => ({ ...valeurs, role: 'ORGANISME', ville: 'Thiès' }));
+    composant['modele'].update((valeurs) => ({ ...valeurs, recherche: '  Awa ' }));
     fixture.detectChanges();
+    await new Promise((fin) => setTimeout(fin, 400));
 
-    expect(panneau.open).toBe(true);
-    expect(panneau.querySelector('.resume-filtres')?.textContent).toContain('2 filtres actifs');
+    expect(router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: route,
+      queryParams: { recherche: 'Awa', role: 'TOUS' },
+      replaceUrl: true
+    });
+  });
+
+  it('ne relance ni navigation ni requête au simple chargement de la page', async () => {
+    parametres.next(convertToParamMap({ role: 'TOUS', ville: 'Dakar', page: '1' }));
+    creerComposant();
+    http.expectOne((req) => req.url === '/api/annuaire').flush(page());
+    await fixture.whenStable();
+    await new Promise((fin) => setTimeout(fin, 400));
+
+    expect(router.navigate).not.toHaveBeenCalled();
+    http.expectNone((req) => req.url === '/api/annuaire');
+  });
+
+  it('applique un filtre du panneau dès qu’il change, sans bouton Appliquer', async () => {
+    const composant = creerComposant();
+    http.expectOne((req) => req.url === '/api/annuaire').flush(page());
+    await fixture.whenStable();
+    (fixture.nativeElement.querySelector('.bouton-filtres') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.appliquer')).toBeNull();
+
+    composant['modele'].update((valeurs) => ({ ...valeurs, filiere: 'Génie Civil' }));
+    fixture.detectChanges();
+    await new Promise((fin) => setTimeout(fin, 400));
+
+    expect(router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: route,
+      queryParams: { role: 'ALUMNI', filiere: 'Génie Civil' },
+      replaceUrl: true
+    });
+  });
+
+  it('n’applique pas une promotion incomplète ou invalide', async () => {
+    const composant = creerComposant();
+    http.expectOne((req) => req.url === '/api/annuaire').flush(page());
+    await fixture.whenStable();
+
+    composant['modele'].update((valeurs) => ({ ...valeurs, promotion: '20' }));
+    fixture.detectChanges();
+    await new Promise((fin) => setTimeout(fin, 400));
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(composant['promotionEnErreur']()).toBe(false);
+
+    composant['modele'].update((valeurs) => ({ ...valeurs, promotion: '1850' }));
+    fixture.detectChanges();
+    await new Promise((fin) => setTimeout(fin, 400));
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(composant['promotionEnErreur']()).toBe(true);
+  });
+
+  it('ouvre les filtres avancés depuis la barre de recherche', async () => {
+    creerComposant();
+    http.expectOne((req) => req.url === '/api/annuaire').flush(page());
+    await fixture.whenStable();
+
+    const bouton = fixture.nativeElement.querySelector('.bouton-filtres') as HTMLButtonElement;
+    expect(bouton.getAttribute('aria-expanded')).toBe('false');
+    expect(fixture.nativeElement.querySelector('#panneau-filtres')).toBeNull();
+
+    bouton.click();
+    await fixture.whenStable();
+
+    expect(bouton.getAttribute('aria-expanded')).toBe('true');
+    expect(fixture.nativeElement.querySelector('#panneau-filtres #filiere')).not.toBeNull();
+  });
+
+  it('affiche les filtres appliqués en puces retirables', async () => {
+    parametres.next(convertToParamMap({ role: 'ORGANISME', ville: 'Thiès', recherche: 'tech' }));
+    route.snapshot.queryParams = { role: 'ORGANISME', ville: 'Thiès', recherche: 'tech', page: '2' };
+    creerComposant();
+    http.expectOne((req) => req.url === '/api/annuaire').flush(page());
+    await fixture.whenStable();
+
+    const puces = [...fixture.nativeElement.querySelectorAll('.puce-filtre')]
+      .map((puce) => (puce as HTMLElement).textContent?.trim());
+    expect(puces).toEqual(['« tech »', 'Type : Organismes', 'Ville : Thiès']);
+    expect(fixture.nativeElement.querySelector('.compte-filtres')?.textContent?.trim()).toBe('2');
+
+    (fixture.nativeElement.querySelectorAll('.puce-filtre')[2] as HTMLButtonElement).click();
+    expect(router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: route,
+      queryParams: { role: 'ORGANISME', recherche: 'tech' },
+      replaceUrl: true
+    });
   });
 
   it('affiche les alumni par défaut et permet d élargir à tous les membres', () => {
@@ -139,7 +226,8 @@ describe('Annuaire', () => {
 
     expect(router.navigate).toHaveBeenCalledWith([], {
       relativeTo: route,
-      queryParams: { role: 'TOUS' }
+      queryParams: { role: 'TOUS' },
+      replaceUrl: true
     });
   });
 
@@ -150,7 +238,7 @@ describe('Annuaire', () => {
       contenu: [{
         id: '1', nom: 'Sow', prenom: 'Ibrahima', role: 'ALUMNI', statutCompte: 'ACTIF',
         urlPhoto: null, posteActuel: null, villeResidence: null, filiere: null, anneeSortie: 2024,
-        organismeId: null
+        organismeId: null, typeOrganisme: null
       }],
       totalElements: 13,
       totalPages: 2
@@ -176,7 +264,7 @@ describe('Annuaire', () => {
       contenu: [{
         id: '1', nom: 'Sow', prenom: 'Ibrahima', role: 'ALUMNI', statutCompte: 'ACTIF',
         urlPhoto: null, posteActuel: null, villeResidence: null, filiere: null, anneeSortie: 2024,
-        organismeId: null
+        organismeId: null, typeOrganisme: null
       }],
       page: 20,
       totalElements: 500,
@@ -187,7 +275,7 @@ describe('Annuaire', () => {
     const pages = [...fixture.nativeElement.querySelectorAll('.pagination button:not([aria-label*="précédente"]):not([aria-label*="suivante"])')]
       .map((bouton) => (bouton as HTMLButtonElement).textContent?.trim());
     expect(pages).toEqual(['1', '20', '21', '22', '42']);
-    expect(fixture.nativeElement.querySelector('[aria-current="page"]')?.textContent.trim()).toBe('21');
+    expect(fixture.nativeElement.querySelector('.pagination [aria-current="page"]')?.textContent.trim()).toBe('21');
     expect(fixture.nativeElement.querySelectorAll('.pagination .ellipse')).toHaveLength(2);
   });
 

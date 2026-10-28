@@ -9,5 +9,7 @@ export interface AuthResponse {
   statutCompte: 'EN_ATTENTE' | 'ACTIF' | 'SUSPENDU';
   doitChangerMotDePasse: boolean;
   urlPhoto?: string | null;
-  message?: string
+  message?: string;
+  /** Permissions d’administration (absentes d’une session ouverte avant leur ajout : voir AuthService). */
+  permissions?: string[];
 }

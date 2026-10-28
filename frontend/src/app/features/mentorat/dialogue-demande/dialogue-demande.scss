@@ -1,0 +1,66 @@
+.dialogue {
+  width: min(100% - 2rem, 32rem);
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  color: var(--ept-primary-dark);
+  box-shadow: 0 20px 50px rgba(1, 46, 69, 0.25);
+
+  &::backdrop { background: rgba(1, 46, 69, 0.45); }
+}
+
+form { display: grid; gap: 1rem; padding: 1.25rem; }
+
+header {
+  position: relative;
+  padding-right: 2.5rem;
+
+  h2 { margin: 0; font-size: 1.25rem; }
+  p { margin: 0.2rem 0 0; color: var(--ept-text-secondary); font-size: 0.9rem; }
+  .programme { display: flex; gap: 0.4rem; align-items: baseline; color: var(--ept-gold-dark); font-weight: 600; }
+}
+
+.fermer {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ept-text-secondary);
+  cursor: pointer;
+
+  &:hover { background: var(--ept-bg); }
+}
+
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  label { font-size: 0.85rem; font-weight: 600; }
+  select, textarea { padding: 0.6rem 0.75rem; border: 1px solid var(--ept-border); border-radius: 8px; background: white; color: inherit; font: inherit; }
+  textarea { resize: vertical; }
+  [aria-invalid='true'] { border-color: var(--ept-error); }
+}
+
+.aide { color: var(--ept-text-secondary); font-size: 0.75rem; }
+.erreur-champ { color: var(--ept-error); font-size: 0.78rem; }
+.erreur-api { margin: 0; padding: 0.65rem 0.8rem; border-radius: 8px; background: var(--ept-error-light); color: var(--ept-error-dark); font-size: 0.86rem; }
+
+footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+
+  button { min-height: 2.6rem; padding: 0.55rem 1rem; border: 1px solid var(--ept-primary); border-radius: 8px; font: inherit; font-size: 0.88rem; font-weight: 700; cursor: pointer; }
+  .secondaire { background: white; color: var(--ept-primary); }
+  .principal { background: var(--ept-primary); color: white; &:disabled { opacity: 0.6; cursor: wait; } }
+}
+
+button:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }

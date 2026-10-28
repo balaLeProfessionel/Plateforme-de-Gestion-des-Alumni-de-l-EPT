@@ -1,0 +1,163 @@
+# Mentorat — catalogue des cas de test (étape 1)
+
+Périmètre : offre de mentorat, recherche de mentors, demandes et statuts, séances, évaluation,
+notifications, écrans Angular. Les programmes et jalons (étape 2) ne sont pas encore exposés.
+
+Chaque cas indique **où il est vérifié** :
+- `B:<Classe>.<méthode>` — test d'intégration backend (`backend/src/test/java/.../mentorat/`) ;
+- `F:<fichier>` — test Vitest frontend (`frontend/src/app/.../*.spec.ts`) ;
+- `Navigateur` — vérification manuelle dans le navigateur intégré (dernière passe : 21 oct. 2026).
+
+## Règles de référence
+
+| Sujet | Règle |
+|---|---|
+| Rôles | Tout **membre** (étudiant, alumni, personnel, visiteur) peut être mentor et mentoré ; organisme et admin non. |
+| Demandes en attente | Au plus **3** demandes sans réponse par personne, tous mentors confondus. |
+| Mentor visible | Compte `ACTIF`, e-mail vérifié, rôle membre, offre existante ; on ne se voit pas soi-même. |
+| Capacité | 1 à 10 mentorés acceptés en même temps (3 par défaut). |
+| Unicité | Une seule demande en cours (`EN_ATTENTE` ou `ACCEPTEE`) entre un étudiant et un mentor. |
+| Statuts | `EN_ATTENTE` → `ACCEPTEE` / `REFUSEE` / `ANNULEE` ; `ACCEPTEE` → `TERMINEE`. Les autres sont finaux. |
+| Qui agit | Accepter / refuser : le mentor. Annuler : l'étudiant (demande en attente). Terminer : l'un ou l'autre. |
+| Visibilité | Un mentorat n'existe (404) que pour ses deux participants. |
+| Séances | Planifier, déplacer, consigner, annuler : uniquement pendant un mentorat `ACCEPTEE`. Durée 15 à 240 min. |
+| Séance | `PLANIFIEE` → `REALISEE` (compte rendu possible, modifiable) ou `ANNULEE` (sans compte rendu, finale). Seule une séance `PLANIFIEE` se déplace (date, durée, modalité, lieu). |
+| Évaluation | Après `TERMINEE`, une par participant, note 1 à 5, commentaire ≤ 1000. |
+| Notifications | Envoyées après validation en base, à l'autre participant ; jamais pour une action refusée. |
+
+## Backend
+
+### Référentiel et offre (P)
+| ID | Cas | Attendu | Vérifié par |
+|---|---|---|---|
+| P01 | Lister les domaines | 10 domaines actifs, ordonnés, créés une seule fois | B:MentoratProfil.p01 |
+| P02 | Domaine désactivé | Absent de la liste, refusé dans une offre (400) | B:MentoratProfil.p02 |
+| P03 | Appel sans connexion | 403 | B:MentoratProfil.p03 |
+| P04 | Offre par un organisme ou un admin | 403 « Le mentorat est réservé aux membres… » | B:MentoratProfil.p04 (2 rôles) |
+| P05 | Première offre | `GET /profil` 404 puis offre créée avec ses valeurs | B:MentoratProfil.p05 |
+| P06 | Modifier l'offre | Même identifiant, domaines remplacés | B:MentoratProfil.p06 |
+| P07 | Présentation vide | Enregistrée comme absente | B:MentoratProfil.p07 |
+| P08 | Offre invalide : aucun domaine, capacité 0 ou 11, `disponible` ou domaines absents | 400 | B:MentoratProfil.p08 (5 variantes) |
+| P09 | 6 domaines, présentation > 600 | 400 avec message | B:MentoratProfil.p09 |
+| P10 | Domaine inconnu | 400 « Un des domaines choisis n'existe pas. » | B:MentoratProfil.p10 |
+| P10 | Offre par étudiant, alumni, personnel, visiteur | 200 ; visible dans la recherche avec son rôle, badge dans l'annuaire | B:MentoratProfil.p10 (4 rôles) |
+| P11 | Capacité sous le nombre de mentorés actifs | 409 ; égale au nombre : acceptée | B:MentoratProfil.p11 |
+
+### Recherche (R)
+| ID | Cas | Attendu | Vérifié par |
+|---|---|---|---|
+| R01 | Recherche par nom (casse ignorée) ou par poste | Mentor trouvé ; texte inconnu → 0 | B:MentoratProfil.r01 |
+| R02 | Filtres domaine et « disponibles uniquement » | Appliqués, combinables | B:MentoratProfil.r02 |
+| R03 | Tri | Disponibles d'abord, puis par nom | B:MentoratProfil.r03 |
+| R04 | Compte en attente, suspendu, non vérifié ; soi-même | Jamais affichés | B:MentoratProfil.r04 |
+| R05 | Places restantes et « demande en cours » | Suivent acceptation et clôture | B:MentoratProfil.r05 |
+| R06 | Pagination | `taille` 1–48, `page` ≥ 0, recherche ≤ 100 caractères ; découpage correct | B:MentoratProfil.r06 |
+| R07 | Données privées | Ni e-mail, ni téléphone, ni date de naissance | B:MentoratProfil.r07 |
+
+### Demandes (D)
+| ID | Cas | Attendu | Vérifié par |
+|---|---|---|---|
+| D01 | Demande valide | 201, `Location`, statut `EN_ATTENTE`, rôle `MENTORE` | B:MentoratDemandes.d01 |
+| D02 | Demande par un organisme ou un admin | 403 | B:MentoratDemandes.d02 (2 rôles) |
+| D03 | Mentor inconnu | 404 | B:MentoratDemandes.d03 |
+| D04 | Domaine hors de l'offre | 400 | B:MentoratDemandes.d04 |
+| D05 | Mentor complet ou indisponible | 409 | B:MentoratDemandes.d05 |
+| D06 | Deuxième demande au même mentor ; nouvelle demande après refus | 409 ; puis 201 | B:MentoratDemandes.d06 |
+| D07 | Plusieurs mentors différents | Autorisé | B:MentoratDemandes.d07 |
+| D08 | Objectif vide ou absent, identifiants absents ou mal formés | 400 | B:MentoratDemandes.d08 (5 variantes) |
+| D09 | Objectif > 1000 ; espaces autour | 400 ; texte nettoyé | B:MentoratDemandes.d09 |
+| D10 | Mentor dont le compte est suspendu ou non vérifié (appel direct à l'API) | 404, comme dans la recherche | B:MentoratDemandes.d10 |
+| D11 | Étudiant, alumni, personnel ou visiteur demande à un étudiant mentor | 201 ; rôles des deux participants exposés | B:MentoratDemandes.d11 (4 rôles) |
+| D12 | 4e demande en attente ; puis une est acceptée | 409 ; la 4e passe | B:MentoratDemandes.d12 |
+
+### Listes et compteur (L)
+| ID | Cas | Attendu | Vérifié par |
+|---|---|---|---|
+| L01 | Listes par rôle et par statuts | Chacun ne voit que ses mentorats | B:MentoratDemandes.l01 |
+| L02 | Rôle absent ou invalide | 400 | B:MentoratDemandes.l02 |
+| L03 | Compteurs : demandes reçues en attente, demandes envoyées en attente, limite | Suivent les acceptations ; limite 3 exposée | B:MentoratDemandes.l03 |
+
+### Changements de statut (T)
+| ID | Cas | Attendu | Vérifié par |
+|---|---|---|---|
+| T01 | Accepter : étudiant 403, tiers 404, mentor 200 + date de réponse | idem | B:MentoratDemandes.t01 |
+| T02 | Accepter au-delà de la capacité | 409 | B:MentoratDemandes.t02 |
+| T03 | Deux acceptations simultanées pour une seule place | Une 200, une 409, un seul mentoré | B:MentoratDemandes.t03 |
+| T04 | Refuser : motif nettoyé, motif vide → absent, motif > 500 → 400, étudiant → 403 | idem | B:MentoratDemandes.t04 |
+| T05 | Annuler : mentor 403 ; étudiant 200 + date ; demande acceptée → 409 | idem | B:MentoratDemandes.t05 |
+| T06 | Terminer : en attente 409 ; mentor et étudiant 200 ; tiers 404 | idem | B:MentoratDemandes.t06 |
+| T07 | Agir sur un statut final | 409 « …plus dans un état… » | B:MentoratDemandes.t07 |
+| T08 | Mentorat inconnu ; identifiant non UUID | 404 ; 400 | B:MentoratDemandes.t08 |
+
+### Détail, séances, évaluation (V, S, E)
+| ID | Cas | Attendu | Vérifié par |
+|---|---|---|---|
+| V01 | Détail par participants ; par un tiers | Rôle correct ; 404 | B:MentoratSuivi.v01 |
+| V02 | Données privées des participants | Absentes | B:MentoratSuivi.v02 |
+| S01 | Séance avant acceptation | 409 | B:MentoratSuivi.s01 |
+| S02 | Les deux planifient ; ordre ; tiers | 201, plus récente d'abord ; 404 | B:MentoratSuivi.s02 |
+| S03 | Durée 14 ou 241, date ou modalité absente/inconnue | 400 | B:MentoratSuivi.s03 (6 variantes) |
+| S04 | Durées 15 et 240 ; lieu > 500 | 201 ; 400 | B:MentoratSuivi.s04 |
+| S05 | Réalisée avec compte rendu, compte rendu modifié, puis annulation | 200, 200, 409 | B:MentoratSuivi.s05 |
+| S06 | Annulée avec compte rendu → 400 ; annulée puis tout changement → 409 | idem | B:MentoratSuivi.s06 |
+| S07 | Séance d'un autre mentorat ; compte rendu > 4000 | 404 ; 400 | B:MentoratSuivi.s07 |
+| S08 | Après clôture : planifier ou consigner | 409, séance inchangée | B:MentoratSuivi.s08 |
+| S09 | Déplacer une séance planifiée (l'un ou l'autre participant) ; durée invalide ; tiers | 200, lieu nettoyé, auteur inchangé ; 400 ; 404 | B:MentoratSuivi.s09 |
+| S10 | Déplacer une séance réalisée, annulée, inconnue, ou après clôture | 409, 404, 409 | B:MentoratSuivi.s10 |
+| E01 | Évaluer en attente ou en cours | 409 | B:MentoratSuivi.e01 |
+| E02 | Une évaluation par participant ; tiers ; `peutEvaluer` | 201, 409 au 2e essai, 404 ; drapeau mis à jour | B:MentoratSuivi.e02 |
+| E03 | Note 0, 6 ou absente | 400 | B:MentoratSuivi.e03 |
+| E04 | Commentaire > 1000 | 400 | B:MentoratSuivi.e04 |
+| E05 | Mentorat annulé | Pas d'évaluation | B:MentoratSuivi.e05 |
+
+### Notifications (N)
+| ID | Cas | Attendu | Vérifié par |
+|---|---|---|---|
+| N01 | Demande, acceptation, séance, déplacement, clôture | L'autre participant est prévenu | B:MentoratNotifications.n01 |
+| N02 | Refus (avec motif), annulation | Étudiant / mentor prévenu | B:MentoratNotifications.n02 |
+| N03 | Action refusée (403, 409) | Aucune notification | B:MentoratNotifications.n03 |
+
+## Frontend
+
+| ID | Cas | Vérifié par |
+|---|---|---|
+| F01 | Tout membre voit les deux groupes d'onglets (« Être accompagné », « Accompagner ») ; présentation pour organisme et admin | F:mentorat.spec |
+| F02 | Redirection de `/mentorat` (alumni : demandes reçues ; autres membres : recherche) ; onglets ouverts aux rôles membres | F:mentorat.spec |
+| F03 | Compteur dans l'onglet et dans la barre latérale (texte lu par les lecteurs d'écran) | F:mentorat.spec, F:espace-membre.spec |
+| F04 | Recherche : critères lus dans l'URL, filtre par domaine sans étape d'historique ; bandeau quand la limite de demandes en attente est atteinte | F:trouver-mentor.spec |
+| F05 | Carte : disponible, complet, indisponible, demande envoyée, limite de demandes atteinte ; domaines masqués ; initiales | F:carte-mentor.spec |
+| F06 | Fenêtre de demande : ouverture/fermeture, domaine présélectionné, objectif obligatoire, focus sur l'erreur | F:dialogue-demande.spec |
+| F07 | Fenêtre de demande : envoi nettoyé, erreur métier affichée sans perdre la saisie | F:dialogue-demande.spec, F:trouver-mentor.spec |
+| F08 | Listes : accepter, refuser avec motif, erreur « capacité atteinte », annuler | F:liste-mentorats.spec |
+| F09 | Mon offre : vierge, existante, 1 à 5 domaines, capacité 1 à 10, enregistrement, refus du serveur | F:mon-offre.spec |
+| F10 | Suivi : introuvable, participants, terminer avec confirmation, annuler, répondre, motif de refus | F:detail-mentorat.spec |
+| F11 | Séances : date obligatoire, format envoyé, libellé selon la modalité, consigner, annuler, déplacer (formulaire prérempli dans la frise), liens `https` uniquement | F:seances-mentorat.spec |
+| F14 | Agenda : fichier `.ics` (UTC, durée, lien, échappement, lignes de 75 octets), téléchargement nommé d'après la date | F:agenda-seance.spec, F:seances-mentorat.spec |
+| F12 | Évaluation : note obligatoire, envoi, ma note, note de l'autre, cas indisponible | F:evaluation-mentorat.spec |
+| F13 | Service HTTP : paramètres utiles seulement, statuts répétés, identifiants encodés, verbes | F:core/services/mentorat/mentorat.spec |
+
+## Vérifications dans le navigateur
+
+| ID | Cas | Résultat |
+|---|---|---|
+| M01 | Parcours étudiant complet : recherche, demande, suivi, séance, compte rendu, clôture, évaluation | OK |
+| M02 | Parcours mentor : offre (validation puis enregistrement), demandes reçues, refus motivé, acceptation, compteur | OK |
+| M03 | 375 px : aucun débordement horizontal, onglets en largeur égale, filtres sur une ligne défilante | OK |
+| M04 | AXE (WCAG 2.2 AA + bonnes pratiques) sur trouver, demandes, suivis, suivi, reçues, mentorés, offre, fenêtre de demande | 0 erreur dans le mentorat |
+| M05 | Dates en français (« 21 oct. 2026 ») | OK |
+| M06 | Notifications visibles dans les logs de l'API | OK |
+
+## Constats hors périmètre (corrigés le 21 oct. 2026)
+
+- Second `<main>` imbriqué dans celui de l'espace membre : Annuaire, Événements (liste, détail,
+  formulaire), Profil, Paramètres, Détail de parcours, Organisme → racine de page en `<div>`.
+- Contenu de la barre latérale PrimeNG hors région : `p-sidebar-aside` reçoit `role="complementary"`.
+- `--ept-text-secondary` passe de #5B7789 (4,48:1 sur le fond de page) à #536C7D (≥ 4,5:1 sur tous les fonds clairs).
+- Audit AXE de toutes les pages de l'espace membre en largeur bureau et du panneau « Menu » mobile : 0 erreur.
+
+## Navigation mobile
+
+| ID | Cas | Vérifié par |
+|---|---|---|
+| M07 | La barre du bas garde 4 entrées lisibles à 375 px ; Mentorat est dans le panneau « Menu », section « Rubriques » | F:navigation-mobile.spec, F:espace-membre.spec, Navigateur |
+| M08 | Le bouton Menu affiche les demandes en attente et devient page courante sur `/mentorat` | F:navigation-mobile.spec |

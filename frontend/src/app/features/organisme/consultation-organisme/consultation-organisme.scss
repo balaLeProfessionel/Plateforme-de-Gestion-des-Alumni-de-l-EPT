@@ -1,10 +1,8 @@
 .page-organisme { width: min(100% - 3rem, 1180px); margin: 0 auto; padding: 2rem 0 5rem; color: var(--ept-primary-dark); }
-.retour { display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; color: var(--ept-primary); font-weight: 700; text-decoration: none; }
-.retour:hover, .site-web:hover { text-decoration: underline; }
-.retour:focus-visible, .site-web:focus-visible, button:focus-visible { outline: 2px solid var(--ept-primary); outline-offset: 3px; }
+.site-web:hover { text-decoration: underline; }
+.site-web:focus-visible, button:focus-visible { outline: 2px solid var(--ept-primary); outline-offset: 3px; }
 .entete-organisme { display: flex; align-items: center; gap: 1.5rem; min-width: 0; padding: 1.75rem; border: 1px solid var(--ept-border); border-top: 4px solid var(--ept-primary); background: linear-gradient(110deg, #fff 0%, #fff 70%, #eef7fa 100%); }
-.logo { display: grid; flex: 0 0 8rem; place-items: center; width: 8rem; height: 8rem; overflow: hidden; border: 1px solid var(--ept-border); border-radius: 3px; background: var(--ept-primary-light); color: var(--ept-primary); font-family: var(--ept-font-heading); font-size: 1.75rem; font-weight: 700; }
-.logo img { width: 100%; height: 100%; object-fit: contain; }
+.logo { box-shadow: 0 0 0 1px var(--ept-border); }
 .identite { min-width: 0; }
 .sur-titre { margin: 0 0 0.5rem; color: var(--ept-primary); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
 .ligne-nom { display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; }
@@ -31,11 +29,11 @@ dd { margin: 0; overflow-wrap: anywhere; font-weight: 600; }
 .etat-centre h1, .etat-centre p { margin: 0; }
 .etat-centre button { margin-top: 0.5rem; padding: 0.65rem 1rem; border: 1px solid var(--ept-primary); background: white; color: var(--ept-primary); font: inherit; font-weight: 700; cursor: pointer; }
 @keyframes pulsation { to { opacity: 0.55; } }
-@media (max-width: 800px) { .grille-detail { grid-template-columns: 1fr; } }
+@media (max-width: 800px) { .grille-detail { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 520px) {
   .page-organisme { width: min(100% - 2rem, 1180px); padding-top: 1.5rem; }
   .entete-organisme { flex-direction: column; align-items: flex-start; padding: 1.25rem; }
-  .logo { flex-basis: 6rem; width: 6rem; height: 6rem; }
+  .logo { --taille: 6rem !important; }
   .ligne-nom h1 { font-size: 2rem; }
   .section-detail { padding: 1.2rem; }
 }

@@ -1,22 +1,21 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 
+import { AuthService } from '../../core/services/auth/auth-service';
 import { Accueil } from './accueil';
 
 describe('Accueil', () => {
-  let component: Accueil;
-  let fixture: ComponentFixture<Accueil>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  it('accueille le membre et signale un profil en cours de vérification', () => {
+    TestBed.configureTestingModule({
       imports: [Accueil],
-    }).compileComponents();
+      providers: [{ provide: AuthService, useValue: { utilisateur: signal({ role: 'ALUMNI', prenom: 'Awa', statutCompte: 'EN_ATTENTE' }) } }],
+    });
+    const fixture = TestBed.createComponent(Accueil);
+    fixture.detectChanges();
+    const racine = fixture.nativeElement as HTMLElement;
 
-    fixture = TestBed.createComponent(Accueil);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
+    expect(racine.querySelector('h1')?.textContent).toContain('Bienvenue Awa');
+    expect(racine.querySelector('.infos')?.textContent).toContain('Alumni');
+    expect(racine.querySelector('.badge-attente')).not.toBeNull();
   });
 });

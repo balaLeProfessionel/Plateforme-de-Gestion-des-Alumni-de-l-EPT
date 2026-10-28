@@ -34,6 +34,25 @@ describe('AuthService', () => {
     localStorage.clear();
   });
 
+  it('relit le compte sans perdre la session : une inscription validee retire le badge en attente', () => {
+    service.stocker({ ...utilisateur, statutCompte: 'EN_ATTENTE' });
+    service.resynchroniser();
+    http.expectOne('/api/auth/me').flush({ ...utilisateur, accessToken: null, refreshToken: null, statutCompte: 'ACTIF', permissions: [] });
+
+    expect(service.utilisateur()?.statutCompte).toBe('ACTIF');
+    expect(service.getToken()).toBe('access-token');
+    expect(JSON.parse(localStorage.getItem('auth_user') ?? '{}').statutCompte).toBe('ACTIF');
+  });
+
+  it('deduit les permissions du role pour une session ouverte avant leur ajout', () => {
+    service.stocker({ ...utilisateur, role: 'ADMIN' });
+    expect(service.aPermission('CONSULTER_JOURNAL')).toBe(true);
+    service.stocker({ ...utilisateur, role: 'ADMIN', permissions: ['GERER_COMPTES'] });
+    expect(service.aPermission('CONSULTER_JOURNAL')).toBe(false);
+    service.stocker(utilisateur);
+    expect(service.aPermission('GERER_COMPTES')).toBe(false);
+  });
+
   it('stocke la session apres connexion', () => {
     service.login(utilisateur.email, 'MotDePasse2026!').subscribe();
     http.expectOne('/api/auth/login').flush(utilisateur);

@@ -1,0 +1,34 @@
+<app-page-admin titre="Comptes" introduction="Retrouvez un compte, ouvrez sa fiche, suspendez-le ou réactivez-le.">
+  <div actionsPage class="actions-page">
+    <a class="action-page" routerLink="/admin/comptes/import"><i class="pi pi-upload" aria-hidden="true"></i>Importer une promotion</a>
+    <a class="action-page principale" routerLink="/admin/comptes/nouveau"><i class="pi pi-plus" aria-hidden="true"></i>Créer un compte</a>
+  </div>
+
+  <div class="filtres">
+    <div class="champ-recherche">
+      <label for="recherche-compte" class="sr-only">Rechercher un compte</label>
+      <i class="pi pi-search" aria-hidden="true"></i>
+      <input id="recherche-compte" type="search" autocomplete="off" placeholder="Nom, e-mail ou organisme"
+        [formField]="formulaire.recherche" aria-describedby="aide-recherche-compte"
+        (keydown.enter)="$event.preventDefault(); appliquerRecherche()" />
+      <span id="aide-recherche-compte" class="sr-only">Les résultats se mettent à jour automatiquement.</span>
+    </div>
+
+    <label for="role-compte" class="sr-only">Type de compte</label>
+    <select #choixRole id="role-compte" [value]="criteres().role ?? ''" (change)="choisirRole(choixRole.value)">
+      <option value="">Tous les types</option>
+      @for (role of roles; track role) { <option [value]="role">{{ libellesRole[role] }}</option> }
+    </select>
+  </div>
+
+  <div class="statuts" role="group" aria-label="Filtrer par statut">
+    @for (filtre of filtresStatut; track filtre.libelle) {
+      <button type="button" [attr.aria-pressed]="criteres().statut === filtre.valeur" (click)="choisirStatut(filtre.valeur)">
+        {{ filtre.libelle }}
+        @if (nombreParStatut()(filtre.valeur); as nombre) { <span class="nombre">{{ nombre }}</span> }
+      </button>
+    }
+  </div>
+
+  <app-liste-comptes [criteres]="criteres()" [page]="etat().page" (pageChange)="allerPage($event)" />
+</app-page-admin>

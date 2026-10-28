@@ -6,8 +6,14 @@ import { InputText } from 'primeng/inputtext';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { Profil, ProfilRequest } from '../../../core/services/models/profil.model';
 import { ProfilService } from '../../../core/services/profil/profil-service';
+import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
+import { AvatarMembre } from '../../../shared/images/avatar-membre';
+import { chargerImagePourRecadrage } from '../../../shared/images/charger-image';
+import { FORMAT_PHOTO_PROFIL } from '../../../shared/images/recadrage';
+import { RecadreurImage } from '../../../shared/images/recadreur-image';
 import { InfosPersonnelles } from '../composants/infos-personnelles/infos-personnelles';
 import { MessageSection } from '../composants/message-section.model';
+import { SectionParcours } from './section-parcours/section-parcours';
 
 interface ModeleMotDePasse {
   actuel: string;
@@ -17,7 +23,7 @@ interface ModeleMotDePasse {
 
 @Component({
   selector: 'app-parametres-profil',
-  imports: [FormField, InfosPersonnelles, InputText, RouterLink],
+  imports: [FormField, InfosPersonnelles, InputText, RouterLink, BoutonRetour, AvatarMembre, RecadreurImage, SectionParcours],
   templateUrl: './parametres-profil.html',
   styleUrl: './parametres-profil.scss'
 })
@@ -35,7 +41,9 @@ export class ParametresProfil implements OnDestroy {
   protected readonly erreurPhoto = signal<string | null>(null);
   protected readonly succesPhoto = signal<string | null>(null);
   protected readonly envoiPhoto = signal(false);
-  protected readonly imageInvalide = signal(false);
+  /** Photo en cours de recadrage, avant d'être retenue. */
+  protected readonly photoARecadrer = signal<HTMLImageElement | null>(null);
+  protected readonly formatPhoto = FORMAT_PHOTO_PROFIL;
   protected readonly envoiMotDePasse = signal(false);
   protected readonly messageMotDePasse = signal<MessageSection | null>(null);
   protected readonly afficherActuel = signal(false);
@@ -52,10 +60,6 @@ export class ParametresProfil implements OnDestroy {
     required(champ.confirmation, { message: 'Confirmez le nouveau mot de passe' });
   });
 
-  protected readonly initiales = computed(() => {
-    const profil = this.profil();
-    return profil ? `${profil.prenom.charAt(0)}${profil.nom.charAt(0)}`.toUpperCase() : '';
-  });
   protected readonly sourcePhoto = computed(() => this.apercuPhoto() ?? this.profil()?.urlPhoto ?? null);
   protected readonly typeMembre = computed(() => {
     const role = this.profil()?.role;
@@ -70,6 +74,7 @@ export class ParametresProfil implements OnDestroy {
 
   ngOnDestroy(): void {
     this.libererApercu();
+    this.fermerRecadrage();
   }
 
   protected charger(): void {
@@ -106,26 +111,33 @@ export class ParametresProfil implements OnDestroy {
     });
   }
 
-  protected choisirPhoto(event: Event): void {
+  /** La photo choisie passe par le recadrage carré : c'est le résultat recadré qui est envoyé. */
+  protected async choisirPhoto(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const fichier = input.files?.[0] ?? null;
+    input.value = '';
     this.erreurPhoto.set(null);
     this.succesPhoto.set(null);
     if (!fichier) return;
-    if (!['image/jpeg', 'image/png'].includes(fichier.type)) {
-      this.erreurPhoto.set('Choisissez une image JPEG ou PNG.');
-      input.value = '';
-      return;
+    try {
+      this.fermerRecadrage();
+      this.photoARecadrer.set(await chargerImagePourRecadrage(fichier, FORMAT_PHOTO_PROFIL));
+    } catch (erreur) {
+      this.erreurPhoto.set(erreur instanceof Error ? erreur.message : 'Cette photo ne peut pas être utilisée.');
     }
-    if (fichier.size > 5 * 1024 * 1024) {
-      this.erreurPhoto.set('La photo ne doit pas dépasser 5 Mo.');
-      input.value = '';
-      return;
-    }
+  }
+
+  protected appliquerRecadrage(fichier: File): void {
+    this.fermerRecadrage();
     this.libererApercu();
     this.fichierPhoto.set(fichier);
     this.apercuPhoto.set(URL.createObjectURL(fichier));
-    this.imageInvalide.set(false);
+  }
+
+  protected fermerRecadrage(): void {
+    const image = this.photoARecadrer();
+    if (image) URL.revokeObjectURL(image.src);
+    this.photoARecadrer.set(null);
   }
 
   protected annulerPhoto(): void {

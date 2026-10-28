@@ -1,0 +1,56 @@
+<dialog #dialogue class="dialogue" aria-labelledby="titre-demande" (close)="fermee.emit()">
+  @if (mentor(); as mentor) {
+    <form (submit)="envoyer($event)" novalidate>
+      <header>
+        <h2 id="titre-demande">Demander un mentorat</h2>
+        <p>à {{ mentor.prenom }} {{ mentor.nom }}</p>
+        @if (programme(); as programme) {
+          <p class="programme"><i class="pi pi-flag" aria-hidden="true"></i>Dans le cadre du programme « {{ programme.titre }} »</p>
+        }
+        <button type="button" class="fermer" aria-label="Fermer" (click)="fermer()">
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      @if (messageErreur(); as message) {
+        <p class="erreur-api" role="alert">{{ message }}</p>
+      }
+
+      <div class="champ">
+        <label for="demande-domaine">Domaine</label>
+        <select id="demande-domaine" [formField]="formulaire.domaineId"
+          [attr.aria-invalid]="formulaire.domaineId().touched() && formulaire.domaineId().invalid()"
+          aria-describedby="erreur-domaine">
+          <option value="" disabled>Choisir un domaine</option>
+          @for (domaine of mentor.domaines; track domaine.id) {
+            <option [value]="domaine.id">{{ domaine.libelle }}</option>
+          }
+        </select>
+        @if (formulaire.domaineId().touched() && formulaire.domaineId().errors()[0]; as erreur) {
+          <small id="erreur-domaine" class="erreur-champ">{{ erreur.message }}</small>
+        }
+      </div>
+
+      <div class="champ">
+        <label for="demande-objectif">Votre objectif</label>
+        <textarea id="demande-objectif" rows="5" [formField]="formulaire.objectif"
+          placeholder="Ex. Préparer mon stage de fin d’études en data engineering"
+          [attr.aria-invalid]="formulaire.objectif().touched() && formulaire.objectif().invalid()"
+          aria-describedby="aide-objectif erreur-objectif"></textarea>
+        <small id="aide-objectif" class="aide">
+          {{ modele().objectif.length }} / {{ longueurObjectif }} caractères
+        </small>
+        @if (formulaire.objectif().touched() && formulaire.objectif().errors()[0]; as erreur) {
+          <small id="erreur-objectif" class="erreur-champ">{{ erreur.message }}</small>
+        }
+      </div>
+
+      <footer>
+        <button type="button" class="secondaire" (click)="fermer()">Annuler</button>
+        <button type="submit" class="principal" [disabled]="envoiEnCours()">
+          {{ envoiEnCours() ? 'Envoi…' : 'Envoyer la demande' }}
+        </button>
+      </footer>
+    </form>
+  }
+</dialog>

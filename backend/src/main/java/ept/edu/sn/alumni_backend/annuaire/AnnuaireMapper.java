@@ -4,11 +4,12 @@ import org.springframework.stereotype.Component;
 
 import ept.edu.sn.alumni_backend.annuaire.dto.AnnuaireMembreResponse;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.mentorat.StatutMentor;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 
 @Component
 public class AnnuaireMapper {
-    public AnnuaireMembreResponse versResponse(Utilisateur utilisateur) {
+    public AnnuaireMembreResponse versResponse(Utilisateur utilisateur, StatutMentor mentor) {
         if (utilisateur.getRole() == TypeRole.ORGANISME
                 && utilisateur.getOrganisme() != null) {
             var organisme = utilisateur.getOrganisme();
@@ -23,7 +24,9 @@ public class AnnuaireMapper {
                 organisme.getAdresse() != null ? organisme.getAdresse() : organisme.getPays(),
                 null,
                 null,
-                organisme.getId()
+                organisme.getId(),
+                organisme.getTypeOrganisme() != null ? organisme.getTypeOrganisme().name() : null,
+                null
             );
         }
         return new AnnuaireMembreResponse(
@@ -37,7 +40,9 @@ public class AnnuaireMapper {
             utilisateur.getVilleResidence(),
             utilisateur.getFiliere(),
             utilisateur.getAnneeSortie(),
-            null
+            null,
+            null,
+            mentor
         );
     }
 }

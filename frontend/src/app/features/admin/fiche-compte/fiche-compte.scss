@@ -1,0 +1,50 @@
+.carte {
+  margin-bottom: 0.85rem; padding: 1rem 1.1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: white;
+  h2 { margin: 0 0 0.65rem; color: var(--ept-primary-dark); font-size: 1rem; }
+}
+
+.identite {
+  --statut-fond: var(--ept-success-light);
+  --statut-texte: var(--ept-success-dark);
+  display: flex; gap: 1.1rem;
+
+  // En attente : bordure bleue de la décision à prendre ; l’or reste sur la pastille de statut.
+  &[data-statut='EN_ATTENTE'] { --statut-fond: var(--ept-gold-light); --statut-texte: var(--ept-gold-dark); border-color: var(--ept-primary); }
+  &[data-statut='SUSPENDU'] { --statut-fond: var(--ept-error-light); --statut-texte: var(--ept-error-dark); }
+  .resume { display: grid; flex: 1; gap: 0.4rem; min-width: 0; }
+  p { margin: 0; }
+}
+.pastilles { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.role, .statut { padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
+.role { border: 1px solid var(--ept-border); color: var(--ept-primary); }
+.statut { background: var(--statut-fond); color: var(--statut-texte); }
+.meta { color: var(--ept-text-secondary); font-size: 0.85rem; }
+.motif { color: var(--ept-error-dark); font-size: 0.88rem; }
+
+/* Quatre sections : deux colonnes au plus, pour ne jamais laisser une carte seule sur sa ligne. */
+.sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: 0 0.85rem; }
+
+dl {
+  display: grid; grid-template-columns: minmax(6.5rem, auto) minmax(0, 1fr); gap: 0.45rem 0.85rem; margin: 0; font-size: 0.88rem;
+  dt { color: var(--ept-text-secondary); }
+  dd { margin: 0; color: var(--ept-primary-dark); overflow-wrap: break-word; }
+  dd.vide { color: var(--ept-text-secondary); font-style: italic; }
+  a { color: var(--ept-primary); }
+}
+.bio { margin: 0; color: var(--ept-primary-dark); line-height: 1.55; white-space: pre-line; }
+
+.lien-public {
+  display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.5rem; padding: 0.4rem 0.85rem;
+  border: 1px solid var(--ept-primary); border-radius: 8px; color: var(--ept-primary); font-size: 0.88rem; font-weight: 700; text-decoration: none;
+  &:hover { background: var(--ept-primary-light); }
+  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+}
+
+.annonce p {
+  margin: 0 0 0.85rem; padding: 0.6rem 0.9rem; border-radius: 8px;
+  background: var(--ept-success-light); color: var(--ept-success-dark); font-size: 0.9rem; font-weight: 600;
+  &.erreur { background: var(--ept-error-light); color: var(--ept-error-dark); }
+}
+
+@media (max-width: 560px) { .identite { flex-direction: column; } }
+.squelette.haute { min-height: 12rem; }

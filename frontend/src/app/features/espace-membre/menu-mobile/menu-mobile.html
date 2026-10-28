@@ -1,0 +1,34 @@
+<dialog #dialogue class="menu-mobile" id="menu-mobile" aria-labelledby="titre-menu-mobile"
+  (cancel)="fermer()" (close)="synchroniserFermeture()" (click)="fermerSurFond($event)"
+  (keydown)="garderFocusDansMenu($event)">
+  <header class="entete-menu">
+    <h2 id="titre-menu-mobile">Mon espace</h2>
+    <button type="button" class="fermer-menu" aria-label="Fermer le menu" autofocus (click)="fermer()">
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </header>
+  @if (lienProfil(); as destination) {
+    <a [routerLink]="destination" routerLinkActive="actif" [routerLinkActiveOptions]="{ exact: true }"
+      (click)="fermer()"><i class="pi pi-user" aria-hidden="true"></i>Mon profil</a>
+  }
+  @if (liens().length) {
+    <p class="titre-panneau">Rubriques</p>
+    @for (lien of liens(); track lien.route) {
+      <a [routerLink]="lien.route" routerLinkActive="actif" ariaCurrentWhenActive="page"
+        [routerLinkActiveOptions]="{ exact: lien.exact ?? false }" (click)="fermer()">
+        <i class="pi" [class]="'pi ' + lien.icone" aria-hidden="true"></i>{{ lien.libelle }}
+        @if (lien.compteur) {
+          <span class="compteur" aria-hidden="true">{{ lien.compteur }}</span>
+          <span class="sr-only">, {{ lien.compteur }} {{ lien.libelleCompteur ?? 'demandes en attente' }}</span>
+        }
+      </a>
+    }
+  }
+  <p class="titre-panneau">À découvrir bientôt</p>
+  @for (rubrique of rubriques(); track rubrique.libelle) {
+    <span class="rubrique-a-venir"><i class="pi" [class]="'pi ' + rubrique.icone" aria-hidden="true"></i>{{ rubrique.libelle }}</span>
+  }
+  <button type="button" class="deconnexion-menu" (click)="seDeconnecter()">
+    <i class="pi pi-sign-out" aria-hidden="true"></i>Déconnexion
+  </button>
+</dialog>

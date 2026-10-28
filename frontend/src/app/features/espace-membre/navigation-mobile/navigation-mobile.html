@@ -1,0 +1,19 @@
+<nav class="navigation-mobile" [class.menu-ouvert]="menuOuvert()" aria-label="Navigation mobile">
+  <a [routerLink]="lienAccueil()" routerLinkActive="actif" ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{ exact: true }"
+     (click)="fermerMenu()"><i class="pi pi-home" aria-hidden="true"></i><span>Accueil</span></a>
+  <a routerLink="/annuaire" routerLinkActive="actif" ariaCurrentWhenActive="page" (click)="fermerMenu()">
+    <i class="pi pi-users" aria-hidden="true"></i><span>Annuaire</span>
+  </a>
+  <a routerLink="/evenements" routerLinkActive="actif" ariaCurrentWhenActive="page" (click)="fermerMenu()">
+    <i class="pi pi-calendar" aria-hidden="true"></i><span>Événements</span>
+  </a>
+  <button type="button" [class.actif]="menuOuvert() || pageDuMenu()" [attr.aria-expanded]="menuOuvert()"
+          [attr.aria-current]="pageDuMenu() ? 'page' : null" aria-controls="menu-mobile"
+          aria-haspopup="dialog" (click)="basculerMenu()">
+    <i class="pi pi-bars" aria-hidden="true"></i><span>Menu</span>
+    @if (pastille().nombre > 0) {
+      <span class="pastille" aria-hidden="true">{{ pastille().nombre }}</span>
+      <span class="sr-only">, {{ pastille().nombre }} {{ pastille().libelle }}</span>
+    }
+  </button>
+</nav>

@@ -1,67 +1,49 @@
-@if (estOrganisme()) {
-  @if (membre().organismeId; as organismeId) {
-    <a class="carte-lien" [routerLink]="['/organismes', organismeId]"
-      [attr.aria-label]="'Voir les détails de ' + nomAffiche()">
-      <article class="carte carte-organisme">
-        <ng-container [ngTemplateOutlet]="contenuCarte" />
-      </article>
-    </a>
-  } @else {
-    <article class="carte carte-organisme">
-      <ng-container [ngTemplateOutlet]="contenuCarte" />
-    </article>
-  }
-} @else {
-  <a class="carte-lien" [routerLink]="['/profil', membre().id]"
-    [attr.aria-label]="'Consulter le profil de ' + nomAffiche()">
-    <article class="carte">
-      <ng-container [ngTemplateOutlet]="contenuCarte" />
-    </article>
+@if (lienProfil(); as lien) {
+  <a class="carte-lien" [routerLink]="lien"
+    [attr.aria-label]="libelleLien()">
+    <ng-container [ngTemplateOutlet]="carte" [ngTemplateOutletContext]="{ $implicit: true }" />
   </a>
+} @else {
+  <ng-container [ngTemplateOutlet]="carte" [ngTemplateOutletContext]="{ $implicit: false }" />
 }
 
-<ng-template #contenuCarte>
-  <div class="identite">
-    <div class="avatar" aria-hidden="true">
-      @if (membre().urlPhoto && !imageInvalide()) {
-        <img [src]="membre().urlPhoto" alt="" (error)="imageInvalide.set(true)" />
-      } @else {
-        <span>{{ initiales() }}</span>
-      }
+<ng-template #carte let-cliquable>
+  <article class="carte" [attr.data-role]="membre().role">
+    <div class="bandeau">
+      <span class="role">
+        <i class="pi" [class]="'pi ' + presentation().icone" aria-hidden="true"></i>{{ presentation().libelle }}
+      </span>
     </div>
 
-    <div class="nom-et-badge">
+    <app-avatar-membre class="avatar" [class.logo]="estOrganisme()" [urlPhoto]="membre().urlPhoto"
+      [prenom]="membre().prenom" [nom]="membre().nom" [roleMembre]="membre().role" [taille]="4.5" />
+
+    <div class="corps">
       <h2 [attr.title]="nomAffiche()">{{ nomAffiche() }}</h2>
-      @if (membre().anneeSortie || membre().filiere) {
-        <p class="parcours" [attr.title]="membre().filiere || null">
-          <i class="pi pi-graduation-cap" aria-hidden="true"></i>
-          @if (membre().anneeSortie) { <span>Promo {{ membre().anneeSortie }}</span> }
-          @if (membre().anneeSortie && membre().filiere) { <span aria-hidden="true">—</span> }
-          @if (membre().filiere) { <span>{{ membre().filiere }}</span> }
-        </p>
-      }
-      @if (badge(); as libelle) {
-        <span class="badge" [class.attente]="membre().statutCompte === 'EN_ATTENTE'">
-          {{ libelle }}
+
+      @if (membre().mentor; as mentor) {
+        <span class="mentor" [class.disponible]="mentor === 'DISPONIBLE'">
+          <i class="pi pi-sitemap" aria-hidden="true"></i>{{ mentor === 'DISPONIBLE' ? 'Mentor disponible' : 'Mentor' }}
         </span>
       }
-    </div>
-  </div>
 
-  <dl>
-    <div>
-      <dt>{{ estOrganisme() ? 'Secteur' : 'Poste' }}</dt>
-      <dd [class.non-renseigne]="!membre().posteActuel"
-          [attr.title]="membre().posteActuel || null">
-        {{ membre().posteActuel || 'Non renseigné' }}
-      </dd>
+      @if (enAttente()) {
+        <span class="attente"><i class="pi pi-clock" aria-hidden="true"></i>En attente de vérification</span>
+      }
+
+      @if (parcours(); as texte) {
+        <p class="parcours" [attr.title]="texte">{{ texte }}</p>
+      }
+      @if (activite(); as texte) {
+        <p class="activite" [attr.title]="texte">{{ texte }}</p>
+      }
+      @if (!parcours() && !activite()) {
+        <p class="activite a-completer">{{ estOrganisme() ? 'Fiche à compléter' : 'Profil à compléter' }}</p>
+      }
+
+      @if (cliquable) {
+        <span class="action" aria-hidden="true">{{ estOrganisme() ? 'Voir l’organisme' : 'Voir le profil' }}</span>
+      }
     </div>
-    <div>
-      <dt>Localisation</dt>
-      <dd [class.non-renseigne]="!membre().villeResidence"
-          [attr.title]="membre().villeResidence || null">
-        {{ membre().villeResidence || 'Non renseignée' }}
-      </dd>
-    </div>
-  </dl>
+  </article>
 </ng-template>

@@ -1,7 +1,10 @@
 package ept.edu.sn.alumni_backend.security;
 
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -49,9 +52,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public CorsConfigurationSource corsConfigurationSource(
+            @Value("${app.cors.allowed-origins:http://localhost:4200}") List<String> allowedOrigins) {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200"));
+        config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -62,9 +66,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http,
+            @Qualifier("corsConfigurationSource") CorsConfigurationSource corsSource) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .cors(cors -> cors.configurationSource(corsSource))
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
@@ -79,6 +84,11 @@ public class SecurityConfig {
                     "/api/auth/refresh"
                 ).permitAll()
                 .requestMatchers("/api/photos/**").permitAll()
+                .requestMatchers("/api/evenement-images/**").permitAll()
+                // Administration : chaque domaine exige sa permission (voir PermissionAdmin).
+                .requestMatchers("/api/admin/tableau-de-bord").hasAuthority(PermissionAdmin.CONSULTER_TABLEAU_DE_BORD.name())
+                .requestMatchers("/api/admin/journal/**", "/api/admin/journal").hasAuthority(PermissionAdmin.CONSULTER_JOURNAL.name())
+                .requestMatchers("/api/admin/comptes/**", "/api/admin/comptes").hasAuthority(PermissionAdmin.GERER_COMPTES.name())
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/organisme/me").hasRole("ORGANISME")
                 .requestMatchers("/api/formations/**", "/api/experiences/**")

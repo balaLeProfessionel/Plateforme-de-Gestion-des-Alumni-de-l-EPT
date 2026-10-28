@@ -1,10 +1,12 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Routes, Router } from '@angular/router';
 import {
   authGuard,
-  changementInitialRequisGuard,
+  changementInitialRequisGuard, accueilAdministrationGuard,
   changementInitialSeulementGuard,
   roleGuard
 } from './core/guards/auth.guard';
+import { titreProfil } from './features/profil/consultation-profil/titre-profil';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'connexion', pathMatch: 'full' },
@@ -113,7 +115,7 @@ export const routes: Routes = [
       {
         path: 'accueil',
         title: 'Accueil | EPT Alumni',
-        canActivate: [authGuard, changementInitialRequisGuard],
+        canActivate: [authGuard, changementInitialRequisGuard, accueilAdministrationGuard],
         loadComponent: () =>
           import('./features/accueil/accueil').then((m) => m.Accueil)
       },
@@ -123,6 +125,58 @@ export const routes: Routes = [
         canActivate: [authGuard, changementInitialRequisGuard],
         loadComponent: () =>
           import('./features/annuaire/annuaire').then((m) => m.Annuaire)
+      },
+      {
+        path: 'evenements',
+        title: 'Événements | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/evenements/liste-evenements/liste-evenements').then(
+            (m) => m.ListeEvenements
+          )
+      },
+      {
+        path: 'evenements/creer',
+        title: 'Créer un événement | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/evenements/formulaire-evenement/formulaire-evenement').then(
+            (m) => m.FormulaireEvenement
+          )
+      },
+      {
+        path: 'evenements/mes-evenements',
+        redirectTo: (route) => inject(Router).createUrlTree(['/evenements'], {
+          queryParams: { ...route.queryParams, vue: 'mes' }
+        })
+      },
+      {
+        path: 'evenements/:id/modifier',
+        title: 'Modifier un événement | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/evenements/formulaire-evenement/formulaire-evenement').then(
+            (m) => m.FormulaireEvenement
+          )
+      },
+      {
+        path: 'evenements/:id',
+        title: 'Détail de l’événement | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/evenements/detail-evenement/detail-evenement').then(
+            (m) => m.DetailEvenement
+          )
+      },
+      {
+        path: 'mentorat',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadChildren: () => import('./features/mentorat/mentorat.routes').then((m) => m.MENTORAT_ROUTES)
+      },
+      {
+        path: 'admin',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES)
       },
       {
         path: 'organismes/:id',
@@ -145,7 +199,7 @@ export const routes: Routes = [
       },
       {
         path: 'profil/parametres',
-        title: 'Paramètres du profil | EPT Alumni',
+        title: 'Modifier mon profil | EPT Alumni',
         canActivate: [authGuard, changementInitialRequisGuard, roleGuard],
         data: { roles: ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'] },
         loadComponent: () =>
@@ -154,28 +208,20 @@ export const routes: Routes = [
           )
       },
       {
+        // Ancienne page de détail : le profil s’ouvre avec la fenêtre de l’étape (les liens partagés restent valides).
         path: 'profil/:id/experience/:parcoursId',
-        title: 'Détail de l’expérience | EPT Alumni',
-        canActivate: [authGuard, changementInitialRequisGuard],
-        data: { typeParcours: 'experience' },
-        loadComponent: () =>
-          import('./features/profil/detail-parcours/detail-parcours').then(
-            (m) => m.DetailParcours
-          )
+        redirectTo: ({ params }) =>
+          inject(Router).createUrlTree(['/profil', params['id']], { queryParams: { experience: params['parcoursId'] } })
       },
       {
+        // Ancienne page de détail : le profil s’ouvre avec la fenêtre de l’étape (les liens partagés restent valides).
         path: 'profil/:id/formation/:parcoursId',
-        title: 'Détail de la formation | EPT Alumni',
-        canActivate: [authGuard, changementInitialRequisGuard],
-        data: { typeParcours: 'formation' },
-        loadComponent: () =>
-          import('./features/profil/detail-parcours/detail-parcours').then(
-            (m) => m.DetailParcours
-          )
+        redirectTo: ({ params }) =>
+          inject(Router).createUrlTree(['/profil', params['id']], { queryParams: { formation: params['parcoursId'] } })
       },
       {
         path: 'profil/:id',
-        title: 'Profil membre | EPT Alumni',
+        title: titreProfil,
         canActivate: [authGuard, changementInitialRequisGuard],
         loadComponent: () =>
           import('./features/profil/consultation-profil/consultation-profil').then(

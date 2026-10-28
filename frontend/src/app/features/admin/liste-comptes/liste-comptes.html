@@ -1,0 +1,49 @@
+<div class="annonce" role="status">
+  @if (annonce(); as message) {
+    <p [class.erreur]="message.erreur">
+      <i class="pi" [class]="message.erreur ? 'pi pi-exclamation-circle' : 'pi pi-check-circle'" aria-hidden="true"></i>
+      {{ message.texte }}
+      @if (enSursis()) {
+        <button type="button" (click)="annulerValidation()">Annuler</button>
+      }
+    </p>
+  }
+</div>
+
+<div aria-live="polite" [attr.aria-busy]="enChargement()">
+  @if (enChargement() && !resultat()) {
+    <div class="liste" aria-hidden="true">
+      @for (item of [1, 2, 3]; track item) { <div class="squelette"></div> }
+    </div>
+  } @else if (messageErreur(); as message) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Chargement impossible</h2>
+      <p>{{ message }}</p>
+    </div>
+  } @else if (resultat(); as page) {
+    @if (comptes().length === 0) {
+      <div #etat class="etat" tabindex="-1">
+        <i class="pi pi-check-circle" aria-hidden="true"></i>
+        <h2>{{ titreVide() }}</h2>
+        <p>{{ texteVide() }}</p>
+      </div>
+    } @else {
+      <p #resume class="resume" tabindex="-1">
+        <strong>{{ total() }}</strong> {{ total() > 1 ? 'comptes' : 'compte' }}
+        @if (page.totalPages > 1) { · page {{ page.page + 1 }} sur {{ page.totalPages }} }
+      </p>
+      <ul class="liste" [class.actualisation]="enChargement()">
+        @for (compte of comptes(); track compte.id; let index = $index) {
+          <li>
+            <app-ligne-compte [compte]="compte" (validationDemandee)="demanderValidation(compte, index)"
+              (modifie)="surModification(compte, index, $event)" />
+          </li>
+        }
+      </ul>
+    }
+
+    <app-pagination-admin [page]="page.page" [totalPages]="page.totalPages" libelle="Pagination des comptes"
+      (changer)="changerPage($event)" />
+  }
+</div>

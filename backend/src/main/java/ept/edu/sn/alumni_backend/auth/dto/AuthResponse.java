@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.auth.dto;
 
+import java.util.List;
 import java.util.UUID;
 
 public record AuthResponse(
@@ -12,5 +13,8 @@ public record AuthResponse(
     String role,
     String statutCompte,
     boolean doitChangerMotDePasse,
-    String message
+    String urlPhoto,
+    String message,
+    /** Permissions d'administration (vide pour un membre) : le frontend affiche les rubriques permises. */
+    List<String> permissions
 ) { }

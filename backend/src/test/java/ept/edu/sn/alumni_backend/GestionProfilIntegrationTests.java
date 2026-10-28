@@ -5,6 +5,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -23,11 +24,13 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.security.RefreshTokenRepository;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
@@ -44,6 +47,10 @@ class GestionProfilIntegrationTests {
     private UtilisateurRepository utilisateurRepository;
     @Autowired
     private StockagePhotoProfil stockagePhoto;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
 
     private Utilisateur utilisateur;
 
@@ -125,12 +132,37 @@ class GestionProfilIntegrationTests {
                 .with(authentication(authentification())))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.urlPhoto").value(org.hamcrest.Matchers.matchesPattern(
-                "/api/photos/[0-9a-f-]{36}\\.png"
+                "/api/photos/[0-9a-f-]{36}\\.jpg"
             )));
 
         mockMvc.perform(delete("/api/profil/me/photo").with(authentication(authentification())))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.urlPhoto").doesNotExist());
+    }
+
+    @Test
+    void renvoieLaPhotoALaConnexionPourLAvatarDeNavigation() throws Exception {
+        utilisateur.setPassword(passwordEncoder.encode("MotDePasse123!"));
+        utilisateur = utilisateurRepository.save(utilisateur);
+        String reponse = mockMvc.perform(multipart("/api/profil/me/photo")
+                .file(new MockMultipartFile("photo", "portrait.png", "image/png", imagePng()))
+                .with(authentication(authentification())))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
+        String urlPhoto = extraireUrlPhoto(reponse);
+
+        try {
+            mockMvc.perform(post("/api/auth/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"email\":\"profil@example.com\",\"password\":\"MotDePasse123!\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.urlPhoto").value(urlPhoto));
+        } finally {
+            // La connexion crée un refresh token qui bloquerait le nettoyage des autres classes de test.
+            refreshTokenRepository.deleteAll();
+            mockMvc.perform(delete("/api/profil/me/photo").with(authentication(authentification())))
+                .andExpect(status().isOk());
+        }
     }
 
     @Test
@@ -180,10 +212,10 @@ class GestionProfilIntegrationTests {
     }
 
     private byte[] imagePng() throws Exception {
-        BufferedImage image = new BufferedImage(40, 40, BufferedImage.TYPE_INT_RGB);
+        BufferedImage image = new BufferedImage(240, 240, BufferedImage.TYPE_INT_RGB);
         var graphics = image.createGraphics();
         graphics.setColor(Color.BLUE);
-        graphics.fillRect(0, 0, 40, 40);
+        graphics.fillRect(0, 0, 240, 240);
         graphics.dispose();
         ByteArrayOutputStream sortie = new ByteArrayOutputStream();
         ImageIO.write(image, "png", sortie);

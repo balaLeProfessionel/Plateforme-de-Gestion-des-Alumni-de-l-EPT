@@ -37,3 +37,4 @@ Thumbs.db
 !.env.example
 !.env.*.example
 .docker-compose.yml
+/.local/codespaces/

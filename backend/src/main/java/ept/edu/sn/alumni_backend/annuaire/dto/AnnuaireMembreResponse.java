@@ -2,6 +2,8 @@ package ept.edu.sn.alumni_backend.annuaire.dto;
 
 import java.util.UUID;
 
+import ept.edu.sn.alumni_backend.mentorat.StatutMentor;
+
 public record AnnuaireMembreResponse(
     UUID id,
     String nom,
@@ -13,5 +15,8 @@ public record AnnuaireMembreResponse(
     String villeResidence,
     String filiere,
     Integer anneeSortie,
-    UUID organismeId
+    UUID organismeId,
+    String typeOrganisme,
+    /** null quand le membre ne propose pas de mentorat. */
+    StatutMentor mentor
 ) {}

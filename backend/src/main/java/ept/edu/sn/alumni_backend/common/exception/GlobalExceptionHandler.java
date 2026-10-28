@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -13,10 +14,19 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
+import ept.edu.sn.alumni_backend.admin.exception.CompteIntrouvableException;
+import ept.edu.sn.alumni_backend.admin.exception.ConflitCompteException;
 import ept.edu.sn.alumni_backend.auth.exception.EmailDejaUtiliseException;
 import ept.edu.sn.alumni_backend.auth.exception.NomOrganismeManquantException;
 import ept.edu.sn.alumni_backend.auth.exception.RoleNonAutoriseException;
 import ept.edu.sn.alumni_backend.auth.exception.TokenInvalideException;
+import ept.edu.sn.alumni_backend.evenement.exception.EvenementIntrouvableException;
+import ept.edu.sn.alumni_backend.evenement.exception.ImageEvenementIntrouvableException;
+import ept.edu.sn.alumni_backend.evenement.exception.StockageImageEvenementException;
+import ept.edu.sn.alumni_backend.evenement.exception.CapaciteEvenementAtteinteException;
+import ept.edu.sn.alumni_backend.evenement.exception.LimiteCreationEvenementAtteinteException;
+import ept.edu.sn.alumni_backend.mentorat.exception.ConflitMentoratException;
+import ept.edu.sn.alumni_backend.mentorat.exception.MentoratIntrouvableException;
 import ept.edu.sn.alumni_backend.organisme.exception.OrganismeIntrouvableException;
 import ept.edu.sn.alumni_backend.utilisateur.exception.ProfilIntrouvableException;
 import ept.edu.sn.alumni_backend.utilisateur.photo.PhotoIntrouvableException;
@@ -93,6 +103,56 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
     }
 
+    @ExceptionHandler(EvenementIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> handleEvenementIntrouvable(EvenementIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ImageEvenementIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> handleImageEvenementIntrouvable(ImageEvenementIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(StockageImageEvenementException.class)
+    public ResponseEntity<Map<String, String>> handleStockageImageEvenement(StockageImageEvenementException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(LimiteCreationEvenementAtteinteException.class)
+    public ResponseEntity<Map<String, String>> handleLimiteCreationEvenement(
+            LimiteCreationEvenementAtteinteException e) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(CapaciteEvenementAtteinteException.class)
+    public ResponseEntity<Map<String, String>> handleCapaciteEvenementAtteinte(
+            CapaciteEvenementAtteinteException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(MentoratIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> handleMentoratIntrouvable(MentoratIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler({ConflitMentoratException.class, ObjectOptimisticLockingFailureException.class})
+    public ResponseEntity<Map<String, String>> handleConflitMentorat(RuntimeException e) {
+        String message = e instanceof ConflitMentoratException
+            ? e.getMessage()
+            : "Ces informations viennent d'être modifiées. Rechargez la page et réessayez.";
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", message));
+    }
+
+    @ExceptionHandler(CompteIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> gererCompteIntrouvable(CompteIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ConflitCompteException.class)
+    public ResponseEntity<Map<String, String>> gererConflitCompte(ConflitCompteException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+    }
+
     @ExceptionHandler(PhotoIntrouvableException.class)
     public ResponseEntity<Map<String, String>> handlePhotoIntrouvable(PhotoIntrouvableException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
@@ -106,7 +166,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Map<String, String>> handlePhotoTropGrande() {
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
-            .body(Map.of("message", "La photo ne doit pas dépasser 5 Mo."));
+            .body(Map.of("message", "Le fichier ne doit pas dépasser la taille maximale autorisée."));
     }
 
     @ExceptionHandler(SecurityException.class)

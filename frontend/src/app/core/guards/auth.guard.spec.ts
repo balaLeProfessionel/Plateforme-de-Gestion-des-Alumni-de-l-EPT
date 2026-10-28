@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router, UrlTree } from '@angular/router';
 import {
+  accueilAdministrationGuard,
   authGuard,
+  permissionGuard,
   changementInitialRequisGuard,
   changementInitialSeulementGuard,
   roleGuard
@@ -20,7 +22,8 @@ describe('gardes d authentification', () => {
           provide: AuthService,
           useValue: {
             estConnecte: () => utilisateur !== null,
-            utilisateur: () => utilisateur
+            utilisateur: () => utilisateur,
+            aPermission: (permission: string) => ((utilisateur?.['permissions'] as string[] | undefined) ?? []).includes(permission)
           }
         }
       ]
@@ -30,6 +33,20 @@ describe('gardes d authentification', () => {
   function executer(garde: (...args: never[]) => unknown, route: object = {}): unknown {
     return TestBed.runInInjectionContext(() => garde(route as never, {} as never));
   }
+
+  it('exige la permission de la rubrique d administration', () => {
+    utilisateur = { role: 'ADMIN', permissions: ['GERER_COMPTES'] };
+    expect(executer(permissionGuard, { data: { permission: 'GERER_COMPTES' } })).toBe(true);
+    const refus = executer(permissionGuard, { data: { permission: 'CONSULTER_JOURNAL' } }) as UrlTree;
+    expect(TestBed.inject(Router).serializeUrl(refus)).toBe('/annuaire');
+  });
+
+  it('ouvre le tableau de bord a la place de l accueil pour l administration', () => {
+    utilisateur = { role: 'ADMIN', permissions: ['CONSULTER_TABLEAU_DE_BORD'] };
+    expect(TestBed.inject(Router).serializeUrl(executer(accueilAdministrationGuard) as UrlTree)).toBe('/admin');
+    utilisateur = { role: 'ALUMNI', permissions: [] };
+    expect(executer(accueilAdministrationGuard)).toBe(true);
+  });
 
   it('redirige un visiteur non connecte vers la connexion', () => {
     const resultat = executer(authGuard) as UrlTree;
