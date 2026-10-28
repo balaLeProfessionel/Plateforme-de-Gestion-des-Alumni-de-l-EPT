@@ -158,9 +158,11 @@ describe('SeancesMentorat', () => {
     bouton('Ajouter à mon agenda')?.click();
 
     expect(clic).toHaveBeenCalledOnce();
-    const fichier = creerUrl.mock.calls[0][0] as Blob;
-    expect(fichier.type).toBe('text/calendar;charset=utf-8');
-    expect(await fichier.text()).toContain('SUMMARY:Mentorat Data & IA avec Awa Thiam');
+    const fichier = creerUrl.mock.calls
+      .map(([blob]) => blob as Blob)
+      .find((blob) => blob.type === 'text/calendar;charset=utf-8');
+    expect(fichier).toBeDefined();
+    expect(await fichier!.text()).toContain('SUMMARY:Mentorat Data & IA avec Awa Thiam');
     expect(revoquer).toHaveBeenCalledWith('blob:seance');
     vi.restoreAllMocks();
   });

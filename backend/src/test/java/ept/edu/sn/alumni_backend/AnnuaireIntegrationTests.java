@@ -27,6 +27,8 @@ import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeOrganisme;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.evenement.repository.EvenementRepository;
+import ept.edu.sn.alumni_backend.evenement.repository.ParticipationEvenementRepository;
 import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
 import ept.edu.sn.alumni_backend.organisme.repository.OrganismeRepository;
 import ept.edu.sn.alumni_backend.security.JwtService;
@@ -50,6 +52,12 @@ class AnnuaireIntegrationTests {
     private OrganismeRepository organismeRepository;
 
     @Autowired
+    private EvenementRepository evenementRepository;
+
+    @Autowired
+    private ParticipationEvenementRepository participationEvenementRepository;
+
+    @Autowired
     private MockMvc mockMvc;
 
     @Autowired
@@ -57,6 +65,8 @@ class AnnuaireIntegrationTests {
 
     @BeforeEach
     void preparerUtilisateurs() {
+        participationEvenementRepository.deleteAll();
+        evenementRepository.deleteAll();
         utilisateurRepository.deleteAll();
         utilisateurRepository.saveAll(List.of(
             utilisateur("Awa", "Diop", TypeRole.ETUDIANT, StatutCompte.ACTIF, true, "Thiès", GIT, 2025),
