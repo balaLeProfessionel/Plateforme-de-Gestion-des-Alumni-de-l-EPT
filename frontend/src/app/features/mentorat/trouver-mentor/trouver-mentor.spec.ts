@@ -44,15 +44,23 @@ describe('TrouverMentor', () => {
 
   afterEach(() => http.verify());
 
-  it('signale les programmes ouverts par un bandeau qui mène à leur page', async () => {
-    demarrer({}, [unProgramme({ id: 'p1', titre: 'Orientation lycée 2026', statut: 'OUVERT' })]);
+  it('présente les programmes ouverts dans des cartes accessibles menant à leur page', async () => {
+    demarrer({}, [
+      unProgramme({ id: 'p1', titre: 'Orientation lycée 2026', statut: 'OUVERT' }),
+      unProgramme({ id: 'p2', titre: 'Femmes ingénieures : leadership et carrière', description: 'Un accompagnement pour faire progresser sa carrière.', statut: 'OUVERT' }),
+    ]);
     http.expectOne((req) => req.url === '/api/mentorat/mentors').flush(page([]));
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const bandeau = fixture.nativeElement.querySelector('.programmes') as HTMLElement;
-    expect(bandeau.textContent).toContain('Programme ouvert');
-    expect(bandeau.querySelector('a')?.getAttribute('href')).toBe('/mentorat/programmes/p1');
+    const section = fixture.nativeElement.querySelector('.programmes') as HTMLElement;
+    const cartes = [...section.querySelectorAll<HTMLAnchorElement>('.carte-programme')];
+    expect(section.querySelector('h2')?.textContent).toContain('Programmes ouverts');
+    expect(section.querySelector('.compte-programmes')?.textContent).toContain('2 programmes');
+    expect(cartes).toHaveLength(2);
+    expect(cartes[0].getAttribute('href')).toBe('/mentorat/programmes/p1');
+    expect(cartes[1].textContent).toContain('Un accompagnement pour faire progresser sa carrière.');
+    expect(cartes[1].textContent).toContain('Découvrir le programme');
   });
 
   it('prévient quand la limite de demandes en attente est atteinte et bloque les cartes', async () => {

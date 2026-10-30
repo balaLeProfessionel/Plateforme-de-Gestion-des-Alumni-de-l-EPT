@@ -135,17 +135,79 @@
 }
 
 .programmes {
-  display: flex;
-  gap: 0.6rem;
-  margin: 0 0 1rem;
-  padding: 0.7rem 1rem;
-  border-radius: 10px;
-  background: var(--ept-primary-light);
-  color: var(--ept-primary-dark);
-  font-size: 0.9rem;
+  margin: 0 0 1.5rem;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  border: 1px solid var(--ept-border);
+  border-top: 4px solid var(--ept-primary);
+  background: var(--ept-surface);
+}
 
-  i { margin-top: 0.2rem; color: var(--ept-primary); }
-  p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
-  a { color: var(--ept-primary); font-weight: 700; }
-  a:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+.entete-programmes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.intro-programmes { display: flex; align-items: center; gap: 0.8rem; min-width: 0; }
+.icone-programmes {
+  display: grid;
+  flex: 0 0 2.75rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  background: var(--ept-primary-light);
+  color: var(--ept-primary);
+}
+.surtitre-programmes { margin: 0 0 0.15rem; color: var(--ept-text-secondary); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+.intro-programmes h2 { margin: 0; color: var(--ept-primary-dark); font-size: clamp(1.1rem, 1.5vw, 1.35rem); }
+.aide-programmes { margin: 0.2rem 0 0; color: var(--ept-text-secondary); font-size: 0.86rem; }
+.compte-programmes { flex: 0 0 auto; padding: 0.35rem 0.65rem; border: 1px solid var(--ept-border); color: var(--ept-primary-dark); font-size: 0.8rem; font-weight: 700; }
+
+.grille-programmes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > li { min-width: 0; }
+}
+
+.carte-programme {
+  display: flex;
+  min-height: 10rem;
+  height: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--ept-border);
+  background: var(--ept-surface);
+  text-decoration: none;
+
+  &:hover { border-color: var(--ept-primary); background: var(--ept-primary-light); }
+  &:focus-visible { outline: 3px solid var(--ept-sky); outline-offset: 2px; }
+}
+
+.etiquette-programme, .action-programme { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; font-weight: 700; }
+.etiquette-programme { color: var(--ept-text-secondary); }
+.titre-programme, .description-programme { display: -webkit-box; width: 100%; overflow: hidden; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.titre-programme { margin-top: 0.55rem; color: var(--ept-primary); font-size: 0.98rem; font-weight: 700; line-height: 1.35; }
+.description-programme { margin-top: 0.4rem; color: var(--ept-text-secondary); font-size: 0.82rem; line-height: 1.45; }
+.action-programme { margin-top: auto; padding-top: 0.75rem; color: var(--ept-primary); }
+
+@media (max-width: 900px) {
+  .grille-programmes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 560px) {
+  .programmes { padding: 0.9rem; }
+  .icone-programmes { flex-basis: 2.4rem; width: 2.4rem; height: 2.4rem; }
+  .aide-programmes { font-size: 0.8rem; }
+  .compte-programmes { margin-left: 3.2rem; }
+  .grille-programmes { grid-template-columns: minmax(0, 1fr); gap: 0.6rem; }
+  .carte-programme { min-height: 8.5rem; }
 }
