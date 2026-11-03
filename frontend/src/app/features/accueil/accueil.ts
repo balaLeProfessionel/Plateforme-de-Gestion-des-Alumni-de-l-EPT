@@ -9,6 +9,9 @@ import { AuthService } from '../../core/services/auth/auth-service';
 import { AvatarMembre } from '../../shared/images/avatar-membre';
 import { EtatPublicationCreee } from '../publications/creation-publication/creation-publication';
 
+/** Nombre de cartes après lesquelles une même raison de suggestion peut réapparaître. */
+const ESPACEMENT_RAISON = 3;
+
 /**
  * Fil d’actualité personnalisé : publications, événements et programmes classés par l’API selon ce qui
  * rapproche le membre de leurs auteurs (promotion, filière, organismes, réactions) et leur fraîcheur.
@@ -25,6 +28,22 @@ export class Accueil {
   protected readonly suiteEnCours = signal(false);
   protected readonly erreurSuite = signal(false);
   protected readonly derniere = signal(true);
+  /**
+   * Raisons à montrer : une même raison n’est pas répétée sur les trois cartes qui suivent celle où elle
+   * vient d’apparaître, pour que la mention reste informative quand un signal domine tout le fil.
+   */
+  protected readonly raisons = computed(() => {
+    const affichees = new Map<string, string>();
+    const derniereApparition = new Map<string, number>();
+    this.cartes().forEach((carte, index) => {
+      if (!carte.raison) return;
+      const precedente = derniereApparition.get(carte.raison);
+      if (precedente !== undefined && index - precedente <= ESPACEMENT_RAISON) return;
+      affichees.set(cleCarte(carte), carte.raison);
+      derniereApparition.set(carte.raison, index);
+    });
+    return affichees;
+  });
   private page = 0;
   private reference: string | null = null;
   protected readonly moi = inject(AuthService).utilisateur;

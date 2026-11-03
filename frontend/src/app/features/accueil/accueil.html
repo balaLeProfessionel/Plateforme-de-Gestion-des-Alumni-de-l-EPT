@@ -20,9 +20,9 @@
       <ul class="cartes">
         @for (carte of cartes(); track cle(carte)) {
           <li>
-            @if (carte.raison) {
+            @if (raisons().get(cle(carte)); as raison) {
               <p class="raison"><i class="pi pi-star" aria-hidden="true"></i>
-                <span class="visuellement-cache">Suggéré pour vous : </span>{{ carte.raison }}</p>
+                <span class="visuellement-cache">Suggéré pour vous : </span>{{ raison }}</p>
             }
             @switch (carte.type) {
               @case ('PUBLICATION') { <app-carte-publication [publication]="carte.publication" /> }

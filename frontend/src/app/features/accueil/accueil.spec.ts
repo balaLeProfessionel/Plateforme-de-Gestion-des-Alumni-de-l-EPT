@@ -75,6 +75,22 @@ describe('Accueil', () => {
     expect(racine.querySelector('.suite')).toBeNull();
   });
 
+  it('ne répète pas la même raison sur les cartes qui se suivent', async () => {
+    const fixture = TestBed.createComponent(Accueil);
+    fixture.detectChanges();
+    const suivie = (id: string, raison: string | null) =>
+      ({ type: 'PUBLICATION', raison, publication: { ...PUBLICATION, id, contenu: id } });
+    repondre([suivie('p1', 'Vous réagissez souvent à ses publications'), suivie('p2', 'Vous réagissez souvent à ses publications'),
+      suivie('p3', 'De votre promotion 2020'), suivie('p4', 'Vous réagissez souvent à ses publications'),
+      suivie('p5', 'Vous réagissez souvent à ses publications')]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const raisons = [...(fixture.nativeElement as HTMLElement).querySelectorAll('.cartes > li')]
+      .map((li) => li.querySelector('.raison')?.textContent?.replace('Suggéré pour vous :', '').trim() ?? null);
+    expect(raisons).toEqual(['Vous réagissez souvent à ses publications', null, 'De votre promotion 2020', null,
+      'Vous réagissez souvent à ses publications']);
+  });
+
   it('signale une erreur de chargement et permet de réessayer', async () => {
     const fixture = TestBed.createComponent(Accueil);
     fixture.detectChanges();
