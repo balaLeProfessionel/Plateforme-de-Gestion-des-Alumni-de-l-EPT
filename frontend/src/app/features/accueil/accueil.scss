@@ -1,27 +1,39 @@
-.accueil {
-  padding: 2rem 3rem;
-}
-.entete {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-}
-h1 {
-  margin: 0 0 0.5rem;
-}
-.infos {
-  color: var(--ept-text-secondary);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.badge-attente {
-  background: var(--ept-gold-light);
-  color: var(--ept-gold-dark);
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-}
+.accueil { max-width: 46rem; margin: 0 auto; padding: 2rem 2rem; }
+.fil h1 { font-size: 1.4rem; margin: 0 0 1rem; }
+.redaction { background: var(--ept-surface); border: 1px solid var(--ept-border); padding: 1rem; margin-bottom: .9rem; }
+.ouvrir-redaction { width: 100%; text-align: left; background: transparent; border: 1px solid var(--ept-border); color: var(--ept-text-secondary); padding: .8rem; cursor: pointer; }
+.redaction h2 { font-size: 1.05rem; margin: 0 0 1rem; }
+.redaction label { display: block; font-weight: 600; margin: .8rem 0 .35rem; }
+.redaction label span { color: var(--ept-text-secondary); font-weight: 400; }
+.redaction input, .redaction textarea, .redaction select { display: block; box-sizing: border-box; width: 100%; border: 1px solid var(--ept-border); background: var(--ept-surface); color: inherit; padding: .7rem; font: inherit; }
+.redaction textarea { resize: vertical; }
+.apercu-publication { display: flex; align-items: end; flex-wrap: wrap; gap: .75rem; margin-top: .75rem; }
+.apercu-publication img { display: block; max-width: 100%; max-height: 14rem; object-fit: contain; }
+.apercu-publication button { padding: .6rem; cursor: pointer; }
+.actions-redaction { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1rem; }
+.actions-redaction button { padding: .65rem 1rem; font: inherit; font-weight: 600; cursor: pointer; }
+.actions-redaction button:disabled { opacity: .6; cursor: wait; }
+.annuler { background: transparent; border: 1px solid var(--ept-border); color: var(--ept-primary); }
+.publier { background: var(--ept-primary); border: 1px solid var(--ept-primary); color: white; }
+.erreur-publication { color: #a51d24; }
+.succes-publication { color: var(--ept-primary); }
+.cartes { display: grid; gap: .9rem; padding: 0; margin: 0; list-style: none; }
+.carte { background: var(--ept-surface); border: 1px solid var(--ept-border); padding: 1.1rem; min-width: 0; }
+.carte h3 { font-size: 1.05rem; margin: .75rem 0 .5rem; overflow-wrap: anywhere; }
+.carte a { color: var(--ept-primary); }
+.carte a:focus-visible, button:focus-visible, .raccourcis a:focus-visible { outline: 3px solid var(--ept-sky); outline-offset: 2px; }
+.auteur { display: flex; align-items: center; flex-wrap: wrap; gap: .7rem; }
+.auteur > div { flex: 1; min-width: 7rem; overflow-wrap: anywhere; }
+.date { display: block; color: var(--ept-text-secondary); font-size: .8rem; margin-top: .15rem; }
+.etiquette { display: inline-block; background: var(--ept-primary-light); color: var(--ept-primary-dark); font-size: .75rem; font-weight: 700; padding: .3rem .5rem; }
+.contenu { white-space: pre-wrap; overflow-wrap: anywhere; margin: .9rem 0 0; }
+.media-publication { display: flex; justify-content: center; background: var(--ept-primary-light); margin: 1rem -1.1rem -1.1rem; }
+.description { overflow-wrap: anywhere; margin: .6rem 0 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.detail { color: var(--ept-text-secondary); margin: .4rem 0; font-size: .9rem; overflow-wrap: anywhere; }
+.erreur { border: 1px solid var(--ept-border); padding: 1rem; margin-bottom: 1rem; }
+.erreur p { margin: 0 0 .5rem; }
+.erreur button { cursor: pointer; background: var(--ept-primary); color: white; border: 0; padding: .6rem 1rem; }
+.etat-vide { color: var(--ept-text-secondary); }
+.raccourcis { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.25rem; }
+.raccourcis a { color: var(--ept-primary); font-weight: 700; }
+@media (max-width: 560px) { .accueil { padding: 1.25rem 1rem; } .carte { padding: .9rem; } .media-publication { margin: 1rem -.9rem -.9rem; } }

@@ -1,13 +1,89 @@
 <div class="accueil">
-  <div class="entete">
-    <div>
-      <h1>Bienvenue {{ authService.utilisateur()?.prenom }} !</h1>
-      <p class="infos">
-        Type de membre : {{ typeMembre() }}
-        @if (authService.utilisateur()?.statutCompte === 'EN_ATTENTE') {
-          <span class="badge-attente">Profil en cours de vérification</span>
-        }
-      </p>
+  <section class="fil" aria-labelledby="titre-fil" [attr.aria-busy]="chargement()">
+    <h1 id="titre-fil">À découvrir dans le réseau</h1>
+    <div class="redaction">
+      @if (!redactionOuverte()) {
+        <button type="button" class="ouvrir-redaction" (click)="redactionOuverte.set(true); messagePublication.set('')">Partager une publication</button>
+      } @else {
+        <form (submit)="publier($event)" novalidate>
+          <h2>Nouvelle publication</h2>
+          <label for="publication-titre">Titre <span>(facultatif)</span></label>
+          <input id="publication-titre" type="text" [formField]="formulaire.titre" />
+          <label for="publication-contenu">Votre message <span aria-hidden="true">*</span></label>
+          <textarea id="publication-contenu" [formField]="formulaire.contenu" rows="4"></textarea>
+          <label for="publication-audience">Qui peut voir cette publication ?</label>
+          <select id="publication-audience" [formField]="formulaire.audience">
+            <option value="TOUS">Tous les membres</option>
+            <option value="ALUMNI">Alumni</option>
+            <option value="ETUDIANTS">Étudiants</option>
+          </select>
+          <label for="publication-image">Image <span>(facultatif, JPEG ou PNG, 5 Mo maximum)</span></label>
+          <input #imageInput id="publication-image" type="file" accept="image/jpeg,image/png" (change)="choisirImage($event)" />
+          @if (apercuImage()) {
+            <div class="apercu-publication"><img [src]="apercuImage()" alt="Aperçu de l’image choisie" />
+              <button type="button" (click)="retirerImage(); imageInput.value = ''">Retirer l’image</button></div>
+          }
+          @if (erreurPublication()) { <p class="erreur-publication" role="alert">{{ erreurPublication() }}</p> }
+          <div class="actions-redaction">
+            <button type="button" class="annuler" [disabled]="envoiEnCours()" (click)="redactionOuverte.set(false); erreurPublication.set(''); retirerImage()">Annuler</button>
+            <button type="submit" class="publier" [disabled]="envoiEnCours() || chargement()">{{ envoiEnCours() ? 'Publication…' : 'Publier' }}</button>
+          </div>
+        </form>
+      }
     </div>
-  </div>
+    @if (messagePublication()) { <p class="succes-publication" role="status">{{ messagePublication() }}</p> }
+    @if (chargement()) { <p role="status">Chargement des nouveautés…</p> }
+    @else {
+      @if (erreurs().length) {
+        <div class="erreur" role="alert"><p>Impossible de charger : {{ erreurs().join(', ') }}.</p>
+          <button type="button" (click)="charger()">Réessayer</button></div>
+      }
+      @if (!cartes().length && !erreurs().length) { <p class="etat-vide">Il n’y a rien à afficher pour le moment.</p> }
+      <ul class="cartes">
+        @for (carte of cartes(); track carte.type + carte.contenu.id) {
+          <li>
+            @switch (carte.type) {
+              @case ('publication') {
+                <article class="carte publication">
+                  <div class="auteur">
+                    <app-avatar-membre [urlPhoto]="carte.contenu.auteurPhoto" [nom]="carte.contenu.auteurNom"
+                      [prenom]="carte.contenu.auteurPrenom" [roleMembre]="carte.contenu.auteurRole" [taille]="2.5" />
+                    <div><strong>{{ carte.contenu.auteurPrenom }} {{ carte.contenu.auteurNom }}</strong>
+                      <span class="date">{{ carte.contenu.publieLe | date:'d MMM y à HH:mm' }}</span></div>
+                    @if (carte.contenu.type === 'ANNONCE_OFFICIELLE') { <span class="etiquette">EPT officiel</span> }
+                    @else { <span class="etiquette">Publication</span> }
+                  </div>
+                  @if (carte.contenu.titre) { <h3>{{ carte.contenu.titre }}</h3> }
+                  <p class="contenu">{{ carte.contenu.contenu }}</p>
+                  @if (carte.contenu.urlImage) {
+                    <div class="media-publication"><app-image-publication [url]="carte.contenu.urlImage" /></div>
+                  }
+                </article>
+              }
+              @case ('evenement') {
+                <article class="carte">
+                  <span class="etiquette">{{ carte.contenu.officielEpt ? 'Événement officiel EPT' : 'Événement' }}</span>
+                  <h3><a [routerLink]="['/evenements', carte.contenu.id]">{{ carte.contenu.titre }}</a></h3>
+                  <p class="detail"><i class="pi pi-calendar" aria-hidden="true"></i> {{ carte.contenu.dateDebut | date:'d MMM y à HH:mm' }}</p>
+                  <p class="detail"><i class="pi pi-map-marker" aria-hidden="true"></i> {{ carte.contenu.lieu }}</p>
+                  <p class="description">{{ carte.contenu.description }}</p>
+                </article>
+              }
+              @case ('programme') {
+                <article class="carte"><span class="etiquette">Mentorat</span>
+                  <h3><a [routerLink]="['/mentorat/programmes', carte.contenu.id]">{{ carte.contenu.titre }}</a></h3>
+                  @if (carte.contenu.description) { <p class="description">{{ carte.contenu.description }}</p> }
+                  <p class="detail">Jusqu’au {{ carte.contenu.dateFin | date:'d MMM y' }}</p>
+                </article>
+              }
+            }
+          </li>
+        }
+      </ul>
+      <nav class="raccourcis" aria-label="Explorer le réseau">
+        <a routerLink="/evenements">Voir les événements <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
+        <a routerLink="/mentorat">Découvrir le mentorat <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
+      </nav>
+    }
+  </section>
 </div>

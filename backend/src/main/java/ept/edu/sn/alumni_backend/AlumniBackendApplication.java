@@ -5,9 +5,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 import ept.edu.sn.alumni_backend.evenement.EvenementProperties;
+import ept.edu.sn.alumni_backend.publication.PublicationProperties;
 
 @SpringBootApplication
-@EnableConfigurationProperties(EvenementProperties.class)
+@EnableConfigurationProperties({EvenementProperties.class, PublicationProperties.class})
 public class AlumniBackendApplication {
 
 	public static void main(String[] args) {

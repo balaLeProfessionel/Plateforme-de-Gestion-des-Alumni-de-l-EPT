@@ -28,6 +28,8 @@ import ept.edu.sn.alumni_backend.evenement.exception.LimiteCreationEvenementAtte
 import ept.edu.sn.alumni_backend.mentorat.exception.ConflitMentoratException;
 import ept.edu.sn.alumni_backend.mentorat.exception.MentoratIntrouvableException;
 import ept.edu.sn.alumni_backend.organisme.exception.OrganismeIntrouvableException;
+import ept.edu.sn.alumni_backend.publication.exception.PublicationIntrouvableException;
+import ept.edu.sn.alumni_backend.publication.exception.LimiteCreationPublicationAtteinteException;
 import ept.edu.sn.alumni_backend.utilisateur.exception.ProfilIntrouvableException;
 import ept.edu.sn.alumni_backend.utilisateur.photo.PhotoIntrouvableException;
 import ept.edu.sn.alumni_backend.utilisateur.photo.StockagePhotoException;
@@ -35,6 +37,17 @@ import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(LimiteCreationPublicationAtteinteException.class)
+    public ResponseEntity<Map<String, String>> handleLimiteCreationPublication(
+            LimiteCreationPublicationAtteinteException e) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(PublicationIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> handlePublicationIntrouvable(PublicationIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Map<String, String>> handleBadCredentials() {
