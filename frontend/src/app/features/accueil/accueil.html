@@ -23,22 +23,8 @@
           <li>
             @switch (carte.type) {
               @case ('publication') { <app-carte-publication [publication]="carte.contenu" /> }
-              @case ('evenement') {
-                <article class="carte">
-                  <span class="etiquette">{{ carte.contenu.officielEpt ? 'Événement officiel EPT' : 'Événement' }}</span>
-                  <h3><a [routerLink]="['/evenements', carte.contenu.id]">{{ carte.contenu.titre }}</a></h3>
-                  <p class="detail"><i class="pi pi-calendar" aria-hidden="true"></i> {{ carte.contenu.dateDebut | date:'d MMM y à HH:mm' }}</p>
-                  <p class="detail"><i class="pi pi-map-marker" aria-hidden="true"></i> {{ carte.contenu.lieu }}</p>
-                  <p class="description">{{ carte.contenu.description }}</p>
-                </article>
-              }
-              @case ('programme') {
-                <article class="carte"><span class="etiquette">Mentorat</span>
-                  <h3><a [routerLink]="['/mentorat/programmes', carte.contenu.id]">{{ carte.contenu.titre }}</a></h3>
-                  @if (carte.contenu.description) { <p class="description">{{ carte.contenu.description }}</p> }
-                  <p class="detail">Jusqu’au {{ carte.contenu.dateFin | date:'d MMM y' }}</p>
-                </article>
-              }
+              @case ('evenement') { <app-carte-evenement-fil [evenement]="carte.contenu" /> }
+              @case ('programme') { <app-carte-programme-fil [programme]="carte.contenu" /> }
             }
           </li>
         }

@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
@@ -9,6 +8,8 @@ import { AUCUN_FILTRE, Evenement } from '../../core/services/models/evenement';
 import { Programme } from '../../core/services/models/mentorat.model';
 import { Publication, PublicationService } from '../../core/services/publications/publication';
 import { CartePublication } from '../../shared/publications/carte-publication/carte-publication';
+import { CarteEvenementFil } from './cartes-fil/carte-evenement-fil';
+import { CarteProgrammeFil } from './cartes-fil/carte-programme-fil';
 import { AuthService } from '../../core/services/auth/auth-service';
 import { AvatarMembre } from '../../shared/images/avatar-membre';
 import { EtatPublicationCreee } from '../publications/creation-publication/creation-publication';
@@ -17,7 +18,7 @@ type CarteFil = { type: 'publication'; contenu: Publication }
   | { type: 'evenement'; contenu: Evenement } | { type: 'programme'; contenu: Programme };
 
 /** Fil d’actualité : publications des membres et de l’école, entrecoupées des événements et programmes ouverts. */
-@Component({ selector: 'app-accueil', imports: [DatePipe, RouterLink, AvatarMembre, CartePublication],
+@Component({ selector: 'app-accueil', imports: [RouterLink, AvatarMembre, CartePublication, CarteEvenementFil, CarteProgrammeFil],
   templateUrl: './accueil.html', styleUrl: './accueil.scss' })
 export class Accueil {
   private readonly publicationService = inject(PublicationService);
