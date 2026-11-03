@@ -81,6 +81,8 @@ public class PublicationService {
                 }
             });
             publication.setUrlImage("stockage:" + identifiant);
+            publication.setTexteAlternatif(demande.texteAlternatif() == null || demande.texteAlternatif().isBlank()
+                ? null : demande.texteAlternatif().strip());
         }
         return versResponse(publications.saveAndFlush(publication));
     }
@@ -134,7 +136,7 @@ public class PublicationService {
         String image = p.getUrlImage() != null && p.getUrlImage().startsWith("stockage:")
             ? "/api/publications/" + p.getId() + "/image" : p.getUrlImage();
         return new PublicationResponse(p.getId(), p.getType(), p.getTitre(), p.getContenu(), p.getAudience(), image,
-            p.getPublieLe(), p.getModifieLe(), auteur.getId(), auteur.getNom(), auteur.getPrenom(),
+            p.getTexteAlternatif(), p.getPublieLe(), p.getModifieLe(), auteur.getId(), auteur.getNom(), auteur.getPrenom(),
             auteur.getRole(), auteur.getUrlPhoto());
     }
 }

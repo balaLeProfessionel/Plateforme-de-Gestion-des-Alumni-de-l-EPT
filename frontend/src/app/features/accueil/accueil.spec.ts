@@ -1,7 +1,9 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
+import { RecadreurImage } from '../../shared/images/recadreur-image';
 import { Accueil } from './accueil';
 
 describe('Accueil', () => {
@@ -32,9 +34,11 @@ describe('Accueil', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     const racine: HTMLElement = fixture.nativeElement;
-    expect(racine.querySelector('h1')?.textContent).toContain('À découvrir dans le réseau');
+    expect(racine.querySelector('h1')?.textContent).toContain('Fil d’actualité');
     expect(racine.querySelectorAll('app-image-publication img')).toHaveLength(1);
     expect(racine.querySelector('app-image-publication img')?.getAttribute('src')).toBe('/images/demo.png');
+    // Sans description fournie, le texte alternatif nomme au moins l’auteur.
+    expect(racine.querySelector('app-image-publication img')?.getAttribute('alt')).toBe('Image partagée par Awa Diop');
     expect(racine.textContent).toContain('Sans image');
     expect(racine.textContent).toContain('Bonjour EPT');
     expect(racine.textContent).toContain('Forum EPT');
@@ -116,9 +120,22 @@ describe('Accueil', () => {
     expect(texte.value).toBe('Mon message');
   });
 
-  it('joint une image valide à la publication et libère son aperçu', async () => {
-    const creation = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:apercu');
+  /** Ouvre la rédaction, choisit une image et valide son recadrage, comme le ferait un membre. */
+  async function preparerImageRecadree() {
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:apercu');
     const liberation = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    // jsdom n'implémente ni decode() ni les fenêtres modales.
+    HTMLImageElement.prototype.decode ??= () => Promise.resolve();
+    vi.spyOn(HTMLImageElement.prototype, 'decode').mockResolvedValue();
+    vi.spyOn(HTMLImageElement.prototype, 'naturalWidth', 'get').mockReturnValue(1200);
+    vi.spyOn(HTMLImageElement.prototype, 'naturalHeight', 'get').mockReturnValue(1500);
+    const ouverture = vi.fn(function (this: HTMLDialogElement) { this.open = true; });
+    const fermeture = vi.fn(function (this: HTMLDialogElement) { this.open = false; });
+    HTMLDialogElement.prototype.showModal ??= () => {};
+    HTMLDialogElement.prototype.close ??= () => {};
+    vi.spyOn(HTMLDialogElement.prototype, 'showModal').mockImplementation(ouverture);
+    vi.spyOn(HTMLDialogElement.prototype, 'close').mockImplementation(fermeture);
+
     const fixture = TestBed.createComponent(Accueil);
     fixture.detectChanges();
     repondre([], [], []);
@@ -128,23 +145,58 @@ describe('Accueil', () => {
     (root.querySelector('.ouvrir-redaction') as HTMLButtonElement).click();
     fixture.detectChanges();
     const champ = root.querySelector('input[type=file]') as HTMLInputElement;
-    const image = new File(['image'], 'photo.png', { type: 'image/png' });
-    Object.defineProperty(champ, 'files', { value: [image], configurable: true });
+    const original = new File(['image'], 'photo.png', { type: 'image/png' });
+    Object.defineProperty(champ, 'files', { value: { 0: original, length: 1, item: () => original }, configurable: true });
     champ.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(ouverture).toHaveBeenCalled();
+
+    const recadree = new File(['recadree'], 'photo.jpg', { type: 'image/jpeg' });
+    fixture.debugElement.query(By.directive(RecadreurImage)).componentInstance.recadree.emit(recadree);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(fermeture).toHaveBeenCalled();
+    return { fixture, root, recadree, liberation };
+  }
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it('fait recadrer l’image choisie, publie la version recadrée avec sa description et libère son aperçu', async () => {
+    const { fixture, root, recadree, liberation } = await preparerImageRecadree();
+    expect(root.querySelector('.apercu-publication img')?.getAttribute('src')).toBe('blob:apercu');
+    // Une image est prête : plus de « Aucun fichier choisi », et le focus reprend sur l’aperçu.
+    expect(root.querySelector('input[type=file]')).toBeNull();
+    expect(document.activeElement?.textContent?.trim()).toBe('Repositionner');
+
     const texte = root.querySelector('textarea')!;
     texte.value = 'Publication avec image';
     texte.dispatchEvent(new Event('input'));
+    const description = root.querySelector('#publication-texte-alternatif') as HTMLInputElement;
+    description.value = ' Promotion 2026 devant l’amphithéâtre ';
+    description.dispatchEvent(new Event('input'));
     fixture.detectChanges();
-    expect(root.querySelector('.apercu-publication img')?.getAttribute('src')).toBe('blob:apercu');
+
     root.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
     const requete = http.expectOne('/api/publications');
     expect(requete.request.body).toBeInstanceOf(FormData);
-    expect((requete.request.body as FormData).get('image')).toBe(image);
+    expect((requete.request.body as FormData).get('image')).toBe(recadree);
+    const donnees = JSON.parse(await ((requete.request.body as FormData).get('publication') as Blob).text());
+    expect(donnees.texteAlternatif).toBe('Promotion 2026 devant l’amphithéâtre');
     requete.flush({ id: 'new', type: 'PUBLICATION', titre: null, contenu: 'Publication avec image',
       audience: 'TOUS', urlImage: null, publieLe: '2026-10-01T10:00:00Z', auteurNom: 'Diop', auteurPrenom: 'Awa', auteurRole: 'ALUMNI' });
     await fixture.whenStable();
     expect(liberation).toHaveBeenCalledWith('blob:apercu');
-    creation.mockRestore();
-    liberation.mockRestore();
+  });
+
+  it('rend le choix de fichier et le focus quand on retire l’image', async () => {
+    const { fixture, root } = await preparerImageRecadree();
+    const retirer = [...root.querySelectorAll('.actions-image-publication button')]
+      .find((bouton) => bouton.textContent?.includes('Retirer')) as HTMLButtonElement;
+    retirer.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(root.querySelector('.apercu-publication')).toBeNull();
+    expect(document.activeElement?.id).toBe('publication-image');
   });
 });

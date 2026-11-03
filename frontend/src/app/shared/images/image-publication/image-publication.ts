@@ -3,14 +3,16 @@ import { Component, effect, inject, input, signal } from '@angular/core';
 
 @Component({
   selector: 'app-image-publication',
-  template: `@if (source()) { <img [src]="source()" alt="Illustration de la publication" loading="lazy" /> }
+  template: `@if (source()) { <img [src]="source()" [alt]="description()" loading="lazy" /> }
     @else if (erreur()) { <p>Image indisponible</p> }`,
-  styles: `:host { display: flex; justify-content: center; width: 100%; }
-    img { display: block; max-width: 100%; max-height: min(65vh, 32rem); width: auto; height: auto; object-fit: contain; }
+  styles: `:host { display: block; width: 100%; height: 100%; overflow: hidden; border-radius: .5rem; background: var(--ept-bg); }
+    img { display: block; width: 100%; height: 100%; object-fit: contain; }
     p { padding: 1rem; }`,
 })
 export class ImagePublication {
   readonly url = input.required<string>();
+  /** Texte alternatif ; l’appelant fournit un repli quand l’auteur n’a pas décrit son image. */
+  readonly description = input('Image jointe à la publication');
   protected readonly source = signal('');
   protected readonly erreur = signal(false);
   private readonly http = inject(HttpClient);

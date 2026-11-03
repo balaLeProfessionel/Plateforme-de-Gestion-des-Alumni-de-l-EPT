@@ -50,10 +50,12 @@ class PublicationApiIntegrationTests {
         ByteArrayOutputStream sortie = new ByteArrayOutputStream();
         ImageIO.write(new BufferedImage(40, 80, BufferedImage.TYPE_INT_RGB), "png", sortie);
         MockMultipartFile donnees = new MockMultipartFile("publication", "", "application/json",
-            "{\"type\":\"PUBLICATION\",\"audience\":\"ETUDIANTS\",\"contenu\":\"Bonjour\"}".getBytes());
+            ("{\"type\":\"PUBLICATION\",\"audience\":\"ETUDIANTS\",\"contenu\":\"Bonjour\","
+                + "\"texteAlternatif\":\"  Promotion 2026 devant l’amphithéâtre  \"}").getBytes());
         MockMultipartFile image = new MockMultipartFile("image", "photo.png", "image/png", sortie.toByteArray());
         var resultat = mvc.perform(multipart("/api/publications").file(donnees).file(image)
-            .header(HttpHeaders.AUTHORIZATION, jeton(auteur))).andExpect(status().isCreated()).andReturn();
+            .header(HttpHeaders.AUTHORIZATION, jeton(auteur))).andExpect(status().isCreated())
+            .andExpect(jsonPath("$.texteAlternatif").value("Promotion 2026 devant l’amphithéâtre")).andReturn();
         String reponse = resultat.getResponse().getContentAsString();
         String id = publications.findAll().stream().filter(p -> p.getAuteur().getId().equals(auteur.getId()))
             .findFirst().orElseThrow().getId().toString();
@@ -135,12 +137,14 @@ class PublicationApiIntegrationTests {
         Utilisateur membre = membre(TypeRole.VISITEUR);
         Utilisateur admin = membre(TypeRole.ADMIN);
         String corps = "{\"type\":\"PUBLICATION\",\"audience\":\"TOUS\",\"contenu\":\" Bonjour \""
-            + ",\"auteurId\":\"" + admin.getId() + "\",\"urlImage\":\"https://example.invalid/image.png\"}";
+            + ",\"auteurId\":\"" + admin.getId() + "\",\"urlImage\":\"https://example.invalid/image.png\""
+            + ",\"texteAlternatif\":\"Sans image, ignoré\"}";
         mvc.perform(post("/api/publications").header(HttpHeaders.AUTHORIZATION, jeton(membre))
             .contentType(MediaType.APPLICATION_JSON).content(corps))
             .andExpect(status().isCreated()).andExpect(jsonPath("$.auteurId").value(membre.getId().toString()))
             .andExpect(jsonPath("$.contenu").value("Bonjour"))
             .andExpect(jsonPath("$.urlImage").doesNotExist())
+            .andExpect(jsonPath("$.texteAlternatif").doesNotExist())
             .andExpect(jsonPath("$.email").doesNotExist()).andExpect(jsonPath("$.telephone").doesNotExist());
         String officiel = "{\"type\":\"ANNONCE_OFFICIELLE\",\"audience\":\"TOUS\",\"contenu\":\"Annonce\"}";
         mvc.perform(post("/api/publications").header(HttpHeaders.AUTHORIZATION, jeton(membre))

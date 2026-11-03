@@ -1,6 +1,6 @@
 <div class="accueil">
   <section class="fil" aria-labelledby="titre-fil" [attr.aria-busy]="chargement()">
-    <h1 id="titre-fil">À découvrir dans le réseau</h1>
+    <h1 id="titre-fil">Fil d’actualité</h1>
     <div class="redaction">
       @if (!redactionOuverte()) {
         <button type="button" class="ouvrir-redaction" (click)="redactionOuverte.set(true); messagePublication.set('')">Partager une publication</button>
@@ -17,15 +17,48 @@
             <option value="ALUMNI">Alumni</option>
             <option value="ETUDIANTS">Étudiants</option>
           </select>
-          <label for="publication-image">Image <span>(facultatif, JPEG ou PNG, 5 Mo maximum)</span></label>
-          <input #imageInput id="publication-image" type="file" accept="image/jpeg,image/png" (change)="choisirImage($event)" />
-          @if (apercuImage()) {
-            <div class="apercu-publication"><img [src]="apercuImage()" alt="Aperçu de l’image choisie" />
-              <button type="button" (click)="retirerImage(); imageInput.value = ''">Retirer l’image</button></div>
+          @if (!apercuImage()) {
+            <label for="publication-image">Image <span>(facultatif, JPEG ou PNG, 5 Mo maximum)</span></label>
+            <input #champImage id="publication-image" type="file" accept="image/jpeg,image/png"
+              aria-describedby="aide-image-publication" (change)="choisirImage($event)" />
+            <small id="aide-image-publication" class="aide-image-publication">
+              Vous pourrez déplacer et zoomer l’image dans un cadre vertical 4:5 avant de publier.
+            </small>
+          }
+          @if (chargementImage()) { <p class="chargement-image" role="status">Préparation de l’image…</p> }
+          @if (imageARecadrer(); as image) {
+            <dialog #dialogueRecadrage class="dialogue-recadrage" aria-labelledby="titre-recadrage-publication"
+              (cancel)="annulerRecadrage()">
+              <div class="entete-recadrage">
+                <div><h2 id="titre-recadrage-publication">Recadrer l’image</h2>
+                  <p>Déplacez et zoomez la photo pour choisir ce qui sera visible.</p></div>
+                <button type="button" aria-label="Fermer le recadrage" (click)="annulerRecadrage()">×</button>
+              </div>
+              <app-recadreur-image [image]="image" [format]="formatPublication"
+                libelle="Recadrer l’image de la publication au format vertical 4:5"
+                (recadree)="appliquerRecadrage($event)" (annulee)="annulerRecadrage()" />
+              @if (avertissementImage()) { <p class="avertissement-image" role="status">{{ avertissementImage() }}</p> }
+            </dialog>
+          }
+          @if (!imageARecadrer() && apercuImage()) {
+            <div class="apercu-publication">
+              <img [src]="apercuImage()" [alt]="modele().texteAlternatif || 'Aperçu de l’image recadrée'" />
+              <div class="actions-image-publication">
+                <div><strong>Image prête</strong><span>Format vertical 4:5</span></div>
+                <button #boutonRepositionner type="button" [disabled]="envoiEnCours()" (click)="repositionnerImage()">Repositionner</button>
+                <button type="button" [disabled]="envoiEnCours()" (click)="retirerImageChoisie()">Retirer l’image</button>
+              </div>
+              <div class="description-image">
+                <label for="publication-texte-alternatif">Décrivez l’image <span>(facultatif, recommandé)</span></label>
+                <input id="publication-texte-alternatif" type="text"
+                  aria-describedby="aide-texte-alternatif" [formField]="formulaire.texteAlternatif" />
+                <small id="aide-texte-alternatif">Lue par les lecteurs d’écran, par exemple « La promotion 2026 devant l’amphithéâtre ».</small>
+              </div>
+            </div>
           }
           @if (erreurPublication()) { <p class="erreur-publication" role="alert">{{ erreurPublication() }}</p> }
           <div class="actions-redaction">
-            <button type="button" class="annuler" [disabled]="envoiEnCours()" (click)="redactionOuverte.set(false); erreurPublication.set(''); retirerImage()">Annuler</button>
+            <button type="button" class="annuler" [disabled]="envoiEnCours()" (click)="annulerRedaction()">Annuler</button>
             <button type="submit" class="publier" [disabled]="envoiEnCours() || chargement()">{{ envoiEnCours() ? 'Publication…' : 'Publier' }}</button>
           </div>
         </form>
@@ -56,8 +89,10 @@
                   @if (carte.contenu.titre) { <h3>{{ carte.contenu.titre }}</h3> }
                   <p class="contenu">{{ carte.contenu.contenu }}</p>
                   @if (carte.contenu.urlImage) {
-                    <div class="media-publication"><app-image-publication [url]="carte.contenu.urlImage" /></div>
+                    <div class="media-publication"><app-image-publication [url]="carte.contenu.urlImage"
+                      [description]="carte.contenu.texteAlternatif || 'Image partagée par ' + carte.contenu.auteurPrenom + ' ' + carte.contenu.auteurNom" /></div>
                   }
+                  <app-commentaires-publication [publicationId]="carte.contenu.id" />
                 </article>
               }
               @case ('evenement') {

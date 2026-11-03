@@ -92,8 +92,8 @@ export class EspaceMembre implements OnDestroy {
     { libelle: 'Enquêtes', icone: 'pi-clipboard' },
     { libelle: 'Rôles et accès', icone: 'pi-key' },
   ] : [
+    // Les actualités vivent dans le fil de l’accueil : plus de rubrique à part.
     { libelle: 'Offres d’emploi', icone: 'pi-briefcase' },
-    { libelle: 'Actualités', icone: 'pi-megaphone' },
   ]);
   /**
    * La barre du bas garde quatre entrées (Accueil, Annuaire, Événements, Menu) : le reste passe par le panneau

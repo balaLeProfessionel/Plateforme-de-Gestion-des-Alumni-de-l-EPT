@@ -53,6 +53,10 @@ public class Publication {
     @Column(name = "url_image", length = 300)
     private String urlImage;
 
+    /** Description de l'image pour les lecteurs d'écran ; absente sans image. */
+    @Column(name = "texte_alternatif", length = 250)
+    private String texteAlternatif;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private AudiencePublication audience;

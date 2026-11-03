@@ -2,7 +2,8 @@
 
 .cadre {
   position: relative;
-  width: 100%;
+  width: min(100%, var(--recadreur-largeur-cadre, 100%));
+  margin-inline: auto;
   overflow: hidden;
   border-radius: 8px;
   background: #0b2533;

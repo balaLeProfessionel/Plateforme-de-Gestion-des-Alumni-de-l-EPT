@@ -56,7 +56,7 @@ class PublicationQuotaConcurrenceIntegrationTests {
         });
         assertThat(auteur).isNotNull();
         var depart = new CountDownLatch(1);
-        var requete = new PublicationRequest(TypePublication.PUBLICATION, null, "Bonjour", AudiencePublication.TOUS);
+        var requete = new PublicationRequest(TypePublication.PUBLICATION, null, "Bonjour", AudiencePublication.TOUS, null);
         try (var executeur = Executors.newFixedThreadPool(2)) {
             var premier = executeur.submit(() -> creerAuSignal(depart, requete, auteur));
             var second = executeur.submit(() -> creerAuSignal(depart, requete, auteur));

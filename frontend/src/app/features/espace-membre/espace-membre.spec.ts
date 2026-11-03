@@ -57,7 +57,7 @@ describe('Navigation de l’espace membre', () => {
     expect(racine.querySelector('.barre-laterale .marque')?.getAttribute('href')).toBe('/accueil');
     expect([...racine.querySelectorAll('.barre-laterale nav button[aria-disabled="true"]')]
       .map((lien) => lien.getAttribute('aria-label')))
-      .toEqual(['Offres d’emploi, à venir', 'Actualités, à venir']);
+      .toEqual(['Offres d’emploi, à venir']);
     expect(racine.querySelector('.barre-laterale nav button[aria-disabled="true"] a')).toBeNull();
     expect(racine.querySelector('.entete-mobile .bouton-compte')?.getAttribute('aria-haspopup')).toBe('dialog');
   });

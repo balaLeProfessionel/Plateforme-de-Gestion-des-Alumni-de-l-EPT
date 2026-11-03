@@ -10,5 +10,6 @@ public record PublicationRequest(
     @NotNull TypePublication type,
     @Size(max = 160) String titre,
     @NotBlank @Size(max = 5000) String contenu,
-    @NotNull AudiencePublication audience
+    @NotNull AudiencePublication audience,
+    @Size(max = 250) String texteAlternatif
 ) {}

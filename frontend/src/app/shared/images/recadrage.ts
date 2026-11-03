@@ -15,6 +15,10 @@ export interface FormatRecadrage {
 export const FORMAT_EVENEMENT: FormatRecadrage = {
   largeur: 1600, hauteur: 900, largeurMinimale: 400, hauteurMinimale: 225, largeurConseillee: 800, hauteurConseillee: 450,
 };
+/** Visuel vertical de publication : cadrage 4:5, cohérent avec les usages des fils sociaux. */
+export const FORMAT_PUBLICATION: FormatRecadrage = {
+  largeur: 1200, hauteur: 1500, largeurMinimale: 480, hauteurMinimale: 600, largeurConseillee: 800, hauteurConseillee: 1000,
+};
 export const FORMAT_PHOTO_PROFIL: FormatRecadrage = {
   largeur: 600, hauteur: 600, largeurMinimale: 200, hauteurMinimale: 200, largeurConseillee: 400, hauteurConseillee: 400,
 };
