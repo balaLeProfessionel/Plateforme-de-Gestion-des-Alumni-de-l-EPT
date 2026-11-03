@@ -8,7 +8,7 @@
   gap: 1rem;
   padding: 1rem 1.1rem;
   border: 1px solid var(--ept-border);
-  border-radius: 12px;
+  border-radius: var(--ept-radius);
   background: var(--ept-surface);
 
   &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
@@ -42,7 +42,7 @@
 
 .voir-fiche, .lien {
   display: inline-flex; align-items: center; gap: 0.35rem; min-height: 2.5rem; padding: 0.45rem 0.85rem;
-  border: 0; border-radius: 8px; background: none; color: var(--ept-primary); font: inherit; font-size: 0.85rem; cursor: pointer;
+  border: 0; border-radius: var(--ept-radius-sm); background: none; color: var(--ept-primary); font: inherit; font-size: 0.85rem; cursor: pointer;
   &:hover { background: var(--ept-primary-light); }
   &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
 }

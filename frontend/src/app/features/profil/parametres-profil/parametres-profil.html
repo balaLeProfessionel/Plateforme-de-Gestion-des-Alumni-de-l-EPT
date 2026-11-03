@@ -26,7 +26,7 @@
 
     <section class="carte-parametres" id="photo" aria-labelledby="titre-photo">
       <div class="titre-section"><div><h2 id="titre-photo">Photo de profil</h2>
-        <p>JPEG ou PNG, 5 Mo maximum, au moins 200 × 200 pixels. Vous la recadrez en carré.</p></div></div>
+        <p>JPEG ou PNG, 5 Mo max.</p></div></div>
       @if (photoARecadrer(); as image) {
         <app-recadreur-image [image]="image" [format]="formatPhoto" [rond]="true"
           libelle="Recadrer la photo de profil" (recadree)="appliquerRecadrage($event)" (annulee)="fermerRecadrage()" />

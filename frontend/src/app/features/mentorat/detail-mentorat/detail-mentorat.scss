@@ -11,7 +11,7 @@
   padding: 1.25rem;
   border: 1px solid var(--ept-border);
   border-top: 4px solid var(--ept-sky);
-  border-radius: 12px;
+  border-radius: var(--ept-radius);
   background: var(--ept-surface);
 }
 
@@ -31,7 +31,7 @@
   text-decoration: none;
 
   &:hover strong { text-decoration: underline; }
-  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 3px; border-radius: 8px; }
+  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 3px; border-radius: var(--ept-radius-sm); }
 }
 
 
@@ -58,7 +58,7 @@
   a.programme:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
 }
 
-blockquote { margin: 0; padding: 0.75rem 1rem; border-left: 3px solid var(--ept-sky); border-radius: 0 8px 8px 0; background: var(--ept-bg); color: var(--ept-primary-dark); line-height: 1.5; }
+blockquote { margin: 0; padding: 0.75rem 1rem; border-left: 3px solid var(--ept-sky); border-radius: 0 var(--ept-radius-sm) var(--ept-radius-sm) 0; background: var(--ept-bg); color: var(--ept-primary-dark); line-height: 1.5; }
 
 .jalons-statut {
   display: flex;
@@ -75,7 +75,7 @@ blockquote { margin: 0; padding: 0.75rem 1rem; border-left: 3px solid var(--ept-
 
 .motif { margin: 0; color: var(--ept-text-secondary); font-size: 0.85rem; font-style: italic; }
 .explication { margin: 0; color: var(--ept-primary-dark); font-size: 0.9rem; line-height: 1.5; }
-.erreur { margin: 0 0 1rem; padding: 0.6rem 0.8rem; border-radius: 8px; background: var(--ept-error-light); color: var(--ept-error-dark); }
+.erreur { margin: 0 0 1rem; padding: 0.6rem 0.8rem; border-radius: var(--ept-radius-sm); background: var(--ept-error-light); color: var(--ept-error-dark); }
 
 .colonnes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 20rem); align-items: start; gap: 1.25rem; }
 .colonne { display: grid; gap: 1.25rem; min-width: 0; }
@@ -88,7 +88,7 @@ blockquote { margin: 0; padding: 0.75rem 1rem; border-left: 3px solid var(--ept-
   justify-content: center;
   padding: 0.5rem 1rem;
   border: 1px solid var(--ept-primary);
-  border-radius: 8px;
+  border-radius: var(--ept-radius-sm);
   font: inherit;
   font-size: 0.86rem;
   font-weight: 700;
@@ -108,7 +108,7 @@ blockquote { margin: 0; padding: 0.75rem 1rem; border-left: 3px solid var(--ept-
   gap: 0.5rem;
   padding: 0.9rem;
   border: 1px solid var(--ept-border);
-  border-radius: 10px;
+  border-radius: var(--ept-radius-sm);
   background: var(--ept-bg);
 
   p { margin: 0; color: var(--ept-primary-dark); font-size: 0.86rem; }
@@ -128,7 +128,7 @@ blockquote { margin: 0; padding: 0.75rem 1rem; border-left: 3px solid var(--ept-
   p { color: var(--ept-text-secondary); }
 }
 
-.squelette { min-height: 20rem; border-radius: 12px; background: #edf1f3; }
+.squelette { min-height: 20rem; border-radius: var(--ept-radius); background: #edf1f3; }
 
 @media (max-width: 900px) {
   .colonnes { grid-template-columns: minmax(0, 1fr); }

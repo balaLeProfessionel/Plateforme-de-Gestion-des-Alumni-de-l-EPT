@@ -1,7 +1,7 @@
 // États communs des pages d’administration : vide, erreur (role="alert") et chargement.
 .etat {
   display: grid; justify-items: center; gap: 0.5rem; padding: 3rem 1rem;
-  border: 1px dashed var(--ept-border); border-radius: 12px; text-align: center;
+  border: 1px dashed var(--ept-border); border-radius: var(--ept-radius); text-align: center;
 
   &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
   > i { color: var(--ept-primary); font-size: 1.6rem; }
@@ -10,4 +10,4 @@
   a { color: var(--ept-primary); font-weight: 600; }
 }
 
-.squelette { min-height: 6rem; border-radius: 12px; background: #edf1f3; }
+.squelette { min-height: 6rem; border-radius: var(--ept-radius); background: #edf1f3; }

@@ -5,7 +5,7 @@ import { Component, effect, inject, input, signal } from '@angular/core';
   selector: 'app-image-publication',
   template: `@if (source()) { <img [src]="source()" [alt]="description()" loading="lazy" /> }
     @else if (erreur()) { <p>Image indisponible</p> }`,
-  styles: `:host { display: block; width: 100%; height: 100%; overflow: hidden; border-radius: .5rem; background: var(--ept-bg); }
+  styles: `:host { display: block; width: 100%; height: 100%; overflow: hidden; border-radius: var(--ept-radius-sm); background: var(--ept-bg); }
     img { display: block; width: 100%; height: 100%; object-fit: contain; }
     p { padding: 1rem; }`,
 })

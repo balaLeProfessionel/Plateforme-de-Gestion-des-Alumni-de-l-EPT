@@ -41,17 +41,17 @@ import { Component, input } from '@angular/core';
   `,
   styles: `
     :host { display: block; }
-    .guide { border: 1px solid var(--ept-border); border-radius: 12px; background: var(--ept-surface, white); }
+    .guide { border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: var(--ept-surface, white); }
     summary {
       display: flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0.6rem 1rem;
       color: var(--ept-primary); font-weight: 700; cursor: pointer;
-      &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; border-radius: 12px; }
+      &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; border-radius: var(--ept-radius); }
     }
     .roles {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 1rem;
       padding: 0 1rem;
     }
-    section { padding: 0.85rem 1rem; border-radius: 10px; background: var(--ept-bg); }
+    section { padding: 0.85rem 1rem; border-radius: var(--ept-radius-sm); background: var(--ept-bg); }
     h3 { margin: 0 0 0.35rem; color: var(--ept-primary-dark); font-size: 1rem; }
     p, li { color: var(--ept-primary-dark); font-size: 0.88rem; line-height: 1.5; }
     p { margin: 0 0 0.4rem; }

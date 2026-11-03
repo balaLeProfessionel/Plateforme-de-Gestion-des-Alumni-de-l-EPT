@@ -1,7 +1,7 @@
 .section-profil {
   background: var(--ept-surface);
   border: 1px solid var(--ept-border);
-  border-radius: 2px;
+  border-radius: var(--ept-radius);
   box-shadow: var(--ept-shadow);
   padding: 1.75rem;
 }
@@ -45,7 +45,7 @@
 
   input {
     width: 100%;
-    border-radius: 2px;
+    border-radius: var(--ept-radius-sm);
   }
 }
 
@@ -53,7 +53,7 @@
   width: 100%;
   padding: 0.65rem 0.85rem;
   border: 1px solid var(--ept-border);
-  border-radius: 2px;
+  border-radius: var(--ept-radius-sm);
   font-family: var(--ept-font-body);
   font-size: 0.95rem;
   color: var(--ept-text);
@@ -78,7 +78,7 @@
 }
 
 .btn-ept {
-  border-radius: 2px;
+  border-radius: var(--ept-radius-sm);
 }
 
 @media (max-width: 560px) {

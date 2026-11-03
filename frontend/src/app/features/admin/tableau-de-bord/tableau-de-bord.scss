@@ -5,7 +5,7 @@ h2 { margin: 0 0 0.75rem; color: var(--ept-primary-dark); font-size: 1.1rem; }
 
 .file {
   display: flex; align-items: center; gap: 0.85rem; min-width: 0; padding: 1rem 1.1rem;
-  border: 1px solid var(--ept-border); border-radius: 12px; background: white; color: var(--ept-primary-dark); text-decoration: none;
+  border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: white; color: var(--ept-primary-dark); text-decoration: none;
 
   > .pi:first-child { color: var(--ept-primary); font-size: 1.3rem; }
   > .pi-arrow-right { margin-left: auto; color: var(--ept-primary); }
@@ -28,7 +28,7 @@ a.file:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
   display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr)); gap: 0.75rem; margin: 0; padding: 0; list-style: none;
 
   a, div {
-    display: grid; gap: 0.2rem; height: 100%; padding: 0.85rem 1rem; border-radius: 10px;
+    display: grid; gap: 0.2rem; height: 100%; padding: 0.85rem 1rem; border-radius: var(--ept-radius-sm);
     background: var(--ept-primary-light); color: var(--ept-primary-dark); text-decoration: none;
   }
   strong { font-family: var(--ept-font-heading); font-size: 1.6rem; line-height: 1; }
@@ -40,7 +40,7 @@ a.file:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
 .colonnes { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 0.75rem; }
 
 .carte {
-  margin: 0; padding: 1rem 1.1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: white;
+  margin: 0; padding: 1rem 1.1rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: white;
   h2 { font-size: 1rem; }
 }
 .titre-carte {

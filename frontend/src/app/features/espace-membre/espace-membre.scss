@@ -133,7 +133,7 @@
   height: 2rem;
   overflow: hidden;
   border: 1px solid var(--ept-border);
-  border-radius: 0.35rem;
+  border-radius: var(--ept-radius-sm);
   background: white;
 }
 

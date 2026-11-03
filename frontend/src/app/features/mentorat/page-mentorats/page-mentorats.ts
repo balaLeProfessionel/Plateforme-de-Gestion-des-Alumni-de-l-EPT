@@ -41,7 +41,7 @@ interface DonneesPage {
     :host { display: grid; gap: 1.75rem; }
     .section h2 { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.75rem; color: var(--ept-primary-dark); font-size: 1.05rem; }
     .nombre { display: inline-grid; min-width: 1.5rem; height: 1.5rem; place-items: center; padding: 0 0.4rem; border-radius: 999px; background: var(--ept-bg); color: var(--ept-text-secondary); font-size: 0.78rem; }
-    .etat { display: grid; justify-items: center; gap: 0.5rem; padding: 3.5rem 1rem; border: 1px dashed var(--ept-border); text-align: center; }
+    .etat { border-radius: var(--ept-radius); display: grid; justify-items: center; gap: 0.5rem; padding: 3.5rem 1rem; border: 1px dashed var(--ept-border); text-align: center; }
     .etat > i { color: var(--ept-primary); font-size: 1.7rem; }
     .etat h2, .etat p { margin: 0; }
     .etat p { max-width: 30rem; color: var(--ept-text-secondary); }

@@ -7,7 +7,7 @@
 
   button {
     display: inline-flex; align-items: center; gap: 0.35rem; min-height: 2.5rem; padding: 0.45rem 0.95rem;
-    border: 1px solid var(--ept-primary); border-radius: 8px; font: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+    border: 1px solid var(--ept-primary); border-radius: var(--ept-radius-sm); font: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer;
     &:disabled { opacity: 0.6; cursor: wait; }
     &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
   }
@@ -19,11 +19,11 @@
 
 .panneau {
   display: grid; gap: 0.4rem; margin-top: 0.25rem; padding: 0.85rem;
-  border: 1px solid var(--ept-error-light); border-radius: 8px; background: #fff8f6;
+  border: 1px solid var(--ept-error-light); border-radius: var(--ept-radius-sm); background: #fff8f6;
 
   &[data-panneau='reactivation'] { border-color: var(--ept-primary-light); background: #f5f9fb; }
   label { font-size: 0.82rem; font-weight: 600; }
-  textarea { padding: 0.5rem 0.65rem; border: 1px solid var(--ept-border); border-radius: 8px; font: inherit; resize: vertical; }
+  textarea { padding: 0.5rem 0.65rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm); font: inherit; resize: vertical; }
   textarea:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
   textarea[aria-invalid='true'] { border-color: var(--ept-error); }
   .sous-champ { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.25rem 0.75rem; }
