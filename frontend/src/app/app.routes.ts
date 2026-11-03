@@ -120,6 +120,20 @@ export const routes: Routes = [
           import('./features/accueil/accueil').then((m) => m.Accueil)
       },
       {
+        path: 'publications/nouvelle',
+        title: 'Nouvelle publication | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/publications/creation-publication/creation-publication').then((m) => m.CreationPublication)
+      },
+      {
+        path: 'publications/:id',
+        title: 'Publication | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/publications/detail-publication/detail-publication').then((m) => m.DetailPublication)
+      },
+      {
         path: 'annuaire',
         title: 'Annuaire | EPT Alumni',
         canActivate: [authGuard, changementInitialRequisGuard],

@@ -1,0 +1,82 @@
+<div class="redaction" [class.integree]="integree()">
+  @if (!ouverte()) {
+    <button type="button" class="ouvrir-redaction" (click)="ouvrir()">{{ libelleOuvrir() }}</button>
+  } @else {
+    <form (submit)="publier($event)" novalidate>
+      @if (!integree()) { <h2>{{ titreFormulaire() }}</h2> }
+      @if (types().length > 1) {
+        <div class="choix-type" role="group" aria-label="Type de publication">
+          @for (type of types(); track type) {
+            <button type="button" [attr.aria-pressed]="modele().type === type" (click)="choisirType(type)">
+              {{ libellesTypes[type] }}
+            </button>
+          }
+        </div>
+      }
+      <label for="publication-titre">Titre <span>{{ titreObligatoire() ? '(obligatoire)' : '(facultatif)' }}</span></label>
+      <input id="publication-titre" type="text" [formField]="formulaire.titre"
+        [attr.aria-invalid]="formulaire.titre().touched() && formulaire.titre().invalid()" />
+      @if (modele().type === 'APPEL_PROJET') {
+        <label for="publication-date-limite">Date limite de réponse <span>(incluse)</span></label>
+        <input id="publication-date-limite" type="date" [formField]="formulaire.dateLimite"
+          [attr.aria-invalid]="formulaire.dateLimite().touched() && formulaire.dateLimite().invalid()"
+          aria-describedby="aide-date-limite" />
+        <small id="aide-date-limite" class="aide">Après cette date, l’appel reste visible avec la mention « Clôturé ».</small>
+      }
+      <label for="publication-contenu">{{ modele().type === 'PUBLICATION' ? 'Votre message' : 'Texte' }} <span aria-hidden="true">*</span></label>
+      <textarea #champContenu id="publication-contenu" [formField]="formulaire.contenu" [rows]="integree() ? 8 : 4"
+        placeholder="Une nouvelle, une réussite, une question pour la communauté…"></textarea>
+      <label for="publication-audience">Qui peut voir cette publication ?</label>
+      <select id="publication-audience" [formField]="formulaire.audience">
+        <option value="TOUS">Tous les membres</option>
+        <option value="ALUMNI">Alumni</option>
+        <option value="ETUDIANTS">Étudiants</option>
+      </select>
+      @if (!apercuImage()) {
+        <label for="publication-image">Image <span>(facultatif)</span></label>
+        <input #champImage id="publication-image" type="file" accept="image/jpeg,image/png"
+          aria-describedby="aide-image-publication" (change)="choisirImage($event)" />
+        <small id="aide-image-publication" class="aide">
+          JPEG ou PNG, 5 Mo max.
+        </small>
+      }
+      @if (chargementImage()) { <p class="chargement-image" role="status">Préparation de l’image…</p> }
+      @if (imageARecadrer(); as image) {
+        <dialog #dialogueRecadrage class="dialogue-recadrage" aria-labelledby="titre-recadrage-publication"
+          (cancel)="annulerRecadrage()">
+          <div class="entete-recadrage">
+            <div><h2 id="titre-recadrage-publication">Recadrer l’image</h2>
+              <p>Déplacez et zoomez la photo pour choisir ce qui sera visible.</p></div>
+            <button type="button" aria-label="Fermer le recadrage" (click)="annulerRecadrage()">×</button>
+          </div>
+          <app-recadreur-image [image]="image" [format]="formatPublication"
+            libelle="Recadrer l’image de la publication au format vertical 4:5"
+            (recadree)="appliquerRecadrage($event)" (annulee)="annulerRecadrage()" />
+          @if (avertissementImage()) { <p class="avertissement-image" role="status">{{ avertissementImage() }}</p> }
+        </dialog>
+      }
+      @if (!imageARecadrer() && apercuImage()) {
+        <div class="apercu-publication">
+          <img [src]="apercuImage()" [alt]="modele().texteAlternatif || 'Aperçu de l’image recadrée'" />
+          <div class="actions-image-publication">
+            <div><strong>Image prête</strong><span>Format vertical 4:5</span></div>
+            <button #boutonRepositionner type="button" [disabled]="envoiEnCours()" (click)="repositionnerImage()">Repositionner</button>
+            <button type="button" [disabled]="envoiEnCours()" (click)="retirerImageChoisie()">Retirer l’image</button>
+          </div>
+          <div class="description-image">
+            <label for="publication-texte-alternatif">Décrivez l’image <span>(facultatif, recommandé)</span></label>
+            <input id="publication-texte-alternatif" type="text"
+              aria-describedby="aide-texte-alternatif" [formField]="formulaire.texteAlternatif" />
+            <small id="aide-texte-alternatif">Lue par les lecteurs d’écran, par exemple « La promotion 2026 devant l’amphithéâtre ».</small>
+          </div>
+        </div>
+      }
+      @if (erreurPublication()) { <p class="erreur-publication" role="alert">{{ erreurPublication() }}</p> }
+      <div class="actions-redaction">
+        <button type="button" class="annuler" [disabled]="envoiEnCours()" (click)="annulerRedaction()">Annuler</button>
+        <button type="submit" class="publier" [disabled]="envoiEnCours() || desactivee()">{{ envoiEnCours() ? 'Publication…' : 'Publier' }}</button>
+      </div>
+    </form>
+  }
+</div>
+@if (messagePublication() && !integree()) { <p class="succes-publication" role="status">{{ messagePublication() }}</p> }

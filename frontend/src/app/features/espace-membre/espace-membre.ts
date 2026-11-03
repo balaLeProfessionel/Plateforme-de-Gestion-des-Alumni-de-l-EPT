@@ -11,6 +11,7 @@ import { SidebarModule } from 'primeng/sidebar';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurInscriptions } from '../../core/services/admin/compteur-inscriptions';
+import { CompteurSignalements } from '../../core/services/publications/moderation';
 import { PermissionAdmin, TOUTES_LES_PERMISSIONS } from '../../core/services/models/admin.model';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
 import { participeAuMentorat } from '../../core/services/models/mentorat.model';
@@ -48,6 +49,7 @@ export class EspaceMembre implements OnDestroy {
   protected readonly sidebarOuverte = signal(!this.formatNavigation?.matches);
   protected readonly compteurMentorat = inject(CompteurDemandesMentorat);
   private readonly compteurInscriptions = inject(CompteurInscriptions);
+  private readonly compteurSignalements = inject(CompteurSignalements);
   /** Un compte d’administration navigue par domaine ; un membre garde les rubriques de la communauté. */
   private readonly administration = computed(() =>
     TOUTES_LES_PERMISSIONS.some((permission) => this.authService.aPermission(permission)));
@@ -76,6 +78,12 @@ export class EspaceMembre implements OnDestroy {
         { libelle: 'Diplômés', icone: 'pi-graduation-cap', route: '/admin/diplomes', exact: false },
       ] : [] },
       { titre: 'Contenus', liens: [
+        ...(peut('PUBLIER_ANNONCES')
+          ? [{ libelle: 'Annonces et appels', icone: 'pi-megaphone', route: '/admin/publications', exact: false }] : []),
+        ...(peut('MODERER_PUBLICATIONS') ? [{
+          libelle: 'Signalements', icone: 'pi-flag', route: '/admin/signalements', exact: false,
+          compteur: this.compteurSignalements.nombre(), libelleCompteur: 'signalements à examiner',
+        }] : []),
         { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
         { libelle: 'Programmes de mentorat', icone: 'pi-sitemap', route: '/mentorat/gestion-programmes', exact: false },
       ] },
@@ -87,8 +95,6 @@ export class EspaceMembre implements OnDestroy {
   });
   protected readonly rubriquesAVenir = computed<readonly RubriqueAVenir[]>(() => this.administration() ? [
     { libelle: 'Statistiques', icone: 'pi-chart-bar' },
-    { libelle: 'Modération', icone: 'pi-flag' },
-    { libelle: 'Annonces', icone: 'pi-megaphone' },
     { libelle: 'Enquêtes', icone: 'pi-clipboard' },
     { libelle: 'Rôles et accès', icone: 'pi-key' },
   ] : [
@@ -154,6 +160,7 @@ export class EspaceMembre implements OnDestroy {
     this.authService.resynchroniser();
     if (participeAuMentorat(this.authService.utilisateur()?.role)) this.compteurMentorat.actualiser();
     if (this.authService.aPermission('GERER_COMPTES')) this.compteurInscriptions.actualiser();
+    if (this.authService.aPermission('MODERER_PUBLICATIONS')) this.compteurSignalements.actualiser();
   }
 
   ngOnDestroy(): void {

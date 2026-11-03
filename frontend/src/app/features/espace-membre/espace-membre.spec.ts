@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 
 import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurInscriptions } from '../../core/services/admin/compteur-inscriptions';
+import { CompteurSignalements } from '../../core/services/publications/moderation';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
 import { EspaceMembre } from './espace-membre';
 
@@ -20,6 +21,8 @@ describe('Navigation de l’espace membre', () => {
   const resynchroniser = vi.fn();
   const inscriptionsEnAttente = signal(0);
   const actualiserInscriptions = vi.fn();
+  const signalementsEnAttente = signal(0);
+  const actualiserSignalements = vi.fn();
 
   beforeEach(() => {
     utilisateur.set({ role: 'ALUMNI', nom: 'Diop', prenom: 'Awa' });
@@ -29,6 +32,8 @@ describe('Navigation de l’espace membre', () => {
     resynchroniser.mockClear();
     inscriptionsEnAttente.set(0);
     actualiserInscriptions.mockClear();
+    signalementsEnAttente.set(0);
+    actualiserSignalements.mockClear();
     TestBed.configureTestingModule({
       imports: [EspaceMembre],
       providers: [
@@ -41,7 +46,8 @@ describe('Navigation de l’espace membre', () => {
           },
         },
         { provide: CompteurDemandesMentorat, useValue: { nombre: demandesEnAttente, actualiser: actualiserCompteur } },
-        { provide: CompteurInscriptions, useValue: { nombre: inscriptionsEnAttente, actualiser: actualiserInscriptions } }
+        { provide: CompteurInscriptions, useValue: { nombre: inscriptionsEnAttente, actualiser: actualiserInscriptions } },
+        { provide: CompteurSignalements, useValue: { nombre: signalementsEnAttente, actualiser: actualiserSignalements } }
       ]
     });
   });
@@ -201,22 +207,26 @@ describe('Navigation de l’espace membre', () => {
   it('range la navigation de l’administration par domaine, sans lien de profil indisponible', () => {
     utilisateur.set({ role: 'ADMIN', nom: 'EPT', prenom: 'Admin' });
     inscriptionsEnAttente.set(4);
+    signalementsEnAttente.set(2);
     const fixture = TestBed.createComponent(EspaceMembre);
     fixture.detectChanges();
     const racine = fixture.nativeElement as HTMLElement;
 
     expect(actualiserInscriptions).toHaveBeenCalledOnce();
+    expect(actualiserSignalements).toHaveBeenCalledOnce();
     expect(actualiserCompteur).not.toHaveBeenCalled();
     expect([...racine.querySelectorAll('.barre-laterale p-sidebar-group-label')].map((titre) => titre.textContent?.trim()))
       .toEqual(['Pilotage', 'Membres', 'Contenus', 'Système', 'Plateforme', 'À découvrir bientôt']);
     expect([...racine.querySelectorAll('.barre-laterale nav a')].map((lien) => lien.getAttribute('href'))).toEqual([
-      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/evenements', '/mentorat/gestion-programmes',
-      '/admin/journal', '/annuaire',
+      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/admin/publications', '/admin/signalements',
+      '/evenements', '/mentorat/gestion-programmes', '/admin/journal', '/annuaire',
     ]);
+    expect(racine.querySelector('.barre-laterale a[href="/admin/signalements"]')?.textContent).toContain('2 signalements à examiner');
     expect(racine.querySelector('.barre-laterale a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
     // Le panneau mobile reprend les rubriques d'administration ; Annuaire et Événements sont dans la barre du bas.
     expect([...racine.querySelectorAll('.menu-mobile a')].map((lien) => lien.getAttribute('href'))).toEqual([
-      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/mentorat/gestion-programmes', '/admin/journal',
+      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/admin/publications', '/admin/signalements',
+      '/mentorat/gestion-programmes', '/admin/journal',
     ]);
     expect(racine.querySelector('.menu-mobile a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
     expect(racine.querySelectorAll('.navigation-mobile a')).toHaveLength(3);
