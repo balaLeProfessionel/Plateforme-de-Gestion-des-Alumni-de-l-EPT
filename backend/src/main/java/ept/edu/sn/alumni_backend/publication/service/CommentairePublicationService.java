@@ -25,7 +25,7 @@ public class CommentairePublicationService {
 
     @Transactional(readOnly = true)
     public PageCommentairesPublicationResponse lister(UUID publicationId, int page, int taille, UtilisateurPrincipal principal) {
-        publications.obtenir(publicationId, principal);
+        publications.chargerVisible(publicationId, principal);
         var tri = Sort.by(Sort.Order.asc("creeLe"), Sort.Order.asc("id"));
         return PageCommentairesPublicationResponse.depuis(commentaires.findByPublication_IdOrderByCreeLeAscIdAsc(
             publicationId, PageRequest.of(page, taille, tri)).map(this::versResponse));
@@ -34,7 +34,7 @@ public class CommentairePublicationService {
     @Transactional
     public CommentairePublicationResponse creer(UUID publicationId, CommentairePublicationRequest demande,
             UtilisateurPrincipal principal) {
-        publications.obtenir(publicationId, principal);
+        publications.chargerVisible(publicationId, principal);
         CommentairePublication commentaire = new CommentairePublication();
         commentaire.setPublication(entityManager.getReference(Publication.class, publicationId));
         commentaire.setAuteur(principal.getUtilisateur());
@@ -49,9 +49,6 @@ public class CommentairePublicationService {
     }
 
     private CommentairePublicationResponse versResponse(CommentairePublication c) {
-        var auteur = c.getAuteur();
-        return new CommentairePublicationResponse(c.getId(), c.getPublication().getId(),
-            c.getParent() == null ? null : c.getParent().getId(), auteur.getId(), auteur.getNom(),
-            auteur.getPrenom(), auteur.getUrlPhoto(), c.getContenu(), c.getCreeLe());
+        return CommentairePublicationResponse.depuis(c);
     }
 }

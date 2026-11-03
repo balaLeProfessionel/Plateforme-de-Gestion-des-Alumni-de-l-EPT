@@ -1,9 +1,19 @@
 package ept.edu.sn.alumni_backend.publication.service;
 
-import java.util.UUID;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
+import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -12,21 +22,25 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.core.io.Resource;
 
-import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
+import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.publication.AudiencePublication;
+import ept.edu.sn.alumni_backend.publication.PublicationProperties;
 import ept.edu.sn.alumni_backend.publication.StatutPublication;
 import ept.edu.sn.alumni_backend.publication.TypePublication;
-import ept.edu.sn.alumni_backend.publication.PublicationProperties;
+import ept.edu.sn.alumni_backend.publication.dto.CommentairePublicationResponse;
 import ept.edu.sn.alumni_backend.publication.dto.PagePublicationsResponse;
 import ept.edu.sn.alumni_backend.publication.dto.PublicationRequest;
 import ept.edu.sn.alumni_backend.publication.dto.PublicationResponse;
 import ept.edu.sn.alumni_backend.publication.entity.Publication;
-import ept.edu.sn.alumni_backend.publication.exception.PublicationIntrouvableException;
 import ept.edu.sn.alumni_backend.publication.exception.LimiteCreationPublicationAtteinteException;
+import ept.edu.sn.alumni_backend.publication.exception.PublicationIntrouvableException;
 import ept.edu.sn.alumni_backend.publication.repository.PublicationRepository;
+import ept.edu.sn.alumni_backend.publication.repository.CommentairePublicationRepository;
+import ept.edu.sn.alumni_backend.publication.repository.CompteParPublication;
+import ept.edu.sn.alumni_backend.publication.repository.JaimePublicationRepository;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
@@ -35,7 +49,12 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class PublicationService {
+    /** Les dates limites s'entendent à l'heure de Dakar (UTC toute l'année). */
+    private static final Clock HORLOGE_DAKAR = Clock.system(java.time.ZoneId.of("Africa/Dakar"));
+
     private final PublicationRepository publications;
+    private final JaimePublicationRepository jaimes;
+    private final CommentairePublicationRepository commentaires;
     private final UtilisateurRepository utilisateurs;
     private final PublicationProperties proprietes;
     private final StockageImagePublication stockageImages;
@@ -57,12 +76,7 @@ public class PublicationService {
                 && auteur.getStatutCompte() != StatutCompte.EN_ATTENTE)) {
             throw new SecurityException("Compte indisponible.");
         }
-        if (demande.type() == TypePublication.ANNONCE_OFFICIELLE && auteur.getRole() != TypeRole.ADMIN) {
-            throw new SecurityException("Seule l'administration peut publier une annonce officielle.");
-        }
-        if (demande.type() == TypePublication.APPEL_PROJET) {
-            throw new IllegalArgumentException("Les appels à projets ne sont pas encore disponibles.");
-        }
+        verifierType(demande, auteur.getRole());
         if (publications.countByAuteur_IdAndPublieLeGreaterThanEqual(
                 auteur.getId(), Instant.now().minus(Duration.ofHours(24))) >= proprietes.limiteCreations24h()) {
             throw new LimiteCreationPublicationAtteinteException();
@@ -73,6 +87,7 @@ public class PublicationService {
         publication.setTitre(demande.titre() == null || demande.titre().isBlank() ? null : demande.titre().strip());
         publication.setContenu(demande.contenu().strip());
         publication.setAudience(demande.audience());
+        publication.setDateLimite(demande.dateLimite());
         if (image != null) {
             String identifiant = stockageImages.stocker(image);
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -84,43 +99,117 @@ public class PublicationService {
             publication.setTexteAlternatif(demande.texteAlternatif() == null || demande.texteAlternatif().isBlank()
                 ? null : demande.texteAlternatif().strip());
         }
-        return versResponse(publications.saveAndFlush(publication));
+        return versResponse(publications.saveAndFlush(publication), Interactions.AUCUNE);
+    }
+
+    /**
+     * Annonce officielle et appel à projet sont réservés à l'administration ; ils portent un titre.
+     * Seul l'appel à projet a une date limite, qui ne peut pas être déjà passée.
+     */
+    private void verifierType(PublicationRequest demande, TypeRole role) {
+        boolean officiel = demande.type() != TypePublication.PUBLICATION;
+        if (officiel && !PermissionAdmin.pour(role).contains(PermissionAdmin.PUBLIER_ANNONCES)) {
+            throw new SecurityException(demande.type() == TypePublication.ANNONCE_OFFICIELLE
+                ? "Seule l'administration peut publier une annonce officielle."
+                : "Seule l'administration peut diffuser un appel à projet.");
+        }
+        if (officiel && (demande.titre() == null || demande.titre().isBlank())) {
+            throw new IllegalArgumentException("Donnez un titre à cette publication.");
+        }
+        if (demande.type() != TypePublication.APPEL_PROJET && demande.dateLimite() != null) {
+            throw new IllegalArgumentException("La date limite ne concerne que les appels à projets.");
+        }
+        if (demande.type() == TypePublication.APPEL_PROJET) {
+            if (demande.dateLimite() == null) {
+                throw new IllegalArgumentException("Indiquez la date limite de réponse.");
+            }
+            if (demande.dateLimite().isBefore(LocalDate.now(HORLOGE_DAKAR))) {
+                throw new IllegalArgumentException("La date limite de réponse est déjà passée.");
+            }
+        }
     }
 
     @Transactional(readOnly = true)
-    public PagePublicationsResponse lister(UtilisateurPrincipal principal, int page, int taille) {
+    public PagePublicationsResponse lister(UtilisateurPrincipal principal, Set<TypePublication> types, int page, int taille) {
+        Utilisateur lecteur = principal.getUtilisateur();
         Specification<Publication> visible = (racine, requete, cb) -> {
+            var publiee = cb.equal(racine.get("statut"), StatutPublication.PUBLIE);
+            if (voitToutesLesAudiences(lecteur.getRole())) return publiee;
             var tous = cb.equal(racine.get("audience"), AudiencePublication.TOUS);
-            var auteur = cb.equal(racine.get("auteur").get("id"), principal.getUtilisateur().getId());
-            AudiencePublication role = audienceDuRole(principal.getUtilisateur().getRole());
+            var auteur = cb.equal(racine.get("auteur").get("id"), lecteur.getId());
+            AudiencePublication role = audienceDuRole(lecteur.getRole());
             var audience = role == null ? cb.or(tous, auteur)
                 : cb.or(tous, auteur, cb.equal(racine.get("audience"), role));
-            return cb.and(cb.equal(racine.get("statut"), StatutPublication.PUBLIE), audience);
+            return cb.and(publiee, audience);
         };
+        Specification<Publication> filtre = types == null || types.isEmpty() ? visible
+            : visible.and((racine, requete, cb) -> racine.get("type").in(types));
         var tri = Sort.by(Sort.Order.desc("publieLe"), Sort.Order.desc("id"));
-        return PagePublicationsResponse.depuis(publications.findAll(visible, PageRequest.of(page, taille, tri))
-            .map(this::versResponse));
+        Page<Publication> resultat = publications.findAll(filtre, PageRequest.of(page, taille, tri));
+        Map<UUID, Interactions> resumes = interactions(resultat.map(Publication::getId).getContent(), lecteur.getId());
+        return PagePublicationsResponse.depuis(resultat.map(p -> versResponse(p, resumes.get(p.getId()))));
     }
 
     @Transactional(readOnly = true)
     public PublicationResponse obtenir(UUID id, UtilisateurPrincipal principal) {
-        return versResponse(publicationVisible(id, principal));
+        Publication publication = chargerVisible(id, principal);
+        return versResponse(publication, interactions(List.of(id), principal.getUtilisateur().getId()).get(id));
     }
 
     @Transactional(readOnly = true)
     public Resource image(UUID id, UtilisateurPrincipal principal) {
-        String url = publicationVisible(id, principal).getUrlImage();
+        // La modération revoit l'image d'une publication déjà masquée, que les membres ne voient plus.
+        Publication publication = voitToutesLesAudiences(principal.getUtilisateur().getRole())
+            ? publications.findById(id).filter(p -> p.getStatut() != StatutPublication.SUPPRIME)
+                .orElseThrow(PublicationIntrouvableException::new)
+            : chargerVisible(id, principal);
+        String url = publication.getUrlImage();
         if (url == null || !url.startsWith("stockage:")) throw new PublicationIntrouvableException();
         return stockageImages.lire(url.substring("stockage:".length()));
     }
 
-    private Publication publicationVisible(UUID id, UtilisateurPrincipal principal) {
+    /** Publication publiée que ce lecteur a le droit de voir ; sinon 404, sans révéler qu'elle existe. */
+    public Publication chargerVisible(UUID id, UtilisateurPrincipal principal) {
+        Utilisateur lecteur = principal.getUtilisateur();
         return publications.findById(id)
             .filter(p -> p.getStatut() == StatutPublication.PUBLIE)
-            .filter(p -> p.getAudience() == AudiencePublication.TOUS
-                || p.getAudience() == audienceDuRole(principal.getUtilisateur().getRole())
-                || p.getAuteur().getId().equals(principal.getUtilisateur().getId()))
+            .filter(p -> voitToutesLesAudiences(lecteur.getRole())
+                || p.getAudience() == AudiencePublication.TOUS
+                || p.getAudience() == audienceDuRole(lecteur.getRole())
+                || p.getAuteur().getId().equals(lecteur.getId()))
             .orElseThrow(PublicationIntrouvableException::new);
+    }
+
+    /** « J'aime » et commentaires d'une page en trois requêtes groupées, jamais une par publication. */
+    private Map<UUID, Interactions> interactions(Collection<UUID> ids, UUID lecteurId) {
+        Map<UUID, Interactions> resultat = new HashMap<>();
+        if (ids.isEmpty()) return resultat;
+        Map<UUID, Long> nombreJaime = parPublication(jaimes.compter(ids));
+        Map<UUID, Long> nombreCommentaires = parPublication(commentaires.compter(ids));
+        Set<UUID> aimees = new HashSet<>(jaimes.aimeesPar(lecteurId, ids));
+        Map<UUID, CommentairePublicationResponse> apercus = new HashMap<>();
+        // Deux commentaires de la même seconde : on garde le premier rencontré.
+        for (var c : commentaires.derniers(ids)) apercus.putIfAbsent(c.getPublication().getId(), CommentairePublicationResponse.depuis(c));
+        for (UUID id : ids) {
+            resultat.put(id, new Interactions(nombreJaime.getOrDefault(id, 0L), aimees.contains(id),
+                nombreCommentaires.getOrDefault(id, 0L), apercus.get(id)));
+        }
+        return resultat;
+    }
+
+    private static Map<UUID, Long> parPublication(List<CompteParPublication> lignes) {
+        Map<UUID, Long> resultat = new HashMap<>();
+        for (var ligne : lignes) resultat.put(ligne.getPublicationId(), ligne.getNombre());
+        return resultat;
+    }
+
+    private record Interactions(long nombreJaime, boolean jaime, long nombreCommentaires,
+            CommentairePublicationResponse apercuCommentaire) {
+        static final Interactions AUCUNE = new Interactions(0, false, 0, null);
+    }
+
+    private boolean voitToutesLesAudiences(TypeRole role) {
+        return PermissionAdmin.pour(role).contains(PermissionAdmin.MODERER_PUBLICATIONS);
     }
 
     private AudiencePublication audienceDuRole(TypeRole role) {
@@ -131,12 +220,17 @@ public class PublicationService {
         };
     }
 
-    private PublicationResponse versResponse(Publication p) {
-        Utilisateur auteur = p.getAuteur();
-        String image = p.getUrlImage() != null && p.getUrlImage().startsWith("stockage:")
+    /** Adresse servie au frontend : les images stockées passent par la route protégée par l'audience. */
+    public static String urlImage(Publication p) {
+        return p.getUrlImage() != null && p.getUrlImage().startsWith("stockage:")
             ? "/api/publications/" + p.getId() + "/image" : p.getUrlImage();
-        return new PublicationResponse(p.getId(), p.getType(), p.getTitre(), p.getContenu(), p.getAudience(), image,
-            p.getTexteAlternatif(), p.getPublieLe(), p.getModifieLe(), auteur.getId(), auteur.getNom(), auteur.getPrenom(),
-            auteur.getRole(), auteur.getUrlPhoto());
+    }
+
+    private PublicationResponse versResponse(Publication p, Interactions interactions) {
+        Utilisateur auteur = p.getAuteur();
+        return new PublicationResponse(p.getId(), p.getType(), p.getTitre(), p.getContenu(), p.getAudience(), urlImage(p),
+            p.getTexteAlternatif(), p.getDateLimite(), p.getPublieLe(), p.getModifieLe(), auteur.getId(), auteur.getNom(),
+            auteur.getPrenom(), auteur.getRole(), auteur.getUrlPhoto(), interactions.nombreJaime(), interactions.jaime(),
+            interactions.nombreCommentaires(), interactions.apercuCommentaire());
     }
 }

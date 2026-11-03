@@ -1,6 +1,7 @@
 package ept.edu.sn.alumni_backend.publication.entity;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import ept.edu.sn.alumni_backend.publication.AudiencePublication;
@@ -60,6 +61,10 @@ public class Publication {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private AudiencePublication audience;
+
+    /** Dernier jour pour répondre à un appel à projet (inclus) ; vide pour les autres types. */
+    @Column(name = "date_limite")
+    private LocalDate dateLimite;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

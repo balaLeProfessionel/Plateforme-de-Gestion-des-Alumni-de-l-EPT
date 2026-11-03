@@ -146,7 +146,7 @@ class PublicationApiIntegrationTests {
             .andExpect(jsonPath("$.urlImage").doesNotExist())
             .andExpect(jsonPath("$.texteAlternatif").doesNotExist())
             .andExpect(jsonPath("$.email").doesNotExist()).andExpect(jsonPath("$.telephone").doesNotExist());
-        String officiel = "{\"type\":\"ANNONCE_OFFICIELLE\",\"audience\":\"TOUS\",\"contenu\":\"Annonce\"}";
+        String officiel = "{\"type\":\"ANNONCE_OFFICIELLE\",\"titre\":\"Rentrée\",\"audience\":\"TOUS\",\"contenu\":\"Annonce\"}";
         mvc.perform(post("/api/publications").header(HttpHeaders.AUTHORIZATION, jeton(membre))
             .contentType(MediaType.APPLICATION_JSON).content(officiel)).andExpect(status().isForbidden());
         mvc.perform(post("/api/publications").header(HttpHeaders.AUTHORIZATION, jeton(admin))
