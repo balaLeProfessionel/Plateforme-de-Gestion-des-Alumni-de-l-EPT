@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.publication.repository;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.data.jpa.repository.Query;
@@ -27,4 +28,11 @@ public interface CommentairePublicationRepository extends JpaRepository<Commenta
         where c.publication.id in :publications and c.parent is null and c.creeLe = (
             select max(d.creeLe) from CommentairePublication d where d.publication = c.publication and d.parent is null)""")
     List<CommentairePublication> derniers(@Param("publications") Collection<UUID> publications);
+
+    /** Commentaires écrits par le lecteur depuis une date, regroupés par auteur des publications commentées. */
+    @Query("""
+        select c.publication.auteur.id as auteurId, count(c) as nombre from CommentairePublication c
+        where c.auteur.id = :lecteur and c.creeLe >= :depuis and c.publication.auteur.id <> :lecteur
+        group by c.publication.auteur.id""")
+    List<CompteParAuteur> parAuteurCommentesPar(@Param("lecteur") UUID lecteurId, @Param("depuis") Instant depuis);
 }

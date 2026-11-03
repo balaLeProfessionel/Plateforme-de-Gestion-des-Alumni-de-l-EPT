@@ -13,22 +13,32 @@
     }
     @if (chargement()) { <p role="status">Chargement des nouveautés…</p> }
     @else {
-      @if (erreurs().length) {
-        <div class="erreur" role="alert"><p>Impossible de charger : {{ erreurs().join(', ') }}.</p>
+      @if (erreur()) {
+        <div class="erreur" role="alert"><p>Impossible de charger le fil d’actualité.</p>
           <button type="button" (click)="charger()">Réessayer</button></div>
-      }
-      @if (!cartes().length && !erreurs().length) { <p class="etat-vide">Il n’y a rien à afficher pour le moment.</p> }
+      } @else if (!cartes().length) { <p class="etat-vide">Il n’y a rien à afficher pour le moment.</p> }
       <ul class="cartes">
-        @for (carte of cartes(); track carte.type + carte.contenu.id) {
+        @for (carte of cartes(); track cle(carte)) {
           <li>
+            @if (carte.raison) {
+              <p class="raison"><i class="pi pi-star" aria-hidden="true"></i>
+                <span class="visuellement-cache">Suggéré pour vous : </span>{{ carte.raison }}</p>
+            }
             @switch (carte.type) {
-              @case ('publication') { <app-carte-publication [publication]="carte.contenu" /> }
-              @case ('evenement') { <app-carte-evenement-fil [evenement]="carte.contenu" /> }
-              @case ('programme') { <app-carte-programme-fil [programme]="carte.contenu" /> }
+              @case ('PUBLICATION') { <app-carte-publication [publication]="carte.publication" /> }
+              @case ('EVENEMENT') { <app-carte-evenement-fil [evenement]="carte.evenement" /> }
+              @case ('PROGRAMME') { <app-carte-programme-fil [programme]="carte.programme" /> }
             }
           </li>
         }
       </ul>
+      @if (!derniere()) {
+        <div class="suite">
+          <button type="button" (click)="chargerSuite()" [disabled]="suiteEnCours()">
+            {{ suiteEnCours() ? 'Chargement…' : 'Voir plus d’actualités' }}</button>
+          @if (erreurSuite()) { <p role="alert">Impossible de charger la suite. Réessayez.</p> }
+        </div>
+      }
       <nav class="raccourcis" aria-label="Explorer le réseau">
         <a routerLink="/evenements">Voir les événements <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
         <a routerLink="/mentorat">Découvrir le mentorat <i class="pi pi-arrow-right" aria-hidden="true"></i></a>

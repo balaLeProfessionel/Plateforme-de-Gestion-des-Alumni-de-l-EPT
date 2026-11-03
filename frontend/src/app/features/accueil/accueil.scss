@@ -26,6 +26,16 @@
 .erreur p { margin: 0 0 .5rem; }
 .erreur button:focus-visible, .raccourcis a:focus-visible { outline: 3px solid var(--ept-sky); outline-offset: 2px; }
 .erreur button { border-radius: var(--ept-radius-sm); cursor: pointer; background: var(--ept-primary); color: white; border: 0; padding: .6rem 1rem; }
+.raison { display: flex; align-items: center; gap: .4rem; margin: 0 0 .4rem .25rem; color: var(--ept-text-secondary);
+  font-size: .8rem; font-weight: 600; }
+.raison i { color: var(--ept-gold-dark); font-size: .72rem; }
+.suite { display: grid; justify-items: center; gap: .5rem; margin-top: 1rem; }
+.suite button { min-height: 2.75rem; padding: .6rem 1.25rem; border: 1px solid var(--ept-border); border-radius: 999px;
+  background: var(--ept-surface); color: var(--ept-primary); font: inherit; font-weight: 600; cursor: pointer; }
+.suite button:hover:not(:disabled) { border-color: var(--ept-primary); background: var(--ept-primary-light); }
+.suite button:disabled { opacity: .6; cursor: wait; }
+.suite button:focus-visible { outline: 3px solid var(--ept-sky); outline-offset: 2px; }
+.suite p { margin: 0; color: var(--ept-error-dark); font-size: .88rem; }
 .etat-vide { color: var(--ept-text-secondary); }
 .raccourcis { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.25rem; }
 .raccourcis a { color: var(--ept-primary); font-weight: 700; }

@@ -132,7 +132,33 @@ public class PublicationService {
     @Transactional(readOnly = true)
     public PagePublicationsResponse lister(UtilisateurPrincipal principal, Set<TypePublication> types, int page, int taille) {
         Utilisateur lecteur = principal.getUtilisateur();
-        Specification<Publication> visible = (racine, requete, cb) -> {
+        Specification<Publication> visible = visiblePar(lecteur);
+        Specification<Publication> filtre = types == null || types.isEmpty() ? visible
+            : visible.and((racine, requete, cb) -> racine.get("type").in(types));
+        var tri = Sort.by(Sort.Order.desc("publieLe"), Sort.Order.desc("id"));
+        Page<Publication> resultat = publications.findAll(filtre, PageRequest.of(page, taille, tri));
+        Map<UUID, Interactions> resumes = interactions(resultat.map(Publication::getId).getContent(), lecteur.getId());
+        return PagePublicationsResponse.depuis(resultat.map(p -> versResponse(p, resumes.get(p.getId()))));
+    }
+
+    /**
+     * Candidates du fil personnalisé : publications visibles parues dans la fenêtre {@code [depuis, jusqua]},
+     * les plus récentes d'abord, avec leurs interactions déjà résumées.
+     */
+    @Transactional(readOnly = true)
+    public List<PublicationResponse> listerRecentes(UtilisateurPrincipal principal, Instant depuis, Instant jusqua, int limite) {
+        Utilisateur lecteur = principal.getUtilisateur();
+        Specification<Publication> fenetre = visiblePar(lecteur).and((racine, requete, cb) ->
+            cb.between(racine.get("publieLe"), depuis, jusqua));
+        var tri = Sort.by(Sort.Order.desc("publieLe"), Sort.Order.desc("id"));
+        List<Publication> resultat = publications.findAll(fenetre, PageRequest.of(0, limite, tri)).getContent();
+        Map<UUID, Interactions> resumes = interactions(resultat.stream().map(Publication::getId).toList(), lecteur.getId());
+        return resultat.stream().map(p -> versResponse(p, resumes.get(p.getId()))).toList();
+    }
+
+    /** Publiées, et dans l'audience du lecteur (ou écrites par lui) ; la modération voit tout. */
+    private Specification<Publication> visiblePar(Utilisateur lecteur) {
+        return (racine, requete, cb) -> {
             var publiee = cb.equal(racine.get("statut"), StatutPublication.PUBLIE);
             if (voitToutesLesAudiences(lecteur.getRole())) return publiee;
             var tous = cb.equal(racine.get("audience"), AudiencePublication.TOUS);
@@ -142,12 +168,6 @@ public class PublicationService {
                 : cb.or(tous, auteur, cb.equal(racine.get("audience"), role));
             return cb.and(publiee, audience);
         };
-        Specification<Publication> filtre = types == null || types.isEmpty() ? visible
-            : visible.and((racine, requete, cb) -> racine.get("type").in(types));
-        var tri = Sort.by(Sort.Order.desc("publieLe"), Sort.Order.desc("id"));
-        Page<Publication> resultat = publications.findAll(filtre, PageRequest.of(page, taille, tri));
-        Map<UUID, Interactions> resumes = interactions(resultat.map(Publication::getId).getContent(), lecteur.getId());
-        return PagePublicationsResponse.depuis(resultat.map(p -> versResponse(p, resumes.get(p.getId()))));
     }
 
     @Transactional(readOnly = true)

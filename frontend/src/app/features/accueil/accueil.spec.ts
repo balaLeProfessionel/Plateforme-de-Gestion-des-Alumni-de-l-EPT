@@ -17,48 +17,73 @@ describe('Accueil', () => {
   });
   afterEach(() => http.verify());
 
-  function repondre(publications: unknown[], evenements: unknown[], programmes: unknown[]): void {
-    http.expectOne((req) => req.url === '/api/publications').flush({ contenu: publications });
-    http.expectOne((req) => req.url === '/api/evenements').flush({ contenu: evenements });
-    http.expectOne('/api/mentorat/programmes/ouverts').flush(programmes);
+  const PUBLICATION = { type: 'PUBLICATION', titre: null, urlImage: null, publieLe: '2026-10-01T10:00:00Z',
+    auteurId: 'a1', auteurNom: 'Diop', auteurPrenom: 'Awa', auteurRole: 'ALUMNI', ...SANS_INTERACTION };
+
+  function page(contenu: unknown[], numero = 0, derniere = true) {
+    return { contenu, page: numero, taille: 10, derniere, reference: '2026-11-03T12:00:00Z' };
   }
 
-  it('affiche les cartes de plusieurs modules, avec et sans image', async () => {
+  function repondre(contenu: unknown[] = []): void {
+    http.expectOne((req) => req.url === '/api/fil' && req.params.get('page') === '0').flush(page(contenu));
+  }
+
+  it('affiche les cartes du fil personnalisé avec la raison de chaque suggestion', async () => {
     const fixture = TestBed.createComponent(Accueil);
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Chargement des nouveautés');
-    repondre([{ id: 'p1', type: 'PUBLICATION', titre: null, contenu: 'Bonjour EPT', urlImage: '/images/demo.png', publieLe: '2026-10-01T10:00:00Z', auteurNom: 'Diop', auteurPrenom: 'Awa', auteurRole: 'ALUMNI', ...SANS_INTERACTION },
-      { id: 'p2', type: 'PUBLICATION', titre: null, contenu: 'Sans image', urlImage: null, publieLe: '2026-10-01T10:00:00Z', auteurNom: 'Diop', auteurPrenom: 'Awa', auteurRole: 'ALUMNI', ...SANS_INTERACTION }],
-      [{ id: 'e1', titre: 'Forum EPT', dateDebut: '2026-11-01T10:00:00Z', lieu: 'Thiès', description: 'Rencontre', officielEpt: true }],
-      [{ id: 'm1', titre: 'Mentorat EPT', dateFin: '2027-01-01', description: 'Accompagnement' }]);
+    repondre([
+      { type: 'PUBLICATION', raison: 'De votre promotion 2020',
+        publication: { ...PUBLICATION, id: 'p1', contenu: 'Bonjour EPT', urlImage: '/images/demo.png' } },
+      { type: 'EVENEMENT', raison: null, evenement: { id: 'e1', titre: 'Forum EPT', dateDebut: '2026-11-01T10:00:00Z',
+        lieu: 'Thiès', description: 'Rencontre', officielEpt: true, nombreParticipants: 4, maReponse: null } },
+      { type: 'PROGRAMME', raison: null, programme: { id: 'm1', titre: 'Mentorat EPT', dateFin: '2027-01-01',
+        description: 'Accompagnement', nombreMentors: 2, jeParticipe: false } },
+    ]);
     await fixture.whenStable();
     fixture.detectChanges();
     const racine: HTMLElement = fixture.nativeElement;
     expect(racine.querySelector('h1')?.textContent).toContain('Fil d’actualité');
-    expect(racine.querySelectorAll('app-image-publication img')).toHaveLength(1);
     expect(racine.querySelector('app-image-publication img')?.getAttribute('src')).toBe('/images/demo.png');
-    // Sans description fournie, le texte alternatif nomme au moins l’auteur.
-    expect(racine.querySelector('app-image-publication img')?.getAttribute('alt')).toBe('Image partagée par Awa Diop');
-    expect(racine.textContent).toContain('Sans image');
+    expect(racine.querySelectorAll('.raison')).toHaveLength(1);
+    expect(racine.querySelector('.raison')?.textContent).toContain('Suggéré pour vous : De votre promotion 2020');
     expect(racine.textContent).toContain('Bonjour EPT');
-    expect(racine.textContent).toContain('Forum EPT');
-    expect(racine.textContent).toContain('Mentorat EPT');
     expect(racine.querySelector('a[href="/evenements/e1"]')).not.toBeNull();
     expect(racine.querySelector('a[href="/mentorat/programmes/m1"]')).not.toBeNull();
+    expect(racine.textContent).toContain('2 mentors volontaires');
+    expect(racine.querySelector('.suite')).toBeNull();
   });
 
-  it('conserve les autres cartes en cas d’erreur et permet de réessayer', async () => {
+  it('charge la suite au même instant de référence, sans répéter une carte', async () => {
     const fixture = TestBed.createComponent(Accueil);
     fixture.detectChanges();
-    http.expectOne((req) => req.url === '/api/publications').flush({}, { status: 500, statusText: 'Erreur' });
-    http.expectOne((req) => req.url === '/api/evenements').flush({ contenu: [] });
-    http.expectOne('/api/mentorat/programmes/ouverts').flush([{ id: 'm1', titre: 'Mentorat EPT', dateFin: '2027-01-01' }]);
+    http.expectOne((req) => req.url === '/api/fil').flush(page([
+      { type: 'PUBLICATION', raison: null, publication: { ...PUBLICATION, id: 'p1', contenu: 'Première' } }], 0, false));
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Impossible de charger : publications');
-    expect(fixture.nativeElement.textContent).toContain('Mentorat EPT');
+    const racine: HTMLElement = fixture.nativeElement;
+    (racine.querySelector('.suite button') as HTMLButtonElement).click();
+    const suite = http.expectOne((req) => req.url === '/api/fil' && req.params.get('page') === '1');
+    expect(suite.request.params.get('reference')).toBe('2026-11-03T12:00:00Z');
+    suite.flush(page([
+      { type: 'PUBLICATION', raison: null, publication: { ...PUBLICATION, id: 'p1', contenu: 'Première' } },
+      { type: 'PUBLICATION', raison: null, publication: { ...PUBLICATION, id: 'p2', contenu: 'Seconde' } }], 1, true));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(racine.querySelectorAll('app-carte-publication')).toHaveLength(2);
+    expect(racine.textContent).toContain('Seconde');
+    expect(racine.querySelector('.suite')).toBeNull();
+  });
+
+  it('signale une erreur de chargement et permet de réessayer', async () => {
+    const fixture = TestBed.createComponent(Accueil);
+    fixture.detectChanges();
+    http.expectOne((req) => req.url === '/api/fil').flush({}, { status: 500, statusText: 'Erreur' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Impossible de charger le fil d’actualité.');
     (fixture.nativeElement.querySelector('.erreur button') as HTMLButtonElement).click();
-    repondre([], [], []);
+    repondre([]);
     await fixture.whenStable();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Il n’y a rien à afficher');
@@ -71,7 +96,7 @@ describe('Accueil', () => {
       { extras: { state: { messagePublication: 'Votre publication a été publiée.' } } } as unknown as ReturnType<Router['getCurrentNavigation']>);
     const fixture = TestBed.createComponent(Accueil);
     fixture.detectChanges();
-    repondre([], [], []);
+    repondre();
     await fixture.whenStable();
     fixture.detectChanges();
     const root: HTMLElement = fixture.nativeElement;

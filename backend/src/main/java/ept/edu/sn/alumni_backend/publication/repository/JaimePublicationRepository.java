@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.publication.repository;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -27,4 +28,11 @@ public interface JaimePublicationRepository extends JpaRepository<JaimePublicati
     /** Publications de la page que le lecteur aime déjà. */
     @Query("select j.publication.id from JaimePublication j where j.utilisateur.id = :utilisateur and j.publication.id in :publications")
     List<UUID> aimeesPar(@Param("utilisateur") UUID utilisateurId, @Param("publications") Collection<UUID> publications);
+
+    /** « J'aime » donnés par le lecteur depuis une date, regroupés par auteur des publications aimées. */
+    @Query("""
+        select j.publication.auteur.id as auteurId, count(j) as nombre from JaimePublication j
+        where j.utilisateur.id = :lecteur and j.creeLe >= :depuis and j.publication.auteur.id <> :lecteur
+        group by j.publication.auteur.id""")
+    List<CompteParAuteur> parAuteurAimesPar(@Param("lecteur") UUID lecteurId, @Param("depuis") Instant depuis);
 }
