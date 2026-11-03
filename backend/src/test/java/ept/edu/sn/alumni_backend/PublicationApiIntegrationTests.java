@@ -18,6 +18,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
@@ -73,6 +74,42 @@ class PublicationApiIntegrationTests {
         MockMultipartFile tropGros = new MockMultipartFile("image", "photo.png", "image/png", new byte[5 * 1024 * 1024 + 1]);
         mvc.perform(multipart("/api/publications").file(donnees).file(tropGros)
             .header(HttpHeaders.AUTHORIZATION, jeton(auteur))).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void commentairesRespectentAudienceEtReponsesRestentLieesAuCommentaireParent() throws Exception {
+        Utilisateur auteur = membre(TypeRole.PERSONNEL);
+        Utilisateur etudiant = membre(TypeRole.ETUDIANT);
+        Utilisateur alumni = membre(TypeRole.ALUMNI);
+        Publication cible = publication(auteur, AudiencePublication.ETUDIANTS, StatutPublication.PUBLIE);
+        String chemin = "/api/publications/" + cible.getId() + "/commentaires";
+        mvc.perform(get(chemin)).andExpect(status().isForbidden());
+        mvc.perform(get(chemin).header(HttpHeaders.AUTHORIZATION, jeton(alumni))).andExpect(status().isNotFound());
+        MvcResult racine = mvc.perform(post(chemin).header(HttpHeaders.AUTHORIZATION, jeton(etudiant))
+            .contentType(MediaType.APPLICATION_JSON).content("{\"contenu\":\" Commentaire racine \"}"))
+            .andExpect(status().isCreated()).andExpect(jsonPath("$.contenu").value("Commentaire racine"))
+            .andExpect(jsonPath("$.parentId").doesNotExist()).andReturn();
+        String parentId = com.jayway.jsonpath.JsonPath.read(racine.getResponse().getContentAsString(), "$.id");
+        mvc.perform(post(chemin).header(HttpHeaders.AUTHORIZATION, jeton(auteur)).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"contenu\":\"Réponse\",\"parentId\":\"" + parentId + "\"}"))
+            .andExpect(status().isCreated()).andExpect(jsonPath("$.parentId").value(parentId));
+        mvc.perform(get(chemin).header(HttpHeaders.AUTHORIZATION, jeton(etudiant)))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.totalElements").value(2))
+            .andExpect(jsonPath("$.contenu[0].auteurId").value(etudiant.getId().toString()));
+        Publication autre = publication(auteur, AudiencePublication.TOUS, StatutPublication.PUBLIE);
+        mvc.perform(post("/api/publications/{id}/commentaires", autre.getId())
+            .header(HttpHeaders.AUTHORIZATION, jeton(etudiant)).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"contenu\":\"Réponse étrangère\",\"parentId\":\"" + parentId + "\"}"))
+            .andExpect(status().isNotFound());
+        MvcResult intermediaire = mvc.perform(post(chemin).header(HttpHeaders.AUTHORIZATION, jeton(auteur))
+            .contentType(MediaType.APPLICATION_JSON).content("{\"contenu\":\"Réponse intermédiaire\",\"parentId\":\"" + parentId + "\"}"))
+            .andExpect(status().isCreated()).andReturn();
+        String reponseId = com.jayway.jsonpath.JsonPath.read(intermediaire.getResponse().getContentAsString(), "$.id");
+        mvc.perform(post(chemin).header(HttpHeaders.AUTHORIZATION, jeton(etudiant))
+            .contentType(MediaType.APPLICATION_JSON).content("{\"contenu\":\"Niveau deux\",\"parentId\":\"" + reponseId + "\"}"))
+            .andExpect(status().isNotFound()).andReturn();
+        mvc.perform(post(chemin).header(HttpHeaders.AUTHORIZATION, jeton(etudiant)).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"contenu\":\"   \"}" )).andExpect(status().isBadRequest());
     }
 
     @Test

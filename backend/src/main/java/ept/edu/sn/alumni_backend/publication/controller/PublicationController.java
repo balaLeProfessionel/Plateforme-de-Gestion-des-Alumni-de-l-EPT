@@ -21,6 +21,10 @@ import org.springframework.web.multipart.MultipartFile;
 import ept.edu.sn.alumni_backend.publication.dto.PagePublicationsResponse;
 import ept.edu.sn.alumni_backend.publication.dto.PublicationRequest;
 import ept.edu.sn.alumni_backend.publication.dto.PublicationResponse;
+import ept.edu.sn.alumni_backend.publication.dto.CommentairePublicationRequest;
+import ept.edu.sn.alumni_backend.publication.dto.CommentairePublicationResponse;
+import ept.edu.sn.alumni_backend.publication.dto.PageCommentairesPublicationResponse;
+import ept.edu.sn.alumni_backend.publication.service.CommentairePublicationService;
 import ept.edu.sn.alumni_backend.publication.service.PublicationService;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import jakarta.validation.Valid;
@@ -34,6 +38,22 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PublicationController {
     private final PublicationService service;
+    private final CommentairePublicationService commentaires;
+
+    @GetMapping("/{id}/commentaires")
+    public PageCommentairesPublicationResponse commentaires(@PathVariable UUID id,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int taille,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return commentaires.lister(id, page, taille, principal);
+    }
+
+    @PostMapping("/{id}/commentaires")
+    public ResponseEntity<CommentairePublicationResponse> commenter(@PathVariable UUID id,
+            @Valid @RequestBody CommentairePublicationRequest demande,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.status(201).body(commentaires.creer(id, demande, principal));
+    }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PublicationResponse> creer(@Valid @RequestBody PublicationRequest demande,
