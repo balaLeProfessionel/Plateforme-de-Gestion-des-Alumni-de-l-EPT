@@ -58,6 +58,19 @@ public class Publication {
     @Column(name = "texte_alternatif", length = 250)
     private String texteAlternatif;
 
+    /** Lien partagé (publication LinkedIn, article…) et son aperçu, figé au moment de la publication. */
+    @Column(name = "lien_url", length = 500)
+    private String lienUrl;
+
+    @Column(name = "lien_titre", length = 300)
+    private String lienTitre;
+
+    @Column(name = "lien_description", length = 600)
+    private String lienDescription;
+
+    @Column(name = "lien_site", length = 120)
+    private String lienSite;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private AudiencePublication audience;

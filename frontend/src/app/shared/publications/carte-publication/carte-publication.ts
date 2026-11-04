@@ -55,6 +55,14 @@ export class CartePublication {
     `${this.publication().auteurPrenom ?? ''} ${this.publication().auteurNom ?? ''}`.trim() || 'Membre EPT');
   protected readonly role = computed(() => LIBELLES_ROLE_COMPTE[this.publication().auteurRole as RoleCompte] ?? '');
   protected readonly audience = computed(() => AUDIENCES[this.publication().audience]);
+  protected readonly lienLinkedin = computed(() => /linkedin\.com\//i.test(this.publication().lien?.url ?? ''));
+  /** La description du lien, sauf si le message la reprend déjà (texte importé depuis LinkedIn, par exemple). */
+  protected readonly descriptionLien = computed(() => {
+    const description = this.publication().lien?.description?.trim();
+    if (!description) return '';
+    const debut = description.slice(0, 80).replace(/\s+/g, ' ');
+    return this.publication().contenu.replace(/\s+/g, ' ').includes(debut) ? '' : description;
+  });
   protected readonly estAuteur = computed(() => this.authService.utilisateur()?.id === this.publication().auteurId);
   protected readonly tronque = computed(() => {
     if (this.complete()) return false;

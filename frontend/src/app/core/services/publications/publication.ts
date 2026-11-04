@@ -47,6 +47,15 @@ export interface Publication {
   nombreCommentaires: number;
   /** Dernier commentaire, montré sous la publication dans le fil. */
   apercuCommentaire: CommentairePublication | null;
+  /** Lien partagé (publication LinkedIn, article…) avec l’aperçu lu au moment de publier. */
+  lien?: LienPublication | null;
+}
+
+export interface LienPublication {
+  url: string;
+  titre: string | null;
+  description: string | null;
+  site: string | null;
 }
 
 export interface PagePublications {
@@ -66,6 +75,8 @@ export interface NouvellePublication {
   texteAlternatif?: string;
   /** Obligatoire pour un appel à projet, absente sinon. */
   dateLimite?: string;
+  /** Lien partagé, repris de l’aperçu importé. */
+  lien?: string;
 }
 
 export interface CommentairePublication {

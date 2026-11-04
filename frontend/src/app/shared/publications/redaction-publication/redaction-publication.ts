@@ -4,12 +4,14 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormField, form, maxLength, required } from '@angular/forms/signals';
+import { ApercuLien, ApercuLienService } from '../../../core/services/publications/apercu-lien';
 import {
   AudiencePublication, LIBELLES_TYPE_PUBLICATION, NouvellePublication, Publication, PublicationService, TypePublication,
 } from '../../../core/services/publications/publication';
 import { chargerImagePourRecadrage } from '../../images/charger-image';
 import { estPetite, FORMAT_PUBLICATION } from '../../images/recadrage';
 import { RecadreurImage } from '../../images/recadreur-image';
+import { ApercuLienImporte } from './apercu-lien-importe';
 
 export const MESSAGES_SUCCES: Record<TypePublication, string> = {
   PUBLICATION: 'Votre publication a été publiée.',
@@ -29,7 +31,7 @@ const TITRES_FORMULAIRE: Record<TypePublication, string> = {
  */
 @Component({
   selector: 'app-redaction-publication',
-  imports: [RecadreurImage, FormField],
+  imports: [RecadreurImage, FormField, ApercuLienImporte],
   templateUrl: './redaction-publication.html',
   styleUrl: './redaction-publication.scss',
 })
@@ -48,6 +50,7 @@ export class RedactionPublication {
   readonly annulee = output<void>();
 
   private readonly publicationService = inject(PublicationService);
+  private readonly apercuLienService = inject(ApercuLienService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
   private readonly dialogueRecadrage = viewChild<ElementRef<HTMLDialogElement>>('dialogueRecadrage');
@@ -67,6 +70,12 @@ export class RedactionPublication {
   protected readonly chargementImage = signal(false);
   protected readonly avertissementImage = signal('');
   protected readonly formatPublication = FORMAT_PUBLICATION;
+  /** Import depuis un lien : l’aperçu lu, et ce que le membre doit savoir de ce qui a été repris. */
+  protected readonly apercuLien = signal<ApercuLien | null>(null);
+  protected readonly importEnCours = signal(false);
+  protected readonly erreurLien = signal('');
+  protected readonly texteImporte = signal(false);
+  protected readonly chargementImageLien = signal(false);
   protected readonly modele = signal(this.modeleVide());
   protected readonly titreObligatoire = computed(() => this.modele().type !== 'PUBLICATION');
   protected readonly titreFormulaire = computed(() => TITRES_FORMULAIRE[this.modele().type]);
@@ -77,6 +86,7 @@ export class RedactionPublication {
     maxLength(champ.contenu, 5000);
     maxLength(champ.texteAlternatif, 250);
     required(champ.dateLimite, { when: () => this.modele().type === 'APPEL_PROJET' });
+    maxLength(champ.lien, 500);
   });
   private sequenceChargementImage = 0;
 
@@ -92,10 +102,88 @@ export class RedactionPublication {
   }
 
   protected ouvrir(): void {
+    this.reinitialiserLien();
     this.modele.set(this.modeleVide());
     this.formulaire().reset();
     this.ouverte.set(true);
     this.messagePublication.set('');
+  }
+
+  /**
+   * Lit l’aperçu du lien collé, comme une messagerie : le texte de la page remplit le message s’il est vide.
+   * Une page qui refuse la lecture (LinkedIn, souvent) garde le lien ; le membre colle alors son texte.
+   */
+  protected importerLien(event?: Event): void {
+    event?.preventDefault();
+    const url = this.modele().lien.trim();
+    if (this.importEnCours()) return;
+    if (!url) {
+      this.erreurLien.set('Collez l’adresse de votre publication, par exemple un lien LinkedIn.');
+      return;
+    }
+    this.erreurLien.set('');
+    this.importEnCours.set(true);
+    this.apercuLienService.lire(url).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (apercu) => {
+        const remplir = !this.modele().contenu.trim() && !!apercu.description;
+        this.apercuLien.set(apercu);
+        this.texteImporte.set(remplir);
+        this.modele.update((valeurs) => ({
+          ...valeurs, lien: apercu.url, contenu: remplir ? (apercu.description ?? '').slice(0, 5000) : valeurs.contenu,
+        }));
+        this.importEnCours.set(false);
+      },
+      error: (erreur: HttpErrorResponse) => {
+        const message = typeof erreur.error?.message === 'string' ? erreur.error.message : '';
+        this.erreurLien.set(erreur.status === 400 && message ? message
+          : 'Impossible de lire ce lien pour le moment. Réessayez, ou collez directement votre texte.');
+        this.importEnCours.set(false);
+      },
+    });
+  }
+
+  /** Le lien a changé depuis l’import : l’aperçu affiché ne lui correspond plus. */
+  protected lienModifie(): void {
+    this.erreurLien.set('');
+    if (!this.apercuLien()) return;
+    this.apercuLien.set(null);
+    this.texteImporte.set(false);
+  }
+
+  protected retirerLien(): void {
+    this.reinitialiserLien();
+    this.modele.update((valeurs) => ({ ...valeurs, lien: '', confirmationLien: false }));
+  }
+
+  /** Récupère l’image de l’aperçu par le serveur et l’ouvre dans le recadrage, comme une image choisie. */
+  protected utiliserImageLien(): void {
+    const adresse = this.apercuLien()?.image;
+    if (!adresse || this.chargementImageLien()) return;
+    this.chargementImageLien.set(true);
+    this.erreurLien.set('');
+    this.apercuLienService.image(adresse).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (contenu) => {
+        this.chargementImageLien.set(false);
+        const png = contenu.type === 'image/png';
+        const fichier = new File([contenu], png ? 'image-du-lien.png' : 'image-du-lien.jpg',
+          { type: png ? 'image/png' : 'image/jpeg' });
+        this.fermerRecadrage();
+        this.avertissementImage.set('');
+        void this.preparerRecadrage(fichier);
+      },
+      error: () => {
+        this.chargementImageLien.set(false);
+        this.erreurLien.set('L’image de ce lien ne peut pas être reprise. Ajoutez-en une depuis votre appareil.');
+      },
+    });
+  }
+
+  private reinitialiserLien(): void {
+    this.apercuLien.set(null);
+    this.erreurLien.set('');
+    this.texteImporte.set(false);
+    this.importEnCours.set(false);
+    this.chargementImageLien.set(false);
   }
 
   protected choisirType(type: TypePublication): void {
@@ -192,6 +280,7 @@ export class RedactionPublication {
     this.avertissementImage.set('');
     this.retirerImage();
     this.fermerRecadrage();
+    this.reinitialiserLien();
     this.modele.set(this.modeleVide());
   }
 
@@ -220,6 +309,7 @@ export class RedactionPublication {
     const valeurs = this.modele();
     if (this.chargementImage()) return 'Patientez pendant la préparation de l’image.';
     if (this.imageARecadrer()) return 'Validez ou annulez le recadrage de l’image avant de publier.';
+    if (this.importEnCours()) return 'Patientez pendant la lecture du lien.';
     if (this.titreObligatoire() && !valeurs.titre.trim()) return 'Donnez un titre à cette publication.';
     if (this.formulaire.titre().invalid()) return 'Le titre ne doit pas dépasser 160 caractères.';
     if (valeurs.type === 'APPEL_PROJET') {
@@ -228,6 +318,10 @@ export class RedactionPublication {
     }
     if (this.formulaire.texteAlternatif().invalid()) return 'Décrivez l’image en 250 caractères maximum.';
     if (this.formulaire.contenu().invalid() || !valeurs.contenu.trim()) return 'Ajoutez un texte de 5 000 caractères maximum.';
+    if (this.formulaire.lien().invalid()) return 'Le lien ne doit pas dépasser 500 caractères.';
+    if (valeurs.lien.trim() && !valeurs.confirmationLien) {
+      return 'Confirmez que ce contenu est le vôtre ou que vous le partagez avec l’accord de son auteur.';
+    }
     return '';
   }
 
@@ -245,6 +339,7 @@ export class RedactionPublication {
       type: valeurs.type, titre: valeurs.titre.trim(), contenu: valeurs.contenu.trim(), audience: valeurs.audience,
       ...(image && valeurs.texteAlternatif.trim() ? { texteAlternatif: valeurs.texteAlternatif.trim() } : {}),
       ...(valeurs.type === 'APPEL_PROJET' ? { dateLimite: valeurs.dateLimite } : {}),
+      ...(valeurs.lien.trim() ? { lien: valeurs.lien.trim() } : {}),
     };
     this.erreurPublication.set('');
     this.messagePublication.set('');
@@ -254,6 +349,7 @@ export class RedactionPublication {
         next: (creee) => {
           this.publiee.emit(creee);
           this.retirerImage();
+          this.reinitialiserLien();
           this.modele.set(this.modeleVide());
           this.formulaire().reset();
           this.ouverte.set(this.integree());
@@ -276,7 +372,7 @@ export class RedactionPublication {
 
   private modeleVide() {
     return { type: this.types()[0] ?? ('PUBLICATION' as TypePublication), titre: '', contenu: '',
-      audience: 'TOUS' as AudiencePublication, texteAlternatif: '', dateLimite: '' };
+      audience: 'TOUS' as AudiencePublication, texteAlternatif: '', dateLimite: '', lien: '', confirmationLien: false };
   }
 
   private static aujourdhui(): string {

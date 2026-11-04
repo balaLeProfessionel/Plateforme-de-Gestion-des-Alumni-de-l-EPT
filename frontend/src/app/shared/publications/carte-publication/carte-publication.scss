@@ -41,6 +41,21 @@ h3 { margin: 0 0 .4rem; color: var(--ept-primary-dark); font-family: var(--ept-f
   text-decoration: none; }
 .voir-plus:hover { text-decoration: underline; }
 
+// Lien partagé : une carte sobre qui dit où l’on va avant de quitter la plateforme.
+.lien-partage { display: flex; align-items: flex-start; gap: .75rem; margin: .85rem var(--marge) 0; padding: .75rem .85rem;
+  border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm); background: var(--ept-bg); text-decoration: none;
+  transition: border-color .15s; }
+.lien-partage:hover { border-color: #b7cdd8; }
+.lien-partage:hover .titre { text-decoration: underline; }
+.lien-partage .icone { display: grid; flex: 0 0 auto; place-items: center; width: 2.25rem; height: 2.25rem;
+  border-radius: var(--ept-radius-sm); background: var(--ept-primary-light); color: var(--ept-primary); }
+.lien-partage .texte { display: grid; gap: .1rem; min-width: 0; }
+.lien-partage .site { color: var(--ept-text-secondary); font-size: .78rem; }
+.lien-partage .titre { color: var(--ept-primary-dark); font-weight: 600; overflow-wrap: anywhere;
+  display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+.lien-partage .description { color: var(--ept-text-secondary); font-size: .88rem; line-height: 1.45; overflow-wrap: anywhere;
+  display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+
 // Appel à projet : la date limite en tuile de calendrier, lisible d’un coup d’œil dans le fil.
 .appel-titre { display: flex; align-items: flex-start; gap: .9rem; margin-bottom: .75rem; }
 .appel-titre > div { min-width: 0; }

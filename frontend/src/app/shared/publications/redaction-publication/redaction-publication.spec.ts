@@ -86,3 +86,88 @@ describe('RedactionPublication (administration)', () => {
     expect(racine.querySelector('[role="alert"]')?.textContent).toContain('Seule l\'administration');
   });
 });
+
+describe('RedactionPublication (import depuis un lien)', () => {
+  let http: HttpTestingController;
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    http = TestBed.inject(HttpTestingController);
+  });
+  afterEach(() => http.verify());
+
+  function ouvrir() {
+    const fixture = TestBed.createComponent(RedactionPublication);
+    fixture.componentRef.setInput('integree', true);
+    fixture.detectChanges();
+    const racine: HTMLElement = fixture.nativeElement;
+    const saisir = (selecteur: string, valeur: string) => {
+      const champ = racine.querySelector(selecteur) as HTMLInputElement;
+      champ.value = valeur;
+      champ.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+    };
+    const cliquer = (libelle: string) => {
+      ([...racine.querySelectorAll('button')].find((b) => b.textContent?.includes(libelle)) as HTMLButtonElement).click();
+      fixture.detectChanges();
+    };
+    const soumettre = () => {
+      racine.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
+      fixture.detectChanges();
+    };
+    return { fixture, racine, saisir, cliquer, soumettre };
+  }
+
+  it('reprend le texte de la page, demande la confirmation de l’auteur et envoie le lien', async () => {
+    const { fixture, racine, saisir, cliquer, soumettre } = ouvrir();
+    saisir('#publication-lien', 'linkedin.com/posts/awa_stage');
+    cliquer('Importer');
+    const lecture = http.expectOne('/api/apercus-lien');
+    expect(lecture.request.body).toEqual({ url: 'linkedin.com/posts/awa_stage' });
+    lecture.flush({ url: 'https://linkedin.com/posts/awa_stage', titre: 'Awa Diop sur LinkedIn', site: 'LinkedIn',
+      description: 'Ravie de commencer mon stage !', image: null });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect((racine.querySelector('textarea') as HTMLTextAreaElement).value).toBe('Ravie de commencer mon stage !');
+    expect(racine.querySelector('app-apercu-lien-importe')?.textContent).toContain('Texte repris dans votre message');
+    soumettre();
+    expect(racine.querySelector('[role="alert"]')?.textContent).toContain('Confirmez que ce contenu est le vôtre');
+
+    (racine.querySelector('.confirmation-lien input') as HTMLInputElement).click();
+    fixture.detectChanges();
+    soumettre();
+    const creation = http.expectOne('/api/publications');
+    expect(creation.request.body).toEqual({ type: 'PUBLICATION', titre: '', contenu: 'Ravie de commencer mon stage !',
+      audience: 'TOUS', lien: 'https://linkedin.com/posts/awa_stage' });
+    creation.flush({ id: 'n', type: 'PUBLICATION' });
+  });
+
+  it('guide le membre quand le site refuse la lecture, sans toucher à son texte', async () => {
+    const { fixture, racine, saisir, cliquer } = ouvrir();
+    saisir('textarea', 'Mon texte à moi');
+    saisir('#publication-lien', 'https://www.linkedin.com/posts/x');
+    cliquer('Importer');
+    http.expectOne('/api/apercus-lien').flush({ url: 'https://www.linkedin.com/posts/x', titre: null, description: null,
+      image: null, site: 'linkedin.com' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(racine.querySelector('app-apercu-lien-importe')?.textContent).toContain('ne laisse pas lire sa publication');
+    expect((racine.querySelector('textarea') as HTMLTextAreaElement).value).toBe('Mon texte à moi');
+
+    cliquer('Retirer le lien');
+    expect(racine.querySelector('app-apercu-lien-importe')).toBeNull();
+    expect((racine.querySelector('#publication-lien') as HTMLInputElement).value).toBe('');
+    expect(racine.querySelector('.confirmation-lien')).toBeNull();
+  });
+
+  it('affiche le refus du serveur pour une adresse interne', async () => {
+    const { fixture, racine, saisir, cliquer } = ouvrir();
+    saisir('#publication-lien', 'http://127.0.0.1/admin');
+    cliquer('Importer');
+    http.expectOne('/api/apercus-lien').flush({ message: 'Seuls les liens web publics peuvent être importés.' },
+      { status: 400, statusText: 'Bad Request' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(racine.querySelector('.erreur-lien')?.textContent).toContain('Seuls les liens web publics');
+  });
+});

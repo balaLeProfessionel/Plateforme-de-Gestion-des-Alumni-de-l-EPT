@@ -13,6 +13,29 @@
           }
         </div>
       }
+      <div class="import-lien">
+        <label for="publication-lien">Déjà publié ailleurs ? <span>(facultatif)</span></label>
+        <div class="saisie-lien">
+          <input id="publication-lien" type="url" inputmode="url" autocomplete="off" [formField]="formulaire.lien"
+            placeholder="https://www.linkedin.com/posts/…" aria-describedby="aide-lien"
+            [attr.aria-invalid]="!!erreurLien()" (input)="lienModifie()" (keydown.enter)="importerLien($event)" />
+          <button type="button" class="importer" [disabled]="importEnCours()" (click)="importerLien()">
+            {{ importEnCours() ? 'Lecture…' : 'Importer' }}</button>
+        </div>
+        <small id="aide-lien" class="aide">Collez le lien de votre publication LinkedIn ou d’un article : son texte est repris quand le site le permet.</small>
+        @if (erreurLien()) { <p class="erreur-lien" role="alert">{{ erreurLien() }}</p> }
+        @if (apercuLien(); as apercu) {
+          <app-apercu-lien-importe [apercu]="apercu" [texteImporte]="texteImporte()" [imageProposee]="!apercuImage()"
+            [recuperationImage]="chargementImageLien()" [occupe]="chargementImageLien() || chargementImage()"
+            (utiliserImage)="utiliserImageLien()" (retirer)="retirerLien()" />
+        }
+        @if (modele().lien.trim()) {
+          <label class="confirmation-lien">
+            <input type="checkbox" [formField]="formulaire.confirmationLien" />
+            <span>Ce contenu est le mien, ou je le partage avec l’accord de son auteur.</span>
+          </label>
+        }
+      </div>
       <label for="publication-titre">Titre <span>{{ titreObligatoire() ? '(obligatoire)' : '(facultatif)' }}</span></label>
       <input id="publication-titre" type="text" [formField]="formulaire.titre"
         [attr.aria-invalid]="formulaire.titre().touched() && formulaire.titre().invalid()" />

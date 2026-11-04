@@ -24,6 +24,10 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.multipart.MultipartFile;
 
 import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
+import ept.edu.sn.alumni_backend.apercu.ApercuLienResponse;
+import ept.edu.sn.alumni_backend.apercu.ApercuLienService;
+import ept.edu.sn.alumni_backend.apercu.GardeAdresse;
+import ept.edu.sn.alumni_backend.apercu.LecteurMeta;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.publication.AudiencePublication;
@@ -31,6 +35,7 @@ import ept.edu.sn.alumni_backend.publication.PublicationProperties;
 import ept.edu.sn.alumni_backend.publication.StatutPublication;
 import ept.edu.sn.alumni_backend.publication.TypePublication;
 import ept.edu.sn.alumni_backend.publication.dto.CommentairePublicationResponse;
+import ept.edu.sn.alumni_backend.publication.dto.LienPublicationResponse;
 import ept.edu.sn.alumni_backend.publication.dto.PagePublicationsResponse;
 import ept.edu.sn.alumni_backend.publication.dto.PublicationRequest;
 import ept.edu.sn.alumni_backend.publication.dto.PublicationResponse;
@@ -58,6 +63,7 @@ public class PublicationService {
     private final UtilisateurRepository utilisateurs;
     private final PublicationProperties proprietes;
     private final StockageImagePublication stockageImages;
+    private final ApercuLienService apercusLien;
 
     @Transactional
     public PublicationResponse creer(PublicationRequest demande, UtilisateurPrincipal principal) {
@@ -88,6 +94,7 @@ public class PublicationService {
         publication.setContenu(demande.contenu().strip());
         publication.setAudience(demande.audience());
         publication.setDateLimite(demande.dateLimite());
+        joindreLien(publication, demande.lien());
         if (image != null) {
             String identifiant = stockageImages.stocker(image);
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -100,6 +107,20 @@ public class PublicationService {
                 ? null : demande.texteAlternatif().strip());
         }
         return versResponse(publications.saveAndFlush(publication), Interactions.AUCUNE);
+    }
+
+    /**
+     * L'aperçu repris est celui que le membre a vu en important le lien ; sans lui (cache expiré, lien saisi à la
+     * main), on garde l'adresse et le nom du site, sans aller sur le réseau pendant la création.
+     */
+    private void joindreLien(Publication publication, String lien) {
+        if (lien == null || lien.isBlank()) return;
+        var adresse = GardeAdresse.normaliser(lien);
+        ApercuLienResponse apercu = apercusLien.enCache(adresse.toString()).orElseGet(() -> ApercuLienService.minimal(adresse));
+        publication.setLienUrl(adresse.toString());
+        publication.setLienTitre(apercu.titre());
+        publication.setLienDescription(LecteurMeta.couper(apercu.description(), 600));
+        publication.setLienSite(apercu.site());
     }
 
     /**
@@ -251,6 +272,8 @@ public class PublicationService {
         return new PublicationResponse(p.getId(), p.getType(), p.getTitre(), p.getContenu(), p.getAudience(), urlImage(p),
             p.getTexteAlternatif(), p.getDateLimite(), p.getPublieLe(), p.getModifieLe(), auteur.getId(), auteur.getNom(),
             auteur.getPrenom(), auteur.getRole(), auteur.getUrlPhoto(), interactions.nombreJaime(), interactions.jaime(),
-            interactions.nombreCommentaires(), interactions.apercuCommentaire());
+            interactions.nombreCommentaires(), interactions.apercuCommentaire(),
+            p.getLienUrl() == null ? null
+                : new LienPublicationResponse(p.getLienUrl(), p.getLienTitre(), p.getLienDescription(), p.getLienSite()));
     }
 }

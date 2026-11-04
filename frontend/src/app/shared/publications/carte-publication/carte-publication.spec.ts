@@ -42,6 +42,23 @@ describe('CartePublication', () => {
 
   const texte = (element: Element | null | undefined) => element?.textContent?.replace(/\s+/g, ' ').trim();
 
+  it('montre le lien partagé, qui s’ouvre dans un nouvel onglet, sans répéter le texte déjà repris', () => {
+    const lien = { url: 'https://www.linkedin.com/posts/awa_stage', titre: 'Awa Diop sur LinkedIn', site: 'LinkedIn',
+      description: 'Ravie de commencer mon stage chez Sonatel !' };
+    const racine = afficher({ contenu: 'Ravie de commencer mon stage chez Sonatel !', lien });
+    const ancre = racine.querySelector('a.lien-partage') as HTMLAnchorElement;
+    expect(ancre.href).toBe(lien.url);
+    expect(ancre.target).toBe('_blank');
+    expect(ancre.rel).toContain('noopener');
+    expect(texte(ancre)).toContain('LinkedIn : Awa Diop sur LinkedIn.');
+    expect(texte(ancre)).toContain('(s’ouvre dans un nouvel onglet)');
+    expect(ancre.querySelector('.pi-linkedin')).not.toBeNull();
+    expect(ancre.querySelector('.description')).toBeNull();
+    expect(afficher({ contenu: 'Autre chose', lien }).querySelector('.lien-partage .description')?.textContent)
+      .toContain('Ravie de commencer');
+    expect(afficher({}).querySelector('.lien-partage')).toBeNull();
+  });
+
   it('distingue l’annonce officielle par son bandeau, sans badge sur une publication ordinaire', () => {
     expect(afficher({}).querySelector('.bandeau, .etiquette')).toBeNull();
     const racine = afficher({ type: 'ANNONCE_OFFICIELLE', titre: 'Rentrée 2026', auteurRole: 'ADMIN' });

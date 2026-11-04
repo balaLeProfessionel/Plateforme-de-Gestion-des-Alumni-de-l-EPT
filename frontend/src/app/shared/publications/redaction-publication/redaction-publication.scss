@@ -48,6 +48,20 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .publier { background: var(--ept-primary); border: 1px solid var(--ept-primary); color: white; }
 .publier:hover { background: var(--ept-primary-dark); }
 .erreur-publication { color: var(--ept-error-dark); }
+// Import depuis un lien : un champ et un bouton sur une ligne, puis l’aperçu de ce qui a été lu.
+.import-lien { padding-bottom: 1rem; border-bottom: 1px solid var(--ept-border); }
+.import-lien > label:first-child { margin-top: .25rem; }
+.saisie-lien { display: flex; gap: .5rem; }
+.saisie-lien input { flex: 1 1 auto; min-width: 0; }
+.importer { flex: 0 0 auto; min-height: 2.75rem; padding: .55rem 1rem; border: 1px solid var(--ept-primary);
+  border-radius: var(--ept-radius-sm); background: var(--ept-surface); color: var(--ept-primary); font-weight: 600; }
+.importer:hover { background: var(--ept-primary-light); }
+.importer:disabled { opacity: .6; cursor: wait; }
+.erreur-lien { margin: .5rem 0 0; color: var(--ept-error-dark); }
+.confirmation-lien { display: flex; align-items: flex-start; gap: .6rem; margin: .85rem 0 0; font-weight: 500; }
+.confirmation-lien input { flex: 0 0 auto; width: 1.15rem; height: 1.15rem; min-height: 0; margin: .15rem 0 0; padding: 0;
+  accent-color: var(--ept-primary); }
+.confirmation-lien span { color: var(--ept-primary-dark); font-size: .92rem; font-weight: 500; }
 .succes-publication { color: var(--ept-primary); }
 @media (max-width: 560px) {
   .apercu-publication { grid-template-columns: minmax(0, 7rem) minmax(0, 1fr); gap: .7rem; padding: .55rem; }

@@ -207,6 +207,38 @@ class PublicationApiIntegrationTests {
             .andExpect(status().isCreated());
     }
 
+    @Test
+    void unLienPartageEstEnregistreAvecSonSiteEtLesAdressesInternesSontRefusees() throws Exception {
+        Utilisateur auteur = membre(TypeRole.ALUMNI);
+        mvc.perform(post("/api/publications").header(HttpHeaders.AUTHORIZATION, jeton(auteur))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"type\":\"PUBLICATION\",\"audience\":\"TOUS\",\"contenu\":\"Mon stage commence\","
+                    + "\"lien\":\" www.linkedin.com/posts/membre_stage-123#commentaires \"}"))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.lien.url").value("https://www.linkedin.com/posts/membre_stage-123"))
+            .andExpect(jsonPath("$.lien.site").value("linkedin.com"));
+        mvc.perform(post("/api/publications").header(HttpHeaders.AUTHORIZATION, jeton(auteur))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"type\":\"PUBLICATION\",\"audience\":\"TOUS\",\"contenu\":\"Sans lien\"}"))
+            .andExpect(status().isCreated()).andExpect(jsonPath("$.lien").doesNotExist());
+        mvc.perform(post("/api/publications").header(HttpHeaders.AUTHORIZATION, jeton(auteur))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"type\":\"PUBLICATION\",\"audience\":\"TOUS\",\"contenu\":\"x\",\"lien\":\"ftp://exemple.sn\"}"))
+            .andExpect(status().isBadRequest());
+
+        mvc.perform(post("/api/apercus-lien").contentType(MediaType.APPLICATION_JSON).content("{\"url\":\"https://exemple.sn\"}"))
+            .andExpect(status().isForbidden());
+        for (String interne : new String[] {"http://127.0.0.1/admin", "http://169.254.169.254/latest/meta-data", "http://localhost:8080/"}) {
+            mvc.perform(post("/api/apercus-lien").header(HttpHeaders.AUTHORIZATION, jeton(auteur))
+                    .contentType(MediaType.APPLICATION_JSON).content("{\"url\":\"" + interne + "\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Seuls les liens web publics peuvent être importés."));
+        }
+        mvc.perform(get("/api/apercus-lien/image").param("url", "http://127.0.0.1/a.jpg")
+                .header(HttpHeaders.AUTHORIZATION, jeton(auteur)))
+            .andExpect(status().isNotFound());
+    }
+
     private Utilisateur membre(TypeRole role) {
         Utilisateur membre = new Utilisateur();
         membre.setEmail("test.publication." + UUID.randomUUID() + "@example.invalid");

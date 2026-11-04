@@ -14,5 +14,6 @@ public record PublicationRequest(
     @NotBlank @Size(max = 5000) String contenu,
     @NotNull AudiencePublication audience,
     @Size(max = 250) String texteAlternatif,
-    LocalDate dateLimite
+    LocalDate dateLimite,
+    @Size(max = 500) String lien
 ) {}
