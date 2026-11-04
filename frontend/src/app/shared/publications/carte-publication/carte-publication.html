@@ -78,21 +78,11 @@
     </a>
   }
 
-  <div class="resume">
-    <p class="total-jaime" [class.vide]="!nombreJaime()"><span class="pastille" aria-hidden="true"><i class="pi pi-thumbs-up-fill"></i></span>
-      {{ nombreJaime() }}<span class="visuellement-cache"> J’aime</span></p>
-    @if (complete()) {
-      <p class="total-commentaires">{{ nombreCommentaires() }} commentaire{{ nombreCommentaires() > 1 ? 's' : '' }}</p>
-    } @else {
-      <a class="total-commentaires" [routerLink]="lien()">
-        {{ nombreCommentaires() }} commentaire{{ nombreCommentaires() > 1 ? 's' : '' }}</a>
-    }
-  </div>
-
   <div class="actions">
     <app-bouton-jaime [publicationId]="p.id" [(nombre)]="nombreJaime" [(jaime)]="jaime" />
     <button type="button" class="action" (click)="commenter()">
       <i class="pi pi-comment" aria-hidden="true"></i> Commenter
+      @if (nombreCommentaires()) { <span class="compte">{{ nombreCommentaires() }}<span class="visuellement-cache"> commentaire{{ nombreCommentaires() > 1 ? 's' : '' }}</span></span> }
     </button>
   </div>
 

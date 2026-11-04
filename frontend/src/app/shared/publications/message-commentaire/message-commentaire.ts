@@ -1,16 +1,20 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
+import { AuthService } from '../../../core/services/auth/auth-service';
 import { LIBELLES_ROLE_COMPTE, RoleCompte } from '../../../core/services/models/admin.model';
 import { CommentairePublication } from '../../../core/services/publications/publication';
 import { AvatarMembre } from '../../images/avatar-membre';
 
-/** Un commentaire en bulle : avatar aux couleurs du rôle, nom, rôle, texte, heure et « Répondre » (facultatif). */
+/**
+ * Un commentaire, sans bulle : avatar aux couleurs du rôle, nom, rôle, texte, heure et « Répondre » (facultatif).
+ * Seuls les commentaires du membre connecté sont posés sur un fond bleu clair, pour qu’il s’y retrouve.
+ */
 @Component({
   selector: 'app-message-commentaire',
   imports: [DatePipe, AvatarMembre],
   template: `
     @let c = commentaire();
-    <article class="message" [class.reponse]="reponse()">
+    <article class="message" [class.reponse]="reponse()" [class.moi]="estMoi()">
       <app-avatar-membre [urlPhoto]="c.auteurPhoto" [nom]="c.auteurNom" [prenom]="c.auteurPrenom"
         [roleMembre]="c.auteurRole" [taille]="reponse() ? 1.75 : 2.25" />
       <div class="corps">
@@ -33,16 +37,14 @@ import { AvatarMembre } from '../../images/avatar-membre';
     p { margin: 0; }
     .message { display: flex; align-items: flex-start; gap: .6rem; min-width: 0; }
     .corps { min-width: 0; flex: 1 1 auto; }
-    .bulle { display: inline-block; max-width: 100%; box-sizing: border-box; padding: .55rem .85rem .6rem;
-      border-radius: .25rem 1rem 1rem 1rem; background: var(--ept-primary-light); }
-    .reponse .bulle { background: #eef6f9; }
+    .moi { margin: -.45rem -.55rem; padding: .45rem .55rem; border-radius: var(--ept-radius-sm); background: var(--ept-primary-light); }
     .auteur { display: flex; flex-wrap: wrap; align-items: baseline; gap: .1rem .5rem; font-size: .88rem; }
     .auteur strong { color: var(--ept-primary-dark); font-family: var(--ept-font-heading); font-weight: 600; overflow-wrap: anywhere; }
     .role { color: var(--ept-text-secondary); font-size: .78rem; }
-    .texte { margin-top: .2rem; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
+    .texte { margin-top: .1rem; color: #1d3a4b; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
     /* Dans le fil, l’aperçu tient en deux lignes ; la publication complète montre tout. */
     .texte.apercu { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
-    .pied { display: flex; align-items: center; gap: .75rem; margin: .15rem 0 0 .6rem; font-size: .8rem; }
+    .pied { display: flex; align-items: center; gap: .75rem; margin-top: .05rem; font-size: .8rem; }
     .pied time { color: var(--ept-text-secondary); }
     .repondre { padding: .35rem .2rem; border: 0; background: transparent; color: var(--ept-primary); font: inherit;
       font-size: .8rem; font-weight: 600; cursor: pointer; }
@@ -56,6 +58,9 @@ export class MessageCommentaire {
   readonly repondable = input(true);
   readonly apercu = input(false);
   readonly repondre = output<CommentairePublication>();
+
+  private readonly utilisateur = inject(AuthService).utilisateur;
+  protected readonly estMoi = computed(() => this.utilisateur()?.id === this.commentaire().auteurId);
 
   protected readonly nom = computed(() =>
     `${this.commentaire().auteurPrenom ?? ''} ${this.commentaire().auteurNom ?? ''}`.trim() || 'Membre EPT');

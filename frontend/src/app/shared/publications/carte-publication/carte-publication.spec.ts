@@ -108,16 +108,14 @@ describe('CartePublication', () => {
     expect(auteur.querySelector('[role="menu"]')?.textContent).not.toContain('Signaler');
   });
 
-  it('affiche toujours les compteurs ; dans le fil, ils mènent à la publication', () => {
+  it('affiche les compteurs dans les boutons, et rien quand ils sont à zéro', () => {
     const racine = afficher({ nombreJaime: 3, jaime: true, nombreCommentaires: 2 });
-    expect(texte(racine.querySelector('.total-jaime'))).toBe('3 J’aime');
+    expect(texte(racine.querySelector('.jaime'))).toBe('J’aime 3');
     expect(racine.querySelector('.jaime')?.getAttribute('aria-pressed')).toBe('true');
-    const lien = racine.querySelector('a.total-commentaires');
-    expect(texte(lien)).toBe('2 commentaires');
-    expect(lien?.getAttribute('href')).toBe('/publications/p1');
+    expect(texte(racine.querySelector('.action'))).toBe('Commenter 2 commentaires');
     const vide = afficher({});
-    expect(texte(vide.querySelector('.total-jaime'))).toBe('0 J’aime');
-    expect(texte(vide.querySelector('.total-commentaires'))).toBe('0 commentaire');
+    expect(texte(vide.querySelector('.jaime'))).toBe('J’aime');
+    expect(texte(vide.querySelector('.action'))).toBe('Commenter');
   });
 
   it('coupe un texte long dans le fil avec « Voir plus », mais l’affiche en entier sur la page complète', () => {

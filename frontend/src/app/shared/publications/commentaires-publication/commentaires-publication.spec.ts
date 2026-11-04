@@ -46,6 +46,9 @@ describe('CommentairesPublication', () => {
     http.expectNone((req) => req.method === 'GET');
     const fil = fixture.nativeElement.querySelector('.fil') as HTMLElement;
     expect(fil.querySelector('.reponses .message.reponse')?.textContent).toContain('Merci pour le partage');
+    // Seuls les messages du membre connecté sont teintés.
+    expect(fil.querySelector('.reponses .message.reponse')?.classList.contains('moi')).toBe(true);
+    expect(fil.querySelectorAll('.message.moi')).toHaveLength(1);
     expect(fixture.nativeElement.querySelector('[role="status"]')?.textContent).toContain('Votre réponse a été publiée.');
     expect(fixture.componentInstance.nombre()).toBe(2);
   });

@@ -12,24 +12,26 @@ import { PublicationService } from '../../../core/services/publications/publicat
   template: `
     <button type="button" class="jaime" [class.actif]="jaime()" [attr.aria-pressed]="jaime()"
       [disabled]="envoi()" (click)="basculer()">
-      <i class="pi" [class.pi-thumbs-up]="!jaime()" [class.pi-thumbs-up-fill]="jaime()" aria-hidden="true"></i>
+      <i class="pi" [class.pi-heart]="!jaime()" [class.pi-heart-fill]="jaime()" aria-hidden="true"></i>
       J’aime
+      @if (nombre()) { <span class="compte">{{ nombre() }}</span> }
     </button>
     @if (erreur()) { <p class="erreur" role="alert">{{ erreur() }}</p> }
   `,
   styles: `
     :host { display: contents; }
-    .jaime { display: inline-flex; flex: 1 1 0; align-items: center; justify-content: center; gap: .5rem;
-      min-height: 2.75rem; padding: .4rem .75rem; border: 0; border-radius: var(--ept-radius-sm); background: transparent;
+    .jaime { display: inline-flex; align-items: center; gap: .45rem;
+      min-height: 2.75rem; padding: .4rem .6rem; border: 0; border-radius: var(--ept-radius-sm); background: transparent;
       color: var(--ept-text-secondary); font: inherit; font-weight: 600; cursor: pointer; }
     .jaime:hover { background: var(--ept-bg); color: var(--ept-primary); }
     .jaime:focus-visible { outline: 3px solid var(--ept-sky); outline-offset: 1px; }
     .jaime.actif { color: var(--ept-primary); }
-    .jaime.actif i { animation: pouce .32s ease-out; }
+    .jaime.actif i { animation: coeur .32s ease-out; }
     .jaime:disabled { cursor: progress; }
-    i { font-size: 1.1rem; }
+    i { font-size: 1.05rem; }
+    .compte { font-weight: 500; }
     .erreur { flex-basis: 100%; order: 10; margin: .25rem .5rem 0; color: var(--ept-error-dark); font-size: .85rem; }
-    @keyframes pouce { 40% { transform: scale(1.3) rotate(-12deg); } }
+    @keyframes coeur { 40% { transform: scale(1.3); } }
     @media (prefers-reduced-motion: reduce) { .jaime.actif i { animation: none; } }
   `,
 })
