@@ -1,10 +1,16 @@
-import { Component, computed, DestroyRef, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, computed, DestroyRef, effect, ElementRef, inject, InjectionToken, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { fromEvent, interval, merge, MonoTypeOperatorFunction, retry, throwError, timer } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { Router, RouterLink } from '@angular/router';
 import { CarteFil, cleCarte, FilService } from '../../core/services/fil/fil';
+import { Publication, PublicationService } from '../../core/services/publications/publication';
 import { CartePublication } from '../../shared/publications/carte-publication/carte-publication';
 import { CarteEvenementFil } from './cartes-fil/carte-evenement-fil';
 import { CarteProgrammeFil } from './cartes-fil/carte-programme-fil';
+import { SqueletteFil } from './cartes-fil/squelette-fil';
 import { AuthService } from '../../core/services/auth/auth-service';
 import { AvatarMembre } from '../../shared/images/avatar-membre';
 import { EtatPublicationCreee } from '../publications/creation-publication/creation-publication';
@@ -14,16 +20,43 @@ const ESPACEMENT_RAISON = 3;
 /** Distance sous l’écran à laquelle on commence à charger la suite du fil. */
 const MARGE_CHARGEMENT_PX = 900;
 
+/** Délais du fil, remplaçables dans les tests. */
+export interface DelaisFil {
+  /** Attente avant un nouvel essai quand l’API ne répond pas (redémarrage, réseau). */
+  nouvelEssai: number;
+  /** Fréquence à laquelle on regarde s’il y a de nouvelles publications. */
+  nouveautes: number;
+}
+export const DELAIS_FIL = new InjectionToken<DelaisFil>('DELAIS_FIL', {
+  factory: () => ({ nouvelEssai: 2000, nouveautes: 60_000 }),
+});
+
+/** Attentes successives (en multiples du délai de base) : environ 20 s au total, le temps d’un redémarrage de l’API. */
+const PALIERS_ESSAI = [1, 1.5, 2.5, 3];
+
+/** Nouveaux essais pour une erreur passagère (réseau, 5xx) ; une erreur 4xx s’affiche tout de suite. */
+function reessayer<T>(delai: number): MonoTypeOperatorFunction<T> {
+  return retry({ count: PALIERS_ESSAI.length, delay: (erreur: unknown, essai: number) =>
+    erreur instanceof HttpErrorResponse && erreur.status > 0 && erreur.status < 500
+      ? throwError(() => erreur) : timer(delai * PALIERS_ESSAI[essai - 1]) });
+}
+
 /**
  * Fil d’actualité personnalisé : publications, événements et programmes classés par l’API selon ce qui
  * rapproche le membre de leurs auteurs (promotion, filière, organismes, réactions) et leur fraîcheur.
  */
-@Component({ selector: 'app-accueil', imports: [RouterLink, AvatarMembre, CartePublication, CarteEvenementFil, CarteProgrammeFil],
+@Component({ selector: 'app-accueil', imports: [RouterLink, AvatarMembre, CartePublication, CarteEvenementFil, CarteProgrammeFil, SqueletteFil],
   templateUrl: './accueil.html', styleUrl: './accueil.scss' })
 export class Accueil {
   private readonly fil = inject(FilService);
+  private readonly publications = inject(PublicationService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly delais = inject(DELAIS_FIL);
+  private readonly document = inject(DOCUMENT);
   protected readonly cle = cleCarte;
+  /** Publications parues depuis le chargement du fil, annoncées sans recharger la page sous les yeux. */
+  private readonly nouvelles = signal<Publication[]>([]);
+  protected readonly nouveautes = computed(() => this.nouvelles().length);
   protected readonly cartes = signal<CarteFil[]>([]);
   protected readonly chargement = signal(true);
   protected readonly erreur = signal(false);
@@ -69,6 +102,33 @@ export class Accueil {
       observateur.observe(repere);
       nettoyer(() => observateur.disconnect());
     });
+    // Nouveautés : vérifiées régulièrement et quand on revient sur l’onglet.
+    const retourOnglet = fromEvent(this.document, 'visibilitychange').pipe(filter(() => this.document.visibilityState === 'visible'));
+    merge(interval(this.delais.nouveautes), retourOnglet).pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.verifierNouveautes());
+  }
+
+  /** Remonte en haut du fil et le recharge avec les nouvelles publications. */
+  protected afficherNouveautes(): void {
+    const enTete = this.nouvelles();
+    this.document.defaultView?.scrollTo({ top: 0, behavior: 'smooth' });
+    this.charger(enTete);
+  }
+
+  private verifierNouveautes(): void {
+    const reference = this.reference;
+    if (!reference || this.chargement() || this.erreur()) return;
+    // Le fil est classé par pertinence : les nouveautés se repèrent dans la liste chronologique des publications.
+    this.publications.lister(0, 10).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (page) => {
+        const vues = new Set(this.cartes().map(cleCarte));
+        const moi = this.moi()?.id;
+        const nouvelles = page.contenu.filter((p) => p.auteurId !== moi && !vues.has(`p-${p.id}`)
+          && new Date(p.publieLe).getTime() > new Date(reference).getTime());
+        this.nouvelles.set(nouvelles);
+      },
+      error: () => undefined,
+    });
   }
 
   private lireConfirmation(): string {
@@ -77,15 +137,21 @@ export class Accueil {
     return typeof etat.messagePublication === 'string' ? etat.messagePublication : '';
   }
 
-  /** Premier chargement, ou nouvel essai : le classement repart de maintenant. */
-  protected charger(): void {
+  /**
+   * Premier chargement, ou nouvel essai : le classement repart de maintenant. Les nouveautés demandées
+   * par la pastille passent en tête, même si le classement les place plus bas.
+   */
+  protected charger(enTete: Publication[] = []): void {
     this.chargement.set(true);
     this.erreur.set(false);
-    this.fil.lister(0).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.nouvelles.set([]);
+    this.fil.lister(0).pipe(reessayer(this.delais.nouvelEssai), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (page) => {
         this.page = 0;
         this.reference = page.reference;
-        this.cartes.set(page.contenu);
+        const premieres: CarteFil[] = enTete.map((publication) => ({ type: 'PUBLICATION', publication, raison: null }));
+        const placees = new Set(premieres.map(cleCarte));
+        this.cartes.set([...premieres, ...page.contenu.filter((c) => !placees.has(cleCarte(c)))]);
         this.derniere.set(page.derniere);
         this.chargement.set(false);
       },
@@ -102,7 +168,7 @@ export class Accueil {
     if (this.suiteEnCours() || this.derniere()) return;
     this.suiteEnCours.set(true);
     this.erreurSuite.set(false);
-    this.fil.lister(this.page + 1, this.reference).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.fil.lister(this.page + 1, this.reference).pipe(reessayer(this.delais.nouvelEssai), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (page) => {
         this.page = page.page;
         const vues = new Set(this.cartes().map(cleCarte));

@@ -88,6 +88,8 @@ h3 { margin: 0 0 .4rem; color: var(--ept-primary-dark); font-family: var(--ept-f
 .media { display: flex; justify-content: center; margin: .85rem var(--marge) 0; overflow: hidden;
   border-radius: var(--ept-radius-sm); background: var(--ept-bg); }
 .media app-image-publication { width: min(100%, 30rem, 52vh); aspect-ratio: 4 / 5; border-radius: 0; }
+// Dans le fil, une affiche haute ne dépasse pas la moitié de l’écran ; la page de la publication la montre en grand.
+.dans-le-fil .media app-image-publication { width: min(100%, 30rem, 42vh); }
 
 .actions { display: flex; flex-wrap: wrap; gap: .5rem; margin: .4rem calc(var(--marge) - .6rem) .3rem; }
 .action { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.75rem;
@@ -112,5 +114,6 @@ h3 { margin: 0 0 .4rem; color: var(--ept-primary-dark); font-family: var(--ept-f
   // Sur mobile, le fil est plat : la publication occupe toute la largeur, séparée par un simple trait.
   .carte { border-inline: 0; border-radius: 0; }
   .media app-image-publication { width: min(100%, 52vh); }
+  .dans-le-fil .media app-image-publication { width: min(100%, 42vh); }
   h3 { font-size: 1.1rem; }
 }

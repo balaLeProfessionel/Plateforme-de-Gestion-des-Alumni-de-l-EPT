@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { Accueil } from './accueil';
+import { Accueil, DELAIS_FIL } from './accueil';
 
 const SANS_INTERACTION = { nombreJaime: 0, jaime: false, nombreCommentaires: 0, apercuCommentaire: null };
 
@@ -11,7 +11,8 @@ describe('Accueil', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [Accueil],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([]),
+        { provide: DELAIS_FIL, useValue: { nouvelEssai: 0, nouveautes: 3_600_000 } }],
     });
     http = TestBed.inject(HttpTestingController);
   });
@@ -103,7 +104,11 @@ describe('Accueil', () => {
   it('signale une erreur de chargement et permet de réessayer', async () => {
     const fixture = TestBed.createComponent(Accueil);
     fixture.detectChanges();
-    http.expectOne((req) => req.url === '/api/fil').flush({}, { status: 500, statusText: 'Erreur' });
+    // Quatre nouveaux essais automatiques avant d’afficher l’erreur.
+    for (let essai = 0; essai < 5; essai++) {
+      await new Promise((fin) => setTimeout(fin));
+      http.expectOne((req) => req.url === '/api/fil').flush({}, { status: 500, statusText: 'Erreur' });
+    }
     await fixture.whenStable();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Impossible de charger le fil d’actualité.');
@@ -136,4 +141,43 @@ describe('Accueil', () => {
   });
 
   afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+
+  it('réessaie seul quand l’API redémarre, sans montrer d’erreur', async () => {
+    const fixture = TestBed.createComponent(Accueil);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-squelette-fil')).not.toBeNull();
+    http.expectOne((req) => req.url === '/api/fil').flush({}, { status: 503, statusText: 'Indisponible' });
+    await new Promise((fin) => setTimeout(fin));
+    repondre([{ ...PUBLICATION, publication: { ...PUBLICATION, id: 'p1', contenu: 'Bonjour' }, raison: null }]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-squelette-fil')).toBeNull();
+  });
+
+  it('annonce les nouvelles publications au retour sur l’onglet et les affiche au clic', async () => {
+    const fixture = TestBed.createComponent(Accueil);
+    fixture.detectChanges();
+    const ancienne = { type: 'PUBLICATION', raison: null, publication: { ...PUBLICATION, id: 'p1', contenu: 'Ancienne' } };
+    repondre([ancienne]);
+    await fixture.whenStable();
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
+    document.dispatchEvent(new Event('visibilitychange'));
+    const nouvelle = { type: 'PUBLICATION', raison: null,
+      publication: { ...PUBLICATION, id: 'p2', contenu: 'Nouvelle', publieLe: '2026-11-03T13:00:00Z' } };
+    http.expectOne((req) => req.url === '/api/publications')
+      .flush({ contenu: [nouvelle.publication, ancienne.publication], page: 0, taille: 10, totalElements: 2, totalPages: 1 });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const pastille = fixture.nativeElement.querySelector('.nouveautes button') as HTMLButtonElement;
+    expect(pastille.textContent).toContain('Nouvelle publication');
+    pastille.click();
+    // Le classement place la nouveauté plus bas : elle remonte quand même en tête.
+    repondre([ancienne, nouvelle]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.nouveautes')).toBeNull();
+    const contenus = [...fixture.nativeElement.querySelectorAll('.contenu')].map((e: Element) => e.textContent?.trim());
+    expect(contenus).toEqual(['Nouvelle', 'Ancienne']);
+  });
 });

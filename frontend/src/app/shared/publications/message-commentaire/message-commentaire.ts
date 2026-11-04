@@ -3,6 +3,7 @@ import { Component, computed, inject, input, output } from '@angular/core';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { LIBELLES_ROLE_COMPTE, RoleCompte } from '../../../core/services/models/admin.model';
 import { CommentairePublication } from '../../../core/services/publications/publication';
+import { DateRelativePipe } from '../../dates/date-relative';
 import { AvatarMembre } from '../../images/avatar-membre';
 
 /**
@@ -11,7 +12,7 @@ import { AvatarMembre } from '../../images/avatar-membre';
  */
 @Component({
   selector: 'app-message-commentaire',
-  imports: [DatePipe, AvatarMembre],
+  imports: [DatePipe, DateRelativePipe, AvatarMembre],
   template: `
     @let c = commentaire();
     <article class="message" [class.reponse]="reponse()" [class.moi]="estMoi()">
@@ -24,7 +25,7 @@ import { AvatarMembre } from '../../images/avatar-membre';
           <p class="texte" [class.apercu]="apercu()">{{ c.contenu }}</p>
         </div>
         <p class="pied">
-          <time [attr.datetime]="c.creeLe">{{ c.creeLe | date:'d MMM, HH:mm' }}</time>
+          <time [attr.datetime]="c.creeLe" [attr.title]="c.creeLe | date:'d MMMM y à HH:mm'">{{ c.creeLe | dateRelative }}</time>
           @if (repondable()) {
             <button type="button" class="repondre" (click)="repondre.emit(c)" [attr.aria-label]="'Répondre à ' + nom()">Répondre</button>
           }

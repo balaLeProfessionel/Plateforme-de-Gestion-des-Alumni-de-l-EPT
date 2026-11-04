@@ -14,10 +14,10 @@
       </p>
       <p class="meta">
         @if (complete()) {
-          <time [attr.datetime]="p.publieLe">{{ p.publieLe | date:'d MMM y à HH:mm' }}</time>
+          <time [attr.datetime]="p.publieLe" [attr.title]="p.publieLe | date:'d MMMM y à HH:mm'">{{ p.publieLe | dateRelative }}</time>
         } @else {
           <a class="date" [routerLink]="lien()" [attr.aria-label]="'Publication de ' + auteur() + ', ' + (p.publieLe | date:'d MMMM y à HH:mm')">
-            <time [attr.datetime]="p.publieLe">{{ p.publieLe | date:'d MMM y à HH:mm' }}</time></a>
+            <time [attr.datetime]="p.publieLe" [attr.title]="p.publieLe | date:'d MMMM y à HH:mm'">{{ p.publieLe | dateRelative }}</time></a>
         }
         @if (audience()) { <span class="audience"><i class="pi pi-users" aria-hidden="true"></i> {{ audience() }}</span> }
       </p>

@@ -5,6 +5,7 @@ import { AuthService } from '../../../core/services/auth/auth-service';
 import { LIBELLES_ROLE_COMPTE, RoleCompte } from '../../../core/services/models/admin.model';
 import { estLinkedin } from '../../../core/services/publications/apercu-lien';
 import { AudiencePublication, Publication } from '../../../core/services/publications/publication';
+import { DateRelativePipe } from '../../dates/date-relative';
 import { AvatarMembre } from '../../images/avatar-membre';
 import { ImagePublication } from '../../images/image-publication/image-publication';
 import { BoutonJaime } from '../bouton-jaime/bouton-jaime';
@@ -31,7 +32,7 @@ const INTERACTIFS = 'a, button, input, textarea, select, label, dialog, [role="m
  */
 @Component({
   selector: 'app-carte-publication',
-  imports: [DatePipe, RouterLink, AvatarMembre, ImagePublication, BoutonJaime, CommentairesPublication,
+  imports: [DatePipe, DateRelativePipe, RouterLink, AvatarMembre, ImagePublication, BoutonJaime, CommentairesPublication,
     MenuPublication, MessageCommentaire],
   templateUrl: './carte-publication.html',
   styleUrl: './carte-publication.scss',

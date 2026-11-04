@@ -11,7 +11,13 @@
       <p class="confirmation" role="status"><i class="pi pi-check-circle" aria-hidden="true"></i> {{ confirmation() }}
         <button type="button" (click)="confirmation.set('')" aria-label="Masquer ce message"><i class="pi pi-times" aria-hidden="true"></i></button></p>
     }
-    @if (chargement()) { <p role="status">Chargement des nouveautés…</p> }
+    @if (nouveautes()) {
+      <div class="nouveautes" role="status">
+        <button type="button" (click)="afficherNouveautes()"><i class="pi pi-arrow-up" aria-hidden="true"></i>
+          {{ nouveautes() > 1 ? nouveautes() + ' nouvelles publications' : 'Nouvelle publication' }}</button>
+      </div>
+    }
+    @if (chargement()) { <p class="visuellement-cache" role="status">Chargement des nouveautés…</p><app-squelette-fil /> }
     @else {
       @if (erreur()) {
         <div class="erreur" role="alert"><p>Impossible de charger le fil d’actualité.</p>
