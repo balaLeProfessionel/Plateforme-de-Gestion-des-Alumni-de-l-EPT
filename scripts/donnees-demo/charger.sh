@@ -17,4 +17,6 @@ MSYS_NO_PATHCONV=1 docker exec alumni-api mkdir -p /data/alumni/photos/evenement
 tar -C "$temporaire" -cf - . | MSYS_NO_PATHCONV=1 docker exec -i alumni-api tar -C /data/alumni/photos -xf -
 docker exec -i alumni-db psql -q -U root -d alumni_db -v compte_modele="$compte_modele" < "$dossier/donnees-demo.sql"
 docker exec -i alumni-db psql -q -U root -d alumni_db -v compte_modele="$compte_modele" < "$dossier/donnees-demo-etendues.sql"
+# Fil d'actualité : publications, annonces, appels à projets, commentaires et « J'aime » des membres ci-dessus.
+docker exec -i alumni-db psql -q -U root -d alumni_db < "$dossier/donnees-demo-publications.sql"
 echo "Données de démonstration chargées."

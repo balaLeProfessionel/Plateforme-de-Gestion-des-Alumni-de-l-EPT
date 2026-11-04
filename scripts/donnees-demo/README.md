@@ -29,5 +29,11 @@ scripts/donnees-demo/charger.sh adresse.du.compte@modele
   tirés au hasard) : aucune photo de personne réelle. Logos et visuels d'événements sont aussi générés.
 - Pour modifier les données étendues : éditer `generer-sql-etendu.py` puis
   `python generer-sql-etendu.py donnees-demo-etendues.sql visuels-etendus.json`.
+- Fil d'actualité (`donnees-demo-publications.sql`, chargé en dernier) : 35 publications des membres de
+  démonstration sur les dix derniers jours (offres de stage et d'emploi, retours d'expérience, questions
+  d'étudiants, annonces officielles et appels à projets de l'administration, publications réservées aux
+  alumni ou aux étudiants), avec une centaine de commentaires dont des réponses de l'auteur et quelques
+  centaines de « J'aime ». Pour les modifier : éditer `generer-sql-publications.py` puis
+  `python generer-sql-publications.py donnees-demo-publications.sql`.
 - Pour modifier les données, éditer `generer-sql.py` puis régénérer :
   `python generer-sql.py donnees-demo.sql`.
