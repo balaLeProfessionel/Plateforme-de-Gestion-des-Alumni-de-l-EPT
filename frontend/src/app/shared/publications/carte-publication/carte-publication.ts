@@ -3,6 +3,7 @@ import { afterNextRender, Component, computed, inject, input, linkedSignal, view
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { LIBELLES_ROLE_COMPTE, RoleCompte } from '../../../core/services/models/admin.model';
+import { estLinkedin } from '../../../core/services/publications/apercu-lien';
 import { AudiencePublication, Publication } from '../../../core/services/publications/publication';
 import { AvatarMembre } from '../../images/avatar-membre';
 import { ImagePublication } from '../../images/image-publication/image-publication';
@@ -55,7 +56,21 @@ export class CartePublication {
     `${this.publication().auteurPrenom ?? ''} ${this.publication().auteurNom ?? ''}`.trim() || 'Membre EPT');
   protected readonly role = computed(() => LIBELLES_ROLE_COMPTE[this.publication().auteurRole as RoleCompte] ?? '');
   protected readonly audience = computed(() => AUDIENCES[this.publication().audience]);
-  protected readonly lienLinkedin = computed(() => /linkedin\.com\//i.test(this.publication().lien?.url ?? ''));
+  protected readonly lienLinkedin = computed(() => estLinkedin(this.publication().lien?.url, this.publication().lien?.site));
+  /**
+   * Le message reprend le texte de la page liée (publication LinkedIn importée, par exemple) : le lien devient une
+   * simple mention de la source, au lieu d’une carte qui répéterait le début du message.
+   */
+  protected readonly lienEnSource = computed(() => {
+    const lien = this.publication().lien;
+    if (!lien) return false;
+    if (this.lienLinkedin()) return true;
+    const resume = (texte: string | null | undefined) => (texte ?? '').replace(/…$/, '').replace(/\s+/g, ' ').trim().slice(0, 60);
+    const contenu = this.publication().contenu.replace(/\s+/g, ' ');
+    const titre = resume(lien.titre);
+    const description = resume(lien.description);
+    return (!!titre && contenu.includes(titre)) || (!!description && contenu.includes(description));
+  });
   /** La description du lien, sauf si le message la reprend déjà (texte importé depuis LinkedIn, par exemple). */
   protected readonly descriptionLien = computed(() => {
     const description = this.publication().lien?.description?.trim();

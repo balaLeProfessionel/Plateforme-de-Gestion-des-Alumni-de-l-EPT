@@ -42,21 +42,33 @@ describe('CartePublication', () => {
 
   const texte = (element: Element | null | undefined) => element?.textContent?.replace(/\s+/g, ' ').trim();
 
-  it('montre le lien partagé, qui s’ouvre dans un nouvel onglet, sans répéter le texte déjà repris', () => {
-    const lien = { url: 'https://www.linkedin.com/posts/awa_stage', titre: 'Awa Diop sur LinkedIn', site: 'LinkedIn',
+  it('mentionne simplement la source d’une publication LinkedIn reprise, qui s’ouvre dans un nouvel onglet', () => {
+    const lien = { url: 'https://www.linkedin.com/posts/awa_stage', titre: 'Ravie de commencer mon stage…', site: 'LinkedIn',
       description: 'Ravie de commencer mon stage chez Sonatel !' };
     const racine = afficher({ contenu: 'Ravie de commencer mon stage chez Sonatel !', lien });
-    const ancre = racine.querySelector('a.lien-partage') as HTMLAnchorElement;
-    expect(ancre.href).toBe(lien.url);
-    expect(ancre.target).toBe('_blank');
-    expect(ancre.rel).toContain('noopener');
-    expect(texte(ancre)).toContain('LinkedIn : Awa Diop sur LinkedIn.');
-    expect(texte(ancre)).toContain('(s’ouvre dans un nouvel onglet)');
-    expect(ancre.querySelector('.pi-linkedin')).not.toBeNull();
-    expect(ancre.querySelector('.description')).toBeNull();
-    expect(afficher({ contenu: 'Autre chose', lien }).querySelector('.lien-partage .description')?.textContent)
-      .toContain('Ravie de commencer');
-    expect(afficher({}).querySelector('.lien-partage')).toBeNull();
+    expect(racine.querySelector('.lien-partage')).toBeNull();
+    const source = racine.querySelector('a.source') as HTMLAnchorElement;
+    expect(source.href).toBe(lien.url);
+    expect(source.target).toBe('_blank');
+    expect(source.rel).toContain('noopener');
+    expect(texte(source)).toBe('Publié à l’origine sur LinkedIn. Voir l’original (s’ouvre dans un nouvel onglet)');
+    expect(source.querySelector('.pi-linkedin')).not.toBeNull();
+    expect(afficher({}).querySelector('.source, .lien-partage')).toBeNull();
+    // Lien court partagé depuis l'application LinkedIn.
+    const court = afficher({ contenu: 'Appel à candidatures', lien: { ...lien, url: 'https://lnkd.in/p/dwgsFCs8', site: 'LinkedIn' } });
+    expect(court.querySelector('.source .pi-linkedin')).not.toBeNull();
+  });
+
+  it('présente un article partagé en carte avec son titre et sa description', () => {
+    const lien = { url: 'https://blog.exemple.sn/innovation', titre: 'L’innovation à l’EPT', site: 'blog.exemple.sn',
+      description: 'Retour sur dix ans de projets étudiants.' };
+    const racine = afficher({ contenu: 'À lire, un bel article sur nos projets.', lien });
+    const carte = racine.querySelector('a.lien-partage') as HTMLAnchorElement;
+    expect(texte(carte)).toContain('blog.exemple.sn : L’innovation à l’EPT.');
+    expect(carte.querySelector('.description')?.textContent).toContain('dix ans de projets');
+    expect(racine.querySelector('.source')).toBeNull();
+    // Un message qui reprend le texte de l'article : la carte cède la place à la mention de la source.
+    expect(afficher({ contenu: 'Retour sur dix ans de projets étudiants.', lien }).querySelector('.source')).not.toBeNull();
   });
 
   it('distingue l’annonce officielle par son bandeau, sans badge sur une publication ordinaire', () => {

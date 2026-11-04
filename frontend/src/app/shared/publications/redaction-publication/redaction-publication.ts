@@ -57,6 +57,7 @@ export class RedactionPublication {
   private readonly champImage = viewChild<ElementRef<HTMLInputElement>>('champImage');
   private readonly boutonRepositionner = viewChild<ElementRef<HTMLButtonElement>>('boutonRepositionner');
   private readonly champContenu = viewChild<ElementRef<HTMLTextAreaElement>>('champContenu');
+  private readonly champLien = viewChild<ElementRef<HTMLInputElement>>('champLien');
   protected readonly libellesTypes = LIBELLES_TYPE_PUBLICATION;
   protected readonly ouverte = linkedSignal(() => this.integree());
   protected readonly envoiEnCours = signal(false);
@@ -74,8 +75,9 @@ export class RedactionPublication {
   protected readonly apercuLien = signal<ApercuLien | null>(null);
   protected readonly importEnCours = signal(false);
   protected readonly erreurLien = signal('');
-  protected readonly texteImporte = signal(false);
   protected readonly chargementImageLien = signal(false);
+  /** Outils du composeur : le champ du lien et le titre facultatif ne s’affichent qu’à la demande. */
+  protected readonly lienOuvert = signal(false);
   protected readonly modele = signal(this.modeleVide());
   protected readonly titreObligatoire = computed(() => this.modele().type !== 'PUBLICATION');
   protected readonly titreFormulaire = computed(() => TITRES_FORMULAIRE[this.modele().type]);
@@ -102,7 +104,7 @@ export class RedactionPublication {
   }
 
   protected ouvrir(): void {
-    this.reinitialiserLien();
+    this.replierOutils();
     this.modele.set(this.modeleVide());
     this.formulaire().reset();
     this.ouverte.set(true);
@@ -127,7 +129,6 @@ export class RedactionPublication {
       next: (apercu) => {
         const remplir = !this.modele().contenu.trim() && !!apercu.description;
         this.apercuLien.set(apercu);
-        this.texteImporte.set(remplir);
         this.modele.update((valeurs) => ({
           ...valeurs, lien: apercu.url, contenu: remplir ? (apercu.description ?? '').slice(0, 5000) : valeurs.contenu,
         }));
@@ -147,12 +148,12 @@ export class RedactionPublication {
     this.erreurLien.set('');
     if (!this.apercuLien()) return;
     this.apercuLien.set(null);
-    this.texteImporte.set(false);
   }
 
   protected retirerLien(): void {
     this.reinitialiserLien();
-    this.modele.update((valeurs) => ({ ...valeurs, lien: '', confirmationLien: false }));
+    this.modele.update((valeurs) => ({ ...valeurs, lien: '' }));
+    this.focaliser(this.champLien);
   }
 
   /** Récupère l’image de l’aperçu par le serveur et l’ouvre dans le recadrage, comme une image choisie. */
@@ -178,10 +179,39 @@ export class RedactionPublication {
     });
   }
 
+  /** Comme dans une messagerie : un lien collé seul dans un message vide est importé directement. */
+  protected collerDansMessage(event: ClipboardEvent): void {
+    const texte = event.clipboardData?.getData('text/plain').trim() ?? '';
+    if (this.modele().contenu.trim() || this.importEnCours() || !/^https?:\/\/\S+$/i.test(texte)) return;
+    event.preventDefault();
+    this.modele.update((valeurs) => ({ ...valeurs, lien: texte }));
+    this.apercuLien.set(null);
+    this.lienOuvert.set(true);
+    this.importerLien();
+  }
+
+  protected basculerLien(): void {
+    if (this.lienOuvert() && !this.modele().lien.trim()) {
+      this.lienOuvert.set(false);
+      this.erreurLien.set('');
+      return;
+    }
+    this.lienOuvert.set(true);
+    this.focaliser(this.champLien);
+  }
+
+  private focaliser(champ: () => ElementRef<HTMLElement> | undefined): void {
+    afterNextRender(() => champ()?.nativeElement.focus(), { injector: this.injector });
+  }
+
+  private replierOutils(): void {
+    this.reinitialiserLien();
+    this.lienOuvert.set(false);
+  }
+
   private reinitialiserLien(): void {
     this.apercuLien.set(null);
     this.erreurLien.set('');
-    this.texteImporte.set(false);
     this.importEnCours.set(false);
     this.chargementImageLien.set(false);
   }
@@ -280,7 +310,7 @@ export class RedactionPublication {
     this.avertissementImage.set('');
     this.retirerImage();
     this.fermerRecadrage();
-    this.reinitialiserLien();
+    this.replierOutils();
     this.modele.set(this.modeleVide());
   }
 
@@ -319,9 +349,6 @@ export class RedactionPublication {
     if (this.formulaire.texteAlternatif().invalid()) return 'Décrivez l’image en 250 caractères maximum.';
     if (this.formulaire.contenu().invalid() || !valeurs.contenu.trim()) return 'Ajoutez un texte de 5 000 caractères maximum.';
     if (this.formulaire.lien().invalid()) return 'Le lien ne doit pas dépasser 500 caractères.';
-    if (valeurs.lien.trim() && !valeurs.confirmationLien) {
-      return 'Confirmez que ce contenu est le vôtre ou que vous le partagez avec l’accord de son auteur.';
-    }
     return '';
   }
 
@@ -349,7 +376,7 @@ export class RedactionPublication {
         next: (creee) => {
           this.publiee.emit(creee);
           this.retirerImage();
-          this.reinitialiserLien();
+          this.replierOutils();
           this.modele.set(this.modeleVide());
           this.formulaire().reset();
           this.ouverte.set(this.integree());
@@ -372,7 +399,7 @@ export class RedactionPublication {
 
   private modeleVide() {
     return { type: this.types()[0] ?? ('PUBLICATION' as TypePublication), titre: '', contenu: '',
-      audience: 'TOUS' as AudiencePublication, texteAlternatif: '', dateLimite: '', lien: '', confirmationLien: false };
+      audience: 'TOUS' as AudiencePublication, texteAlternatif: '', dateLimite: '', lien: '' };
   }
 
   private static aujourdhui(): string {

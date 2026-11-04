@@ -114,10 +114,13 @@ describe('RedactionPublication (import depuis un lien)', () => {
       racine.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
       fixture.detectChanges();
     };
+    // Le champ du lien s'ouvre depuis la barre d'outils du composeur.
+    expect(racine.querySelector('#publication-lien')).toBeNull();
+    cliquer('Depuis LinkedIn');
     return { fixture, racine, saisir, cliquer, soumettre };
   }
 
-  it('reprend le texte de la page, demande la confirmation de l’auteur et envoie le lien', async () => {
+  it('reprend le texte de la page, rappelle l’accord de l’auteur et envoie le lien', async () => {
     const { fixture, racine, saisir, cliquer, soumettre } = ouvrir();
     saisir('#publication-lien', 'linkedin.com/posts/awa_stage');
     cliquer('Importer');
@@ -129,12 +132,8 @@ describe('RedactionPublication (import depuis un lien)', () => {
     fixture.detectChanges();
 
     expect((racine.querySelector('textarea') as HTMLTextAreaElement).value).toBe('Ravie de commencer mon stage !');
-    expect(racine.querySelector('app-apercu-lien-importe')?.textContent).toContain('Texte repris dans votre message');
-    soumettre();
-    expect(racine.querySelector('[role="alert"]')?.textContent).toContain('Confirmez que ce contenu est le vôtre');
-
-    (racine.querySelector('.confirmation-lien input') as HTMLInputElement).click();
-    fixture.detectChanges();
+    expect(racine.querySelector('app-apercu-lien-importe')?.textContent).toContain('Awa Diop sur LinkedIn');
+    expect(racine.querySelector('.mention-lien')?.textContent).toContain('ce contenu est le vôtre');
     soumettre();
     const creation = http.expectOne('/api/publications');
     expect(creation.request.body).toEqual({ type: 'PUBLICATION', titre: '', contenu: 'Ravie de commencer mon stage !',
@@ -151,13 +150,26 @@ describe('RedactionPublication (import depuis un lien)', () => {
       image: null, site: 'linkedin.com' });
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(racine.querySelector('app-apercu-lien-importe')?.textContent).toContain('ne laisse pas lire sa publication');
+    expect(racine.querySelector('app-apercu-lien-importe')?.textContent).toContain('LinkedIn n’a pas partagé son texte');
     expect((racine.querySelector('textarea') as HTMLTextAreaElement).value).toBe('Mon texte à moi');
 
-    cliquer('Retirer le lien');
+    (racine.querySelector('[aria-label="Retirer le lien"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
     expect(racine.querySelector('app-apercu-lien-importe')).toBeNull();
     expect((racine.querySelector('#publication-lien') as HTMLInputElement).value).toBe('');
-    expect(racine.querySelector('.confirmation-lien')).toBeNull();
+    expect(racine.querySelector('.mention-lien')).toBeNull();
+  });
+
+  it('importe directement un lien collé seul dans un message vide, comme une messagerie', () => {
+    const { fixture, racine } = ouvrir();
+    const message = racine.querySelector('textarea') as HTMLTextAreaElement;
+    const collage = new Event('paste', { cancelable: true }) as ClipboardEvent;
+    Object.defineProperty(collage, 'clipboardData', { value: { getData: () => ' https://www.linkedin.com/posts/awa ' } });
+    message.dispatchEvent(collage);
+    fixture.detectChanges();
+    expect(collage.defaultPrevented).toBe(true);
+    expect(http.expectOne('/api/apercus-lien').request.body).toEqual({ url: 'https://www.linkedin.com/posts/awa' });
+    expect((racine.querySelector('#publication-lien') as HTMLInputElement).value).toBe('https://www.linkedin.com/posts/awa');
   });
 
   it('affiche le refus du serveur pour une adresse interne', async () => {

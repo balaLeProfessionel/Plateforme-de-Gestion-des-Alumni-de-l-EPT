@@ -14,6 +14,11 @@ export function apercuLisible(apercu: ApercuLien): boolean {
   return !!(apercu.titre || apercu.description);
 }
 
+/** Lien LinkedIn, y compris ses liens courts « lnkd.in » partagés depuis l’application. */
+export function estLinkedin(url: string | null | undefined, site?: string | null): boolean {
+  return /^https?:\/\/([\w-]+\.)*(linkedin\.com|lnkd\.in)(\/|$)/i.test(url ?? '') || site?.trim().toLowerCase() === 'linkedin';
+}
+
 @Service()
 export class ApercuLienService {
   private readonly http = inject(HttpClient);

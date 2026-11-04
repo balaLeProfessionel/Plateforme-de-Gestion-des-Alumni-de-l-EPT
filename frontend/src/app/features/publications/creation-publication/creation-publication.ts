@@ -75,7 +75,7 @@ export interface EtatPublicationCreee {
     }
     @media (max-width: 560px) {
       .page { padding: 1rem 1rem 6rem; }
-      .espace { padding: 1rem; }
+      .espace { padding: .25rem 0 0; border: 0; background: transparent; box-shadow: none; }
       h1 { font-size: 1.25rem; }
       .conseils { display: none; }
     }

@@ -47,6 +47,18 @@ h3 { margin: 0 0 .4rem; color: var(--ept-primary-dark); font-family: var(--ept-f
   transition: border-color .15s; }
 .lien-partage:hover { border-color: #b7cdd8; }
 .lien-partage:hover .titre { text-decoration: underline; }
+// Source d’un texte repris : une ligne sobre, « Publié à l’origine sur LinkedIn · Voir l’original ».
+.source { display: flex; align-items: center; gap: .55rem; margin: .85rem var(--marge) 0; padding: .55rem .75rem;
+  border-radius: var(--ept-radius-sm); background: var(--ept-bg); color: var(--ept-text-secondary); font-size: .85rem;
+  text-decoration: none; }
+.media + .source { margin-top: .75rem; }
+.source > .pi { flex: 0 0 auto; color: var(--ept-primary); font-size: 1rem; }
+.source.linkedin > .pi { color: #0a66c2; }
+.source strong { color: var(--ept-primary-dark); font-weight: 600; }
+.source .origine { flex: 1 1 auto; min-width: 0; }
+.source .voir { display: inline-flex; flex: 0 0 auto; align-items: center; gap: .3rem; color: var(--ept-primary); font-weight: 600; }
+.source .voir .pi { font-size: .72rem; }
+.source:hover .voir { text-decoration: underline; }
 .lien-partage .icone { display: grid; flex: 0 0 auto; place-items: center; width: 2.25rem; height: 2.25rem;
   border-radius: var(--ept-radius-sm); background: var(--ept-primary-light); color: var(--ept-primary); }
 .lien-partage .texte { display: grid; gap: .1rem; min-width: 0; }
