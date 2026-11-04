@@ -50,7 +50,7 @@ describe('Accueil', () => {
     expect(racine.textContent).toContain('Bonjour EPT');
     expect(racine.querySelector('a[href="/evenements/e1"]')).not.toBeNull();
     expect(racine.querySelector('a[href="/mentorat/programmes/m1"]')).not.toBeNull();
-    expect(racine.textContent).toContain('2 mentors volontaires');
+    expect(racine.textContent).toContain('2 mentors disponibles');
     expect(racine.querySelector('.suite')).toBeNull();
   });
 

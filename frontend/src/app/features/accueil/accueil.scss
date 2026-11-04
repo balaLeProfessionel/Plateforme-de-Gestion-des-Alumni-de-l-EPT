@@ -40,8 +40,9 @@
 .etat-vide { color: var(--ept-text-secondary); }
 @media (max-width: 560px) {
   .accueil { padding: 1.25rem 1rem; }
-  // Les publications occupent toute la largeur de l’écran, comme dans un fil plat.
-  .cartes > li:has(> app-carte-publication) { margin-inline: -1rem; }
+  // Fil plat : chaque élément occupe toute la largeur de l’écran.
+  .cartes { margin-inline: -1rem; gap: .5rem; }
+  .raison { margin-left: 1rem; }
   .invitation { padding: .7rem; gap: .6rem; }
   .invitation .bouton { width: 2.6rem; padding: 0; justify-content: center; }
   .invitation .libelle { display: none; }
