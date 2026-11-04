@@ -54,7 +54,13 @@ describe('Accueil', () => {
     expect(racine.querySelector('.suite')).toBeNull();
   });
 
-  it('charge la suite au même instant de référence, sans répéter une carte', async () => {
+  it('charge la suite en approchant du bas, au même instant de référence, sans répéter une carte', async () => {
+    let signalerVisible: ((entrees: Partial<IntersectionObserverEntry>[]) => void) | undefined;
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(rappel: (entrees: Partial<IntersectionObserverEntry>[]) => void) { signalerVisible = rappel; }
+      observe() {}
+      disconnect() {}
+    });
     const fixture = TestBed.createComponent(Accueil);
     fixture.detectChanges();
     http.expectOne((req) => req.url === '/api/fil').flush(page([
@@ -62,7 +68,10 @@ describe('Accueil', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     const racine: HTMLElement = fixture.nativeElement;
-    (racine.querySelector('.suite button') as HTMLButtonElement).click();
+    expect(racine.querySelector('.suite button')).toBeNull();
+    signalerVisible?.([{ isIntersecting: true }]);
+    fixture.detectChanges();
+    expect(racine.querySelector('.chargement-suite')?.textContent).toContain('Chargement d’autres actualités');
     const suite = http.expectOne((req) => req.url === '/api/fil' && req.params.get('page') === '1');
     expect(suite.request.params.get('reference')).toBe('2026-11-03T12:00:00Z');
     suite.flush(page([
@@ -126,5 +135,5 @@ describe('Accueil', () => {
     expect(root.querySelector('.confirmation')).toBeNull();
   });
 
-  afterEach(() => vi.restoreAllMocks());
+  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 });

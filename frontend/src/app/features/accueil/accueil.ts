@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { CarteFil, cleCarte, FilService } from '../../core/services/fil/fil';
@@ -11,6 +11,8 @@ import { EtatPublicationCreee } from '../publications/creation-publication/creat
 
 /** Nombre de cartes après lesquelles une même raison de suggestion peut réapparaître. */
 const ESPACEMENT_RAISON = 3;
+/** Distance sous l’écran à laquelle on commence à charger la suite du fil. */
+const MARGE_CHARGEMENT_PX = 900;
 
 /**
  * Fil d’actualité personnalisé : publications, événements et programmes classés par l’API selon ce qui
@@ -44,6 +46,7 @@ export class Accueil {
     });
     return affichees;
   });
+  private readonly repereSuite = viewChild<ElementRef<HTMLElement>>('repereSuite');
   private page = 0;
   private reference: string | null = null;
   protected readonly moi = inject(AuthService).utilisateur;
@@ -54,6 +57,18 @@ export class Accueil {
 
   constructor() {
     this.charger();
+    // Défilement continu : la suite se charge quand le repère sous les cartes approche de l’écran.
+    // L’observateur est recréé à chaque nouvelle page, pour enchaîner si le repère est encore visible.
+    effect((nettoyer) => {
+      const repere = this.repereSuite()?.nativeElement;
+      this.cartes();
+      if (!repere || typeof IntersectionObserver === 'undefined') return;
+      const observateur = new IntersectionObserver((entrees) => {
+        if (entrees.some((e) => e.isIntersecting) && !this.erreurSuite()) this.chargerSuite();
+      }, { rootMargin: `0px 0px ${MARGE_CHARGEMENT_PX}px 0px` });
+      observateur.observe(repere);
+      nettoyer(() => observateur.disconnect());
+    });
   }
 
   private lireConfirmation(): string {

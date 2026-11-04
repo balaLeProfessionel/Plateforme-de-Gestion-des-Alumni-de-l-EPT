@@ -33,16 +33,16 @@
         }
       </ul>
       @if (!derniere()) {
-        <div class="suite">
-          <button type="button" (click)="chargerSuite()" [disabled]="suiteEnCours()">
-            {{ suiteEnCours() ? 'Chargement…' : 'Voir plus d’actualités' }}</button>
-          @if (erreurSuite()) { <p role="alert">Impossible de charger la suite. Réessayez.</p> }
+        <!-- Repère placé sous les cartes : la suite se charge avant qu’on l’atteigne. -->
+        <div #repereSuite class="suite">
+          @if (erreurSuite()) {
+            <p role="alert">Impossible de charger la suite du fil.</p>
+            <button type="button" (click)="chargerSuite()">Réessayer</button>
+          } @else if (suiteEnCours()) {
+            <p class="chargement-suite" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement d’autres actualités…</p>
+          }
         </div>
       }
-      <nav class="raccourcis" aria-label="Explorer le réseau">
-        <a routerLink="/evenements">Voir les événements <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
-        <a routerLink="/mentorat">Découvrir le mentorat <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
-      </nav>
     }
   </section>
 </div>
