@@ -31,7 +31,8 @@ public class ProfilMapper {
             u.getTelephone(),
             u.getDateNaissance(),
             u.getFiliere(),
-            u.getAnneeSortie()
+            u.getAnneeSortie(),
+            u.isRecherchePublique()
         );
     }
 

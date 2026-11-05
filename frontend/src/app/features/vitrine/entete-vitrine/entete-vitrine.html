@@ -1,0 +1,63 @@
+<a class="lien-evitement" href="#contenu">Aller au contenu</a>
+
+<header class="entete">
+  <div class="barre-ecole">
+    <div class="barre-ecole-contenu">
+      <app-liens-ecole sombre class="liens-entete" />
+
+      <div class="outils">
+        <a class="lien-barre" routerLink="/annuaire-diplomes">Annuaire des diplômés</a>
+
+        <form class="recherche" role="search" novalidate (submit)="rechercher($event)">
+          <label class="sr-only" for="recherche-entete">Rechercher sur le site</label>
+          <input id="recherche-entete" type="search" autocomplete="off" placeholder="Recherche"
+            [formField]="formulaire.recherche" />
+          <button type="submit" aria-label="Lancer la recherche"><i class="pi pi-search" aria-hidden="true"></i></button>
+        </form>
+
+        <a class="lien-barre lien-connexion" routerLink="/connexion">Se connecter</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="barre-principale">
+    <div class="entete-contenu">
+      <a class="marque" routerLink="/">
+        <img src="/images/logo-ept.png" alt="" width="52" height="52" />
+        <span class="nom-marque">EPT Alumni</span>
+      </a>
+
+      <nav class="rubriques" id="rubriques-entete" aria-label="Rubriques" [class.ouvert]="menuMobileOuvert()">
+        <ul class="liste-rubriques">
+          @for (menu of menus; track menu.id) {
+            <li class="rubrique" routerLinkActive="actif" [routerLinkActiveOptions]="correspondanceExacte">
+              <button class="declencheur" type="button" [attr.aria-expanded]="menuOuvert() === menu.id"
+                [attr.aria-controls]="'menu-' + menu.id" (click)="basculer(menu.id)">
+                {{ menu.libelle }}<i class="pi pi-chevron-down" aria-hidden="true"></i>
+              </button>
+              <ul class="panneau" [id]="'menu-' + menu.id" [hidden]="menuOuvert() !== menu.id">
+                @for (lien of menu.liens; track lien.libelle) {
+                  <li>
+                    <a [routerLink]="lien.lien" [fragment]="lien.fragment" [class.a-venir]="lien.precision === 'À venir'" (click)="fermer()"
+                      routerLinkActive="courant" [routerLinkActiveOptions]="correspondanceExacte"
+                      ariaCurrentWhenActive="page">
+                      <span>{{ lien.libelle }}</span>
+                      @if (lien.precision; as precision) { <small>{{ precision }}</small> }
+                    </a>
+                  </li>
+                }
+              </ul>
+            </li>
+          }
+        </ul>
+      </nav>
+
+      <a class="bouton-rejoindre" routerLink="/inscription">Nous rejoindre</a>
+
+      <button class="bouton-menu" type="button" aria-label="Menu des rubriques" aria-controls="rubriques-entete"
+        [attr.aria-expanded]="menuMobileOuvert()" (click)="basculerMenuMobile()">
+        <i class="pi" [class.pi-bars]="!menuMobileOuvert()" [class.pi-times]="menuMobileOuvert()" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+</header>

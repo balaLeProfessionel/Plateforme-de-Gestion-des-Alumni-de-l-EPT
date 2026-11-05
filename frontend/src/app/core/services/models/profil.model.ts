@@ -25,6 +25,7 @@ export interface Profil {
   dateNaissance: string | null; // format ISO yyyy-MM-dd
   filiere: string | null;
   anneeSortie: number | null;
+  recherchePublique: boolean;
 }
 
 export interface ProfilPublic {

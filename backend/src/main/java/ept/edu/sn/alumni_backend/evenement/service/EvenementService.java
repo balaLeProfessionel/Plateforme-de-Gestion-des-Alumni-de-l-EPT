@@ -40,6 +40,7 @@ import ept.edu.sn.alumni_backend.evenement.entity.ParticipationEvenement;
 import ept.edu.sn.alumni_backend.evenement.exception.EvenementIntrouvableException;
 import ept.edu.sn.alumni_backend.evenement.exception.LimiteCreationEvenementAtteinteException;
 import ept.edu.sn.alumni_backend.evenement.exception.CapaciteEvenementAtteinteException;
+import ept.edu.sn.alumni_backend.evenement.dto.EvenementPublicResponse;
 import ept.edu.sn.alumni_backend.evenement.repository.EvenementRepository;
 import ept.edu.sn.alumni_backend.evenement.repository.ParticipationEvenementRepository;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
@@ -121,6 +122,17 @@ public class EvenementService {
                 evenement,
                 nombresParticipants.getOrDefault(evenement.getId(), 0L),
                 mesReponses.get(evenement.getId()))));
+    }
+
+    @Transactional(readOnly = true)
+    public List<EvenementPublicResponse> prochainsPublics() {
+        return evenementRepository
+            .findTop3ByOfficielEptTrueAndAudienceAndStatutAndDateDebutAfterOrderByDateDebutAsc(
+                AudienceEvenement.TOUS, StatutEvenement.PUBLIE, Instant.now())
+            .stream()
+            .map(evenement -> new EvenementPublicResponse(
+                evenement.getTitre(), evenement.getLieu(), evenement.getDateDebut(), evenement.getUrlImage()))
+            .toList();
     }
 
     @Transactional(readOnly = true)

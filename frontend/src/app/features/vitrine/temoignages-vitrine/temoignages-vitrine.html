@@ -1,0 +1,50 @@
+@if (temoignages().length) {
+  <section id="temoignages" aria-labelledby="titre-temoignages">
+    <div class="section-contenu">
+      <h2 id="titre-temoignages">Témoignages</h2>
+
+      <div class="carrousel" role="group" aria-roledescription="carrousel" aria-labelledby="titre-temoignages">
+        <div class="diapositives">
+          @for (temoignage of temoignages(); track temoignage.nom; let index = $index) {
+            <figure class="diapositive" [class.active]="index === indexActif()">
+              <div class="photo">
+                @if (temoignage.urlPhoto; as url) {
+                  <img [src]="url" [alt]="'Portrait de ' + temoignage.nom" width="360" height="360" loading="lazy" />
+                } @else {
+                  <app-avatar-membre [nom]="temoignage.nom" roleMembre="ALUMNI" [taille]="10" />
+                }
+              </div>
+
+              <div class="corps">
+                <svg class="guillemet" viewBox="0 0 48 36" aria-hidden="true">
+                  <path d="M0 36V21C0 9.5 6.5 2.5 19 0l2 5.5C14.5 7.5 11 11.5 10.5 16H20v20H0Zm27 0V21C27 9.5 33.5 2.5 46 0l2 5.5C41.5 7.5 38 11.5 37.5 16H47v20H27Z" />
+                </svg>
+                <blockquote>{{ temoignage.texte }}</blockquote>
+                <svg class="guillemet fermant" viewBox="0 0 48 36" aria-hidden="true">
+                  <path d="M0 36V21C0 9.5 6.5 2.5 19 0l2 5.5C14.5 7.5 11 11.5 10.5 16H20v20H0Zm27 0V21C27 9.5 33.5 2.5 46 0l2 5.5C41.5 7.5 38 11.5 37.5 16H47v20H27Z" />
+                </svg>
+
+                <figcaption>
+                  <strong>{{ temoignage.nom }}@if (temoignage.promotion; as promotion) { ({{ promotion }})}</strong>
+                  <span>{{ temoignage.fonction }}</span>
+                  @if (temoignage.organisation; as organisation) { <span>{{ organisation }}</span> }
+                  @if (temoignage.pays; as pays) { <span>{{ pays }}</span> }
+                </figcaption>
+              </div>
+            </figure>
+          }
+        </div>
+
+        @if (plusieurs()) {
+          <button class="fleche fleche-precedente" type="button" aria-label="Témoignage précédent" (click)="precedent()">
+            <i class="pi pi-chevron-left" aria-hidden="true"></i>
+          </button>
+          <button class="fleche fleche-suivante" type="button" aria-label="Témoignage suivant" (click)="suivant()">
+            <i class="pi pi-chevron-right" aria-hidden="true"></i>
+          </button>
+          <p class="sr-only" aria-live="polite">Témoignage {{ indexActif() + 1 }} sur {{ temoignages().length }}</p>
+        }
+      </div>
+    </div>
+  </section>
+}

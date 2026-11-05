@@ -27,6 +27,9 @@ scripts/donnees-demo/charger.sh adresse.du.compte@modele
   évaluations) et deux programmes de plus. Trois membres sur quatre ont un portrait.
 - Les portraits sont **dessinés** par `generer-visuels.py` (teint, coiffure, foulard, lunettes, tenue
   tirés au hasard) : aucune photo de personne réelle. Logos et visuels d'événements sont aussi générés.
+- Témoignages (`donnees-demo-temoignages.sql`) : 3 témoignages **fictifs** de membres de démonstration pour la
+  page d'accueil, à ne jamais charger en production. La table `temoignages` doit exister : le backend à jour
+  doit avoir démarré au moins une fois.
 - Pour modifier les données étendues : éditer `generer-sql-etendu.py` puis
   `python generer-sql-etendu.py donnees-demo-etendues.sql visuels-etendus.json`.
 - Pour modifier les données, éditer `generer-sql.py` puis régénérer :

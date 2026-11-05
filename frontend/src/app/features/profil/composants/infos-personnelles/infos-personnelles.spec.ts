@@ -58,7 +58,7 @@ describe('InfosPersonnelles', () => {
       role: 'ALUMNI', statutCompte: 'ACTIF', bio: 'Bio', villeResidence: 'Thiès',
       posteActuel: 'Ingénieure', lienLinkedin: 'https://linkedin.com/in/awa',
       lienPortfolio: 'https://awa.example.com', urlPhoto: null, telephone: '770000000',
-      dateNaissance: '2000-01-01', filiere: 'GIT', anneeSortie: 2024
+      dateNaissance: '2000-01-01', filiere: 'GIT', anneeSortie: 2024, recherchePublique: true
     };
   }
 });

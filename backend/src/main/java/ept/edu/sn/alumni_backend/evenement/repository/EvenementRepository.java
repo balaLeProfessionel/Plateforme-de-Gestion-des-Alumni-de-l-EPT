@@ -21,6 +21,9 @@ public interface EvenementRepository extends JpaRepository<Evenement, UUID>, Jpa
 
     long countByStatutAndDateDebutAfter(StatutEvenement statut, Instant apres);
 
+    java.util.List<Evenement> findTop3ByOfficielEptTrueAndAudienceAndStatutAndDateDebutAfterOrderByDateDebutAsc(
+        ept.edu.sn.alumni_backend.evenement.AudienceEvenement audience, StatutEvenement statut, Instant apres);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select evenement from Evenement evenement where evenement.id = :id")
     java.util.Optional<Evenement> findByIdAvecVerrou(@Param("id") UUID id);

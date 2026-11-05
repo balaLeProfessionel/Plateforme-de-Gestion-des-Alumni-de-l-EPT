@@ -1,0 +1,123 @@
+@use 'responsive' as *;
+
+/* Listes déroulantes de la barre blanche, et menu mobile sous le palier large. */
+.rubriques {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: calc(100dvh - 7rem);
+  overflow-y: auto;
+  border-top: 1px solid var(--ept-border);
+  background: var(--ept-surface);
+  box-shadow: 0 8px 16px rgba(1, 46, 69, 0.16);
+
+  &.ouvert { display: block; }
+}
+
+.liste-rubriques {
+  margin: 0;
+  padding: 0.5rem;
+  list-style: none;
+}
+
+.declencheur {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 0.5rem;
+  border: 0;
+  border-radius: var(--ept-radius-sm);
+  background: transparent;
+  color: var(--ept-text-secondary);
+  font: inherit;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+
+  i { font-size: 0.7rem; transition: transform 0.15s; }
+
+  &:hover, &[aria-expanded='true'] { color: var(--ept-primary); background: var(--ept-primary-light); }
+  &[aria-expanded='true'] i { transform: rotate(180deg); }
+}
+
+.rubrique.actif > .declencheur { color: var(--ept-primary); font-weight: 600; }
+
+.panneau {
+  margin: 0;
+  padding: 0 0 0.5rem 0.5rem;
+  list-style: none;
+
+  &[hidden] { display: none; }
+
+  a {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0 1rem;
+    padding: 0.65rem 0.5rem;
+    border-radius: var(--ept-radius-sm);
+    color: var(--ept-primary-dark);
+    font-weight: 500;
+    line-height: 1.35;
+    text-decoration: none;
+
+    &:hover { background: var(--ept-primary-light); }
+    &.a-venir span { color: var(--ept-text-secondary); }
+    &.courant { font-weight: 600; text-decoration: underline; text-underline-offset: 0.2em; }
+  }
+
+  small {
+    color: var(--ept-text-secondary);
+    font-size: 0.8rem;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+}
+
+@include a-partir-de(tablette) {
+  .liste-rubriques { padding: 0.5rem 1rem; }
+}
+
+/* Tout tient sur une ligne : chaque panneau s'ouvre sous son bouton. */
+@include a-partir-de(large) {
+  .rubriques {
+    display: block;
+    position: static;
+    justify-self: end;
+    max-height: none;
+    overflow: visible;
+    border-top: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .liste-rubriques {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0;
+  }
+
+  .rubrique { position: relative; }
+
+  .declencheur { width: auto; min-height: 2.5rem; }
+
+  .panneau {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    width: 21rem;
+    padding: 0.5rem;
+    border: 1px solid var(--ept-border);
+    border-radius: var(--ept-radius);
+    background: var(--ept-surface);
+    box-shadow: 0 8px 16px rgba(1, 46, 69, 0.16);
+  }
+
+  .rubrique:last-child .panneau { left: auto; right: 0; }
+}

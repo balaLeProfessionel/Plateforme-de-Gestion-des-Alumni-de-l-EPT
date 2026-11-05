@@ -1,0 +1,92 @@
+@use 'responsive' as *;
+
+:host { display: block; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.pied {
+  background: var(--ept-primary-dark);
+  color: var(--ept-text-on-dark);
+}
+
+.pied-contenu {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2.5rem 1rem 1.5rem;
+}
+
+.presentation {
+  flex: 1 1 18rem;
+  min-width: 0;
+  max-width: 28rem;
+}
+
+.marque {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 0.75rem;
+  font-family: var(--ept-font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+
+  img {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0.2rem;
+    border-radius: 0.35rem;
+    background: var(--ept-surface);
+    object-fit: contain;
+  }
+}
+
+.description {
+  margin: 0;
+  color: var(--ept-sky-on-dark);
+  line-height: 1.55;
+}
+
+/* Aligne la première icône sur le texte malgré sa zone cliquable de 40 px. */
+.liens-pied { margin: 1rem 0 0 -0.6rem; }
+
+.liens {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.5rem;
+    color: var(--ept-text-on-dark);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+
+    &:hover { color: var(--ept-sky-on-dark); }
+
+    &:focus-visible {
+      outline: 2px solid var(--ept-sky);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.copyright {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.25rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.85rem;
+}
+
+@include a-partir-de(tablette) {
+  .pied-contenu { padding: 3rem 1.5rem 2rem; }
+  .copyright { padding: 1.25rem 1.5rem; }
+}

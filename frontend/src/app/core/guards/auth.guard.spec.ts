@@ -6,7 +6,8 @@ import {
   permissionGuard,
   changementInitialRequisGuard,
   changementInitialSeulementGuard,
-  roleGuard
+  roleGuard,
+  visiteurGuard
 } from './auth.guard';
 import { AuthService } from '../services/auth/auth-service';
 
@@ -51,6 +52,16 @@ describe('gardes d authentification', () => {
   it('redirige un visiteur non connecte vers la connexion', () => {
     const resultat = executer(authGuard) as UrlTree;
     expect(TestBed.inject(Router).serializeUrl(resultat)).toBe('/connexion');
+  });
+
+  it('montre la page publique d accueil a un visiteur non connecte', () => {
+    expect(executer(visiteurGuard)).toBe(true);
+  });
+
+  it('envoie un membre connecte de la page publique vers son espace', () => {
+    utilisateur = { role: 'ALUMNI', doitChangerMotDePasse: false };
+    const resultat = executer(visiteurGuard) as UrlTree;
+    expect(TestBed.inject(Router).serializeUrl(resultat)).toBe('/accueil');
   });
 
   it('redirige la session initiale vers le changement obligatoire', () => {

@@ -1,6 +1,11 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
-import { FiltresAnnuaire, PageAnnuaire } from '../models/annuaire.model';
+import { DiplomePublic, FiltresAnnuaire, PageAnnuaire } from '../models/annuaire.model';
+
+/** Minimum exigé par la recherche publique du serveur. */
+export function assezDeLettres(recherche: string): boolean {
+  return (recherche.match(/\p{L}/gu) ?? []).length >= 3;
+}
 
 @Service()
 export class AnnuaireService {
@@ -25,5 +30,9 @@ export class AnnuaireService {
     }
 
     return this.http.get<PageAnnuaire>('/api/annuaire', { params });
+  }
+
+  rechercherPublic(recherche: string) {
+    return this.http.get<DiplomePublic[]>('/api/public/annuaire', { params: { recherche } });
   }
 }

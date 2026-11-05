@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.annuaire;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ept.edu.sn.alumni_backend.mentorat.ParticipationMentorat;
 import ept.edu.sn.alumni_backend.annuaire.dto.AnnuaireMembreResponse;
+import ept.edu.sn.alumni_backend.annuaire.dto.DiplomePublicResponse;
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.mentorat.StatutMentor;
@@ -25,6 +27,10 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AnnuaireService {
+    private static final int LETTRES_MIN_RECHERCHE_PUBLIQUE = 3;
+    private static final int RESULTATS_MAX_RECHERCHE_PUBLIQUE = 10;
+    private static final char ECHAPPEMENT = '\\';
+
     private final UtilisateurRepository utilisateurRepository;
     private final AnnuaireMapper annuaireMapper;
     private final ProfilMentorService profilMentorService;
@@ -88,6 +94,35 @@ public class AnnuaireService {
         return PageResponse.depuis(
             membres.map(membre -> annuaireMapper.versResponse(membre, mentors.get(membre.getId())))
         );
+    }
+
+    /** Sans compte : au moins 3 lettres et peu de résultats, pour qu'on ne puisse pas lister l'annuaire. */
+    @Transactional(readOnly = true)
+    public List<DiplomePublicResponse> rechercherPublic(String recherche) {
+        String valeur = normaliser(recherche);
+        if (valeur.codePoints().filter(Character::isLetter).count() < LETTRES_MIN_RECHERCHE_PUBLIQUE) {
+            throw new IllegalArgumentException("Saisissez au moins " + LETTRES_MIN_RECHERCHE_PUBLIQUE + " lettres");
+        }
+
+        String motif = "%" + echapperMotif(valeur) + "%";
+        Specification<Utilisateur> specification = MembreVisibilite.trouvableSansCompte()
+            .and((racine, requete, cb) -> cb.or(
+                cb.like(cb.lower(racine.get("nom")), motif, ECHAPPEMENT),
+                cb.like(cb.lower(racine.get("prenom")), motif, ECHAPPEMENT),
+                cb.like(cb.lower(cb.concat(cb.concat(racine.get("prenom"), " "), racine.get("nom"))), motif, ECHAPPEMENT)
+            ));
+        PageRequest pagination = PageRequest.of(
+            0, RESULTATS_MAX_RECHERCHE_PUBLIQUE, Sort.by(Sort.Order.asc("nom"), Sort.Order.asc("prenom")));
+
+        return utilisateurRepository.findAll(specification, pagination).stream()
+            .map(membre -> new DiplomePublicResponse(
+                membre.getPrenom(), membre.getNom(), membre.getAnneeSortie(), membre.getFiliere()))
+            .toList();
+    }
+
+    /** Sans cela, « %%% » passerait la limite de longueur et renverrait n'importe quel diplômé. */
+    private String echapperMotif(String valeur) {
+        return valeur.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     private boolean aDuTexte(String valeur) {

@@ -1,0 +1,21 @@
+<section aria-labelledby="titre-chiffres">
+  <div class="section-contenu">
+    <h2 id="titre-chiffres">L’EPT en chiffres</h2>
+
+    <ul class="chiffres">
+      @for (chiffre of chiffres; track chiffre.libelle) {
+        <li>
+          <span class="cercle-exterieur" aria-hidden="true">
+            <span class="cercle-interieur"><i [class]="chiffre.icone"></i></span>
+          </span>
+          @if (chiffre.valeur === null) {
+            <span class="valeur a-venir">À venir</span>
+          } @else {
+            <span class="valeur">{{ chiffre.valeur | number: '1.0-0' }}</span>
+          }
+          <span class="libelle">{{ chiffre.libelle }}</span>
+        </li>
+      }
+    </ul>
+  </div>
+</section>

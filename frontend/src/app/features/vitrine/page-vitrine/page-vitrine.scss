@@ -1,0 +1,121 @@
+@use 'responsive' as *;
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background: var(--ept-bg);
+}
+
+main:focus { outline: none; }
+
+.section-contenu {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 3rem 1rem;
+}
+
+h2 {
+  margin: 0;
+  color: var(--ept-primary-dark);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+}
+
+/* ===== Étapes : une colonne, puis trois côte à côte (jamais 2 + 1) ===== */
+.etapes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  margin: 2rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li { min-width: 0; }
+
+  h3 {
+    margin: 0.75rem 0 0.4rem;
+    color: var(--ept-primary-dark);
+    font-size: 1.15rem;
+    text-wrap: balance;
+  }
+
+  p {
+    margin: 0;
+    color: var(--ept-text-secondary);
+    line-height: 1.55;
+    text-wrap: pretty;
+  }
+}
+
+.numero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--ept-primary);
+  color: var(--ept-sky-on-dark);
+  font-family: var(--ept-font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.note-verification {
+  max-width: 65ch;
+  margin: 2rem 0 0;
+  color: var(--ept-text-secondary);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+/* Pleine largeur sur téléphone. */
+.bouton {
+  flex: 1 1 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0 1.5rem;
+  border-radius: var(--ept-radius-sm);
+  font-family: var(--ept-font-heading);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s;
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-focus-clair);
+    outline-offset: 3px;
+  }
+}
+
+.bouton-principal {
+  background: var(--ept-primary);
+  color: var(--ept-text-on-dark);
+
+  &:hover { background: var(--ept-primary-dark); }
+}
+
+.bouton-secondaire {
+  border: 1px solid var(--ept-border);
+  background: var(--ept-surface);
+  color: var(--ept-primary);
+
+  &:hover { background: var(--ept-primary-light); }
+}
+
+@include a-partir-de(tablette) {
+  .section-contenu { padding: 4.5rem 1.5rem; }
+  .etapes { margin-top: 2.5rem; gap: 1.25rem; }
+  .bouton { flex: 0 0 auto; }
+}
+
+@include a-partir-de(bureau) {
+  .etapes { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

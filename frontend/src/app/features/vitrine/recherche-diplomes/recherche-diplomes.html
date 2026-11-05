@@ -1,0 +1,55 @@
+<app-entete-vitrine />
+
+<main id="contenu" tabindex="-1">
+  <div class="contenu">
+    <h1>Annuaire des diplômés</h1>
+    <p class="intro">
+      Retrouvez un diplômé de l’EPT par son nom. Sans compte, seuls le nom, la promotion et la filière
+      des diplômés au compte vérifié sont affichés.
+    </p>
+
+    <form class="recherche" role="search" novalidate (submit)="appliquerRecherche($event)">
+      <label for="recherche-diplome">Nom ou prénom</label>
+      <input id="recherche-diplome" type="search" autocomplete="off" [formField]="formulaire.recherche"
+        aria-describedby="aide-recherche" />
+      <small id="aide-recherche">Au moins 3 lettres. Les résultats se mettent à jour pendant la saisie.</small>
+    </form>
+
+    <div class="resultats" aria-live="polite" [attr.aria-busy]="enChargement()">
+      @if (messageErreur(); as message) {
+        <p class="message-erreur" role="alert">{{ message }}</p>
+      } @else if (enChargement() && !resultats()) {
+        <p class="etat">Recherche en cours…</p>
+      } @else if (rechercheValide() && resultats()) {
+        @if (liste().length) {
+          <ul class="liste">
+            @for (diplome of liste(); track $index) {
+              <li>
+                <strong>{{ diplome.prenom }} {{ diplome.nom }}</strong>
+                @if (diplome.promotion) { <span>Promo {{ diplome.promotion }}</span> }
+                @if (diplome.filiere) { <span>{{ diplome.filiere }}</span> }
+              </li>
+            }
+          </ul>
+          @if (plafondAtteint()) {
+            <p class="etat">Seuls les 10 premiers résultats sont affichés. Précisez votre recherche.</p>
+          }
+        } @else {
+          <p class="etat">
+            Aucun diplômé trouvé pour « {{ critere() }} ». Vérifiez l’orthographe, ou essayez le nom seul.
+            Certains diplômés ont choisi de ne pas apparaître ici.
+          </p>
+        }
+      }
+    </div>
+
+    <div class="suite">
+      <p>
+        <a routerLink="/connexion">Connectez-vous</a> pour consulter les profils et filtrer par filière, promotion ou ville.
+      </p>
+      <p>Vous êtes diplômé ? Vous pouvez retirer votre nom de cette recherche dans les paramètres de votre profil.</p>
+    </div>
+  </div>
+</main>
+
+<app-pied-vitrine />

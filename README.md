@@ -45,6 +45,7 @@ Seul le frontend est exposé sur la machine hôte. Il transmet les appels `/api`
 | `JWT_REFRESH_EXPIRATION_MS` | Durée de validité d'un jeton de renouvellement en millisecondes |
 | `APP_STORAGE_PHOTOS_DIR` | Répertoire persistant des photos de profil dans le conteneur backend |
 | `APP_MAX_PHOTO_SIZE` | Taille maximale acceptée pour une photo de profil |
+| `PRIMENG_LICENSE` | Licence PrimeNG, injectée dans le frontend à la compilation. Sans elle, PrimeNG affiche une bannière |
 
 Le fichier `.env` reste local et ne doit pas être ajouté au dépôt. `.env.example` contient uniquement une configuration de développement.
 
