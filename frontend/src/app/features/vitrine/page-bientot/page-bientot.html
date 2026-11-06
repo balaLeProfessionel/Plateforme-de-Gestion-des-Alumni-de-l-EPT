@@ -1,0 +1,17 @@
+<app-entete-vitrine />
+
+<main id="contenu" tabindex="-1">
+  <div class="contenu">
+    <h1>{{ rubrique.titre }}</h1>
+    <p class="etat">Cette rubrique n’est pas encore disponible.</p>
+    <p>{{ rubrique.description }}</p>
+    <p>{{ rubrique.enAttendant }}</p>
+
+    <div class="actions">
+      <a class="bouton bouton-principal" routerLink="/annuaire-diplomes">Rechercher un diplômé</a>
+      <a class="bouton bouton-secondaire" routerLink="/">Retour à l’accueil</a>
+    </div>
+  </div>
+</main>
+
+<app-pied-vitrine />

@@ -138,6 +138,7 @@ jobs:
         with:
           context: ${{ matrix.context }}
           push: ${{ github.event_name == 'push' }}
+          build-args: PRIMENG_LICENSE=${{ secrets.PRIMENG_LICENSE }}
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           cache-from: type=gha

@@ -1,0 +1,110 @@
+@use 'responsive' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--ept-bg);
+}
+
+main { flex: 1; }
+main:focus { outline: none; }
+
+.contenu {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 2.5rem 1rem 4rem;
+}
+
+h1 {
+  margin: 0;
+  color: var(--ept-primary-dark);
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  line-height: 1.15;
+}
+
+.intro {
+  margin: 0.75rem 0 0;
+  color: var(--ept-text-secondary);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.recherche {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 2rem;
+
+  label { color: var(--ept-primary-dark); font-weight: 600; }
+
+  input {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0 0.9rem;
+    border: 1px solid #8fa3b0;
+    border-radius: var(--ept-radius-sm);
+    background: var(--ept-surface);
+    color: var(--ept-text);
+    font: inherit;
+
+    &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+  }
+
+  small { color: var(--ept-text-secondary); font-size: 0.875rem; }
+}
+
+.resultats { margin-top: 1.75rem; min-height: 3rem; }
+
+.liste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem 1rem;
+    padding-block: 0.85rem;
+    border-top: 1px solid var(--ept-border);
+
+    &:last-child { border-bottom: 1px solid var(--ept-border); }
+  }
+
+  strong { flex: 1 1 100%; color: var(--ept-primary-dark); font-weight: 600; }
+  span { color: var(--ept-text-secondary); font-size: 0.95rem; }
+}
+
+.etat {
+  margin: 0.85rem 0 0;
+  color: var(--ept-text-secondary);
+  line-height: 1.55;
+}
+
+.message-erreur {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: var(--ept-radius-sm);
+  background: var(--ept-error-light);
+  color: var(--ept-error-dark);
+}
+
+.suite {
+  margin-top: 2.5rem;
+  color: var(--ept-text-secondary);
+  line-height: 1.55;
+
+  p { margin: 0.5rem 0 0; }
+
+  a {
+    color: var(--ept-primary);
+    font-weight: 600;
+    text-underline-offset: 0.2em;
+
+    &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; border-radius: 2px; }
+  }
+}
+
+@include a-partir-de(tablette) {
+  .contenu { padding: 3.5rem 1.5rem 5rem; }
+}

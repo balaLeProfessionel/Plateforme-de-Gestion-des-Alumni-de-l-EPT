@@ -18,6 +18,14 @@ describe('AnnuaireService', () => {
 
   afterEach(() => http.verify());
 
+  it('interroge la recherche publique avec le seul texte saisi', () => {
+    service.rechercherPublic('sow').subscribe();
+
+    const requete = http.expectOne('/api/public/annuaire?recherche=sow');
+    expect(requete.request.method).toBe('GET');
+    requete.flush([]);
+  });
+
   it('construit les paramètres HTTP et ignore les filtres vides', () => {
     service.rechercher({
       recherche: '  awa ',

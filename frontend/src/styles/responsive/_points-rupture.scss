@@ -1,0 +1,7 @@
+// tablette et bureau sont alignés sur les seuils des pages existantes (max-width: 560px / 860px).
+$points-rupture: (
+  telephone: 360px,
+  tablette: 561px,
+  bureau: 861px,
+  large: 1200px
+);

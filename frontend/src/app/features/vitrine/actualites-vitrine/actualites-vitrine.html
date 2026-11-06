@@ -1,0 +1,22 @@
+@if (!masquee()) {
+  <section id="actualites" aria-labelledby="titre-actualites" [attr.aria-busy]="!evenements()">
+    <div class="section-contenu">
+      <div class="entete-section">
+        <h2 id="titre-actualites">Actualités</h2>
+        <a routerLink="/evenements">Tous les événements, après connexion</a>
+      </div>
+
+      <ul class="grille">
+        @for (evenement of evenements(); track evenement.titre) {
+          <li>
+            <app-visuel-evenement [urlImage]="evenement.urlImage" [dateDebut]="evenement.dateDebut"
+              [lieu]="evenement.lieu" [officiel]="true" [chargementDiffere]="true" />
+            <p class="date">{{ evenement.dateDebut | date: 'd MMMM y' }}</p>
+            <h3>{{ evenement.titre }}</h3>
+            @if (evenement.lieu; as lieu) { <p class="lieu">{{ lieu }}</p> }
+          </li>
+        }
+      </ul>
+    </div>
+  </section>
+}

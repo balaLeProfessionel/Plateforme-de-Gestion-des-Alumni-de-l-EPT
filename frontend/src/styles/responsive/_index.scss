@@ -1,0 +1,17 @@
+// Mobile first : le style de base vise le téléphone, chaque palier s'ajoute par-dessus.
+//   @use 'responsive' as *;
+//   @include a-partir-de(tablette) { … }
+// Trouvé grâce à `stylePreprocessorOptions.includePaths` (angular.json).
+@use 'sass:map';
+@forward 'points-rupture';
+@use 'points-rupture' as *;
+
+@mixin a-partir-de($palier) {
+  @if not map.has-key($points-rupture, $palier) {
+    @error "Palier inconnu « #{$palier} ». Paliers disponibles : #{map.keys($points-rupture)}.";
+  }
+
+  @media (min-width: map.get($points-rupture, $palier)) {
+    @content;
+  }
+}

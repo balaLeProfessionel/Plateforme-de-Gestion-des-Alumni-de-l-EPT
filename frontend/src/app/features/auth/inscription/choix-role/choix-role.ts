@@ -33,7 +33,7 @@ export class ChoixRole {
     {
       cle: 'ORGANISME',
       titre: 'Organisme',
-      description: "Entreprise ou institution partenaire. Publiez des offres, recrutez des ingénieurs et collaborez avec l'école.",
+      description: "Entreprise ou institution partenaire. Présentez votre organisme dans l'annuaire et publiez vos événements.",
       icone: 'pi-building'
     },
     {

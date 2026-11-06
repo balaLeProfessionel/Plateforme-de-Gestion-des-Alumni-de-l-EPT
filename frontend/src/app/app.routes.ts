@@ -4,12 +4,53 @@ import {
   authGuard,
   changementInitialRequisGuard, accueilAdministrationGuard,
   changementInitialSeulementGuard,
-  roleGuard
+  roleGuard,
+  visiteurGuard
 } from './core/guards/auth.guard';
 import { titreProfil } from './features/profil/consultation-profil/titre-profil';
 
+// Rubriques de l'en-tête public dont le module n'est pas encore livré (voir `RUBRIQUES_A_VENIR`).
+const RUBRIQUES_ROUTES = [
+  ['messagerie', 'Messagerie et espace communautaire'],
+  ['partenariats', 'Partenariats de l’école'],
+  ['conventions', 'Conventions'],
+  ['stages', 'Stages'],
+  ['mobilites', 'Mobilités'],
+  ['insertion', 'Insertion professionnelle'],
+  ['offres-emploi', 'Offres d’emploi'],
+  ['publier-offre', 'Publier une offre']
+] as const;
+
 export const routes: Routes = [
-  { path: '', redirectTo: 'connexion', pathMatch: 'full' },
+  {
+    // Page publique d'accueil ; placée avant le cadre de l'espace membre, qui partage le chemin vide.
+    path: '',
+    pathMatch: 'full',
+    title: 'EPT Alumni | Le réseau des diplômés de l’EPT',
+    canActivate: [visiteurGuard],
+    loadComponent: () =>
+      import('./features/vitrine/page-vitrine/page-vitrine').then((m) => m.PageVitrine)
+  },
+  {
+    path: 'recherche',
+    title: 'EPT Alumni | Recherche',
+    canActivate: [visiteurGuard],
+    loadComponent: () => import('./features/vitrine/recherche-site/recherche-site').then((m) => m.RechercheSite)
+  },
+  {
+    path: 'annuaire-diplomes',
+    title: 'EPT Alumni | Annuaire des diplômés',
+    canActivate: [visiteurGuard],
+    loadComponent: () =>
+      import('./features/vitrine/recherche-diplomes/recherche-diplomes').then((m) => m.RechercheDiplomes)
+  },
+  ...RUBRIQUES_ROUTES.map(([path, titre]) => ({
+    path,
+    title: `EPT Alumni | ${titre}`,
+    data: { rubrique: path },
+    canActivate: [visiteurGuard],
+    loadComponent: () => import('./features/vitrine/page-bientot/page-bientot').then((m) => m.PageBientot)
+  })),
   {
     path: 'connexion',
     loadComponent: () =>

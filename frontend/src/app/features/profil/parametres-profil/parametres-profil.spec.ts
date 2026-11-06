@@ -15,6 +15,7 @@ describe('ParametresProfil', () => {
   let profilService: {
     obtenirProfil: ReturnType<typeof vi.fn>;
     majProfil: ReturnType<typeof vi.fn>;
+    majRecherchePublique: ReturnType<typeof vi.fn>;
     modifierPhoto: ReturnType<typeof vi.fn>;
     supprimerPhoto: ReturnType<typeof vi.fn>;
   };
@@ -33,6 +34,7 @@ describe('ParametresProfil', () => {
     profilService = {
       obtenirProfil: vi.fn().mockReturnValue(of(profil())),
       majProfil: vi.fn().mockReturnValue(of({ ...profil(), prenom: 'Aminata' })),
+      majRecherchePublique: vi.fn().mockReturnValue(of({ ...profil(), recherchePublique: false })),
       modifierPhoto: vi.fn().mockReturnValue(of({ ...profil(), urlPhoto: '/api/photos/photo.png' })),
       supprimerPhoto: vi.fn().mockReturnValue(of({ ...profil(), urlPhoto: null })),
       listerExperiences: vi.fn().mockReturnValue(of([])),
@@ -61,7 +63,7 @@ describe('ParametresProfil', () => {
     const contenu = fixture.nativeElement.textContent;
     expect(fixture.nativeElement.querySelector('h1')?.textContent).toContain('Modifier mon profil');
     expect([...fixture.nativeElement.querySelectorAll('.navigation-sections a')].map((a: Element) => a.textContent?.trim()))
-      .toEqual(['Photo', 'Informations', 'Parcours', 'Sécurité']);
+      .toEqual(['Photo', 'Informations', 'Parcours', 'Confidentialité', 'Sécurité']);
     expect(fixture.nativeElement.querySelector('.voir-profil')?.getAttribute('href')).toBe('/profil');
     expect(contenu).toContain('Expériences professionnelles');
     expect(contenu).toContain('Formations');
@@ -209,13 +211,25 @@ describe('ParametresProfil', () => {
     ]);
   });
 
+  it('enregistre le retrait de la recherche publique', async () => {
+    fixture.detectChanges();
+    const caseACocher = fixture.nativeElement.querySelector('#confidentialite input[type="checkbox"]') as HTMLInputElement;
+    expect(caseACocher.checked).toBe(true);
+
+    caseACocher.click();
+    await fixture.whenStable();
+
+    expect(profilService.majRecherchePublique).toHaveBeenCalledWith(false);
+    expect(fixture.nativeElement.querySelector('#confidentialite').textContent).toContain('n’apparaissez plus');
+  });
+
   it('garde les liens de section sur la route des paramètres', () => {
     fixture.detectChanges();
     const liens = [...fixture.nativeElement.querySelectorAll('.navigation-sections a')]
       .map((lien: HTMLAnchorElement) => lien.getAttribute('href'));
 
     expect(liens).toEqual([
-      '/profil/parametres#photo', '/profil/parametres#informations', '/profil/parametres#parcours', '/profil/parametres#securite'
+      '/profil/parametres#photo', '/profil/parametres#informations', '/profil/parametres#parcours', '/profil/parametres#confidentialite', '/profil/parametres#securite'
     ]);
   });
 
@@ -224,7 +238,7 @@ describe('ParametresProfil', () => {
       id: 'membre-1', nom: 'Diop', prenom: 'Awa', email: 'awa.diop@example.com',
       role: 'ALUMNI', statutCompte: 'ACTIF', bio: null, villeResidence: 'Thiès',
       posteActuel: null, lienLinkedin: null, lienPortfolio: null, urlPhoto: null,
-      telephone: null, dateNaissance: null, filiere: 'GIT', anneeSortie: 2024
+      telephone: null, dateNaissance: null, filiere: 'GIT', anneeSortie: 2024, recherchePublique: true
     };
   }
 });

@@ -1,6 +1,7 @@
-import { DOCUMENT, NgOptimizedImage } from '@angular/common';
+import { DecimalPipe, DOCUMENT, NgOptimizedImage } from '@angular/common';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { AuthService } from '../../../core/services/auth/auth-service';
+import { CHIFFRES_CLES } from '../../vitrine/contenu-vitrine';
 import { Router, RouterLink } from '@angular/router';
 import { email, form, required, FormField } from '@angular/forms/signals';
 
@@ -10,11 +11,12 @@ import { MessageModule } from 'primeng/message';
 
 @Component({
   selector: 'app-connexion',
-  imports: [NgOptimizedImage, FormField, InputTextModule, PasswordModule, MessageModule, RouterLink],
+  imports: [DecimalPipe, NgOptimizedImage, FormField, InputTextModule, PasswordModule, MessageModule, RouterLink],
   templateUrl: './connexion.html',
   styleUrl: './connexion.scss',
 })
 export class Connexion {
+  protected readonly chiffres = CHIFFRES_CLES;
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   /** Complément du `@media (max-width: 900px)` qui masque le panneau de marque dans connexion.scss. */

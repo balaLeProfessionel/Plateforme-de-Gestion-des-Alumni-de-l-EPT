@@ -56,6 +56,15 @@ public class UtilisateurProfilService {
     }
 
     @Transactional
+    public ProfilResponse mettreAJourRecherchePublique(Utilisateur utilisateur, boolean visible) {
+        Utilisateur gere = this.utilisateurRepository.findById(utilisateur.getId())
+            .orElseThrow(() -> new IllegalStateException("Utilisateur introuvable"));
+
+        gere.setRecherchePublique(visible);
+        return this.profilMapper.versResponse(utilisateurRepository.save(gere));
+    }
+
+    @Transactional
     public ProfilResponse mettreAJourPhoto(Utilisateur utilisateur, MultipartFile photo) {
         Utilisateur gere = utilisateurRepository.findById(utilisateur.getId())
             .orElseThrow(() -> new IllegalStateException("Utilisateur introuvable"));

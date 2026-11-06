@@ -19,6 +19,14 @@ export interface AnnuaireMembre {
   mentor?: 'DISPONIBLE' | 'INDISPONIBLE' | null;
 }
 
+/** Ce que la recherche publique renvoie : ni identifiant, ni photo, ni coordonnées. */
+export interface DiplomePublic {
+  prenom: string | null;
+  nom: string;
+  promotion: number | null;
+  filiere: string | null;
+}
+
 export interface PageAnnuaire {
   contenu: AnnuaireMembre[];
   page: number;

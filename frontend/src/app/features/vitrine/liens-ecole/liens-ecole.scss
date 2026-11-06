@@ -1,0 +1,36 @@
+:host { display: block; }
+
+ul {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--ept-radius-sm);
+  color: var(--ept-text-secondary);
+  text-decoration: none;
+
+  &:hover { color: var(--ept-primary); background: var(--ept-primary-light); }
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-focus-clair);
+    outline-offset: 2px;
+  }
+
+  i { font-size: 1.1rem; }
+}
+
+:host(.sombre) a {
+  color: var(--ept-text-on-dark);
+
+  &:hover { color: var(--ept-primary-dark); background: var(--ept-sky); }
+  &:focus-visible { outline-color: var(--ept-sky); }
+}

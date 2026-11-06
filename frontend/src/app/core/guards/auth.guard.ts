@@ -14,6 +14,12 @@ export const authGuard: CanActivateFn = () => {
   return router.createUrlTree(['/connexion']);
 }
 
+/** La page publique d’accueil n’est montrée qu’aux visiteurs : un membre connecté va dans son espace. */
+export const visiteurGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  return authService.estConnecte() ? inject(Router).createUrlTree(['/accueil']) : true;
+};
+
 export const roleGuard: CanActivateFn = (route) => {
   const authService = inject(AuthService);
   const router = inject(Router);

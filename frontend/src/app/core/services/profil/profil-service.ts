@@ -32,6 +32,10 @@ export class ProfilService {
     return this.http.patch<Profil>('/api/profil/me', donnees);
   }
 
+  majRecherchePublique(visible: boolean) {
+    return this.http.patch<Profil>('/api/profil/me/recherche-publique', { visible });
+  }
+
   modifierPhoto(photo: File) {
     const donnees = new FormData();
     donnees.append('photo', photo);
