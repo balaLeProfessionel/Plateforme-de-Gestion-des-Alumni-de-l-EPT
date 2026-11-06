@@ -42,20 +42,34 @@
   pointer-events: none;
 }
 
-.aide { margin: 0; color: var(--ept-text-secondary); font-size: 0.8rem; }
 
+/* Zoom et recentrage sur une seule ligne, sous l’image. */
 .commandes {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 0.6rem;
   color: var(--ept-primary);
 
-  input { flex: 1 1 10rem; min-width: 0; accent-color: var(--ept-primary); }
+  input { flex: 1 1 auto; min-width: 0; accent-color: var(--ept-primary); }
   input:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 3px; }
 }
 
-.actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; }
+.recentrer {
+  display: grid;
+  flex: 0 0 2.5rem;
+  place-items: center;
+  width: 2.5rem;
+  margin-left: 0.25rem;
+  padding: 0;
+  border-color: var(--ept-border);
+  border-radius: 50%;
+  background: white;
+  color: var(--ept-primary);
+}
+
+/* Les deux choix, côte à côte et de même largeur. */
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 0.25rem; }
+.actions button { min-height: 2.75rem; font-size: 0.95rem; }
 
 button {
   min-height: 2.5rem;

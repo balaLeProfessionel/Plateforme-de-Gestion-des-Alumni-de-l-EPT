@@ -110,7 +110,7 @@ describe('CreationPublication', () => {
     expect(root.querySelector('.apercu-publication img')?.getAttribute('src')).toBe('blob:apercu');
     // Une image est prête : plus de « Aucun fichier choisi », et le focus reprend sur l’aperçu.
     expect(root.querySelector('input[type=file]')).toBeNull();
-    expect(document.activeElement?.textContent?.trim()).toBe('Repositionner');
+    expect(document.activeElement?.textContent?.trim()).toBe('Recadrer');
 
     const texte = root.querySelector('textarea')!;
     texte.value = 'Publication avec image';

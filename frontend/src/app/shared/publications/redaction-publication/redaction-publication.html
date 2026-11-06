@@ -3,7 +3,30 @@
     <button type="button" class="ouvrir-redaction" (click)="ouvrir()">{{ libelleOuvrir() }}</button>
   } @else {
     <form (submit)="publier($event)" novalidate>
-      @if (!integree()) { <h2>{{ titreFormulaire() }}</h2> }
+      @if (integree()) {
+        <div class="barre-haut">
+          <button type="button" class="fermer" aria-label="Annuler et revenir au fil" [disabled]="envoiEnCours()"
+            (click)="annulerRedaction()"><i class="pi pi-times" aria-hidden="true"></i></button>
+          <h1>{{ titreFormulaire() }}</h1>
+          <button type="submit" class="publier-haut" [disabled]="envoiEnCours() || desactivee()">
+            {{ envoiEnCours() ? 'Publication…' : 'Publier' }}</button>
+        </div>
+        <div class="auteur">
+          <ng-content />
+          <span class="pastille-audience">
+            <i class="pi pi-users" aria-hidden="true"></i>
+            <label class="cache" for="publication-audience">Visible par</label>
+            <select id="publication-audience" [formField]="formulaire.audience">
+              <option value="TOUS">Tous les membres</option>
+              <option value="ALUMNI">Les alumni</option>
+              <option value="ETUDIANTS">Les étudiants</option>
+            </select>
+            <i class="pi pi-chevron-down" aria-hidden="true"></i>
+          </span>
+        </div>
+      } @else {
+        <h2>{{ titreFormulaire() }}</h2>
+      }
       @if (types().length > 1) {
         <div class="choix-type" role="group" aria-label="Type de publication">
           @for (type of types(); track type) {
@@ -31,8 +54,8 @@
         <label class="cache" for="publication-contenu">{{ modele().type === 'PUBLICATION' ? 'Votre message' : 'Texte' }} (obligatoire)</label>
         <textarea #champContenu id="publication-contenu" class="message" [formField]="formulaire.contenu"
           [rows]="integree() ? 7 : 4" (paste)="collerDansMessage($event)"
-          placeholder="Votre message… ou collez le lien de votre publication LinkedIn"></textarea>
-        @if (modele().contenu.length > 4500) {
+          placeholder="Partagez une nouvelle, une offre, une réussite… ou collez un lien LinkedIn"></textarea>
+        @if (!integree() && modele().contenu.length > 4500) {
           <p class="compteur" [class.limite]="modele().contenu.length > 5000">{{ modele().contenu.length }} / 5 000</p>
         }
 
@@ -56,7 +79,25 @@
         }
 
         @if (chargementImage()) { <p class="chargement-image" role="status">Préparation de l’image…</p> }
-        @if (!imageARecadrer() && apercuImage()) {
+        @if (!imageARecadrer() && apercuImage() && integree()) {
+          <div class="apercu-publication grand">
+            <div class="cadre-image">
+              <img [src]="apercuImage()" [alt]="modele().texteAlternatif || 'Aperçu de l’image recadrée'" />
+              <div class="actions-image-publication">
+                <button #boutonRepositionner type="button" [disabled]="envoiEnCours()" (click)="repositionnerImage()">
+                  <i class="pi pi-pencil" aria-hidden="true"></i> Recadrer</button>
+                <button type="button" class="retirer-image" [disabled]="envoiEnCours()" (click)="retirerImageChoisie()">
+                  <i class="pi pi-times" aria-hidden="true"></i><span class="cache">Retirer l’image</span></button>
+              </div>
+            </div>
+            <div class="description-image">
+              <label for="publication-texte-alternatif">Décrire l’image <span>(recommandé)</span></label>
+              <input id="publication-texte-alternatif" type="text"
+                aria-describedby="aide-texte-alternatif" [formField]="formulaire.texteAlternatif" />
+              <small id="aide-texte-alternatif">Lue par les lecteurs d’écran, par exemple « La promotion 2026 devant l’amphithéâtre ».</small>
+            </div>
+          </div>
+        } @else if (!imageARecadrer() && apercuImage()) {
           <div class="apercu-publication">
             <img [src]="apercuImage()" [alt]="modele().texteAlternatif || 'Aperçu de l’image recadrée'" />
             <div class="actions-image-publication">
@@ -80,8 +121,12 @@
             <label class="outil" for="publication-image"><i class="pi pi-image" aria-hidden="true"></i> Image</label>
           }
           <button type="button" class="outil" [attr.aria-expanded]="lienOuvert()" [attr.aria-controls]="lienOuvert() ? 'panneau-lien' : null"
-            (click)="basculerLien()"><i class="pi pi-linkedin" aria-hidden="true"></i> Depuis LinkedIn</button>
+            (click)="basculerLien()"><i class="pi pi-linkedin" aria-hidden="true"></i> {{ integree() ? 'LinkedIn' : 'Depuis LinkedIn' }}</button>
           <small id="aide-image-publication" class="cache">Image JPEG ou PNG de 5 Mo au plus, recadrée au format vertical 4:5.</small>
+          @if (integree()) {
+            <p class="compteur-outils" [class.limite]="modele().contenu.length > 5000">
+              {{ modele().contenu.length }} / 5 000<span class="cache"> caractères</span></p>
+          }
         </div>
       </div>
 
@@ -89,14 +134,12 @@
         <dialog #dialogueRecadrage class="dialogue-recadrage" aria-labelledby="titre-recadrage-publication"
           (cancel)="annulerRecadrage()">
           <div class="entete-recadrage">
-            <div><h2 id="titre-recadrage-publication">Recadrer l’image</h2>
-              <p>Déplacez et zoomez la photo pour choisir ce qui sera visible.</p></div>
+            <h2 id="titre-recadrage-publication">Recadrer l’image</h2>
             <button type="button" aria-label="Fermer le recadrage" (click)="annulerRecadrage()">×</button>
           </div>
           <app-recadreur-image [image]="image" [format]="formatPublication"
             libelle="Recadrer l’image de la publication au format vertical 4:5"
             (recadree)="appliquerRecadrage($event)" (annulee)="annulerRecadrage()" />
-          @if (avertissementImage()) { <p class="avertissement-image" role="status">{{ avertissementImage() }}</p> }
         </dialog>
       }
 
@@ -105,6 +148,7 @@
       }
       @if (erreurPublication()) { <p class="erreur-publication" role="alert">{{ erreurPublication() }}</p> }
 
+      @if (!integree()) {
       <div class="pied">
         <div class="audience">
           <label for="publication-audience"><i class="pi pi-users" aria-hidden="true"></i> Visible par</label>
@@ -119,6 +163,7 @@
           <button type="submit" class="publier" [disabled]="envoiEnCours() || desactivee()">{{ envoiEnCours() ? 'Publication…' : 'Publier' }}</button>
         </div>
       </div>
+      }
     </form>
   }
 </div>

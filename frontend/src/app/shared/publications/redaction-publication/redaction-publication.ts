@@ -9,7 +9,7 @@ import {
   AudiencePublication, LIBELLES_TYPE_PUBLICATION, NouvellePublication, Publication, PublicationService, TypePublication,
 } from '../../../core/services/publications/publication';
 import { chargerImagePourRecadrage } from '../../images/charger-image';
-import { estPetite, FORMAT_PUBLICATION } from '../../images/recadrage';
+import { FORMAT_PUBLICATION } from '../../images/recadrage';
 import { RecadreurImage } from '../../images/recadreur-image';
 import { ApercuLienImporte } from './apercu-lien-importe';
 
@@ -33,7 +33,7 @@ const TITRES_FORMULAIRE: Record<TypePublication, string> = {
   selector: 'app-redaction-publication',
   imports: [RecadreurImage, FormField, ApercuLienImporte],
   templateUrl: './redaction-publication.html',
-  styleUrl: './redaction-publication.scss',
+  styleUrls: ['./redaction-publication.scss', './redaction-plein-ecran.scss'],
 })
 export class RedactionPublication {
   /** Types proposés, le premier étant choisi par défaut. */
@@ -69,7 +69,6 @@ export class RedactionPublication {
   protected readonly fichierSourceRecadrage = signal<File | undefined>(undefined);
   protected readonly imageOriginale = signal<File | undefined>(undefined);
   protected readonly chargementImage = signal(false);
-  protected readonly avertissementImage = signal('');
   protected readonly formatPublication = FORMAT_PUBLICATION;
   /** Import depuis un lien : l’aperçu lu, et ce que le membre doit savoir de ce qui a été repris. */
   protected readonly apercuLien = signal<ApercuLien | null>(null);
@@ -169,7 +168,6 @@ export class RedactionPublication {
         const fichier = new File([contenu], png ? 'image-du-lien.png' : 'image-du-lien.jpg',
           { type: png ? 'image/png' : 'image/jpeg' });
         this.fermerRecadrage();
-        this.avertissementImage.set('');
         void this.preparerRecadrage(fichier);
       },
       error: () => {
@@ -228,7 +226,6 @@ export class RedactionPublication {
     if (!fichier) return;
     this.fermerRecadrage();
     this.erreurPublication.set('');
-    this.avertissementImage.set('');
     await this.preparerRecadrage(fichier);
   }
 
@@ -260,9 +257,6 @@ export class RedactionPublication {
       }
       this.fichierSourceRecadrage.set(fichier);
       this.imageARecadrer.set(image);
-      this.avertissementImage.set(estPetite({ largeur: image.naturalWidth, hauteur: image.naturalHeight }, FORMAT_PUBLICATION)
-        ? `Image de petite taille (${image.naturalWidth} × ${image.naturalHeight} pixels) : le recadrage pourra paraître un peu flou.`
-        : '');
     } catch (erreur) {
       if (sequence === this.sequenceChargementImage) {
         this.erreurPublication.set(erreur instanceof Error ? erreur.message : 'Cette image ne peut pas être utilisée.');
@@ -274,7 +268,6 @@ export class RedactionPublication {
 
   protected annulerRecadrage(): void {
     this.fermerRecadrage();
-    this.avertissementImage.set('');
     this.rendreFocus();
   }
 
@@ -307,7 +300,6 @@ export class RedactionPublication {
     }
     this.ouverte.set(false);
     this.erreurPublication.set('');
-    this.avertissementImage.set('');
     this.retirerImage();
     this.fermerRecadrage();
     this.replierOutils();

@@ -116,7 +116,7 @@ describe('RedactionPublication (import depuis un lien)', () => {
     };
     // Le champ du lien s'ouvre depuis la barre d'outils du composeur.
     expect(racine.querySelector('#publication-lien')).toBeNull();
-    cliquer('Depuis LinkedIn');
+    cliquer('LinkedIn');
     return { fixture, racine, saisir, cliquer, soumettre };
   }
 

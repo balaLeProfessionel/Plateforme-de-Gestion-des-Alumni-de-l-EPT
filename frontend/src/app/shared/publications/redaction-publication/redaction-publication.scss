@@ -1,7 +1,7 @@
 :host { display: block; }
 .redaction { background: var(--ept-surface); border: 1px solid var(--ept-border); border-radius: var(--ept-radius); padding: 1rem; margin-bottom: .9rem; }
 // Sur la page dédiée, la page fournit déjà le cadre.
-.redaction.integree { border: 0; border-radius: 0; padding: 0; margin: 0; background: transparent; }
+.redaction.integree { --marge-redaction: 1.25rem; border: 0; border-radius: 0; padding: 0; margin: 0; background: transparent; }
 .ouvrir-redaction { width: 100%; text-align: left; background: var(--ept-bg); border: 1px solid var(--ept-border); border-radius: 999px; color: var(--ept-text-secondary); padding: .75rem 1rem; font: inherit; cursor: pointer; }
 h2 { font-size: 1.05rem; margin: 0 0 1rem; }
 p { margin: 0; }
@@ -62,7 +62,6 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .succes-publication { color: var(--ept-primary); }
 
 .pied { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem 1rem; margin-top: 1rem; }
-.integree .pied { padding-top: 1rem; border-top: 1px solid var(--ept-border); }
 .audience { display: flex; align-items: center; gap: .5rem; }
 .audience label { display: inline-flex; align-items: center; gap: .4rem; color: var(--ept-text-secondary); font-size: .9rem; white-space: nowrap; }
 .audience select { min-height: 2.5rem; padding-block: .35rem; border-radius: 999px; color: var(--ept-primary-dark); font-weight: 600; }
@@ -76,14 +75,13 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 
 .dialogue-recadrage { box-sizing: border-box; width: min(36rem, calc(100vw - 2rem)); max-height: calc(100dvh - 1.5rem); margin: auto; padding: 1rem; overflow: auto; border: 1px solid var(--ept-border); border-radius: var(--ept-radius-lg); background: var(--ept-surface); color: var(--ept-primary-dark); box-shadow: 0 1rem 3rem rgb(11 37 51 / 24%); }
 .dialogue-recadrage::backdrop { background: rgb(11 37 51 / 62%); }
-.entete-recadrage { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: .75rem; }
+.entete-recadrage { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: .75rem; }
 .entete-recadrage h2 { margin: 0; font-size: 1.15rem; }
-.entete-recadrage p { margin-top: .3rem; color: var(--ept-text-secondary); }
 .entete-recadrage button { flex: 0 0 2.5rem; width: 2.5rem; height: 2.5rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm); background: transparent; color: var(--ept-primary); font-size: 1.4rem; }
 .dialogue-recadrage app-recadreur-image { display: block; width: 100%; --recadreur-largeur-cadre: min(30rem, 40dvh); }
-.avertissement-image { margin-top: .7rem; font-size: .9rem; }
 
 @media (max-width: 560px) {
+  .redaction.integree { --marge-redaction: 1rem; }
   .apercu-publication { grid-template-columns: minmax(0, 6.5rem) minmax(0, 1fr); gap: .65rem; }
   .actions-image-publication button { width: 100%; font-size: .88rem; }
   .audience { width: 100%; }

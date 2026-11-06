@@ -5,7 +5,6 @@ import { AuthService } from '../../../core/services/auth/auth-service';
 import { LIBELLES_ROLE_COMPTE, RoleCompte } from '../../../core/services/models/admin.model';
 import { Publication } from '../../../core/services/publications/publication';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
-import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import {
   MESSAGES_SUCCES, RedactionPublication,
 } from '../../../shared/publications/redaction-publication/redaction-publication';
@@ -18,22 +17,20 @@ export interface EtatPublicationCreee {
 /** Espace dédié à la rédaction d’une publication, ouvert depuis l’invitation du fil d’actualité. */
 @Component({
   selector: 'app-creation-publication',
-  imports: [AvatarMembre, BoutonRetour, RedactionPublication],
+  imports: [AvatarMembre, RedactionPublication],
   template: `
     <div class="page">
-      <app-bouton-retour secours="/accueil" libelle="Retour au fil" />
       <div class="grille">
-        <section class="espace" aria-labelledby="titre-creation">
-          <header class="entete">
+        <div class="espace">
+          <app-redaction-publication [integree]="true" (publiee)="revenirAuFil($event)" (annulee)="annuler()">
             <app-avatar-membre [urlPhoto]="moi()?.urlPhoto" [nom]="moi()?.nom" [prenom]="moi()?.prenom"
-              [roleMembre]="moi()?.role" [taille]="3" />
-            <div>
-              <h1 id="titre-creation">Nouvelle publication</h1>
-              <p>Publié par <strong>{{ nom() }}</strong>@if (role()) { <span class="role">{{ role() }}</span> }</p>
-            </div>
-          </header>
-          <app-redaction-publication [integree]="true" (publiee)="revenirAuFil($event)" (annulee)="annuler()" />
-        </section>
+              [roleMembre]="moi()?.role" [taille]="2.75" />
+            <span class="identite">
+              <strong>{{ nom() }}</strong>
+              @if (role()) { <span class="role">{{ role() }}</span> }
+            </span>
+          </app-redaction-publication>
+        </div>
 
         <aside class="conseils" aria-labelledby="titre-conseils">
           <h2 id="titre-conseils"><i class="pi pi-lightbulb" aria-hidden="true"></i> Pour une publication réussie</h2>
@@ -51,15 +48,13 @@ export interface EtatPublicationCreee {
     :host { display: block; }
     .page { box-sizing: border-box; max-width: 64rem; margin: 0 auto; padding: 1.5rem 2rem 6rem; }
     .grille { display: grid; grid-template-columns: minmax(0, 1fr) 18rem; align-items: start; gap: 1.5rem; }
-    .espace { min-width: 0; padding: 1.5rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius);
-      background: var(--ept-surface); box-shadow: 0 1px 2px rgb(1 67 101 / 6%), 0 10px 28px -18px rgb(1 67 101 / 30%); }
-    .entete { display: flex; align-items: center; gap: .9rem; padding-bottom: 1.1rem; margin-bottom: .25rem;
-      border-bottom: 1px solid var(--ept-border); }
-    h1 { margin: 0; color: var(--ept-primary-dark); font-family: var(--ept-font-heading); font-size: 1.45rem; font-weight: 600; }
-    .entete p { margin: .2rem 0 0; color: var(--ept-text-secondary); font-size: .9rem; }
-    .entete strong { color: var(--ept-primary-dark); font-weight: 600; }
-    .role { margin-left: .5rem; padding: .1rem .5rem; border-radius: 999px; background: var(--ept-primary-light);
-      color: var(--ept-primary); font-size: .72rem; font-weight: 600; }
+    .espace { display: flex; flex-direction: column; min-width: 0; min-height: 30rem; overflow: clip;
+      border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: var(--ept-surface); }
+    app-redaction-publication { display: flex; flex: 1 1 auto; flex-direction: column; }
+    .identite { display: grid; justify-items: start; gap: .1rem; min-width: 0; margin-right: auto; }
+    .identite strong { overflow: hidden; color: var(--ept-primary-dark); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .role { padding: .05rem .5rem; border-radius: 999px; background: var(--ept-bg); color: var(--ept-text-secondary);
+      font-size: .72rem; font-weight: 600; }
     .conseils { position: sticky; top: 5.5rem; padding: 1.1rem 1.2rem; border-radius: var(--ept-radius); background: #eef8fb;
       border: 1px solid #cdebf3; }
     .conseils h2 { display: flex; align-items: center; gap: .5rem; margin: 0 0 .75rem; color: var(--ept-primary-dark);
@@ -70,14 +65,12 @@ export interface EtatPublicationCreee {
     .conseils strong { display: block; color: var(--ept-primary-dark); font-weight: 600; }
     @media (max-width: 900px) {
       .grille { grid-template-columns: minmax(0, 1fr); }
-      .conseils { position: static; order: -1; }
-      .conseils ul { gap: .5rem; }
+      .conseils { display: none; }
     }
     @media (max-width: 560px) {
-      .page { padding: 1rem 1rem 6rem; }
-      .espace { padding: .25rem 0 0; border: 0; background: transparent; box-shadow: none; }
-      h1 { font-size: 1.25rem; }
-      .conseils { display: none; }
+      .page { padding: 0 0 6rem; }
+      // Le rédacteur occupe l’écran entre l’en-tête et la barre de navigation.
+      .espace { min-height: calc(100dvh - 7.75rem - env(safe-area-inset-bottom)); overflow: visible; border: 0; border-radius: 0; }
     }
   `,
 })
