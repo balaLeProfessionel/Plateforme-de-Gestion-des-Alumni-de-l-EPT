@@ -62,10 +62,6 @@
           <small id="aide-image">JPEG ou PNG, 5 Mo max.</small>
           @if (erreurImage(); as erreur) {
             <span class="erreur-champ" id="erreur-image" role="alert">{{ erreur }}</span>
-          } @else if (avertissementImage(); as avertissement) {
-            <span class="avertissement-image" role="status">
-              <i class="pi pi-info-circle" aria-hidden="true"></i>{{ avertissement }}
-            </span>
           }
           <div class="actions-image">
             @if (fichierImage()) {

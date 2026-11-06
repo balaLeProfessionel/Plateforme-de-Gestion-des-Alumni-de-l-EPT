@@ -49,11 +49,6 @@ export function estTropPetite(image: Dimensions, format: FormatRecadrage): boole
   return image.largeur < format.largeurMinimale || image.hauteur < format.hauteurMinimale;
 }
 
-/** Acceptée mais sous la taille conseillée : elle sera agrandie et paraîtra un peu floue. */
-export function estPetite(image: Dimensions, format: FormatRecadrage): boolean {
-  return image.largeur < format.largeurConseillee || image.hauteur < format.hauteurConseillee;
-}
-
 /** Plus grand cadre au rapport du format qui tient dans l'image (zoom 1). */
 export function cadreMaximal(image: Dimensions, format: FormatRecadrage): Dimensions {
   const rapport = format.largeur / format.hauteur;

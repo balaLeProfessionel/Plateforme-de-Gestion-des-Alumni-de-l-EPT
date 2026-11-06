@@ -85,7 +85,6 @@ export class RedactionPublication {
     maxLength(champ.titre, 160);
     required(champ.contenu);
     maxLength(champ.contenu, 5000);
-    maxLength(champ.texteAlternatif, 250);
     required(champ.dateLimite, { when: () => this.modele().type === 'APPEL_PROJET' });
     maxLength(champ.lien, 500);
   });
@@ -273,7 +272,6 @@ export class RedactionPublication {
 
   protected retirerImageChoisie(): void {
     this.retirerImage();
-    this.modele.update((valeurs) => ({ ...valeurs, texteAlternatif: '' }));
     this.rendreFocus();
   }
 
@@ -338,7 +336,6 @@ export class RedactionPublication {
       if (!valeurs.dateLimite) return 'Indiquez la date limite de réponse.';
       if (valeurs.dateLimite < RedactionPublication.aujourdhui()) return 'La date limite de réponse est déjà passée.';
     }
-    if (this.formulaire.texteAlternatif().invalid()) return 'Décrivez l’image en 250 caractères maximum.';
     if (this.formulaire.contenu().invalid() || !valeurs.contenu.trim()) return 'Ajoutez un texte de 5 000 caractères maximum.';
     if (this.formulaire.lien().invalid()) return 'Le lien ne doit pas dépasser 500 caractères.';
     return '';
@@ -356,7 +353,6 @@ export class RedactionPublication {
     const image = this.imageSelectionnee();
     const publication: NouvellePublication = {
       type: valeurs.type, titre: valeurs.titre.trim(), contenu: valeurs.contenu.trim(), audience: valeurs.audience,
-      ...(image && valeurs.texteAlternatif.trim() ? { texteAlternatif: valeurs.texteAlternatif.trim() } : {}),
       ...(valeurs.type === 'APPEL_PROJET' ? { dateLimite: valeurs.dateLimite } : {}),
       ...(valeurs.lien.trim() ? { lien: valeurs.lien.trim() } : {}),
     };
@@ -391,7 +387,7 @@ export class RedactionPublication {
 
   private modeleVide() {
     return { type: this.types()[0] ?? ('PUBLICATION' as TypePublication), titre: '', contenu: '',
-      audience: 'TOUS' as AudiencePublication, texteAlternatif: '', dateLimite: '', lien: '' };
+      audience: 'TOUS' as AudiencePublication, dateLimite: '', lien: '' };
   }
 
   private static aujourdhui(): string {

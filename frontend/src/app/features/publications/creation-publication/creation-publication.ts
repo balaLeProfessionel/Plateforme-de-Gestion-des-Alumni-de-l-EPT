@@ -36,7 +36,7 @@ export interface EtatPublicationCreee {
           <h2 id="titre-conseils"><i class="pi pi-lightbulb" aria-hidden="true"></i> Pour une publication réussie</h2>
           <ul>
             <li><strong>Allez à l’essentiel.</strong> Les cinq premières lignes s’affichent dans le fil, la suite après « Voir plus ».</li>
-            <li><strong>Ajoutez une image.</strong> Elle est recadrée au format vertical 4:5 ; décrivez-la pour les lecteurs d’écran.</li>
+            <li><strong>Ajoutez une image.</strong> Elle est recadrée au format vertical 4:5.</li>
             <li><strong>Choisissez votre public.</strong> Tous les membres, seulement les alumni ou seulement les étudiants.</li>
             <li><strong>Restez bienveillant.</strong> Chaque membre peut signaler une publication à l’administration.</li>
           </ul>
@@ -51,7 +51,9 @@ export interface EtatPublicationCreee {
     .espace { display: flex; flex-direction: column; min-width: 0; min-height: 30rem; overflow: clip;
       border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: var(--ept-surface); }
     app-redaction-publication { display: flex; flex: 1 1 auto; flex-direction: column; }
-    .identite { display: grid; justify-items: start; gap: .1rem; min-width: 0; margin-right: auto; }
+    // L’avatar occupe deux lignes : le nom et le rôle, puis la pastille du public juste en dessous.
+    app-avatar-membre { grid-row: span 2; align-self: start; }
+    .identite { display: grid; grid-column: 2; justify-items: start; gap: .1rem; min-width: 0; }
     .identite strong { overflow: hidden; color: var(--ept-primary-dark); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
     .role { padding: .05rem .5rem; border-radius: 999px; background: var(--ept-bg); color: var(--ept-text-secondary);
       font-size: .72rem; font-weight: 600; }

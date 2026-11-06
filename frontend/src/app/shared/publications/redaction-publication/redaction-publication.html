@@ -82,7 +82,7 @@
         @if (!imageARecadrer() && apercuImage() && integree()) {
           <div class="apercu-publication grand">
             <div class="cadre-image">
-              <img [src]="apercuImage()" [alt]="modele().texteAlternatif || 'Aperçu de l’image recadrée'" />
+              <img [src]="apercuImage()" alt="Aperçu de l’image recadrée" />
               <div class="actions-image-publication">
                 <button #boutonRepositionner type="button" [disabled]="envoiEnCours()" (click)="repositionnerImage()">
                   <i class="pi pi-pencil" aria-hidden="true"></i> Recadrer</button>
@@ -90,26 +90,14 @@
                   <i class="pi pi-times" aria-hidden="true"></i><span class="cache">Retirer l’image</span></button>
               </div>
             </div>
-            <div class="description-image">
-              <label for="publication-texte-alternatif">Décrire l’image <span>(recommandé)</span></label>
-              <input id="publication-texte-alternatif" type="text"
-                aria-describedby="aide-texte-alternatif" [formField]="formulaire.texteAlternatif" />
-              <small id="aide-texte-alternatif">Lue par les lecteurs d’écran, par exemple « La promotion 2026 devant l’amphithéâtre ».</small>
-            </div>
           </div>
         } @else if (!imageARecadrer() && apercuImage()) {
           <div class="apercu-publication">
-            <img [src]="apercuImage()" [alt]="modele().texteAlternatif || 'Aperçu de l’image recadrée'" />
+            <img [src]="apercuImage()" alt="Aperçu de l’image recadrée" />
             <div class="actions-image-publication">
               <div><strong>Image prête</strong><span>Format vertical 4:5</span></div>
               <button #boutonRepositionner type="button" [disabled]="envoiEnCours()" (click)="repositionnerImage()">Repositionner</button>
               <button type="button" [disabled]="envoiEnCours()" (click)="retirerImageChoisie()">Retirer l’image</button>
-            </div>
-            <div class="description-image">
-              <label for="publication-texte-alternatif">Décrivez l’image <span>(recommandé)</span></label>
-              <input id="publication-texte-alternatif" type="text"
-                aria-describedby="aide-texte-alternatif" [formField]="formulaire.texteAlternatif" />
-              <small id="aide-texte-alternatif">Lue par les lecteurs d’écran, par exemple « La promotion 2026 devant l’amphithéâtre ».</small>
             </div>
           </div>
         }

@@ -105,7 +105,7 @@ describe('CreationPublication', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  it('fait recadrer l’image choisie, publie la version recadrée avec sa description et libère son aperçu', async () => {
+  it('fait recadrer l’image choisie, publie la version recadrée sans champ de description et libère son aperçu', async () => {
     const { fixture, root, recadree, liberation } = await preparerImageRecadree();
     expect(root.querySelector('.apercu-publication img')?.getAttribute('src')).toBe('blob:apercu');
     // Une image est prête : plus de « Aucun fichier choisi », et le focus reprend sur l’aperçu.
@@ -115,9 +115,7 @@ describe('CreationPublication', () => {
     const texte = root.querySelector('textarea')!;
     texte.value = 'Publication avec image';
     texte.dispatchEvent(new Event('input'));
-    const description = root.querySelector('#publication-texte-alternatif') as HTMLInputElement;
-    description.value = ' Promotion 2026 devant l’amphithéâtre ';
-    description.dispatchEvent(new Event('input'));
+    expect(root.querySelector('#publication-texte-alternatif')).toBeNull();
     fixture.detectChanges();
 
     root.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
@@ -125,7 +123,7 @@ describe('CreationPublication', () => {
     expect(requete.request.body).toBeInstanceOf(FormData);
     expect((requete.request.body as FormData).get('image')).toBe(recadree);
     const donnees = JSON.parse(await ((requete.request.body as FormData).get('publication') as Blob).text());
-    expect(donnees.texteAlternatif).toBe('Promotion 2026 devant l’amphithéâtre');
+    expect(donnees.texteAlternatif).toBeUndefined();
     requete.flush({ id: 'new', type: 'PUBLICATION', titre: null, contenu: 'Publication avec image',
       audience: 'TOUS', urlImage: null, publieLe: '2026-10-01T10:00:00Z', auteurNom: 'Diop', auteurPrenom: 'Awa', auteurRole: 'ALUMNI', ...SANS_INTERACTION });
     await fixture.whenStable();

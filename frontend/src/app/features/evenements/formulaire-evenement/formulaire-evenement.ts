@@ -11,7 +11,7 @@ import { AudienceEvenement, Evenement, EvenementRequest } from '../../../core/se
 import { RetourNavigation } from '../../../core/navigation/retour-navigation';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { chargerImagePourRecadrage } from '../../../shared/images/charger-image';
-import { estPetite, FORMAT_EVENEMENT } from '../../../shared/images/recadrage';
+import { FORMAT_EVENEMENT } from '../../../shared/images/recadrage';
 import { RecadreurImage } from '../../../shared/images/recadreur-image';
 import { VisuelEvenement } from '../../../shared/images/visuel-evenement';
 import { etatNavigationEvenement, urlRetourInterne } from '../navigation-evenements';
@@ -57,7 +57,6 @@ export class FormulaireEvenement {
   protected readonly suppressionImage = signal(false);
   protected readonly erreurImage = signal<string | null>(null);
   /** Image acceptée mais sous la taille conseillée : on prévient qu’elle sera un peu floue. */
-  protected readonly avertissementImage = signal<string | null>(null);
   /** Image en cours de recadrage, avant d'être acceptée comme illustration. */
   protected readonly imageARecadrer = signal<HTMLImageElement | null>(null);
   protected readonly formatEvenement = FORMAT_EVENEMENT;
@@ -206,14 +205,10 @@ export class FormulaireEvenement {
     const fichier = input.files?.item(0) ?? null;
     input.value = '';
     this.erreurImage.set(null);
-    this.avertissementImage.set(null);
     if (!fichier) return;
     try {
       this.fermerRecadrage();
       const image = await chargerImagePourRecadrage(fichier, FORMAT_EVENEMENT);
-      this.avertissementImage.set(estPetite({ largeur: image.naturalWidth, hauteur: image.naturalHeight }, FORMAT_EVENEMENT)
-        ? `Image de petite taille (${image.naturalWidth} × ${image.naturalHeight} pixels) : elle sera agrandie et pourra paraître un peu floue.`
-        : null);
       this.imageARecadrer.set(image);
     } catch (erreur) {
       this.erreurImage.set(erreur instanceof Error ? erreur.message : 'Cette image ne peut pas être utilisée.');
@@ -229,7 +224,6 @@ export class FormulaireEvenement {
 
   protected annulerRecadrage(): void {
     this.fermerRecadrage();
-    this.avertissementImage.set(null);
   }
 
   protected fermerRecadrage(): void {
@@ -243,7 +237,6 @@ export class FormulaireEvenement {
     this.libererApercu();
     this.apercuImage.set(this.suppressionImage() ? null : this.imageActuelle());
     this.erreurImage.set(null);
-    this.avertissementImage.set(null);
     if (input) input.value = '';
   }
 
@@ -251,7 +244,6 @@ export class FormulaireEvenement {
     this.suppressionImage.update((supprimer) => !supprimer);
     this.apercuImage.set(this.suppressionImage() ? null : this.imageActuelle());
     this.erreurImage.set(null);
-    this.avertissementImage.set(null);
   }
 
   private definirApercu(fichier: File): void {
@@ -269,7 +261,6 @@ export class FormulaireEvenement {
     this.fichierImage.set(null);
     this.suppressionImage.set(false);
     this.erreurImage.set(null);
-    this.avertissementImage.set(null);
     this.libererApercu();
     this.apercuImage.set(this.imageActuelle());
   }

@@ -14,7 +14,6 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .choix-type button[aria-pressed='true'] { border-color: var(--ept-primary); background: var(--ept-primary); color: white; }
 .etiquette-champ { display: block; margin: 0 0 .4rem; font-weight: 600; font-size: .95rem; }
 .etiquette-champ span { color: var(--ept-text-secondary); font-weight: 400; font-size: .82rem; }
-.champ-date, .saisie-lien input, .description-image input, select { box-sizing: border-box; min-height: 2.75rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm); background: var(--ept-surface); color: inherit; padding: .6rem .8rem; font: inherit; }
 .champ-date { display: block; width: 100%; }
 [aria-invalid='true'] { border-color: var(--ept-error) !important; }
 
@@ -43,11 +42,6 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .actions-image-publication span { display: block; margin-top: .15rem; color: var(--ept-text-secondary); font-size: .88rem; }
 .actions-image-publication button { min-height: 2.5rem; padding: .5rem .8rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm); background: var(--ept-surface); color: var(--ept-primary); font-weight: 600; }
 .actions-image-publication button:disabled { opacity: .6; cursor: wait; }
-.description-image { grid-column: 1 / -1; }
-.description-image label { display: block; margin-bottom: .35rem; font-size: .9rem; font-weight: 600; }
-.description-image label span, .description-image small { color: var(--ept-text-secondary); font-weight: 400; }
-.description-image input { display: block; width: 100%; }
-.description-image small { display: block; margin-top: .35rem; font-size: .82rem; }
 
 // Barre d'outils : le champ de fichier reste natif (clavier, lecteurs d'écran), habillé par son étiquette.
 .outils { display: flex; flex-wrap: wrap; align-items: center; gap: .1rem; padding: .45rem .5rem; border-top: 1px solid var(--ept-border); }
