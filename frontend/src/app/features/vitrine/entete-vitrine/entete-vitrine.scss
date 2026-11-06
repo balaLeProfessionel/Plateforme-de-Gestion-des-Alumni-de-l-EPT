@@ -66,6 +66,7 @@
 .lien-barre {
   display: inline-flex;
   align-items: center;
+  gap: 0.375rem;
   height: var(--hauteur-barre-ecole);
   color: var(--ept-text-on-dark);
   font-size: 0.875rem;
@@ -74,6 +75,21 @@
   white-space: nowrap;
 
   &:hover { text-decoration: underline; }
+}
+
+.lien-connexion:hover { text-decoration: none; }
+
+/* PrimeIcons n'a pas de silhouette dans un cercle : le cercle est tracé ici. */
+.lien-connexion .pi-user {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.8125rem;
 }
 
 /* Le champ n'apparaît qu'au palier bureau. */
