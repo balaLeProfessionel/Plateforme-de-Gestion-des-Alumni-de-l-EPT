@@ -51,7 +51,7 @@
   // Fil plat : chaque élément occupe toute la largeur de l’écran.
   .cartes { margin-inline: -1rem; gap: .5rem; }
   .raison { margin-left: 1rem; }
-  .invitation { margin-inline: -1rem; padding: .7rem 1rem; gap: .6rem; border-inline: 0; border-radius: 0; }
+  .invitation { margin-inline: -1rem; padding: .7rem 1rem; gap: .6rem; border: 0; border-radius: 0; }
   app-squelette-fil { margin-inline: -1rem; }
   .invitation .bouton { width: 2.6rem; padding: 0; justify-content: center; }
   .invitation .libelle { display: none; }

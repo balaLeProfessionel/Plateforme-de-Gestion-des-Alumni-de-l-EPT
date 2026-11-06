@@ -66,4 +66,28 @@ describe('CommentairesPublication', () => {
     expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent).toContain('Saisissez un commentaire');
     http.expectNone((req) => req.method === 'POST');
   });
+
+  it('publie avec Entrée, mais va à la ligne avec Maj+Entrée', async () => {
+    const fixture = TestBed.createComponent(CommentairesPublication);
+    fixture.componentRef.setInput('publicationId', 'publication-1');
+    fixture.componentRef.setInput('ouverte', true);
+    fixture.detectChanges();
+    http.expectOne((req) => req.url === '/api/publications/publication-1/commentaires')
+      .flush({ contenu: [], page: 0, taille: 20, totalElements: 0, totalPages: 0 });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const saisie = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
+    saisie.value = 'Bravo';
+    saisie.dispatchEvent(new Event('input'));
+    const majEntree = new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true, cancelable: true });
+    saisie.dispatchEvent(majEntree);
+    expect(majEntree.defaultPrevented).toBe(false);
+    http.expectNone('/api/publications/publication-1/commentaires');
+    const entree = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true });
+    saisie.dispatchEvent(entree);
+    expect(entree.defaultPrevented).toBe(true);
+    const envoi = http.expectOne('/api/publications/publication-1/commentaires');
+    expect(envoi.request.body).toEqual({ contenu: 'Bravo', parentId: undefined });
+    envoi.flush(null, { status: 500, statusText: 'Erreur' });
+  });
 });

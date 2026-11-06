@@ -50,7 +50,7 @@ import { Programme } from '../../../core/services/models/mentorat.model';
     @media (prefers-reduced-motion: reduce) { .carte, .action i { transition: none; } }
     @media (max-width: 560px) {
       :host { --marge: 1rem; }
-      .carte { border-inline: 0; border-radius: 0; }
+      .carte { border: 0; border-radius: 0; }
       h3 { font-size: 1.05rem; }
     }
   `,

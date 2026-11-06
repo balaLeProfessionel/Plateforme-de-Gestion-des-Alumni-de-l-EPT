@@ -50,6 +50,14 @@ class ApercuLienTests {
     }
 
     @Test
+    void lImagePassePartoutDeLinkedInEstIgnoreeMaisPasLesVraiesImages() {
+        String generique = "<meta property=\"og:image\" content=\"https://static.licdn.com/aero-v1/sc/h/c45fy346jw096z9pbphyyhdz7\">";
+        assertThat(LecteurMeta.lire(generique, PAGE).image()).isNull();
+        String vraie = "<meta property=\"og:image\" content=\"https://media.licdn.com/dms/image/v2/photo.jpg\">";
+        assertThat(LecteurMeta.lire(vraie, PAGE).image()).isEqualTo("https://media.licdn.com/dms/image/v2/photo.jpg");
+    }
+
+    @Test
     void lesAdressesSontNormaliseesEtLesAdressesInternesRefusees() {
         assertThat(GardeAdresse.normaliser(" linkedin.com/posts/abc#commentaires ").toString())
             .isEqualTo("https://linkedin.com/posts/abc");

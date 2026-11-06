@@ -38,7 +38,9 @@ describe('CarteEvenementFil', () => {
   }
 
   it('montre la tuile de date sans image, et un bandeau sans tuile avec image', () => {
-    expect(afficher({}).racine.querySelector('.tuile')).not.toBeNull();
+    const tuile = afficher({}).racine.querySelector('.tuile');
+    expect(tuile?.querySelector('.mois')?.textContent?.trim()).toBe('nov');
+    expect(tuile?.querySelector('.jour')?.textContent?.trim()).toBe('12');
     const avecImage = afficher({ urlImage: '/api/images/e1.jpg' }).racine;
     expect(avecImage.querySelector('.bandeau')).not.toBeNull();
     expect(avecImage.querySelector('.tuile')).toBeNull();

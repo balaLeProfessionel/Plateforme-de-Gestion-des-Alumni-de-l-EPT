@@ -82,12 +82,23 @@ public final class LecteurMeta {
         return sortie.toString();
     }
 
+    /**
+     * Visuel passe-partout d'un site (LinkedIn met son logo « Posted on LinkedIn » quand une publication n'a pas
+     * d'image) : il n'apprend rien sur le contenu, on ne le propose pas. Les vraies images LinkedIn viennent de
+     * media.licdn.com, les fichiers du site de static.licdn.com.
+     */
+    private static boolean imageGenerique(URI image) {
+        String hote = image.getHost() == null ? "" : image.getHost().toLowerCase(Locale.ROOT);
+        return hote.equals("static.licdn.com");
+    }
+
     private static String adresseImage(URI page, String brute) {
         if (brute == null || brute.length() > 1000) return null;
         try {
             URI image = page.resolve(brute.strip().replace(" ", "%20"));
             String schema = image.getScheme() == null ? "" : image.getScheme().toLowerCase(Locale.ROOT);
-            return schema.equals("http") || schema.equals("https") ? image.toString() : null;
+            if (!schema.equals("http") && !schema.equals("https")) return null;
+            return imageGenerique(image) ? null : image.toString();
         } catch (IllegalArgumentException e) {
             return null;
         }

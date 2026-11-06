@@ -29,7 +29,7 @@
     @if (p.type === 'APPEL_PROJET' && p.dateLimite) {
       <div class="appel-titre">
         <p class="tuile" [class.close]="appelClos()" aria-hidden="true">
-          <span class="mois">{{ p.dateLimite | date:'MMM' }}</span>
+          <span class="mois">{{ p.dateLimite | moisCourt }}</span>
           <span class="jour">{{ p.dateLimite | date:'d' }}</span>
         </p>
         <div>
@@ -50,33 +50,14 @@
     }
   </div>
 
-  @if (p.lien; as lien) {
-    @if (!lienEnSource()) {
-      <a class="lien-partage" [href]="lien.url" target="_blank" rel="noopener noreferrer nofollow ugc">
-        <span class="icone" aria-hidden="true"><i class="pi pi-external-link"></i></span>
-        <span class="texte">
-          <span class="site">{{ lien.site }}<span class="visuellement-cache"> : </span></span>
-          <span class="titre">{{ lien.titre || lien.url }}<span class="visuellement-cache">. </span></span>
-          @if (descriptionLien()) { <span class="description">{{ descriptionLien() }}</span> }
-        </span>
-        <span class="visuellement-cache"> (s’ouvre dans un nouvel onglet)</span>
-      </a>
-    }
-  }
+  @if (p.lien && !lienEnSource()) { <app-lien-publication [lien]="p.lien" [contenu]="p.contenu" /> }
 
   @if (p.urlImage) {
     <div class="media"><app-image-publication [url]="p.urlImage"
       [description]="p.texteAlternatif || 'Image partagée par ' + auteur()" /></div>
   }
 
-  @if (p.lien && lienEnSource()) {
-    <a class="source" [class.linkedin]="lienLinkedin()" [href]="p.lien.url" target="_blank" rel="noopener noreferrer nofollow ugc">
-      <i class="pi" [class.pi-linkedin]="lienLinkedin()" [class.pi-external-link]="!lienLinkedin()" aria-hidden="true"></i>
-      <span class="origine">Publié à l’origine sur <strong>{{ lienLinkedin() ? 'LinkedIn' : p.lien.site }}</strong><span class="visuellement-cache">. </span></span>
-      <span class="voir">Voir l’original<i class="pi pi-arrow-up-right" aria-hidden="true"></i></span>
-      <span class="visuellement-cache"> (s’ouvre dans un nouvel onglet)</span>
-    </a>
-  }
+  @if (p.lien && lienEnSource()) { <app-lien-publication [lien]="p.lien" [source]="true" /> }
 
   <div class="actions">
     <app-bouton-jaime [publicationId]="p.id" [(nombre)]="nombreJaime" [(jaime)]="jaime" />

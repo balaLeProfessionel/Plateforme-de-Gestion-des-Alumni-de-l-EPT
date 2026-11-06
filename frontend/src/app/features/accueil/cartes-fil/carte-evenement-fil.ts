@@ -6,6 +6,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { EvenementService } from '../../../core/services/evenements/evenement';
 import { Evenement } from '../../../core/services/models/evenement';
+import { MoisCourtPipe } from '../../../shared/dates/mois-court';
 import { VisuelEvenement } from '../../../shared/images/visuel-evenement';
 
 /**
@@ -14,7 +15,7 @@ import { VisuelEvenement } from '../../../shared/images/visuel-evenement';
  */
 @Component({
   selector: 'app-carte-evenement-fil',
-  imports: [DatePipe, RouterLink, VisuelEvenement],
+  imports: [DatePipe, MoisCourtPipe, RouterLink, VisuelEvenement],
   template: `
     @let e = evenement();
     <article class="carte carte-cliquable" [attr.aria-labelledby]="'titre-evenement-' + e.id">
@@ -29,7 +30,7 @@ import { VisuelEvenement } from '../../../shared/images/visuel-evenement';
       <div class="corps">
         @if (!e.urlImage) {
           <p class="tuile" aria-hidden="true">
-            <span class="mois">{{ e.dateDebut | date: 'MMM' }}</span>
+            <span class="mois">{{ e.dateDebut | moisCourt }}</span>
             <span class="jour">{{ e.dateDebut | date: 'd' }}</span>
           </p>
         }
@@ -98,7 +99,7 @@ import { VisuelEvenement } from '../../../shared/images/visuel-evenement';
     @media (prefers-reduced-motion: reduce) { .carte { transition: none; } }
     @media (max-width: 560px) {
       :host { --marge: 1rem; }
-      .carte { border-inline: 0; border-radius: 0; }
+      .carte { border: 0; border-radius: 0; }
       h3 { font-size: 1.05rem; }
     }
   `,

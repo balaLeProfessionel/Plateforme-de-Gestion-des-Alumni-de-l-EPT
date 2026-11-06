@@ -155,9 +155,13 @@ export class CommentairesPublication {
     });
   }
 
-  /** Ctrl+Entrée (ou ⌘+Entrée) publie sans quitter le clavier ; Entrée seule reste un retour à la ligne. */
+  /**
+   * Entrée publie, comme dans une messagerie ; Maj+Entrée va à la ligne. Pendant une saisie avec un éditeur de
+   * méthode d’entrée (accents composés, clavier asiatique), Entrée valide le caractère et ne publie pas.
+   */
   protected raccourci(event: KeyboardEvent): void {
-    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) this.envoyer(event);
+    if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
+    this.envoyer(event);
   }
 
   private focaliserSaisie(): void {

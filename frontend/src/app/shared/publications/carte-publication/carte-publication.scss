@@ -41,37 +41,12 @@ h3 { margin: 0 0 .4rem; color: var(--ept-primary-dark); font-family: var(--ept-f
   text-decoration: none; }
 .voir-plus:hover { text-decoration: underline; }
 
-// Lien partagé : une carte sobre qui dit où l’on va avant de quitter la plateforme.
-.lien-partage { display: flex; align-items: flex-start; gap: .75rem; margin: .85rem var(--marge) 0; padding: .75rem .85rem;
-  border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm); background: var(--ept-bg); text-decoration: none;
-  transition: border-color .15s; }
-.lien-partage:hover { border-color: #b7cdd8; }
-.lien-partage:hover .titre { text-decoration: underline; }
-// Source d’un texte repris : une ligne sobre, « Publié à l’origine sur LinkedIn · Voir l’original ».
-.source { display: flex; align-items: center; gap: .45rem; margin: .6rem var(--marge) 0; color: var(--ept-text-secondary);
-  font-size: .82rem; text-decoration: none; }
-.source > .pi { flex: 0 0 auto; font-size: .95rem; }
-.source.linkedin > .pi { color: #0a66c2; }
-.source strong { font-weight: 600; }
-.source .voir { display: inline-flex; flex: 0 0 auto; align-items: center; gap: .25rem; color: var(--ept-primary); font-weight: 600; }
-.source .voir::before { content: '·'; margin-right: .2rem; color: var(--ept-text-secondary); }
-.source .voir .pi { font-size: .68rem; }
-.source:hover .voir { text-decoration: underline; }
-.lien-partage .icone { display: grid; flex: 0 0 auto; place-items: center; width: 2.25rem; height: 2.25rem;
-  border-radius: var(--ept-radius-sm); background: var(--ept-primary-light); color: var(--ept-primary); }
-.lien-partage .texte { display: grid; gap: .1rem; min-width: 0; }
-.lien-partage .site { color: var(--ept-text-secondary); font-size: .78rem; }
-.lien-partage .titre { color: var(--ept-primary-dark); font-weight: 600; overflow-wrap: anywhere;
-  display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
-.lien-partage .description { color: var(--ept-text-secondary); font-size: .88rem; line-height: 1.45; overflow-wrap: anywhere;
-  display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
-
 // Appel à projet : la date limite en tuile de calendrier, lisible d’un coup d’œil dans le fil.
 .appel-titre { display: flex; align-items: flex-start; gap: .9rem; margin-bottom: .75rem; }
 .appel-titre > div { min-width: 0; }
 .tuile { display: grid; flex: 0 0 auto; width: 3.6rem; overflow: hidden; border: 1px solid #bfe9f4; border-radius: var(--ept-radius-sm);
   background: #effbfe; text-align: center; }
-.mois { padding: .18rem 0; background: var(--ept-primary); color: white; font-size: .72rem; font-weight: 600; }
+.mois { padding: .18rem 0; background: var(--ept-primary); color: white; font-size: .72rem; font-weight: 600; text-transform: uppercase; }
 .jour { padding: .2rem 0 .3rem; color: var(--ept-primary); font-family: var(--ept-font-heading); font-size: 1.45rem;
   font-weight: 700; line-height: 1.1; }
 .tuile.close { border-color: var(--ept-border); background: var(--ept-bg); }
@@ -89,7 +64,7 @@ h3 { margin: 0 0 .4rem; color: var(--ept-primary-dark); font-family: var(--ept-f
   border-radius: var(--ept-radius-sm); background: var(--ept-bg); }
 .media app-image-publication { width: min(100%, 30rem, 52vh); aspect-ratio: 4 / 5; border-radius: 0; }
 // Dans le fil, une affiche haute ne dépasse pas la moitié de l’écran ; la page de la publication la montre en grand.
-.dans-le-fil .media app-image-publication { width: min(100%, 30rem, 42vh); }
+.dans-le-fil .media app-image-publication { width: min(100%, 30rem, 36vh); }
 
 .actions { display: flex; flex-wrap: wrap; gap: .5rem; margin: .4rem calc(var(--marge) - .6rem) .3rem; }
 .action { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.75rem;
@@ -111,9 +86,9 @@ h3 { margin: 0 0 .4rem; color: var(--ept-primary-dark); font-family: var(--ept-f
 @media (prefers-reduced-motion: reduce) { .carte.dans-le-fil { transition: none; } }
 @media (max-width: 560px) {
   :host { --marge: 1rem; }
-  // Sur mobile, le fil est plat : la publication occupe toute la largeur, séparée par un simple trait.
-  .carte { border-inline: 0; border-radius: 0; }
+  // Sur mobile, le fil est plat : la publication occupe toute la largeur, séparée par une bande grise.
+  .carte { border: 0; border-radius: 0; }
   .media app-image-publication { width: min(100%, 52vh); }
-  .dans-le-fil .media app-image-publication { width: min(100%, 42vh); }
+  .dans-le-fil .media app-image-publication { width: min(100%, 36vh); }
   h3 { font-size: 1.1rem; }
 }

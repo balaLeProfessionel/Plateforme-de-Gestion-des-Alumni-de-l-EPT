@@ -6,12 +6,14 @@ import { LIBELLES_ROLE_COMPTE, RoleCompte } from '../../../core/services/models/
 import { estLinkedin } from '../../../core/services/publications/apercu-lien';
 import { AudiencePublication, Publication } from '../../../core/services/publications/publication';
 import { DateRelativePipe } from '../../dates/date-relative';
+import { MoisCourtPipe } from '../../dates/mois-court';
 import { AvatarMembre } from '../../images/avatar-membre';
 import { ImagePublication } from '../../images/image-publication/image-publication';
 import { BoutonJaime } from '../bouton-jaime/bouton-jaime';
 import { CommentairesPublication } from '../commentaires-publication/commentaires-publication';
 import { MenuPublication } from '../menu-publication/menu-publication';
 import { MessageCommentaire } from '../message-commentaire/message-commentaire';
+import { LienPublication } from './lien-publication';
 
 const AUDIENCES: Record<AudiencePublication, string> = {
   TOUS: '',
@@ -32,8 +34,8 @@ const INTERACTIFS = 'a, button, input, textarea, select, label, dialog, [role="m
  */
 @Component({
   selector: 'app-carte-publication',
-  imports: [DatePipe, DateRelativePipe, RouterLink, AvatarMembre, ImagePublication, BoutonJaime, CommentairesPublication,
-    MenuPublication, MessageCommentaire],
+  imports: [DatePipe, DateRelativePipe, MoisCourtPipe, RouterLink, AvatarMembre, ImagePublication, BoutonJaime, CommentairesPublication,
+    MenuPublication, MessageCommentaire, LienPublication],
   templateUrl: './carte-publication.html',
   styleUrl: './carte-publication.scss',
 })
@@ -71,13 +73,6 @@ export class CartePublication {
     const titre = resume(lien.titre);
     const description = resume(lien.description);
     return (!!titre && contenu.includes(titre)) || (!!description && contenu.includes(description));
-  });
-  /** La description du lien, sauf si le message la reprend déjà (texte importé depuis LinkedIn, par exemple). */
-  protected readonly descriptionLien = computed(() => {
-    const description = this.publication().lien?.description?.trim();
-    if (!description) return '';
-    const debut = description.slice(0, 80).replace(/\s+/g, ' ');
-    return this.publication().contenu.replace(/\s+/g, ' ').includes(debut) ? '' : description;
   });
   protected readonly estAuteur = computed(() => this.authService.utilisateur()?.id === this.publication().auteurId);
   protected readonly tronque = computed(() => {

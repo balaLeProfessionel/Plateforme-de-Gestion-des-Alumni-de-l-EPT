@@ -30,7 +30,7 @@ import { Component } from '@angular/core';
     .actions { width: 45%; height: 1.1rem; margin-top: .3rem; }
     @keyframes pulse { 50% { opacity: .55; } }
     @media (prefers-reduced-motion: reduce) { .rond, .barre, .image { animation: none; } }
-    @media (max-width: 560px) { .element { padding-inline: 1rem; border-inline: 0; border-radius: 0; } }
+    @media (max-width: 560px) { .element { padding-inline: 1rem; border: 0; border-radius: 0; } }
   `,
   host: { 'aria-hidden': 'true' },
 })
