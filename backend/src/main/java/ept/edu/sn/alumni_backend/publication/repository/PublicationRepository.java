@@ -15,6 +15,8 @@ import ept.edu.sn.alumni_backend.publication.entity.Publication;
 public interface PublicationRepository extends JpaRepository<Publication, UUID>, JpaSpecificationExecutor<Publication> {
     long countByAuteur_IdAndPublieLeGreaterThanEqual(UUID auteurId, Instant publieLe);
 
+    java.util.Optional<Publication> findByArticle_Id(UUID articleId);
+
     @Override
     @EntityGraph(attributePaths = "auteur")
     Page<Publication> findAll(Specification<Publication> specification, Pageable pageable);

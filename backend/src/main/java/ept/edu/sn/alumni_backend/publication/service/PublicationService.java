@@ -35,6 +35,7 @@ import ept.edu.sn.alumni_backend.publication.PublicationProperties;
 import ept.edu.sn.alumni_backend.publication.StatutPublication;
 import ept.edu.sn.alumni_backend.publication.TypePublication;
 import ept.edu.sn.alumni_backend.publication.dto.CommentairePublicationResponse;
+import ept.edu.sn.alumni_backend.publication.dto.ArticlePublicationResponse;
 import ept.edu.sn.alumni_backend.publication.dto.LienPublicationResponse;
 import ept.edu.sn.alumni_backend.publication.dto.PagePublicationsResponse;
 import ept.edu.sn.alumni_backend.publication.dto.PublicationRequest;
@@ -128,7 +129,10 @@ public class PublicationService {
      * Seul l'appel à projet a une date limite, qui ne peut pas être déjà passée.
      */
     private void verifierType(PublicationRequest demande, TypeRole role) {
-        boolean officiel = demande.type() != TypePublication.PUBLICATION;
+        if (demande.type() == TypePublication.ARTICLE) {
+            throw new IllegalArgumentException("Un article se publie depuis l'espace Articles.");
+        }
+        boolean officiel = estOfficiel(demande.type());
         if (officiel && !PermissionAdmin.pour(role).contains(PermissionAdmin.PUBLIER_ANNONCES)) {
             throw new SecurityException(demande.type() == TypePublication.ANNONCE_OFFICIELLE
                 ? "Seule l'administration peut publier une annonce officielle."
@@ -177,8 +181,13 @@ public class PublicationService {
         return resultat.stream().map(p -> versResponse(p, resumes.get(p.getId()))).toList();
     }
 
+    /** Annonce officielle et appel à projet : réservés à l'administration et mis en avant dans le fil. */
+    public static boolean estOfficiel(TypePublication type) {
+        return type == TypePublication.ANNONCE_OFFICIELLE || type == TypePublication.APPEL_PROJET;
+    }
+
     /** Publiées, et dans l'audience du lecteur (ou écrites par lui) ; la modération voit tout. */
-    private Specification<Publication> visiblePar(Utilisateur lecteur) {
+    public Specification<Publication> visiblePar(Utilisateur lecteur) {
         return (racine, requete, cb) -> {
             var publiee = cb.equal(racine.get("statut"), StatutPublication.PUBLIE);
             if (voitToutesLesAudiences(lecteur.getRole())) return publiee;
@@ -274,6 +283,8 @@ public class PublicationService {
             auteur.getPrenom(), auteur.getRole(), auteur.getUrlPhoto(), interactions.nombreJaime(), interactions.jaime(),
             interactions.nombreCommentaires(), interactions.apercuCommentaire(),
             p.getLienUrl() == null ? null
-                : new LienPublicationResponse(p.getLienUrl(), p.getLienTitre(), p.getLienDescription(), p.getLienSite()));
+                : new LienPublicationResponse(p.getLienUrl(), p.getLienTitre(), p.getLienDescription(), p.getLienSite()),
+            p.getArticle() == null ? null
+                : new ArticlePublicationResponse(p.getArticle().getId(), p.getArticle().getTheme(), p.getArticle().getTempsLecture()));
     }
 }

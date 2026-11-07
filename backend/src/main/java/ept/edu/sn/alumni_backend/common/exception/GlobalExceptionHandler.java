@@ -28,6 +28,8 @@ import ept.edu.sn.alumni_backend.evenement.exception.LimiteCreationEvenementAtte
 import ept.edu.sn.alumni_backend.mentorat.exception.ConflitMentoratException;
 import ept.edu.sn.alumni_backend.mentorat.exception.MentoratIntrouvableException;
 import ept.edu.sn.alumni_backend.organisme.exception.OrganismeIntrouvableException;
+import ept.edu.sn.alumni_backend.article.exception.ArticleIntrouvableException;
+import ept.edu.sn.alumni_backend.article.exception.ConflitArticleException;
 import ept.edu.sn.alumni_backend.publication.exception.PublicationIntrouvableException;
 import ept.edu.sn.alumni_backend.publication.exception.ConflitPublicationException;
 import ept.edu.sn.alumni_backend.publication.exception.SignalementIntrouvableException;
@@ -49,6 +51,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PublicationIntrouvableException.class)
     public ResponseEntity<Map<String, String>> handlePublicationIntrouvable(PublicationIntrouvableException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ArticleIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> handleArticleIntrouvable(ArticleIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ConflitArticleException.class)
+    public ResponseEntity<Map<String, String>> handleConflitArticle(ConflitArticleException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
     }
 
     @ExceptionHandler(SignalementIntrouvableException.class)

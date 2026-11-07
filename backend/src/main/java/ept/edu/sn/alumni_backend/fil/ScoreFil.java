@@ -11,7 +11,7 @@ import java.util.UUID;
 
 import ept.edu.sn.alumni_backend.evenement.dto.EvenementResponse;
 import ept.edu.sn.alumni_backend.mentorat.dto.ProgrammeResponse;
-import ept.edu.sn.alumni_backend.publication.TypePublication;
+import ept.edu.sn.alumni_backend.publication.service.PublicationService;
 import ept.edu.sn.alumni_backend.publication.dto.PublicationResponse;
 
 /**
@@ -48,7 +48,7 @@ public final class ScoreFil {
     public Resultat publication(PublicationResponse p) {
         Affinite affinite = affinite(p.auteurId());
         double points = 1 + affinite.points()
-            + (p.type() == TypePublication.PUBLICATION ? 0 : POINTS_OFFICIEL)
+            + (PublicationService.estOfficiel(p.type()) ? POINTS_OFFICIEL : 0)
             + 0.5 * Math.log1p(p.nombreJaime() + 2.0 * p.nombreCommentaires());
         double ageJours = Math.max(0, Duration.between(p.publieLe(), maintenant).toMinutes() / 1440.0);
         return new Resultat(points * Math.pow(1 + ageJours, -1.2), affinite.raison());
