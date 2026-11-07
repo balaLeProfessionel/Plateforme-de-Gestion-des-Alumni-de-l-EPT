@@ -1,0 +1,18 @@
+<section id="plateforme" class="section" aria-labelledby="titre-plateforme">
+  <div class="section-contenu">
+    <h2 id="titre-plateforme">Sur la plateforme</h2>
+
+    <ul class="grille">
+      @for (fonctionnalite of fonctionnalites; track fonctionnalite.titre) {
+        <li class="fonction">
+          <span class="cercle-exterieur" aria-hidden="true">
+            <span class="cercle-interieur"><i [class]="fonctionnalite.icone"></i></span>
+          </span>
+          <h3>{{ fonctionnalite.titre }}</h3>
+          <p>{{ fonctionnalite.description }}</p>
+          <a [routerLink]="fonctionnalite.lien" [fragment]="fonctionnalite.fragment">{{ fonctionnalite.action }}</a>
+        </li>
+      }
+    </ul>
+  </div>
+</section>

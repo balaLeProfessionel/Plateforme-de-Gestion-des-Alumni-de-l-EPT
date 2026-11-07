@@ -41,7 +41,10 @@ services:
 
   web:
     image: alumni-frontend:prod
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        PRIMENG_LICENSE: ${PRIMENG_LICENSE:-}
     container_name: alumni-frontend
     ports:
       - "${PROD_WEB_PORT:-80}:80"

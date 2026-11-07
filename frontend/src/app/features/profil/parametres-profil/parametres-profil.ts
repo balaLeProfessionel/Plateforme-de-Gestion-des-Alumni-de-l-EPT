@@ -44,6 +44,8 @@ export class ParametresProfil implements OnDestroy {
   /** Photo en cours de recadrage, avant d'être retenue. */
   protected readonly photoARecadrer = signal<HTMLImageElement | null>(null);
   protected readonly formatPhoto = FORMAT_PHOTO_PROFIL;
+  protected readonly envoiRecherchePublique = signal(false);
+  protected readonly messageRecherchePublique = signal<MessageSection | null>(null);
   protected readonly envoiMotDePasse = signal(false);
   protected readonly messageMotDePasse = signal<MessageSection | null>(null);
   protected readonly afficherActuel = signal(false);
@@ -88,6 +90,28 @@ export class ParametresProfil implements OnDestroy {
       error: () => {
         this.erreurChargement.set('Impossible de charger les paramètres du profil.');
         this.enChargement.set(false);
+      }
+    });
+  }
+
+  protected changerRecherchePublique(evenement: Event): void {
+    const caseACocher = evenement.target as HTMLInputElement;
+    const visible = caseACocher.checked;
+    this.envoiRecherchePublique.set(true);
+    this.messageRecherchePublique.set(null);
+    this.profilService.majRecherchePublique(visible).subscribe({
+      next: (profil) => {
+        this.profil.set(profil);
+        this.envoiRecherchePublique.set(false);
+        this.messageRecherchePublique.set({
+          type: 'succes',
+          texte: visible ? 'Vous apparaissez dans la recherche publique.' : 'Vous n’apparaissez plus dans la recherche publique.'
+        });
+      },
+      error: () => {
+        caseACocher.checked = !visible;
+        this.envoiRecherchePublique.set(false);
+        this.messageRecherchePublique.set({ type: 'erreur', texte: 'Le réglage n’a pas été enregistré. Réessayez.' });
       }
     });
   }

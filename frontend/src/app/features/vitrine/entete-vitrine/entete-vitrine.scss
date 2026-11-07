@@ -1,0 +1,240 @@
+@use 'responsive' as *;
+
+/* Seule la barre blanche reste collée : la barre bleue, de hauteur fixe, sort de l'écran au défilement. */
+:host {
+  --hauteur-barre-ecole: 2.75rem;
+  --marge-entete: 1rem;
+  --taille-logo: 2.75rem;
+
+  display: block;
+  position: sticky;
+  top: calc(-1 * var(--hauteur-barre-ecole));
+  z-index: 10;
+}
+
+/* Réduit à un pixel plutôt que décalé hors écran : décalé, le lien d'évitement dépassait de l'en-tête collant.
+   Sous 360 px, le nom de la marque reste ainsi lu par les lecteurs d'écran, sans s'afficher à côté du logo. */
+.sr-only, .lien-evitement:not(:focus), .nom-marque {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+.lien-evitement:focus {
+  position: absolute;
+  top: 0.25rem;
+  left: 1rem;
+  z-index: 20;
+  padding: 0.5rem 1rem;
+  border-radius: var(--ept-radius-sm);
+  background: var(--ept-surface);
+  color: var(--ept-primary);
+  font-weight: 600;
+  outline: 2px solid var(--ept-sky);
+  outline-offset: 2px;
+}
+
+/* ===== Barre de l'école, sur fond bleu ===== */
+.barre-ecole {
+  background: var(--ept-primary-dark);
+  color: var(--ept-text-on-dark);
+
+  a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--ept-sky);
+    outline-offset: 2px;
+  }
+}
+
+.barre-ecole-contenu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: var(--hauteur-barre-ecole);
+  padding: 0 var(--marge-entete);
+}
+
+/* Icônes à partir de la tablette : le pied de page les garde sur téléphone. */
+.liens-entete { display: none; }
+
+.outils {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex: 1;
+}
+
+.lien-barre {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: var(--hauteur-barre-ecole);
+  color: var(--ept-text-on-dark);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover { text-decoration: underline; }
+}
+
+.lien-connexion:hover { text-decoration: none; }
+
+/* PrimeIcons n'a pas de silhouette dans un cercle : le cercle est tracé ici. */
+.lien-connexion .pi-user {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.8125rem;
+}
+
+/* Le champ n'apparaît qu'au palier bureau. */
+.recherche {
+  display: none;
+  align-items: center;
+  height: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: var(--ept-radius-sm);
+
+  input {
+    width: 12rem;
+    height: 100%;
+    padding: 0 0.25rem 0 0.65rem;
+    border: 0;
+    border-radius: var(--ept-radius-sm);
+    background: transparent;
+    color: var(--ept-text-on-dark);
+    font: inherit;
+    font-size: 0.875rem;
+
+    &::placeholder { color: var(--ept-primary-light); opacity: 1; }
+  }
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 100%;
+    border: 0;
+    border-radius: var(--ept-radius-sm);
+    background: transparent;
+    color: var(--ept-text-on-dark);
+    cursor: pointer;
+
+    &:hover { background: rgba(255, 255, 255, 0.14); }
+  }
+}
+
+/* ===== Barre principale, sur fond blanc ===== */
+/* L'ombre la détache des sections blanches qui passent dessous au défilement. */
+.barre-principale {
+  position: relative;
+  background: var(--ept-surface);
+  box-shadow: 0 2px 10px rgba(1, 46, 69, 0.18);
+
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--ept-focus-clair);
+    outline-offset: -2px;
+  }
+}
+
+/* Logo, bouton et menu sur une ligne : les rubriques s'ouvrent dessous, jusqu'au palier large. */
+.entete-contenu {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem var(--marge-entete);
+}
+
+.marque {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: fit-content;
+  white-space: nowrap;
+  color: var(--ept-primary);
+  font-family: var(--ept-font-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: var(--ept-radius-sm);
+
+  img {
+    flex: none;
+    width: var(--taille-logo);
+    height: var(--taille-logo);
+    object-fit: contain;
+  }
+}
+
+.bouton-menu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--ept-primary);
+  border-radius: var(--ept-radius-sm);
+  background: transparent;
+  color: var(--ept-primary);
+  cursor: pointer;
+
+  &:hover { background: var(--ept-primary-light); }
+}
+
+/* Sur ce fond, un anneau intérieur de la même couleur serait invisible. */
+.barre-principale .bouton-rejoindre:focus-visible { outline-offset: 2px; }
+
+.bouton-rejoindre {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+  border-radius: var(--ept-radius-sm);
+  background: var(--ept-primary);
+  color: var(--ept-text-on-dark);
+  font-family: var(--ept-font-heading);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover { background: var(--ept-primary-dark); }
+}
+
+@include a-partir-de(telephone) {
+  .nom-marque { position: static; width: auto; height: auto; overflow: visible; clip-path: none; }
+}
+
+@include a-partir-de(tablette) {
+  :host { --marge-entete: 1.5rem; --taille-logo: 3rem; }
+  /* Le pictogramme, et non sa zone cliquable, s'aligne sur le logo. */
+  .liens-entete { display: block; margin-left: -0.7rem; }
+  .outils { flex: 0 1 auto; }
+  .marque { font-size: 1.15rem; }
+  .bouton-rejoindre { padding: 0 1.1rem; font-size: 0.95rem; }
+}
+
+@include a-partir-de(bureau) {
+  .recherche { display: flex; }
+  .outils { gap: 1.25rem; }
+}
+
+/* Tout tient sur une ligne : le bouton Menu disparaît (voir entete-vitrine-menus.scss). */
+@include a-partir-de(large) {
+  :host { --marge-entete: 2.5rem; --taille-logo: 3.25rem; }
+
+  .entete-contenu {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 2rem;
+  }
+
+  .bouton-menu { display: none; }
+}

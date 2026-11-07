@@ -16,6 +16,9 @@ import { RestaurationDefilement } from './core/navigation/restauration-defilemen
 // Les pipes de date et de nombre s’affichent en français dans toute l’application.
 registerLocaleData(localeFr);
 
+// Injectée à la compilation depuis `.env` (voir scripts/ng-avec-licence.mjs).
+declare const PRIMENG_LICENSE: string | undefined;
+
 export const appConfig: ApplicationConfig = {
   providers: [
     { provide: LOCALE_ID, useValue: 'fr' },
@@ -32,7 +35,8 @@ export const appConfig: ApplicationConfig = {
                 options: {
                   darkModeSelector: false
                 }
-            }
+            },
+            license: typeof PRIMENG_LICENSE === 'string' ? PRIMENG_LICENSE : ''
         })
   ]
 };

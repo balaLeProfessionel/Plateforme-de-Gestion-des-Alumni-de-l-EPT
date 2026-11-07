@@ -38,3 +38,6 @@ Thumbs.db
 !.env.*.example
 .docker-compose.yml
 /.local/codespaces/
+
+# Impeccable (archives de critique et fichiers locaux)
+.impeccable/

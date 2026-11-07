@@ -1,0 +1,93 @@
+@use 'responsive' as *;
+
+:host { display: block; }
+
+.section { background: var(--ept-surface); }
+
+.section-contenu {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 3rem 1rem;
+}
+
+h2 {
+  margin: 0 0 2rem;
+  color: var(--ept-primary-dark);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+}
+
+.grille {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Le lien reste en bas du bloc, quelle que soit la longueur de la description. */
+.fonction {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.cercle-exterieur, .cercle-interieur {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.cercle-exterieur {
+  width: 4.5rem;
+  height: 4.5rem;
+  border: 1px solid var(--ept-primary);
+}
+
+.cercle-interieur {
+  width: 3.5rem;
+  height: 3.5rem;
+  background: var(--ept-primary);
+  color: var(--ept-text-on-dark);
+
+  i { font-size: 1.4rem; }
+}
+
+h3 {
+  margin: 1.25rem 0 0.5rem;
+  color: var(--ept-primary-dark);
+  font-size: 1.25rem;
+}
+
+p {
+  flex: 1;
+  margin: 0;
+  color: var(--ept-text-secondary);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* Zone d'appui de 44 px, pour un texte de 20 px. */
+a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  margin-top: 0.25rem;
+  color: var(--ept-primary);
+  font-weight: 600;
+  text-underline-offset: 0.2em;
+
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; border-radius: 2px; }
+}
+
+@include a-partir-de(tablette) {
+  .section-contenu { padding: 4.5rem 1.5rem; }
+  h2 { margin-bottom: 2.5rem; }
+  .grille { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3rem 2.5rem; }
+}
+
+@include a-partir-de(large) {
+  .grille { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2.5rem; }
+}

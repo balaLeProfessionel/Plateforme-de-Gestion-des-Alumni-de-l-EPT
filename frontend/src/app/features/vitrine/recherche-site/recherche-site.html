@@ -1,0 +1,67 @@
+<app-entete-vitrine />
+
+<main id="contenu" tabindex="-1">
+  <div class="contenu">
+    <h1>Rechercher sur le site</h1>
+
+    <form class="recherche" role="search" novalidate (submit)="appliquerRecherche($event)">
+      <label for="recherche-site">Que cherchez-vous ?</label>
+      <input id="recherche-site" type="search" autocomplete="off" [formField]="formulaire.recherche"
+        aria-describedby="aide-recherche-site" />
+      <small id="aide-recherche-site">Une page, une rubrique ou le nom d’un diplômé. Les résultats se mettent à jour pendant la saisie.</small>
+    </form>
+
+    <div class="resultats" aria-live="polite" [attr.aria-busy]="enChargement()">
+      @if (pages().length) {
+        <section aria-labelledby="titre-pages">
+          <h2 id="titre-pages">Pages du site</h2>
+          <ul class="liste">
+            @for (page of pages(); track page.titre) {
+              <li>
+                <a [routerLink]="page.lien" [fragment]="page.fragment">
+                  <span class="ligne">
+                    <strong>{{ page.titre }}</strong>
+                    @if (page.precision; as precision) { <small>{{ precision }}</small> }
+                  </span>
+                  <span class="description">{{ page.description }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
+      @if (chercheDiplomes() && !aucunResultat()) {
+        <section aria-labelledby="titre-diplomes">
+          <h2 id="titre-diplomes">Diplômés</h2>
+          @if (erreurDiplomes(); as message) {
+            <p class="message-erreur" role="alert">{{ message }}</p>
+          } @else if (enChargement()) {
+            <p class="etat">Recherche en cours…</p>
+          } @else if (diplomes().length) {
+            <ul class="liste">
+              @for (diplome of diplomes(); track $index) {
+                <li class="diplome">
+                  <strong>{{ diplome.prenom }} {{ diplome.nom }}</strong>
+                  @if (diplome.promotion) { <span class="description">Promo {{ diplome.promotion }}</span> }
+                  @if (diplome.filiere) { <span class="description">{{ diplome.filiere }}</span> }
+                </li>
+              }
+            </ul>
+            <a class="suite" routerLink="/annuaire-diplomes" [queryParams]="{ recherche: critere() }">Continuer dans l’annuaire des diplômés</a>
+          } @else {
+            <p class="etat">Aucun diplômé trouvé.</p>
+          }
+        </section>
+      }
+
+      @if (aucunResultat()) {
+        <p class="etat">Aucun résultat pour « {{ critere() }} ». Vérifiez l’orthographe ou essayez un autre mot.</p>
+      }
+    </div>
+
+    <p class="limite">Sans compte, la recherche ne couvre pas le contenu de l’espace membre, comme le détail des événements.</p>
+  </div>
+</main>
+
+<app-pied-vitrine />

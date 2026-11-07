@@ -23,6 +23,7 @@
   --ept-sky: #73DBF2;
   --ept-sky-text-on: var(--ept-primary);   // texte à utiliser SUR un fond ciel
   --ept-sky-on-dark: var(--ept-sky);       // couleur à utiliser comme texte SUR fond foncé
+  --ept-focus-clair: var(--ept-primary);   // anneau de focus sur fond clair : le ciel n'y atteint que 1,6:1
 
   // Doré premium — badges, éléments valorisants
   --ept-gold: #A9782F;

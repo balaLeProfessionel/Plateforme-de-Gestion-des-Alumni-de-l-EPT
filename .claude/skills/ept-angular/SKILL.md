@@ -79,6 +79,11 @@ Le fichier contient le code de référence de chaque patron :
 
 ## Styles
 
+- **Responsive, mobile first** (nouvelles pages ; les anciennes seront migrées plus tard) : le style de base
+  vise le téléphone, puis `@use 'responsive' as *;` et `@include a-partir-de(tablette) { … }` (561 px) ou
+  `a-partir-de(bureau)` (861 px), `a-partir-de(large)` (1200 px). Paliers dans `src/styles/responsive/_points-rupture.scss` : jamais de
+  `@media (max-width: …)` ni de largeur en dur dans un composant ; un nouveau palier s'ajoute là, pas ailleurs.
+  Les règles restent dans la feuille du composant (pas de surcharge globale comme `styles/pages-mobile.scss`).
 - Jetons dans `src/styles.scss` : `--ept-primary` #014365, `--ept-primary-dark`, `--ept-primary-light`,
   `--ept-sky` (#73DBF2, focus et alumni), `--ept-gold` / `-light` / `-dark` (étudiants, « en attente »),
   `--ept-success` / `-light` / `-dark` (texte vert sur fond vert clair : toujours `-dark`), `--ept-error*`, `--ept-border`, `--ept-bg`, `--ept-text-secondary`.

@@ -11,12 +11,15 @@
         <img src="/images/logo-ept.png" alt="" />
         <span>EPT Alumni</span>
       </div>
-      <p class="tagline">Le réseau des ingénieurs de Thiès</p>
+      <p class="tagline">Le réseau des diplômés de l’EPT</p>
 
       <ul class="stats">
-        <li><span class="chiffre">2 400+</span><span class="libelle">diplômés</span></li>
-        <li><span class="chiffre">180</span><span class="libelle">entreprises partenaires</span></li>
-        <li><span class="chiffre">92 %</span><span class="libelle">d'insertion</span></li>
+        @for (chiffre of chiffres; track chiffre.libelle) {
+          <li>
+            <span class="chiffre">{{ chiffre.valeur === null ? 'À venir' : (chiffre.valeur | number: '1.0-0') }}</span>
+            <span class="libelle">{{ chiffre.libelle }}</span>
+          </li>
+        }
       </ul>
     </div>
   </aside>

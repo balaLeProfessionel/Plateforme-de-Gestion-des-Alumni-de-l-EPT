@@ -4,6 +4,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+# Écrite dans le JavaScript servi au navigateur : ce n'est pas un secret côté client.
+ARG PRIMENG_LICENSE
 RUN npm run build
 
 # Runtime (Nginx)

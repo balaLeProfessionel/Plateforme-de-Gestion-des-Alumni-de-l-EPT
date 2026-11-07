@@ -26,6 +26,8 @@ app-avatar-membre { border: 4px solid var(--ept-primary-light); box-sizing: cont
 .bouton-danger { border: 1px solid #b42318; background: white; color: #b42318; }
 button:disabled { opacity: .6; cursor: wait; }
 .zone-message { flex-basis: 100%; min-height: 1.5rem; }
+.case-confidentialite { display: flex; align-items: flex-start; gap: .6rem; color: var(--ept-primary-dark); font-weight: 500; line-height: 1.45; cursor: pointer; }
+.case-confidentialite input { flex: 0 0 auto; width: 1.15rem; height: 1.15rem; margin: .12rem 0 0; accent-color: var(--ept-primary); }
 .message { margin: .4rem 0 0; font-weight: 600; }
 .erreur { color: #b42318; }.succes { color: #147a4b; }
 .champs-lecture-seule { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-bottom: 1rem; padding: 1rem; border-radius: var(--ept-radius); background: var(--ept-primary-soft); }

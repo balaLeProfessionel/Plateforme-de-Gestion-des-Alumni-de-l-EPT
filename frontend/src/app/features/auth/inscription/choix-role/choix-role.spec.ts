@@ -21,4 +21,10 @@ describe('ChoixRole', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('explique le cas des etudiants et ne promet pas d offres d emploi', () => {
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('.note-etudiant')?.textContent).toContain('créé par l’administration');
+    expect(element.textContent).not.toContain('Publiez des offres');
+  });
 });

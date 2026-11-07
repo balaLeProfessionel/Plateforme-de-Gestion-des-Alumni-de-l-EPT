@@ -1,0 +1,76 @@
+@use 'responsive' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--ept-bg);
+}
+
+main { flex: 1; }
+main:focus { outline: none; }
+
+.contenu {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 3rem 1rem 4rem;
+}
+
+h1 {
+  margin: 0 0 1rem;
+  color: var(--ept-primary-dark);
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+}
+
+p {
+  margin: 0.5rem 0 0;
+  color: var(--ept-text-secondary);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.etat { color: var(--ept-primary-dark); font-weight: 600; }
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.bouton {
+  flex: 1 1 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0 1.5rem;
+  border-radius: var(--ept-radius-sm);
+  font-family: var(--ept-font-heading);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s;
+
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 3px; }
+}
+
+.bouton-principal {
+  background: var(--ept-primary);
+  color: var(--ept-text-on-dark);
+
+  &:hover { background: var(--ept-primary-dark); }
+}
+
+.bouton-secondaire {
+  border: 1px solid var(--ept-border);
+  background: var(--ept-surface);
+  color: var(--ept-primary);
+
+  &:hover { background: var(--ept-primary-light); }
+}
+
+@include a-partir-de(tablette) {
+  .contenu { padding: 5rem 1.5rem 6rem; }
+  .bouton { flex: 0 0 auto; }
+}

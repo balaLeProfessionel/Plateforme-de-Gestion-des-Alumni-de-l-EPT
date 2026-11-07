@@ -3,6 +3,7 @@ package ept.edu.sn.alumni_backend.security;
 import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import java.util.List;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -83,6 +84,7 @@ public class SecurityConfig {
                     "/api/auth/renvoyer-otp",
                     "/api/auth/refresh"
                 ).permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/public/annuaire", "/api/public/evenements", "/api/public/temoignages").permitAll()
                 .requestMatchers("/api/photos/**").permitAll()
                 .requestMatchers("/api/evenement-images/**").permitAll()
                 // Administration : chaque domaine exige sa permission (voir PermissionAdmin).

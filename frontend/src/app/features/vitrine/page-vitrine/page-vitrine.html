@@ -1,0 +1,41 @@
+<app-entete-vitrine />
+
+<main id="contenu" tabindex="-1">
+  <app-banniere-vitrine />
+
+  <app-fonctionnalites-vitrine />
+
+  <app-actualites-vitrine />
+
+  <app-chiffres-vitrine />
+
+  <app-temoignages-vitrine />
+
+  <section id="rejoindre" class="section" aria-labelledby="titre-rejoindre">
+    <div class="section-contenu">
+      <h2 id="titre-rejoindre">Rejoindre le réseau</h2>
+
+      <ol class="etapes">
+        @for (etape of etapes; track etape.titre; let numero = $index) {
+          <li>
+            <span class="numero" aria-hidden="true">{{ numero + 1 }}</span>
+            <h3>{{ etape.titre }}</h3>
+            <p>{{ etape.description }}</p>
+          </li>
+        }
+      </ol>
+
+      <p class="note-verification">
+        Avec une adresse &#64;ept.edu.sn ou &#64;ept.sn, un compte diplômé ou personnel est vérifié dès la confirmation de l’e-mail.
+        Les autres comptes sont vérifiés par l’administration de l’EPT.
+      </p>
+
+      <div class="actions">
+        <a class="bouton bouton-principal" routerLink="/inscription">Créer un compte</a>
+        <a class="bouton bouton-secondaire" routerLink="/connexion">J’ai déjà un compte</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<app-pied-vitrine />

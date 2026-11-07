@@ -57,6 +57,9 @@ public class Utilisateur {
     private boolean emailVerifie = false;
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean doitChangerMotDePasse = false;
+    /** Le diplômé peut se retirer de la recherche accessible sans compte. */
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean recherchePublique = true;
     private LocalDate dateNaissance;
     private String telephone;
     private Integer anneeEntree;

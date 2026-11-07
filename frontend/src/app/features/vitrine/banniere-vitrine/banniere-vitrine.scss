@@ -1,0 +1,113 @@
+@use 'responsive' as *;
+
+:host { display: block; }
+
+.banniere {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--ept-primary-dark);
+  color: var(--ept-text-on-dark);
+}
+
+/* Photo au-dessus du texte sur téléphone, sans voile. */
+.photo-campus {
+  order: -1;
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  object-position: center;
+}
+
+.texte { padding: 2rem 1rem 2.5rem; }
+
+h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.accroche {
+  margin: 1.25rem 0 2rem;
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Pleine largeur sur téléphone. */
+.bouton {
+  flex: 1 1 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0 1.5rem;
+  border-radius: var(--ept-radius-sm);
+  font-family: var(--ept-font-heading);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-sky);
+    outline-offset: 3px;
+  }
+}
+
+/* Fond ciel : toujours avec le texte bleu foncé. */
+.bouton-principal {
+  background: var(--ept-sky);
+  color: var(--ept-sky-text-on);
+
+  &:hover { background: var(--ept-text-on-dark); }
+}
+
+.bouton-contour {
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  color: var(--ept-text-on-dark);
+
+  &:hover { background: rgba(255, 255, 255, 0.12); }
+}
+
+@include a-partir-de(tablette) {
+  .texte { padding: 2.5rem 1.5rem 3rem; }
+  .bouton { flex: 0 0 auto; }
+}
+
+/* Deux moitiés : le texte s'aligne sur la colonne de 72rem de la page, la photo occupe le reste. */
+@include a-partir-de(bureau) {
+  .banniere { min-height: clamp(26rem, 68vh, 36rem); }
+
+  .banniere-contenu {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex: 1;
+    width: 50%;
+  }
+
+  .texte {
+    width: 100%;
+    max-width: 36rem;
+    padding: 4rem 3rem 4rem 1.5rem;
+  }
+
+  .photo-campus {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    aspect-ratio: auto;
+    object-position: center;
+  }
+}

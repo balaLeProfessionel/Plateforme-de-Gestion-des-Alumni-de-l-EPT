@@ -1,0 +1,158 @@
+@use 'responsive' as *;
+
+:host { display: block; background: var(--ept-surface); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+.section-contenu {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 3rem 1rem;
+}
+
+h2 {
+  margin: 0 0 2rem;
+  color: var(--ept-primary-dark);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+}
+
+/* Jusqu'au palier bureau : le témoignage sur toute la largeur, les flèches côte à côte en dessous. */
+.carrousel {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem 1rem;
+}
+
+.diapositives {
+  flex: 0 0 100%;
+  display: grid;
+  min-width: 0;
+}
+
+/* Toutes les diapositives occupent la même case : la hauteur ne change pas d'un témoignage à l'autre. */
+.diapositive {
+  grid-area: 1 / 1;
+  min-width: 0;
+  margin: 0;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.35s ease, visibility 0.35s;
+
+  &.active { visibility: visible; opacity: 1; }
+}
+
+.photo {
+  width: 100%;
+  max-width: 20rem;
+  aspect-ratio: 1;
+  margin: 0 auto 1.5rem;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.corps { min-width: 0; }
+
+.guillemet {
+  display: block;
+  width: 2.75rem;
+  height: auto;
+  fill: var(--ept-primary);
+}
+
+.guillemet.fermant {
+  margin-left: auto;
+  transform: rotate(180deg);
+}
+
+blockquote {
+  margin: 0.75rem 0;
+  color: var(--ept-primary-dark);
+  font-size: 1.0625rem;
+  line-height: 2.1875rem;
+}
+
+figcaption {
+  display: grid;
+  gap: 0.15rem;
+  margin-top: 1.25rem;
+  color: var(--ept-text-secondary);
+  line-height: 1.45;
+
+  &::before {
+    content: '';
+    width: 2.5rem;
+    height: 2px;
+    margin-bottom: 0.65rem;
+    background: var(--ept-primary);
+  }
+
+  strong { color: var(--ept-primary-dark); font-size: 1.05rem; font-weight: 700; }
+}
+
+.fleche {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ept-primary);
+  cursor: pointer;
+  transition: background 0.15s;
+
+  i { font-size: 1.75rem; }
+
+  &:hover { background: var(--ept-primary-light); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diapositive { transition: none; }
+}
+
+@include a-partir-de(tablette) {
+  .section-contenu { padding: 4.5rem 1.5rem; }
+
+  .diapositive {
+    display: grid;
+    grid-template-columns: 14rem minmax(0, 1fr);
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .photo { max-width: none; margin: 0; }
+}
+
+/* Ordinateur : flèches aux deux extrémités, de part et d'autre du témoignage. */
+@include a-partir-de(bureau) {
+  .carrousel {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .diapositives { grid-column: 2; grid-row: 1; }
+  .fleche-precedente { grid-column: 1; grid-row: 1; }
+  .fleche-suivante { grid-column: 3; grid-row: 1; }
+
+  .fleche { width: 3.5rem; height: 3.5rem; }
+  .fleche i { font-size: 2.25rem; }
+}
+
+@include a-partir-de(large) {
+  .diapositive {
+    grid-template-columns: 22.5rem minmax(0, 1fr);
+    gap: 4rem;
+  }
+}

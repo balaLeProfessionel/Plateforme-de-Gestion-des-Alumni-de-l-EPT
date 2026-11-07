@@ -38,6 +38,20 @@ public final class MembreVisibilite {
         );
     }
 
+    /**
+     * Diplômés trouvables sans compte. Un compte créé par l'administration et jamais ouvert en est exclu :
+     * son titulaire n'a pas encore eu accès au réglage de retrait.
+     */
+    public static Specification<Utilisateur> trouvableSansCompte() {
+        return (racine, requete, cb) -> cb.and(
+            cb.isTrue(racine.get("emailVerifie")),
+            cb.equal(racine.get("statutCompte"), StatutCompte.ACTIF),
+            cb.equal(racine.get("role"), TypeRole.ALUMNI),
+            cb.isTrue(racine.get("recherchePublique")),
+            cb.isFalse(racine.get("doitChangerMotDePasse"))
+        );
+    }
+
     public static Specification<Utilisateur> profilPublicVisible() {
         return (racine, requete, cb) -> cb.and(
             cb.isTrue(racine.get("emailVerifie")),

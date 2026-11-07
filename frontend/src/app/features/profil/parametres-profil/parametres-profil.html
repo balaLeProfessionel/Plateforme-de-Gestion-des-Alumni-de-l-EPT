@@ -21,6 +21,9 @@
       <a routerLink="/profil/parametres" fragment="photo">Photo</a>
       <a routerLink="/profil/parametres" fragment="informations">Informations</a>
       <a routerLink="/profil/parametres" fragment="parcours">Parcours</a>
+      @if (membre.role === 'ALUMNI') {
+        <a routerLink="/profil/parametres" fragment="confidentialite">Confidentialité</a>
+      }
       <a routerLink="/profil/parametres" fragment="securite">Sécurité</a>
     </nav>
 
@@ -77,6 +80,23 @@
     <section class="carte-parametres" id="formations" aria-labelledby="titre-formations">
       <app-section-parcours type="formation" />
     </section>
+
+    @if (membre.role === 'ALUMNI') {
+      <section class="carte-parametres" id="confidentialite" aria-labelledby="titre-confidentialite">
+        <div class="titre-section"><div><h2 id="titre-confidentialite">Confidentialité</h2>
+          <p>Une personne sans compte peut trouver votre nom, votre promotion et votre filière dans la recherche de l’annuaire public.</p></div></div>
+        <label class="case-confidentialite">
+          <input type="checkbox" [checked]="membre.recherchePublique" [disabled]="envoiRecherchePublique()"
+            (change)="changerRecherchePublique($event)" />
+          Apparaître dans la recherche accessible sans compte
+        </label>
+        <div class="zone-message" aria-live="polite">
+          @if (messageRecherchePublique(); as message) {
+            <p class="message" [class.erreur]="message.type === 'erreur'" [class.succes]="message.type === 'succes'">{{ message.texte }}</p>
+          }
+        </div>
+      </section>
+    }
 
     <section class="carte-parametres" id="securite" aria-labelledby="titre-securite">
       <div class="titre-section"><div><h2 id="titre-securite">Sécurité</h2><p>Le changement conserve cette session et déconnecte les autres appareils.</p></div></div>

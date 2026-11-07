@@ -1,0 +1,28 @@
+<footer class="pied">
+  <div class="pied-contenu">
+    <div class="presentation">
+      <p class="marque">
+        <img src="/images/logo-ept.png" alt="" width="40" height="40" />
+        <span>EPT Alumni</span>
+      </p>
+      <p class="description">
+        La plateforme du réseau des diplômés, des étudiants et des partenaires de l’École Polytechnique de Thiès.
+      </p>
+      <app-liens-ecole sombre class="liens-pied" />
+    </div>
+
+    <nav aria-label="Liens du pied de page">
+      <ul class="liens">
+        <li><a routerLink="/connexion">Se connecter</a></li>
+        <li><a routerLink="/inscription">Créer un compte</a></li>
+        <li>
+          <a [href]="siteEcole" target="_blank" rel="noopener noreferrer">
+            École Polytechnique de Thiès<span class="sr-only"> (nouvel onglet)</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <p class="copyright">© {{ annee }} EPT Alumni</p>
+</footer>

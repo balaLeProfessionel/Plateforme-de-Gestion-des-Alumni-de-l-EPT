@@ -19,6 +19,7 @@ import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.dto.ProfilRequest;
 import ept.edu.sn.alumni_backend.utilisateur.dto.ProfilResponse;
 import ept.edu.sn.alumni_backend.utilisateur.dto.ProfilPublicResponse;
+import ept.edu.sn.alumni_backend.utilisateur.dto.RecherchePubliqueRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -44,6 +45,13 @@ public class ProfilController {
             @AuthenticationPrincipal UtilisateurPrincipal principal,
             @Valid @RequestBody ProfilRequest request) {
         return ResponseEntity.ok(profilService.mettreAJour(principal.getUtilisateur(), request));
+    }
+
+    @PatchMapping("/me/recherche-publique")
+    public ResponseEntity<ProfilResponse> mettreAJourRecherchePublique(
+            @AuthenticationPrincipal UtilisateurPrincipal principal,
+            @Valid @RequestBody RecherchePubliqueRequest request) {
+        return ResponseEntity.ok(profilService.mettreAJourRecherchePublique(principal.getUtilisateur(), request.visible()));
     }
 
     @PostMapping(value = "/me/photo", consumes = "multipart/form-data")
