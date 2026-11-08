@@ -40,3 +40,13 @@ scripts/donnees-demo/charger.sh adresse.du.compte@modele
   `python generer-sql-publications.py donnees-demo-publications.sql`.
 - Pour modifier les données, éditer `generer-sql.py` puis régénérer :
   `python generer-sql.py donnees-demo.sql`.
+- Articles (`donnees-demo-articles.sql`, chargé après le fil) : 8 articles de fond publiés par des membres de
+  démonstration (parcours, carrière, entrepreneuriat, recherche, vie de l'école), avec leur publication
+  porteuse dans le fil et des « J'aime ». Pour les modifier : éditer `generer-sql-articles.py` puis
+  `python generer-sql-articles.py donnees-demo-articles.sql`.
+- Photos (`photos-libres.json`) : 59 photos **libres de droits** (CC0 ou domaine public, Wikimedia Commons),
+  sans personne reconnaissable. Elles illustrent la plupart des publications du fil, cinq articles sur huit et
+  la plupart des événements (à la place des visuels dessinés). Une partie reste volontairement sans image
+  pour montrer cet affichage. `telecharger-photos.py` les télécharge (cache local `.cache-photos/`, ignoré
+  par Git), les recadre en 16:9 comme l'application et écrit le SQL qui les rattache. Chaque entrée garde
+  l'adresse de la page source, l'auteur et la licence : pour changer une photo, remplacer son entrée.
