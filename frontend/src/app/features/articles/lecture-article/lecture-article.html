@@ -1,0 +1,101 @@
+<div class="page">
+  <app-bouton-retour secours="/articles" libelle="Retour aux articles" />
+
+  @switch (etat()) {
+    @case ('chargement') { <p class="etat" role="status">Chargement de l’article…</p> }
+    @case ('introuvable') {
+      <section class="etat vide">
+        <i class="pi pi-eye-slash" aria-hidden="true"></i>
+        <h1>Cet article n’est pas disponible</h1>
+        <p>Il a peut-être été retiré, ou il ne s’adresse pas à votre profil.</p>
+        <a routerLink="/articles">Voir les autres articles</a>
+      </section>
+    }
+    @case ('erreur') {
+      <p class="etat" role="alert">Impossible de charger l’article.
+        <button type="button" class="lien" (click)="charger()">Réessayer</button></p>
+    }
+    @default {
+      @if (article(); as a) {
+        <article class="article" aria-labelledby="titre-article">
+          @if (a.estAuteur) {
+            <div class="outils">
+              @if (a.statut === 'BROUILLON') {
+                <p class="brouillon"><i class="pi pi-lock" aria-hidden="true"></i> Brouillon : vous seul pouvez le lire.</p>
+              }
+              <div class="boutons">
+                <a class="bouton secondaire" [routerLink]="['/articles', a.id, 'modifier']">
+                  <i class="pi pi-pencil" aria-hidden="true"></i> Modifier</a>
+                @if (a.statut === 'BROUILLON') {
+                  <button type="button" class="bouton principal" [disabled]="actionEnCours()" (click)="publier()">
+                    <i class="pi pi-send" aria-hidden="true"></i> Publier</button>
+                }
+                <button type="button" class="bouton danger" [disabled]="actionEnCours()"
+                  [attr.aria-expanded]="confirmationSuppression()" aria-controls="confirmation-suppression"
+                  (click)="confirmationSuppression.set(!confirmationSuppression())">
+                  <i class="pi pi-trash" aria-hidden="true"></i> Supprimer</button>
+              </div>
+              @if (confirmationSuppression()) {
+                <div id="confirmation-suppression" class="confirmation" role="group" aria-labelledby="question-suppression">
+                  <p id="question-suppression">Supprimer définitivement cet article ? Ses « J’aime » et commentaires disparaîtront aussi.</p>
+                  <button type="button" class="bouton danger" [disabled]="actionEnCours()" (click)="supprimer()">Oui, supprimer</button>
+                  <button type="button" class="bouton secondaire" (click)="confirmationSuppression.set(false)">Annuler</button>
+                </div>
+              }
+              @if (messageAction(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+            </div>
+          }
+          @if (messageSucces(); as message) { <p class="message succes" role="status">{{ message }}</p> }
+
+          @if (a.urlCouverture) {
+            <div class="couverture"><app-image-publication [url]="a.urlCouverture" description="" /></div>
+          }
+
+          <header class="entete">
+            <p class="theme">{{ themes[a.theme] }}</p>
+            <h1 id="titre-article">{{ a.titre }}</h1>
+            @if (a.resume) { <p class="chapo">{{ a.resume }}</p> }
+            <div class="signature">
+              <app-avatar-membre [urlPhoto]="a.auteurPhoto" [nom]="a.auteurNom" [prenom]="a.auteurPrenom"
+                [roleMembre]="a.auteurRole" [taille]="2.75" />
+              <div class="identite">
+                <p><a class="nom" [routerLink]="['/profil', a.auteurId]">{{ auteur() }}</a>
+                  @if (role()) { <span class="role">{{ role() }}</span> }</p>
+                <p class="meta">
+                  @if (a.publieLe) {
+                    <time [attr.datetime]="a.publieLe">Publié le {{ a.publieLe | date:'d MMMM y' }}</time>
+                  } @else {
+                    <time [attr.datetime]="a.modifieLe">Modifié le {{ a.modifieLe | date:'d MMMM y à HH:mm' }}</time>
+                  }
+                  <span aria-hidden="true">·</span>
+                  <span>{{ a.tempsLecture }} min de lecture</span>
+                </p>
+              </div>
+            </div>
+          </header>
+
+          @if (a.contenu) {
+            <app-contenu-article class="corps" [contenu]="a.contenu" />
+          } @else {
+            <p class="etat">Cet article n’a pas encore de contenu.</p>
+          }
+
+          @if (a.publicationId; as publicationId) {
+            <div class="reactions">
+              <app-bouton-jaime [publicationId]="publicationId" [(nombre)]="nombreJaime" [(jaime)]="jaime" />
+              <button type="button" class="action" (click)="commenter()">
+                <i class="pi pi-comment" aria-hidden="true"></i> Commenter
+                @if (nombreCommentaires()) {
+                  <span class="compte">{{ nombreCommentaires() }}<span class="cache"> commentaire{{ nombreCommentaires() > 1 ? 's' : '' }}</span></span>
+                }
+              </button>
+              <app-menu-publication class="menu" [publicationId]="publicationId" [peutSignaler]="!a.estAuteur" />
+            </div>
+            <app-commentaires-publication class="discussion" [publicationId]="publicationId"
+              [(ouverte)]="discussionOuverte" [(nombre)]="nombreCommentaires" />
+          }
+        </article>
+      }
+    }
+  }
+</div>

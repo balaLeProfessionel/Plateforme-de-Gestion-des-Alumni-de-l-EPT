@@ -42,6 +42,16 @@ describe('CartePublication', () => {
 
   const texte = (element: Element | null | undefined) => element?.textContent?.replace(/\s+/g, ' ').trim();
 
+  it('présente un article par son thème et son résumé, et mène à sa page de lecture', () => {
+    const racine = afficher({ type: 'ARTICLE', titre: 'Dix ans de micro-réseaux', contenu: 'Retour d’expérience sur le terrain.',
+      article: { id: 'a1', theme: 'CARRIERE', tempsLecture: 6 } });
+    expect(texte(racine.querySelector('app-apercu-article .etiquette'))).toBe('Article · Carrière · 6 min de lecture');
+    expect(texte(racine.querySelector('app-apercu-article h3'))).toBe('Dix ans de micro-réseaux');
+    expect(racine.querySelector('.contenu')).toBeNull();
+    expect(racine.querySelector('a.lire')?.getAttribute('href')).toBe('/articles/a1');
+    expect(racine.querySelector('a.date')?.getAttribute('href')).toBe('/articles/a1');
+  });
+
   it('mentionne simplement la source d’une publication LinkedIn reprise, qui s’ouvre dans un nouvel onglet', () => {
     const lien = { url: 'https://www.linkedin.com/posts/awa_stage', titre: 'Ravie de commencer mon stage…', site: 'LinkedIn',
       description: 'Ravie de commencer mon stage chez Sonatel !' };

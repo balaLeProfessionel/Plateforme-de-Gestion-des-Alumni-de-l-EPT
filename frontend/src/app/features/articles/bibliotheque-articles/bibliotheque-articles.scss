@@ -1,0 +1,59 @@
+:host { display: block; }
+.articles-page { box-sizing: border-box; max-width: 72rem; margin: 0 auto; padding: 1.5rem 2rem 6rem; }
+
+.entete { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem; }
+.entete > div { min-width: 0; }
+h1 { margin: 0; color: var(--ept-primary-dark); font-family: var(--ept-font-heading); font-size: 1.75rem; }
+.entete p { max-width: 36rem; margin: .3rem 0 0; color: var(--ept-text-secondary); }
+.ecrire { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.75rem; padding: .5rem 1rem;
+  border-radius: var(--ept-radius-sm); background: var(--ept-primary); color: #fff; font-weight: 600; text-decoration: none; }
+.ecrire:hover { background: var(--ept-primary-dark); }
+
+.onglets { display: flex; gap: .25rem; margin: 1.25rem 0 1rem; border-bottom: 1px solid var(--ept-border); }
+.onglets a { padding: .6rem .9rem; border-bottom: 3px solid transparent; margin-bottom: -1px; color: var(--ept-text-secondary);
+  font-weight: 600; text-decoration: none; }
+.onglets a[aria-current='page'] { border-bottom-color: var(--ept-primary); color: var(--ept-primary-dark); }
+
+.filtres { display: grid; gap: .75rem; margin-bottom: 1rem; }
+.recherche { position: relative; max-width: 32rem; }
+.recherche .pi { position: absolute; top: 50%; left: .9rem; color: var(--ept-text-secondary); transform: translateY(-50%); }
+.recherche input { box-sizing: border-box; width: 100%; min-height: 2.75rem; padding: .5rem .9rem .5rem 2.5rem;
+  border: 1px solid var(--ept-border); border-radius: 999px; background: var(--ept-surface); font: inherit; }
+.themes { display: flex; flex-wrap: wrap; gap: .4rem; }
+.themes button { min-height: 2.25rem; padding: .3rem .85rem; border: 1px solid var(--ept-border); border-radius: 999px;
+  background: var(--ept-surface); color: var(--ept-primary-dark); font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; }
+.themes button[aria-pressed='true'] { border-color: var(--ept-primary); background: var(--ept-primary); color: #fff; }
+
+.resume { margin: 0 0 .75rem; color: var(--ept-text-secondary); font-size: .9rem; }
+.grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); gap: 1rem;
+  margin: 0; padding: 0; list-style: none; }
+.grille > li { display: flex; min-width: 0; }
+.grille app-carte-article { flex: 1 1 auto; }
+.actualisation { opacity: .55; }
+.squelette { height: 20rem; border-radius: var(--ept-radius); background: linear-gradient(90deg, #eef2f5, #f6f8fa, #eef2f5);
+  background-size: 200% 100%; animation: reflet 1.4s ease-in-out infinite; }
+@keyframes reflet { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .squelette { animation: none; } }
+
+.etat { display: grid; justify-items: center; gap: .4rem; padding: 2.5rem 1rem; border: 1px solid var(--ept-border);
+  border-radius: var(--ept-radius); background: var(--ept-surface); text-align: center; }
+.etat h2 { margin: 0; color: var(--ept-primary-dark); font-family: var(--ept-font-heading); font-size: 1.15rem; }
+.etat p { max-width: 30rem; margin: 0 0 .5rem; color: var(--ept-text-secondary); }
+.lien { padding: .3rem; border: 0; background: transparent; color: var(--ept-primary); font: inherit; font-weight: 600; cursor: pointer; }
+
+.pagination { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1.5rem; color: var(--ept-text-secondary); }
+.pagination button { display: inline-flex; align-items: center; gap: .35rem; min-height: 2.5rem; padding: .4rem .8rem;
+  border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm); background: var(--ept-surface); color: var(--ept-primary);
+  font: inherit; font-weight: 600; cursor: pointer; }
+.pagination button:disabled { opacity: .5; cursor: default; }
+
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@media (max-width: 560px) {
+  .articles-page { padding: 1rem 1rem 6rem; }
+  .ecrire { flex: 1 1 100%; justify-content: center; }
+  .onglets a { flex: 1 1 0; text-align: center; }
+  .themes { flex-wrap: nowrap; margin-inline: -1rem; padding-inline: 1rem; overflow-x: auto; scrollbar-width: none; }
+  .themes button { flex: 0 0 auto; }
+}

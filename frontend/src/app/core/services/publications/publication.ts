@@ -1,7 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
+import type { ThemeArticle } from '../articles/article';
 
-export type TypePublication = 'PUBLICATION' | 'ANNONCE_OFFICIELLE' | 'APPEL_PROJET';
+export type TypePublication = 'PUBLICATION' | 'ANNONCE_OFFICIELLE' | 'APPEL_PROJET' | 'ARTICLE';
+/** Types rédigés depuis le fil ou l’administration ; un article se rédige depuis l’espace Articles. */
+export type TypePublicationRedigee = Exclude<TypePublication, 'ARTICLE'>;
 export type AudiencePublication = 'TOUS' | 'ALUMNI' | 'ETUDIANTS';
 export type MotifSignalement = 'SPAM' | 'CONTENU_INAPPROPRIE' | 'HARCELEMENT' | 'FAUSSE_INFORMATION' | 'AUTRE';
 
@@ -9,6 +12,7 @@ export const LIBELLES_TYPE_PUBLICATION: Record<TypePublication, string> = {
   PUBLICATION: 'Publication',
   ANNONCE_OFFICIELLE: 'Annonce officielle',
   APPEL_PROJET: 'Appel à projet',
+  ARTICLE: 'Article',
 };
 
 export const MOTIFS_SIGNALEMENT: readonly { motif: MotifSignalement; libelle: string }[] = [
@@ -49,6 +53,14 @@ export interface Publication {
   apercuCommentaire: CommentairePublication | null;
   /** Lien partagé (publication LinkedIn, article…) avec l’aperçu lu au moment de publier. */
   lien?: LienPublication | null;
+  /** Article porté par une publication de type ARTICLE : la carte du fil mène à sa page de lecture. */
+  article?: ArticlePublication | null;
+}
+
+export interface ArticlePublication {
+  id: string;
+  theme: ThemeArticle;
+  tempsLecture: number;
 }
 
 export interface LienPublication {
@@ -67,7 +79,7 @@ export interface PagePublications {
 }
 
 export interface NouvellePublication {
-  type: TypePublication;
+  type: TypePublicationRedigee;
   titre: string;
   contenu: string;
   audience: AudiencePublication;

@@ -1,11 +1,11 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Publication, PublicationService, TypePublication } from '../../../core/services/publications/publication';
+import { Publication, PublicationService, TypePublicationRedigee } from '../../../core/services/publications/publication';
 import { CartePublication } from '../../../shared/publications/carte-publication/carte-publication';
 import { RedactionPublication } from '../../../shared/publications/redaction-publication/redaction-publication';
 import { PageAdmin } from '../page-admin/page-admin';
 
-const TYPES_OFFICIELS: readonly TypePublication[] = ['ANNONCE_OFFICIELLE', 'APPEL_PROJET'];
+const TYPES_OFFICIELS: readonly TypePublicationRedigee[] = ['ANNONCE_OFFICIELLE', 'APPEL_PROJET'];
 
 /** Annonces officielles et appels à projets : rédaction réservée à l’administration, puis suivi dans le fil. */
 @Component({

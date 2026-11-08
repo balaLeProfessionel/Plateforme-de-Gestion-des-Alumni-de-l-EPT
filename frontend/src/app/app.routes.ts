@@ -175,6 +175,34 @@ export const routes: Routes = [
           import('./features/publications/detail-publication/detail-publication').then((m) => m.DetailPublication)
       },
       {
+        path: 'articles',
+        title: 'Articles | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/articles/bibliotheque-articles/bibliotheque-articles').then((m) => m.BibliothequeArticles)
+      },
+      {
+        path: 'articles/nouveau',
+        title: 'Nouvel article | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/articles/edition-article/edition-article').then((m) => m.EditionArticle)
+      },
+      {
+        path: 'articles/:id/modifier',
+        title: 'Modifier un article | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/articles/edition-article/edition-article').then((m) => m.EditionArticle)
+      },
+      {
+        path: 'articles/:id',
+        title: 'Article | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/articles/lecture-article/lecture-article').then((m) => m.LectureArticle)
+      },
+      {
         path: 'annuaire',
         title: 'Annuaire | EPT Alumni',
         canActivate: [authGuard, changementInitialRequisGuard],

@@ -22,7 +22,7 @@ export class ImagePublication {
       const url = this.url();
       this.source.set('');
       this.erreur.set(false);
-      if (!/^\/api\/publications\/[0-9a-f-]{36}\/image$/i.test(url)) {
+      if (!/^\/api\/(publications\/[0-9a-f-]{36}\/image|articles\/[0-9a-f-]{36}\/couverture)$/i.test(url)) {
         this.source.set(url);
         return;
       }

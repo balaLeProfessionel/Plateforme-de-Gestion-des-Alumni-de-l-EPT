@@ -1,0 +1,79 @@
+<div class="edition-page">
+  @if (chargement()) {
+    <p class="etat-page" role="status">Chargement de l’article…</p>
+  } @else if (echecChargement(); as message) {
+    <div class="etat-page" role="alert">
+      <h1>Modification impossible</h1>
+      <p>{{ message }}</p>
+      <button type="button" class="lien" (click)="fermer()">Revenir aux articles</button>
+    </div>
+  } @else {
+    <h1 class="cache">{{ article() ? 'Modifier l’article' : 'Nouvel article' }}</h1>
+    <div class="barre-haut">
+      <button type="button" class="fermer" aria-label="Fermer l’éditeur" (click)="fermer()">
+        <i class="pi pi-times" aria-hidden="true"></i></button>
+      <p class="sauvegarde" [class.erreur]="etat() === 'erreur'" role="status">{{ libelleEtat() }}</p>
+      <button type="button" class="publier" (click)="preparerPublication()">{{ publie() ? 'Enregistrer' : 'Publier' }}</button>
+    </div>
+    @if (messageErreur(); as message) { <p class="message-erreur" role="alert">{{ message }}</p> }
+
+    <div class="feuille">
+      <app-couverture-article [apercu]="apercuCouverture()" (choisie)="couvertureChoisie($event)" (retiree)="couvertureRetiree()" />
+
+      <label for="article-titre" class="cache">Titre</label>
+      <textarea id="article-titre" class="titre" rows="1" placeholder="Titre de l’article" [formField]="formulaire.titre"
+        (input)="modifie()" (keydown.enter)="passerAuResume($event, champResume)"
+        [attr.aria-invalid]="formulaire.titre().touched() && formulaire.titre().invalid()" aria-describedby="erreur-titre"></textarea>
+      @if (formulaire.titre().touched() && formulaire.titre().errors()[0]; as erreur) {
+        <small id="erreur-titre" class="erreur-champ">{{ erreur.message }}</small>
+      }
+
+      <label for="article-resume" class="cache">Résumé</label>
+      <textarea #champResume id="article-resume" class="resume" rows="2" placeholder="Résumé en deux phrases"
+        [formField]="formulaire.resume" (input)="modifie()"
+        [attr.aria-invalid]="formulaire.resume().touched() && formulaire.resume().invalid()"
+        aria-describedby="aide-resume erreur-resume"></textarea>
+      <small id="aide-resume" class="cache">Il s’affiche dans le fil et la bibliothèque, {{ limites.resume }} caractères au plus.</small>
+      @if (resteResume() < 50) {
+        <small class="compteur" [class.depasse]="resteResume() < 0" aria-live="polite">{{ resteResume() }} caractères restants</small>
+      }
+      @if (formulaire.resume().touched() && formulaire.resume().errors()[0]; as erreur) {
+        <small id="erreur-resume" class="erreur-champ">{{ erreur.message }}</small>
+      }
+
+      <hr />
+
+      @if (apercu()) {
+        <div class="apercu" aria-label="Aperçu de l’article">
+          @if (modele().contenu.trim()) { <app-contenu-article [contenu]="modele().contenu" /> }
+          @else { <p class="vide">Rien à afficher pour l’instant.</p> }
+        </div>
+      } @else {
+        <label for="article-contenu" class="cache">Texte de l’article</label>
+        <textarea #champContenu id="article-contenu" class="contenu" placeholder="Racontez votre parcours, un projet, une recherche…"
+          [formField]="formulaire.contenu" (input)="modifie()"
+          [attr.aria-invalid]="formulaire.contenu().touched() && formulaire.contenu().invalid()"
+          aria-describedby="erreur-contenu"></textarea>
+      }
+      @if (formulaire.contenu().touched() && formulaire.contenu().errors()[0]; as erreur) {
+        <small id="erreur-contenu" class="erreur-champ">{{ erreur.message }}</small>
+      }
+    </div>
+
+    <div class="outils" role="toolbar" aria-label="Mise en forme du texte" aria-controls="article-contenu">
+      @for (o of outils; track o.outil) {
+        <button type="button" [attr.aria-label]="o.libelle" [title]="o.libelle" [disabled]="apercu()"
+          [class]="'outil ' + o.outil" (mousedown)="$event.preventDefault()" (click)="appliquer(o.outil)">
+          @if (o.icone) { <i class="pi" [class]="o.icone" aria-hidden="true"></i> } @else { <span aria-hidden="true">{{ o.texte }}</span> }
+        </button>
+      }
+      <button type="button" class="outil bascule" [attr.aria-pressed]="apercu()" (click)="apercu.set(!apercu())">
+        <i class="pi pi-eye" aria-hidden="true"></i><span>Aperçu</span>
+      </button>
+    </div>
+
+    <app-dialogue-publication [ouvert]="dialogueOuvert()" [modification]="publie()" [enCours]="publicationEnCours()"
+      [erreur]="erreurPublication()" [(theme)]="theme" [(audience)]="audience"
+      (confirme)="publier()" (annule)="fermerDialogue()" />
+  }
+</div>

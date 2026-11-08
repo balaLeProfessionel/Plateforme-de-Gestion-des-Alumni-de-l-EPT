@@ -1,0 +1,82 @@
+@let c = criteres();
+<div class="articles-page">
+  <header class="entete">
+    <div>
+      <h1>Articles</h1>
+      <p>Parcours, recherches et retours d’expérience écrits par les membres de la communauté.</p>
+    </div>
+    <a class="ecrire" routerLink="/articles/nouveau"><i class="pi pi-pen-to-square" aria-hidden="true"></i> Écrire un article</a>
+  </header>
+
+  <nav class="onglets" aria-label="Vues des articles">
+    <a routerLink="/articles" [attr.aria-current]="c.vue === 'bibliotheque' ? 'page' : null">Bibliothèque</a>
+    <a routerLink="/articles" [queryParams]="{ vue: 'mes' }" [attr.aria-current]="c.vue === 'mes' ? 'page' : null">Mes articles</a>
+  </nav>
+
+  @if (c.vue === 'bibliotheque') {
+    <div class="filtres">
+      <div class="recherche">
+        <i class="pi pi-search" aria-hidden="true"></i>
+        <label for="recherche-articles" class="sr-only">Rechercher un article</label>
+        <input id="recherche-articles" type="search" autocomplete="off" placeholder="Rechercher par titre ou résumé"
+          [formField]="formulaire.recherche" aria-describedby="aide-recherche-articles"
+          (keydown.enter)="$event.preventDefault(); appliquerRecherche()" />
+        <span id="aide-recherche-articles" class="sr-only">Les résultats se mettent à jour automatiquement.</span>
+      </div>
+      <div class="themes" role="group" aria-label="Filtrer par thème">
+        <button type="button" [attr.aria-pressed]="c.theme === null" (click)="choisirTheme(null)">Tous</button>
+        @for (theme of themes; track theme) {
+          <button type="button" [attr.aria-pressed]="c.theme === theme" (click)="choisirTheme(theme)">{{ libellesThemes[theme] }}</button>
+        }
+      </div>
+    </div>
+  }
+
+  @if (resultat(); as page) {
+    @if (page.totalElements > 0) {
+      <p class="resume" role="status">
+        <strong>{{ page.totalElements }}</strong> article{{ page.totalElements > 1 ? 's' : '' }}
+        {{ c.vue === 'mes' ? 'écrits par vous' : (filtre() ? 'trouvé' + (page.totalElements > 1 ? 's' : '') : 'publié' + (page.totalElements > 1 ? 's' : '')) }}
+      </p>
+    }
+  }
+
+  <div aria-live="polite" [attr.aria-busy]="enChargement()">
+    @if (enChargement() && !resultat()) {
+      <div class="grille" aria-hidden="true">@for (i of [1, 2, 3, 4, 5, 6]; track i) { <div class="squelette"></div> }</div>
+    } @else if (messageErreur(); as message) {
+      <div class="etat" role="alert"><h2>Chargement impossible</h2><p>{{ message }}</p></div>
+    } @else if (resultat()?.contenu?.length === 0) {
+      <div class="etat">
+        @if (c.vue === 'mes') {
+          <h2>Vous n’avez pas encore écrit d’article</h2>
+          <p>Racontez votre parcours, un projet ou une recherche : vos brouillons restent privés jusqu’à leur publication.</p>
+          <a class="ecrire" routerLink="/articles/nouveau">Écrire mon premier article</a>
+        } @else if (filtre()) {
+          <h2>Aucun article ne correspond</h2>
+          <p>Essayez un autre mot ou un autre thème.</p>
+          <button type="button" class="lien" (click)="effacerFiltres()">Effacer les filtres</button>
+        } @else {
+          <h2>Aucun article pour l’instant</h2>
+          <p>Soyez le premier à partager votre expérience avec la communauté.</p>
+          <a class="ecrire" routerLink="/articles/nouveau">Écrire un article</a>
+        }
+      </div>
+    } @else if (resultat(); as page) {
+      <ul class="grille" [class.actualisation]="enChargement()">
+        @for (article of page.contenu; track article.id) {
+          <li><app-carte-article [article]="article" [avecStatut]="c.vue === 'mes'" /></li>
+        }
+      </ul>
+      @if (page.totalPages > 1) {
+        <nav class="pagination" aria-label="Pages d’articles">
+          <button type="button" [disabled]="page.page === 0" (click)="allerPage(page.page - 1)">
+            <i class="pi pi-chevron-left" aria-hidden="true"></i> Précédents</button>
+          <span>Page {{ page.page + 1 }} sur {{ page.totalPages }}</span>
+          <button type="button" [disabled]="page.page + 1 >= page.totalPages" (click)="allerPage(page.page + 1)">
+            Suivants <i class="pi pi-chevron-right" aria-hidden="true"></i></button>
+        </nav>
+      }
+    }
+  </div>
+</div>

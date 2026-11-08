@@ -59,6 +59,7 @@ export class EspaceMembre implements OnDestroy {
         { libelle: 'Accueil', icone: 'pi-home', route: '/accueil', exact: true },
         { libelle: 'Annuaire', icone: 'pi-users', route: '/annuaire', exact: false },
         { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
+        { libelle: 'Articles', icone: 'pi-book', route: '/articles', exact: false },
         {
           libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', exact: false,
           compteur: this.compteurMentorat.nombre(), libelleCompteur: 'demandes en attente',
@@ -109,7 +110,10 @@ export class EspaceMembre implements OnDestroy {
     ? this.groupesNavigation()
       .flatMap((groupe) => groupe.liens)
       .filter((lien) => !['/annuaire', '/evenements'].includes(lien.route))
-    : [{ libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() }]);
+    : [
+      { libelle: 'Articles', icone: 'pi-book', route: '/articles' },
+      { libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() },
+    ]);
 
   private readonly urlCourante = toSignal(this.router.events.pipe(
     filter((evenement): evenement is NavigationEnd => evenement instanceof NavigationEnd),

@@ -13,6 +13,7 @@ import { BoutonJaime } from '../bouton-jaime/bouton-jaime';
 import { CommentairesPublication } from '../commentaires-publication/commentaires-publication';
 import { MenuPublication } from '../menu-publication/menu-publication';
 import { MessageCommentaire } from '../message-commentaire/message-commentaire';
+import { ApercuArticle } from './apercu-article';
 import { LienPublication } from './lien-publication';
 
 const AUDIENCES: Record<AudiencePublication, string> = {
@@ -35,7 +36,7 @@ const INTERACTIFS = 'a, button, input, textarea, select, label, dialog, [role="m
 @Component({
   selector: 'app-carte-publication',
   imports: [DatePipe, DateRelativePipe, MoisCourtPipe, RouterLink, AvatarMembre, ImagePublication, BoutonJaime, CommentairesPublication,
-    MenuPublication, MessageCommentaire, LienPublication],
+    MenuPublication, MessageCommentaire, LienPublication, ApercuArticle],
   templateUrl: './carte-publication.html',
   styleUrl: './carte-publication.scss',
 })
@@ -49,7 +50,11 @@ export class CartePublication {
   private readonly router = inject(Router);
   private readonly fil = viewChild(CommentairesPublication);
 
-  protected readonly lien = computed(() => ['/publications', this.publication().id]);
+  /** Un article s’ouvre sur sa page de lecture, qui porte aussi sa discussion. */
+  protected readonly lien = computed(() => {
+    const article = this.publication().article;
+    return article ? ['/articles', article.id] : ['/publications', this.publication().id];
+  });
   protected readonly nombreJaime = linkedSignal(() => this.publication().nombreJaime);
   protected readonly jaime = linkedSignal(() => this.publication().jaime);
   protected readonly nombreCommentaires = linkedSignal(() => this.publication().nombreCommentaires);

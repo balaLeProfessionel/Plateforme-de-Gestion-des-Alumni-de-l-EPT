@@ -6,7 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormField, form, maxLength, required } from '@angular/forms/signals';
 import { ApercuLien, ApercuLienService } from '../../../core/services/publications/apercu-lien';
 import {
-  AudiencePublication, LIBELLES_TYPE_PUBLICATION, NouvellePublication, Publication, PublicationService, TypePublication,
+  AudiencePublication, LIBELLES_TYPE_PUBLICATION, NouvellePublication, Publication, PublicationService, TypePublication, TypePublicationRedigee,
 } from '../../../core/services/publications/publication';
 import { chargerImagePourRecadrage } from '../../images/charger-image';
 import { FORMAT_PUBLICATION } from '../../images/recadrage';
@@ -17,9 +17,10 @@ export const MESSAGES_SUCCES: Record<TypePublication, string> = {
   PUBLICATION: 'Votre publication a été publiée.',
   ANNONCE_OFFICIELLE: 'L’annonce officielle est publiée dans le fil.',
   APPEL_PROJET: 'L’appel à projet est diffusé dans le fil.',
+  ARTICLE: 'Votre article est publié.',
 };
 
-const TITRES_FORMULAIRE: Record<TypePublication, string> = {
+const TITRES_FORMULAIRE: Record<TypePublicationRedigee, string> = {
   PUBLICATION: 'Nouvelle publication',
   ANNONCE_OFFICIELLE: 'Nouvelle annonce officielle',
   APPEL_PROJET: 'Nouvel appel à projet',
@@ -37,7 +38,7 @@ const TITRES_FORMULAIRE: Record<TypePublication, string> = {
 })
 export class RedactionPublication {
   /** Types proposés, le premier étant choisi par défaut. */
-  readonly types = input<readonly TypePublication[]>(['PUBLICATION']);
+  readonly types = input<readonly TypePublicationRedigee[]>(['PUBLICATION']);
   readonly libelleOuvrir = input('Partager une publication');
   /** Pendant le chargement de la page, la publication attend. */
   readonly desactivee = input(false);
@@ -213,7 +214,7 @@ export class RedactionPublication {
     this.chargementImageLien.set(false);
   }
 
-  protected choisirType(type: TypePublication): void {
+  protected choisirType(type: TypePublicationRedigee): void {
     this.modele.update((valeurs) => ({ ...valeurs, type, dateLimite: type === 'APPEL_PROJET' ? valeurs.dateLimite : '' }));
     this.erreurPublication.set('');
   }
@@ -386,7 +387,7 @@ export class RedactionPublication {
   }
 
   private modeleVide() {
-    return { type: this.types()[0] ?? ('PUBLICATION' as TypePublication), titre: '', contenu: '',
+    return { type: this.types()[0] ?? ('PUBLICATION' as TypePublicationRedigee), titre: '', contenu: '',
       audience: 'TOUS' as AudiencePublication, dateLimite: '', lien: '' };
   }
 

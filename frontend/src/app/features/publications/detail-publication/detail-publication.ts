@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Publication, PublicationService } from '../../../core/services/publications/publication';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { CartePublication } from '../../../shared/publications/carte-publication/carte-publication';
@@ -55,6 +55,7 @@ import { CartePublication } from '../../../shared/publications/carte-publication
 })
 export class DetailPublication {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private id = '';
   /** Arrivée depuis « Commenter » dans le fil : la saisie du commentaire reçoit le focus. */
   protected readonly commenter = this.route.snapshot.queryParamMap.has('commenter');
@@ -75,7 +76,16 @@ export class DetailPublication {
     this.publication.set(undefined);
     this.echec.set(undefined);
     this.service.obtenir(this.id).subscribe({
-      next: (publication) => this.publication.set(publication),
+      next: (publication) => {
+        // Un article se lit sur sa propre page, qui porte aussi sa discussion.
+        if (publication.article) {
+          void this.router.navigate(['/articles', publication.article.id], {
+            replaceUrl: true, queryParams: this.commenter ? { commenter: 1 } : {},
+          });
+          return;
+        }
+        this.publication.set(publication);
+      },
       error: (erreur: HttpErrorResponse) => this.echec.set(erreur.status === 404 ? 'introuvable' : 'erreur'),
     });
   }

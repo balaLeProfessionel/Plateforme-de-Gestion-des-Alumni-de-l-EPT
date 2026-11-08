@@ -25,6 +25,9 @@
     <app-menu-publication class="menu" [publicationId]="p.id" [peutSignaler]="!estAuteur()" />
   </header>
 
+  @if (p.article) {
+    <app-apercu-article [article]="p.article" [titre]="p.titre ?? ''" [resume]="p.contenu" [couverture]="p.urlImage" />
+  } @else {
   <div class="corps">
     @if (p.type === 'APPEL_PROJET' && p.dateLimite) {
       <div class="appel-titre">
@@ -55,6 +58,7 @@
   @if (p.urlImage) {
     <div class="media"><app-image-publication [url]="p.urlImage"
       [description]="p.texteAlternatif || 'Image partagée par ' + auteur()" /></div>
+  }
   }
 
   @if (p.lien && lienEnSource()) { <app-lien-publication [lien]="p.lien" [source]="true" /> }
