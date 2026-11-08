@@ -22,6 +22,7 @@ export class EvolutionCompte {
   private readonly service = inject(AdminComptesService);
   private readonly authService = inject(AuthService);
   private readonly injector = inject(Injector);
+  private readonly hote = inject<ElementRef<HTMLElement>>(ElementRef);
 
   readonly compte = input.required<CompteAdmin>();
   /** Une évolution est enregistrée : le message dit ce qui a été fait. */
@@ -33,8 +34,13 @@ export class EvolutionCompte {
     const compte = this.compte();
     return compte.id !== this.authService.utilisateur()?.id && compte.role !== 'ORGANISME' && compte.statutCompte !== 'SUSPENDU';
   });
-  protected readonly rolesPossibles = computed(() => ROLES_ATTRIBUABLES.filter((role) => role !== this.compte().role));
+  /** Le rôle Administration ne se donne qu’à un compte vérifié : le serveur refuse aussi les autres cas. */
+  protected readonly rolesPossibles = computed(() => ROLES_ATTRIBUABLES.filter((role) =>
+    role !== this.compte().role && (role !== 'ADMIN' || this.compte().statutCompte === 'ACTIF')));
+  protected readonly nom = computed(() => nomDuCompte(this.compte()));
   protected readonly panneau = signal<Panneau | null>(null);
+  /** Deuxième étape avant de donner le rôle Administration : elle nomme la personne et ce qu’elle pourra faire. */
+  protected readonly confirmationAdmin = signal(false);
   protected readonly enCours = signal(false);
   protected readonly erreur = signal<string | null>(null);
 
@@ -49,13 +55,36 @@ export class EvolutionCompte {
       ? erreurAnnee(value(), this.compte().anneeEntree ? String(this.compte().anneeEntree) : undefined) : undefined);
   });
   private readonly premierChamp = viewChild<ElementRef<HTMLElement>>('premierChamp');
+  private readonly boutonConfirmation = viewChild<ElementRef<HTMLElement>>('boutonConfirmation');
+  /** Seuls les messages affichés sont cités : un aria-describedby vers un id absent n’annonce rien. */
+  protected readonly descriptionRole = computed(() => {
+    const ids = [
+      this.formulaire.role().touched() && this.formulaire.role().invalid() ? 'erreur-evolution-role' : null,
+      this.modele().role === 'ADMIN' || this.compte().statutCompte === 'EN_ATTENTE' ? 'alerte-evolution-role' : null,
+    ].filter(Boolean);
+    return ids.length ? ids.join(' ') : null;
+  });
 
   protected ouvrir(panneau: Panneau): void {
     this.modele.set({ role: '', motif: '', anneeSortie: String(this.anneeCourante) });
     this.formulaire().reset();
     this.erreur.set(null);
+    this.confirmationAdmin.set(false);
     this.panneau.set(panneau);
-    afterNextRender(() => this.premierChamp()?.nativeElement.focus(), { injector: this.injector });
+    this.focaliser(() => this.premierChamp()?.nativeElement);
+  }
+
+  /** Ferme le panneau (Annuler, Échap) et rend le focus au bouton qui l’avait ouvert. */
+  protected fermer(): void {
+    const panneau = this.panneau();
+    this.panneau.set(null);
+    this.confirmationAdmin.set(false);
+    this.focaliser(() => this.hote.nativeElement.querySelector<HTMLElement>(`[data-action="${panneau}"]`));
+  }
+
+  protected revenirAuChoix(): void {
+    this.confirmationAdmin.set(false);
+    this.focaliser(() => this.premierChamp()?.nativeElement);
   }
 
   protected confirmer(): void {
@@ -65,6 +94,11 @@ export class EvolutionCompte {
     const saisie = this.modele();
     const compte = this.compte();
     const nom = nomDuCompte(compte);
+    if (panneau === 'role' && saisie.role === 'ADMIN' && !this.confirmationAdmin()) {
+      this.confirmationAdmin.set(true);
+      this.focaliser(() => this.boutonConfirmation()?.nativeElement);
+      return;
+    }
     if (panneau === 'role' && saisie.role) {
       this.executer(this.service.changerRole(compte.id, saisie.role, saisie.motif.trim()).pipe(map(() => undefined)),
         `${nom} a désormais le rôle « ${LIBELLES_ROLE_COMPTE[saisie.role]} ».`);
@@ -73,6 +107,10 @@ export class EvolutionCompte {
       this.executer(this.service.marquerDiplomes([compte.id], annee).pipe(map((resultat) => resultat.ignores[0]?.raison)),
         `${nom} est désormais alumni (promotion ${annee}).`);
     }
+  }
+
+  private focaliser(cible: () => HTMLElement | null | undefined): void {
+    afterNextRender(() => cible()?.focus(), { injector: this.injector });
   }
 
   /** L’action renvoie la raison d’un refus (diplomation), ou undefined si tout s’est bien passé. */
@@ -88,7 +126,10 @@ export class EvolutionCompte {
           return;
         }
         this.panneau.set(null);
+        this.confirmationAdmin.set(false);
         this.modifie.emit(message);
+        // Le panneau disparaît : le focus revient au bouton « Changer le rôle », présent pour tout compte modifiable.
+        this.focaliser(() => this.hote.nativeElement.querySelector<HTMLElement>('[data-action="role"]'));
       },
       error: (erreur: HttpErrorResponse) => {
         this.enCours.set(false);

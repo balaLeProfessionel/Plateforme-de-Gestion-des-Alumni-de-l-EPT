@@ -56,13 +56,55 @@ describe('EvolutionCompte', () => {
 
     saisir('evolution-role', 'ADMIN', 'change');
     expect(racine().textContent).toContain('accès à toute l’administration');
+    expect(racine().querySelector('#evolution-role')?.getAttribute('aria-describedby')).toBe('alerte-evolution-role');
     saisir('evolution-motif', 'Rejoint le service alumni');
+
+    // Le rôle le plus élevé demande une confirmation qui nomme la personne et ses droits.
     bouton('Changer le rôle').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    http.expectNone('/api/admin/comptes/c1/role');
+    expect(racine().querySelector('.question')?.textContent).toContain('Donner le rôle Administration à Awa Diop ?');
+    expect(racine().querySelector('.confirmation')?.textContent).toContain('changer les rôles');
+    expect(document.activeElement).toBe(bouton('Donner le rôle Administration'));
+
+    bouton('Donner le rôle Administration').click();
     const requete = http.expectOne({ method: 'PATCH', url: '/api/admin/comptes/c1/role' });
     expect(requete.request.body).toEqual({ role: 'ADMIN', motif: 'Rejoint le service alumni' });
     requete.flush(compte({ role: 'ADMIN' }));
+    fixture.detectChanges();
     await fixture.whenStable();
     expect(messages).toEqual(['Awa Diop a désormais le rôle « Administration ».']);
+    expect(document.activeElement?.getAttribute('data-action')).toBe('role');
+  });
+
+  it('ne propose pas le rôle Administration à une inscription non validée', async () => {
+    demarrer(compte({ role: 'ALUMNI', statutCompte: 'EN_ATTENTE' }));
+    bouton('Changer le rôle').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect([...racine().querySelectorAll('#evolution-role option')].map((o) => o.textContent)).not.toContain('Administration');
+    expect(racine().querySelector('#alerte-evolution-role')?.textContent).toContain('une fois l’inscription validée');
+  });
+
+  it('rend le focus au bouton d’ouverture quand on annule, y compris avec Échap', async () => {
+    demarrer(compte({ role: 'PERSONNEL' }));
+    bouton('Changer le rôle').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    bouton('Annuler').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement?.getAttribute('data-action')).toBe('role');
+
+    bouton('Changer le rôle').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    racine().querySelector('.panneau')?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(racine().querySelector('.panneau')).toBeNull();
+    expect(document.activeElement?.getAttribute('data-action')).toBe('role');
   });
 
   it('marque diplômé un étudiant et remonte la raison d’un refus', async () => {

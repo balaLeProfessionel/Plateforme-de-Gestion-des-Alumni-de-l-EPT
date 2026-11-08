@@ -3,7 +3,7 @@
   <a actionsPage class="bouton" routerLink="/admin/comptes/import"><i class="pi pi-upload" aria-hidden="true"></i>Importer une promotion</a>
 
   @if (cree(); as compte) {
-    <section class="carte resultat" aria-labelledby="titre-cree">
+    <section #resultat class="carte resultat" tabindex="-1" aria-labelledby="titre-cree">
       <h2 id="titre-cree"><i class="pi pi-check-circle" aria-hidden="true"></i> Compte créé pour {{ compte.prenom }} {{ compte.nom }}</h2>
       <p class="aide">Un e-mail avec ce mot de passe provisoire a été envoyé à {{ compte.email }}. Il ne sera plus affiché ensuite.</p>
       <div class="mot-de-passe">
@@ -48,13 +48,14 @@
           }
         </div>
         <div class="champ">
-          <label for="compte-role">Type de compte</label>
+          <label for="compte-role">Rôle</label>
           <select id="compte-role" [formField]="formulaire.role" aria-describedby="aide-role">
             @for (role of roles; track role) { <option [value]="role">{{ libellesRole[role] }}</option> }
           </select>
-          <p id="aide-role" class="aide">
-            @if (modele().role === 'ADMIN') { Ce compte aura accès à toute l’administration. }
-            @else { Un organisme s’inscrit lui-même depuis la page d’inscription. }
+          <p id="aide-role" class="aide" [class.alerte]="modele().role === 'ADMIN'" aria-live="polite">
+            @if (modele().role === 'ADMIN') {
+              Ce compte pourra créer, suspendre et réactiver des comptes, changer les rôles, enregistrer les diplômés et lire le journal.
+            } @else { Un organisme s’inscrit lui-même depuis la page d’inscription. }
           </p>
         </div>
         <div class="champ">

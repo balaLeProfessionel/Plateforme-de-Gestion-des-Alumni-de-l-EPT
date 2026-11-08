@@ -35,7 +35,7 @@ describe('TableauDeBord', () => {
   };
 
   it('met en avant les inscriptions à examiner, leur ancienneté et les dernières décisions', async () => {
-    const racine = await charger(tableau({ inscriptionsEnAttente: 20, plusAncienneInscription: '2026-10-13T09:00:00' }));
+    const racine = await charger(tableau({ inscriptionsEnAttente: 20, plusAncienneInscription: '2026-10-13T09:00:00', administrateursActifs: 2 }));
 
     const file = racine.querySelector('a.file') as HTMLAnchorElement;
     expect(file.getAttribute('href')).toBe('/admin/inscriptions');
@@ -51,12 +51,21 @@ describe('TableauDeBord', () => {
     expect(decision.querySelector('a')?.getAttribute('href')).toBe('/admin/comptes/c9');
   });
 
-  it('dit quand tout est traité', async () => {
-    const racine = await charger({ ...tableau({ inscriptionsEnAttente: 0, plusAncienneInscription: null }), dernieresDecisions: [] });
+  it('dit quand rien n’attend, sans prétendre que des inscriptions ont été traitées', async () => {
+    const racine = await charger({ ...tableau({ inscriptionsEnAttente: 0, plusAncienneInscription: null, administrateursActifs: 2 }), dernieresDecisions: [] });
     expect(racine.querySelector('a.file')?.textContent).toContain('Aucune inscription à examiner');
+    expect(racine.textContent).not.toContain('ont été traitées');
+    expect(racine.querySelector('.seul-admin')).toBeNull();
     expect(racine.querySelector('a.file')?.classList).not.toContain('urgente');
     expect(racine.querySelector('.decisions')).toBeNull();
     expect(racine.textContent).toContain('Aucune décision pour l’instant.');
+  });
+
+  it('demande un second administrateur tant qu’il n’y en a qu’un', async () => {
+    const racine = await charger(tableau({ inscriptionsEnAttente: 0, plusAncienneInscription: null, administrateursActifs: 1 }));
+    const alerte = racine.querySelector('a.seul-admin') as HTMLAnchorElement;
+    expect(alerte.textContent).toContain('Un seul compte d’administration');
+    expect(alerte.getAttribute('href')).toBe('/admin/comptes/nouveau?role=ADMIN');
   });
 
   it('signale un chargement impossible', async () => {

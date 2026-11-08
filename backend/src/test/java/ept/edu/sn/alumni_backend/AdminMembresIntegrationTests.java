@@ -160,7 +160,7 @@ class AdminMembresIntegrationTests {
             .andExpect(jsonPath("$.contenu[0].details").value("PERSONNEL → ADMIN"))
             .andExpect(jsonPath("$.contenu[0].motif").value("Rejoint le service des relations alumni"));
         verify(emailService).envoyerNotification(eq(membre.getEmail()), eq("Votre rôle sur EPT Alumni a changé"),
-            argThat(message -> message.contains("relations alumni")));
+            argThat(message -> message.contains("relations alumni") && message.contains("le rôle Administration")));
     }
 
     @Test
@@ -181,6 +181,14 @@ class AdminMembresIntegrationTests {
             .andExpect(status().isConflict()).andExpect(jsonPath("$.message").value("Ce compte a déjà ce rôle."));
         envoyer(patch("/api/admin/comptes/{id}/role", alumni.getId()), admin, "{\"role\":\"ORGANISME\",\"motif\":\"Test\"}")
             .andExpect(status().isConflict());
+
+        // Le rôle le plus élevé ne va pas à un compte que l'école n'a pas vérifié ; les autres rôles, si.
+        Utilisateur enAttente = creerUtilisateur(TypeRole.ALUMNI, StatutCompte.EN_ATTENTE, "Attente", null);
+        envoyer(patch("/api/admin/comptes/{id}/role", enAttente.getId()), admin, "{\"role\":\"ADMIN\",\"motif\":\"Test\"}")
+            .andExpect(status().isConflict()).andExpect(jsonPath("$.message").value(
+                "Validez d'abord l'inscription de ce compte : le rôle Administration ne se donne qu'à un compte vérifié."));
+        assertThat(utilisateurRepository.findById(enAttente.getId()).orElseThrow().getRole()).isEqualTo(TypeRole.ALUMNI);
+        envoyer(patch("/api/admin/comptes/{id}/role", enAttente.getId()), admin, corps).andExpect(status().isOk());
     }
 
     @Test

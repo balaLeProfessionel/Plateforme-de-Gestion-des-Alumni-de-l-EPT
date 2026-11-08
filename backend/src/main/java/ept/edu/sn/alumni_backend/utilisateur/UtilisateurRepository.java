@@ -30,6 +30,10 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, UUID>,
 
     boolean existsByEmail(String email);
 
+    boolean existsByRole(TypeRole role);
+
+    long countByRoleAndStatutCompte(TypeRole role, StatutCompte statutCompte);
+
     List<Utilisateur> findByStatutCompte(StatutCompte statutCompte);
 
     long countByStatutCompteAndEmailVerifieTrue(StatutCompte statutCompte);

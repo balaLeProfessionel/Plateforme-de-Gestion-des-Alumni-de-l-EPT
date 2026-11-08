@@ -13,6 +13,7 @@ import ept.edu.sn.alumni_backend.admin.dto.TableauDeBordAdminResponse.AFaire;
 import ept.edu.sn.alumni_backend.admin.dto.TableauDeBordAdminResponse.Communaute;
 import ept.edu.sn.alumni_backend.admin.repository.ActionAdminRepository;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
+import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.evenement.StatutEvenement;
 import ept.edu.sn.alumni_backend.evenement.repository.EvenementRepository;
 import ept.edu.sn.alumni_backend.mentorat.StatutMentorat;
@@ -41,7 +42,8 @@ public class TableauDeBordAdminService {
         AFaire aTraiter = new AFaire(
             utilisateurRepository.countByStatutCompteAndEmailVerifieTrue(StatutCompte.EN_ATTENTE),
             utilisateurRepository.findFirstByStatutCompteAndEmailVerifieTrueOrderByDateCreationAsc(StatutCompte.EN_ATTENTE)
-                .map(Utilisateur::getDateCreation).orElse(null));
+                .map(Utilisateur::getDateCreation).orElse(null),
+            utilisateurRepository.countByRoleAndStatutCompte(TypeRole.ADMIN, StatutCompte.ACTIF));
         Communaute communaute = new Communaute(
             utilisateurRepository.countByStatutCompteAndEmailVerifieTrue(StatutCompte.ACTIF),
             utilisateurRepository.countByEmailVerifieTrueAndDateCreationGreaterThanEqual(

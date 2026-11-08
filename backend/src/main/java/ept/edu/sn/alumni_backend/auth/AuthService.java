@@ -318,6 +318,18 @@ public class AuthService {
             throw new TokenInvalideException("Le refresh token ne correspond pas à la session active");
         }
 
+        // Le mot de passe provisoire est connu d'un tiers (l'administration, ou l'exploitant pour le premier admin).
+        if (passwordEncoder.matches(request.nouveauMotDePasse(), utilisateur.getPassword())) {
+            throw new IllegalArgumentException("Choisissez un mot de passe différent du mot de passe provisoire.");
+        }
+        if (utilisateur.getRole() == TypeRole.ADMIN) {
+            if (request.prenom() != null && !request.prenom().isBlank()) {
+                utilisateur.setPrenom(request.prenom().trim());
+            }
+            if (request.nom() != null && !request.nom().isBlank()) {
+                utilisateur.setNom(request.nom().trim());
+            }
+        }
         utilisateur.setPassword(passwordEncoder.encode(request.nouveauMotDePasse()));
         utilisateur.setDoitChangerMotDePasse(false);
         utilisateur = utilisateurRepository.save(utilisateur);

@@ -51,11 +51,15 @@ public class EvolutionComptesService {
         if (compte.getRole() == nouveauRole) {
             throw new ConflitCompteException("Ce compte a déjà ce rôle.");
         }
+        if (nouveauRole == TypeRole.ADMIN && compte.getStatutCompte() != StatutCompte.ACTIF) {
+            throw new ConflitCompteException("Validez d'abord l'inscription de ce compte : le rôle Administration ne se donne qu'à un compte vérifié.");
+        }
         TypeRole ancienRole = compte.getRole();
         compte.setRole(nouveauRole);
         trace.consigner(principal, compte, TypeActionAdmin.CHANGEMENT_ROLE, motif, ancienRole.name() + " → " + nouveauRole.name());
         trace.notifier(compte, "Votre rôle sur EPT Alumni a changé",
-            "Bonjour " + NomCompte.salutation(compte) + ", l'administration de l'EPT a modifié votre rôle sur EPT Alumni. Motif : " + motif);
+            "Bonjour " + NomCompte.salutation(compte) + ", l'administration de l'EPT a modifié votre rôle sur EPT Alumni : votre compte a désormais le rôle "
+                + NomCompte.role(nouveauRole) + ". Motif : " + motif);
         return gestionComptesService.reponse(compte);
     }
 

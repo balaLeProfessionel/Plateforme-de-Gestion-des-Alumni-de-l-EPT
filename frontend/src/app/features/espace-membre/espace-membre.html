@@ -129,7 +129,7 @@
     </p-sidebar-main>
   </p-sidebar-layout>
 
-  <app-menu-mobile [(ouvert)]="menuOuvert" [lienProfil]="lienProfil()"
+  <app-menu-mobile [(ouvert)]="menuOuvert" [lienProfil]="lienProfil()" [libelleProfil]="libelleProfil()"
     [liens]="liensMenuMobile()" [rubriques]="rubriquesAVenir()" (deconnexion)="seDeconnecter()" />
   <app-navigation-mobile [(menuOuvert)]="menuOuvert" />
 </div>

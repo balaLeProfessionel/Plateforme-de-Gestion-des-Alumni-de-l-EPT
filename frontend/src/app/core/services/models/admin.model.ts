@@ -1,7 +1,7 @@
 export type StatutCompte = 'EN_ATTENTE' | 'ACTIF' | 'SUSPENDU';
 export type RoleCompte = 'ETUDIANT' | 'ALUMNI' | 'PERSONNEL' | 'ORGANISME' | 'ADMIN' | 'VISITEUR';
 export type TypeActionAdmin = 'VALIDATION_INSCRIPTION' | 'REFUS_INSCRIPTION' | 'SUSPENSION' | 'REACTIVATION'
-  | 'CREATION_COMPTE' | 'CHANGEMENT_ROLE' | 'DIPLOMATION';
+  | 'CREATION_COMPTE' | 'CHANGEMENT_ROLE' | 'DIPLOMATION' | 'MODIFICATION_IDENTITE';
 
 /** Miroir de CompteAdminResponse : un compte vu par l’administration, coordonnées comprises. */
 export interface CompteAdmin {
@@ -148,7 +148,8 @@ export interface EntreeJournal {
 }
 
 export interface TableauDeBordAdmin {
-  aTraiter: { inscriptionsEnAttente: number; plusAncienneInscription: string | null };
+  /** administrateursActifs : à 1, la plateforme n’a plus de gestionnaire si ce compte perd son accès. */
+  aTraiter: { inscriptionsEnAttente: number; plusAncienneInscription: string | null; administrateursActifs: number };
   communaute: {
     comptesActifs: number;
     inscritsCeMois: number;
@@ -186,6 +187,7 @@ export const LIBELLES_ACTION_ADMIN: Record<TypeActionAdmin, string> = {
   CREATION_COMPTE: 'Compte créé',
   CHANGEMENT_ROLE: 'Rôle changé',
   DIPLOMATION: 'Diplôme enregistré',
+  MODIFICATION_IDENTITE: 'Nom corrigé',
 };
 
 /** Détails lisibles : les rôles techniques (« ALUMNI → ADMIN ») deviennent leurs libellés. */

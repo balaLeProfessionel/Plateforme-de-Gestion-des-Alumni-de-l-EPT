@@ -1,8 +1,8 @@
 import { DOCUMENT } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, ElementRef, inject, Injector, signal } from '@angular/core';
+import { afterNextRender, Component, computed, ElementRef, inject, Injector, signal, viewChild } from '@angular/core';
 import { email, form, FormField, maxLength, required, validate } from '@angular/forms/signals';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AdminComptesService } from '../../../core/services/admin/admin-comptes';
 import {
   CompteCree, LIBELLES_ROLE_COMPTE, RoleAttribuable, ROLES_ATTRIBUABLES,
@@ -29,7 +29,13 @@ export class NouveauCompte {
   protected readonly roles = ROLES_ATTRIBUABLES;
   protected readonly libellesRole = LIBELLES_ROLE_COMPTE;
   protected readonly parents = [{ libelle: 'Comptes', lien: '/admin/comptes' }];
-  protected readonly modele = signal({ ...VIERGE });
+  /** Le tableau de bord ouvre ce formulaire avec ?role=ADMIN quand la plateforme n’a qu’un administrateur. */
+  private readonly roleDemande = inject(ActivatedRoute).snapshot.queryParamMap.get('role');
+  protected readonly modele = signal({
+    ...VIERGE,
+    role: ROLES_ATTRIBUABLES.find((role) => role === this.roleDemande) ?? VIERGE.role,
+  });
+  private readonly resultat = viewChild<ElementRef<HTMLElement>>('resultat');
   protected readonly formulaire = form(this.modele, (champ) => {
     required(champ.prenom, { message: 'Le prénom est obligatoire.' });
     maxLength(champ.prenom, 100, { message: '100 caractères au maximum.' });
@@ -66,6 +72,8 @@ export class NouveauCompte {
       next: (cree) => {
         this.enCours.set(false);
         this.cree.set(cree);
+        // Le formulaire disparaît : le focus va au résultat, qui contient le mot de passe affiché une seule fois.
+        afterNextRender(() => this.resultat()?.nativeElement.focus(), { injector: this.injector });
       },
       error: (erreur: HttpErrorResponse) => {
         this.enCours.set(false);

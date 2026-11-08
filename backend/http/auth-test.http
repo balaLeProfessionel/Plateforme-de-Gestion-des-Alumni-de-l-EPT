@@ -574,10 +574,9 @@ POST {{baseUrl}}/auth/logout
 ### =====================================================================
 ### NOTE — Créer un compte ADMIN pour les parties 6 et 7
 ### =====================================================================
-### Aucune API ne crée d'admin (volontairement). Options :
-### 1. Inscris un VISITEUR, vérifie son OTP, puis en base :
-###    UPDATE utilisateur SET role='ADMIN' WHERE email='sophie.ba@gmail.com';
-### 2. Ou insère directement un admin avec un vrai hash BCrypt.
+### Sur une base sans admin, définis APP_PREMIER_ADMIN_EMAIL et APP_PREMIER_ADMIN_PASSWORD,
+### puis redémarre le backend (voir README). Ce compte doit changer son mot de passe
+### à la première connexion, avant de pouvoir appeler les routes admin.
 ###
 ### RAPPEL : un compte créé avant l'ajout de emailVerifie doit être
 ### passé à vérifié pour pouvoir se connecter :

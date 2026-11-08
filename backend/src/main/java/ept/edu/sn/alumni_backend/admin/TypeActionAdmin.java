@@ -8,5 +8,7 @@ public enum TypeActionAdmin {
     REACTIVATION,
     CREATION_COMPTE,
     CHANGEMENT_ROLE,
-    DIPLOMATION
+    DIPLOMATION,
+    /** Un administrateur corrige son propre nom : le journal garde l'ancien, puisqu'il affiche le nom actuel de l'auteur. */
+    MODIFICATION_IDENTITE
 }

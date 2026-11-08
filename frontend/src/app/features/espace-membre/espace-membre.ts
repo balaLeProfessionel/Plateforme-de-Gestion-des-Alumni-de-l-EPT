@@ -90,7 +90,6 @@ export class EspaceMembre implements OnDestroy {
     { libelle: 'Modération', icone: 'pi-flag' },
     { libelle: 'Annonces', icone: 'pi-megaphone' },
     { libelle: 'Enquêtes', icone: 'pi-clipboard' },
-    { libelle: 'Rôles et accès', icone: 'pi-key' },
   ] : [
     { libelle: 'Offres d’emploi', icone: 'pi-briefcase' },
     { libelle: 'Actualités', icone: 'pi-megaphone' },
@@ -111,12 +110,15 @@ export class EspaceMembre implements OnDestroy {
   ), { initialValue: this.router.url });
   /** Son propre profil n’a pas d’entrée dans la barre : le bouton du compte, qui y mène, est alors la page courante. */
   protected readonly pageCompte = computed(() =>
-    /^\/(profil|profil\/parametres|organisme\/parametres)(\?|#|$)/.test(this.urlCourante()));
+    /^\/(profil|profil\/parametres|organisme\/parametres|admin\/mon-compte)(\?|#|$)/.test(this.urlCourante()));
 
   protected readonly lienProfil = computed(() => {
     const role = this.authService.utilisateur()?.role;
     if (role === 'ORGANISME') {
       return '/organisme/parametres';
+    }
+    if (role === 'ADMIN') {
+      return '/admin/mon-compte';
     }
     if (role && ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'].includes(role)) {
       return '/profil';
@@ -124,12 +126,15 @@ export class EspaceMembre implements OnDestroy {
     return null;
   });
 
+  /** Un administrateur n’a pas de profil de membre : son nom et son mot de passe sont dans « Mon compte ». */
+  protected readonly libelleProfil = computed(() => ({ ORGANISME: 'Mon organisme', ADMIN: 'Mon compte' } as Record<string, string>)
+    [this.authService.utilisateur()?.role ?? ''] ?? 'Mon profil');
+
   protected readonly elementsMenuCompte = computed<MenuItem[]>(() => {
     // Pas d’entrée « Paramètres » : le profil s’ouvre en lecture et « Modifier mon profil » y mène.
     const profil = this.lienProfil();
-    const organisme = this.authService.utilisateur()?.role === 'ORGANISME';
     return [
-      ...(profil ? [{ label: organisme ? 'Mon organisme' : 'Mon profil', icon: 'pi pi-user', routerLink: profil }] : []),
+      ...(profil ? [{ label: this.libelleProfil(), icon: 'pi pi-user', routerLink: profil }] : []),
       ...(profil ? [{ separator: true }] : []),
       { label: 'Déconnexion', icon: 'pi pi-sign-out', command: () => this.seDeconnecter() },
     ];

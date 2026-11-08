@@ -46,8 +46,17 @@ Seul le frontend est exposé sur la machine hôte. Il transmet les appels `/api`
 | `APP_STORAGE_PHOTOS_DIR` | Répertoire persistant des photos de profil dans le conteneur backend |
 | `APP_MAX_PHOTO_SIZE` | Taille maximale acceptée pour une photo de profil |
 | `PRIMENG_LICENSE` | Licence PrimeNG, injectée dans le frontend à la compilation. Sans elle, PrimeNG affiche une bannière |
+| `APP_PREMIER_ADMIN_EMAIL` | Adresse du premier compte d'administration |
+| `APP_PREMIER_ADMIN_PASSWORD` | Mot de passe provisoire de ce compte, 8 caractères au moins |
 
 Le fichier `.env` reste local et ne doit pas être ajouté au dépôt. `.env.example` contient uniquement une configuration de développement.
+
+## Premier compte d'administration
+
+Au démarrage, si la base n'a aucun administrateur, le backend crée ce compte à partir des deux variables `APP_PREMIER_ADMIN_*`. Son titulaire doit changer le mot de passe à la première connexion. Une fois le compte créé, retirez les deux variables de l'environnement : elles ne servent plus, et les comptes suivants se créent depuis l'administration.
+
+- Si les variables sont vides, le backend démarre sans administrateur et l'indique dans ses logs.
+- Si l'adresse ou le mot de passe est invalide, ou si l'adresse appartient déjà à un compte, le backend refuse de démarrer et en donne la raison dans ses logs. Un compte existant n'est jamais promu.
 
 Les photos de profil sont conservées dans le volume Docker `profile_photos`. En production, sauvegarder ce volume avec `postgres_data` avant une mise à jour ou une restauration. Ne placez pas les photos uniquement dans le système de fichiers interne du conteneur : elles seraient perdues lors de sa reconstruction.
 

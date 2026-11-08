@@ -3,7 +3,7 @@
   <a actionsPage class="bouton" routerLink="/admin/comptes/nouveau"><i class="pi pi-user-plus" aria-hidden="true"></i>Créer un seul compte</a>
 
   @if (resultat(); as r) {
-    <section class="carte" aria-labelledby="titre-rapport">
+    <section #rapport class="carte rapport" tabindex="-1" aria-labelledby="titre-rapport">
       <h2 id="titre-rapport">Rapport d’import</h2>
       <p class="message" [class.erreur]="r.crees === 0" role="status">
         {{ r.crees }} {{ r.crees > 1 ? 'comptes créés' : 'compte créé' }} sur {{ r.lignes.length }}

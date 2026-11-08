@@ -2,7 +2,7 @@
 .actualisation { opacity: 0.55; }
 .resume {
   margin: 0 0 0.75rem; color: var(--ept-text-secondary); font-size: 0.88rem; scroll-margin-top: 5rem;
-  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
 }
 
 // Bandeau collé en haut de l’écran : « Annuler » reste à portée pendant le délai.
@@ -18,7 +18,7 @@
   button {
     margin-left: auto; min-height: 2.25rem; padding: 0.3rem 0.85rem; border: 1px solid var(--ept-success-dark);
     border-radius: 8px; background: white; color: var(--ept-success-dark); font: inherit; font-weight: 700; cursor: pointer;
-    &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
+    &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 1px; }
   }
 }
 

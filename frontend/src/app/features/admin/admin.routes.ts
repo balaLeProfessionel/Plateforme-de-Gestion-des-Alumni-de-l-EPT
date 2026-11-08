@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { permissionGuard } from '../../core/guards/auth.guard';
+import { permissionGuard, roleGuard } from '../../core/guards/auth.guard';
 
 /** Chaque rubrique exige sa permission ; la navigation par domaine est dans la barre latérale. */
 export const ADMIN_ROUTES: Routes = [
@@ -45,6 +45,13 @@ export const ADMIN_ROUTES: Routes = [
     canActivate: [permissionGuard],
     data: { permission: 'GERER_COMPTES' },
     loadComponent: () => import('./diplomes/diplomes').then((m) => m.Diplomes),
+  },
+  {
+    path: 'mon-compte',
+    title: 'Mon compte | EPT Alumni',
+    canActivate: [roleGuard],
+    data: { roles: ['ADMIN'] },
+    loadComponent: () => import('./mon-compte/mon-compte').then((m) => m.MonCompte),
   },
   {
     path: 'comptes/:id',

@@ -57,6 +57,11 @@ export class AdminComptesService {
     return this.http.get<TableauDeBordAdmin>('/api/admin/tableau-de-bord');
   }
 
+  /** Nom de l’administrateur connecté, tel qu’il apparaît comme auteur au journal. */
+  modifierMonIdentite(prenom: string, nom: string) {
+    return this.http.patch<void>('/api/admin/mon-compte/identite', { prenom, nom });
+  }
+
   journal(types: readonly TypeActionAdmin[], page: number, taille = 20) {
     let params = new HttpParams().set('page', page).set('taille', taille);
     for (const type of types) params = params.append('type', type);

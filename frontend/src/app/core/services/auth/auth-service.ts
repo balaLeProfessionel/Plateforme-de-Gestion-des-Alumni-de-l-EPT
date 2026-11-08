@@ -109,10 +109,12 @@ export class AuthService {
     return this.http.post<AuthResponse>('/api/auth/refresh', { refreshToken: refresh });
   }
 
-  changerMotDePasseInitial(nouveauMotDePasse: string) {
+  /** Prénom et nom ne sont pris en compte que pour un compte d’administration, qui n’a pas de profil de membre. */
+  changerMotDePasseInitial(nouveauMotDePasse: string, identite?: { prenom: string; nom: string }) {
     return this.http.post<AuthResponse>('/api/auth/changer-mot-de-passe-initial', {
       nouveauMotDePasse,
-      refreshToken: this.getRefreshToken() ?? ''
+      refreshToken: this.getRefreshToken() ?? '',
+      ...identite
     }).pipe(tap((response) => this.stocker(response)));
   }
 

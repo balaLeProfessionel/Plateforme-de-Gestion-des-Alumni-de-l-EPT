@@ -72,6 +72,7 @@ export const routes: Routes = [
   },
   {
     path: 'premiere-connexion',
+    title: 'Définir votre mot de passe | EPT Alumni',
     canActivate: [authGuard, changementInitialSeulementGuard],
     loadComponent: () =>
       import('./features/auth/premiere-connexion/premiere-connexion').then(

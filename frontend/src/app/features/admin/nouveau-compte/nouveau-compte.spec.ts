@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { vi } from 'vitest';
 
 import { CompteurInscriptions } from '../../../core/services/admin/compteur-inscriptions';
@@ -71,6 +72,7 @@ describe('NouveauCompte', () => {
     fixture.detectChanges();
 
     expect(racine().querySelector('code')?.textContent).toBe('Xy7kP2mQ9rTs');
+    expect(document.activeElement).toBe(racine().querySelector('.resultat'));
     expect(racine().querySelector('a.principal')?.getAttribute('href')).toBe('/admin/comptes/c1');
     (racine().querySelectorAll('.resultat .boutons .bouton')[1] as HTMLButtonElement).click();
     fixture.detectChanges();
@@ -81,7 +83,7 @@ describe('NouveauCompte', () => {
   it('n’affiche l’année de sortie que pour un alumni et prévient pour un compte admin', () => {
     expect(racine().querySelector('#compte-sortie')).toBeNull();
     saisir('compte-role', 'ADMIN', 'change');
-    expect(racine().querySelector('#aide-role')?.textContent).toContain('toute l’administration');
+    expect(racine().querySelector('#aide-role')?.textContent).toContain('changer les rôles');
   });
 
   it('affiche l’erreur du serveur', async () => {
@@ -93,5 +95,22 @@ describe('NouveauCompte', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     expect(racine().querySelector('[role="alert"]')?.textContent).toContain('Cet email est déjà utilisé');
+  });
+});
+
+describe('NouveauCompte ouvert depuis le tableau de bord', () => {
+  it('préselectionne le rôle Administration demandé dans l’adresse', async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(), provideHttpClientTesting(),
+        provideRouter([{ path: 'admin/comptes/nouveau', component: NouveauCompte }]),
+        { provide: AuthService, useValue: { utilisateur: signal({ id: 'moi' }) } },
+        { provide: CompteurInscriptions, useValue: { actualiser: vi.fn() } },
+      ],
+    });
+    const harness = await RouterTestingHarness.create('/admin/comptes/nouveau?role=ADMIN');
+    const choix = harness.routeNativeElement?.querySelector('#compte-role') as HTMLSelectElement;
+    expect(choix.value).toBe('ADMIN');
+    expect(harness.routeNativeElement?.querySelector('#aide-role')?.classList).toContain('alerte');
   });
 });

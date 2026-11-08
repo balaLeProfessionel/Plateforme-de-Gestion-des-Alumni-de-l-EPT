@@ -198,7 +198,7 @@ describe('Navigation de l’espace membre', () => {
     expect(resynchroniser).toHaveBeenCalledOnce();
   });
 
-  it('range la navigation de l’administration par domaine, sans lien de profil indisponible', () => {
+  it('range la navigation de l’administration par domaine, avec « Mon compte » à la place du profil', () => {
     utilisateur.set({ role: 'ADMIN', nom: 'EPT', prenom: 'Admin' });
     inscriptionsEnAttente.set(4);
     const fixture = TestBed.createComponent(EspaceMembre);
@@ -214,9 +214,12 @@ describe('Navigation de l’espace membre', () => {
       '/admin/journal', '/annuaire',
     ]);
     expect(racine.querySelector('.barre-laterale a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
+    // La gestion des rôles existe déjà (Comptes) : elle n’est plus annoncée « à venir ».
+    expect(racine.querySelector('.barre-laterale')?.textContent).not.toContain('Rôles et accès');
     // Le panneau mobile reprend les rubriques d'administration ; Annuaire et Événements sont dans la barre du bas.
+    expect(racine.querySelector('.menu-mobile a[href="/admin/mon-compte"]')?.textContent?.trim()).toBe('Mon compte');
     expect([...racine.querySelectorAll('.menu-mobile a')].map((lien) => lien.getAttribute('href'))).toEqual([
-      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/mentorat/gestion-programmes', '/admin/journal',
+      '/admin/mon-compte', '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/mentorat/gestion-programmes', '/admin/journal',
     ]);
     expect(racine.querySelector('.menu-mobile a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
     expect(racine.querySelectorAll('.navigation-mobile a')).toHaveLength(3);
