@@ -12,6 +12,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Root;
+
 import ept.edu.sn.alumni_backend.mentorat.ParticipationMentorat;
 import ept.edu.sn.alumni_backend.annuaire.dto.AnnuaireMembreResponse;
 import ept.edu.sn.alumni_backend.annuaire.dto.DiplomePublicResponse;
@@ -83,9 +87,21 @@ public class AnnuaireService {
             ));
         }
 
-        Sort sort = tri == AnnuaireTri.PROMOTION_DESC
-            ? Sort.by(Sort.Order.desc("anneeSortie").nullsLast(), Sort.Order.asc("nom"))
-            : Sort.by(Sort.Order.asc("nom"), Sort.Order.asc("prenom"));
+        Sort sort = switch (tri) {
+            case PROMOTION_DESC -> Sort.by(Sort.Order.desc("anneeSortie").nullsLast(), Sort.Order.asc("nom"));
+            case ALPHABETIQUE -> Sort.by(Sort.Order.asc("nom"), Sort.Order.asc("prenom"));
+            // Tri par expression : posé dans la requête elle-même (Sort ne sait trier que sur des attributs).
+            case PROFILS_COMPLETS -> Sort.unsorted();
+        };
+        if (tri == AnnuaireTri.PROFILS_COMPLETS) {
+            specification = specification.and((racine, requete, cb) -> {
+                // Pas d'ORDER BY dans la requête de comptage de la pagination.
+                if (requete.getResultType() != Long.class && requete.getResultType() != long.class) {
+                    requete.orderBy(cb.desc(scoreCompletude(racine, cb)), cb.asc(racine.get("nom")), cb.asc(racine.get("prenom")));
+                }
+                return null;
+            });
+        }
         PageRequest pagination = PageRequest.of(page, taille, sort);
 
         Page<Utilisateur> membres = utilisateurRepository.findAll(specification, pagination);
@@ -94,6 +110,18 @@ public class AnnuaireService {
         return PageResponse.depuis(
             membres.map(membre -> annuaireMapper.versResponse(membre, mentors.get(membre.getId())))
         );
+    }
+
+    /** Un point par information utile dans l'annuaire : photo, poste, ville, filière et présentation. */
+    private static Expression<Integer> scoreCompletude(Root<Utilisateur> racine, CriteriaBuilder cb) {
+        Expression<Integer> score = cb.literal(0);
+        for (String champ : List.of("urlPhoto", "posteActuel", "villeResidence", "filiere", "bio")) {
+            Expression<String> valeur = racine.get(champ);
+            score = cb.sum(score, cb.<Integer>selectCase()
+                .when(cb.greaterThan(cb.length(cb.trim(cb.coalesce(valeur, ""))), 0), 1)
+                .otherwise(0));
+        }
+        return score;
     }
 
     /** Sans compte : au moins 3 lettres et peu de résultats, pour qu'on ne puisse pas lister l'annuaire. */

@@ -31,7 +31,7 @@ public class AnnuaireController {
             @RequestParam(required = false) @Size(max = 100) String ville,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "12") @Min(1) @Max(48) int taille,
-            @RequestParam(defaultValue = "ALPHABETIQUE") AnnuaireTri tri) {
+            @RequestParam(defaultValue = "PROFILS_COMPLETS") AnnuaireTri tri) {
         return ResponseEntity.ok(annuaireService.rechercher(
             recherche, role, filiere, promotion, ville, page, taille, tri
         ));
