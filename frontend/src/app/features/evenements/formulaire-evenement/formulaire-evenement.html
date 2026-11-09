@@ -130,14 +130,14 @@
         }
       </div>
 
-      <p class="note-obligatoire"><span aria-hidden="true">*</span> Champ obligatoire</p>
-      <div class="actions-formulaire">
-        <button class="action-secondaire" type="button" (click)="retourner()">Annuler</button>
-        <button class="action-principale" type="submit" [disabled]="envoiEnCours()">
-          @if (envoiEnCours()) { Enregistrement… }
-          @else { {{ modeEdition() ? 'Enregistrer les modifications' : 'Publier l’événement' }} }
-        </button>
+      <div class="champ-case">
+        <input id="evenement-participants-visibles" type="checkbox" [formField]="formulaire.participantsVisibles"
+          aria-describedby="aide-participants-visibles" />
+        <label for="evenement-participants-visibles">Montrer la liste des inscrits aux membres</label>
+        <small id="aide-participants-visibles">Décochée, vous seul voyez qui participe ; les membres ne voient que le nombre.</small>
       </div>
+
+      <p class="note-obligatoire"><span aria-hidden="true">*</span> Champ obligatoire</p>
     </form>
   }
   </div>

@@ -13,7 +13,7 @@ const base: Evenement = {
   id: 'e1', titre: 'Rencontre alumni Dakar', description: '', lieu: 'Dakar', urlImage: null,
   dateDebut: '2026-11-12T18:00:00Z', dateFin: null, audience: 'TOUS', nombrePlaces: null, officielEpt: true,
   statut: 'PUBLIE', organisateurId: 'o1', organisateurNom: 'Sarr', organisateurPrenom: 'Fatou',
-  nombreParticipants: 3, maReponse: null,
+  nombreParticipants: 3, maReponse: null, participantsVisibles: true,
 };
 
 describe('CarteEvenementFil', () => {

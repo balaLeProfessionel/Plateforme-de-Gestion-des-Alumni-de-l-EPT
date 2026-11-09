@@ -21,6 +21,8 @@ export interface Evenement {
   organisateurPrenom: string | null;
   nombreParticipants: number;
   maReponse: ReponseParticipation | null;
+  /** Liste des inscrits montrée aux membres ; l’organisateur peut la masquer. */
+  participantsVisibles: boolean;
 }
 
 export interface EvenementRequest {
@@ -31,6 +33,8 @@ export interface EvenementRequest {
   dateFin: string | null;
   audience: AudienceEvenement;
   nombrePlaces: number | null;
+  /** Facultatif côté serveur : sans valeur, la liste est visible. */
+  participantsVisibles?: boolean;
 }
 
 /** Critères de recherche de la liste des événements. */

@@ -43,8 +43,10 @@ import ept.edu.sn.alumni_backend.evenement.exception.CapaciteEvenementAtteinteEx
 import ept.edu.sn.alumni_backend.evenement.dto.EvenementPublicResponse;
 import ept.edu.sn.alumni_backend.evenement.repository.EvenementRepository;
 import ept.edu.sn.alumni_backend.evenement.repository.ParticipationEvenementRepository;
+import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
+import ept.edu.sn.alumni_backend.utilisateur.MembreVisibilite;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
@@ -260,22 +262,33 @@ public class EvenementService {
     @Transactional(readOnly = true)
     public PageParticipantsResponse listerParticipants(
             UUID evenementId,
+            String recherche,
             int page,
             int taille,
             UtilisateurPrincipal principal) {
         Evenement evenement = evenementRepository.findById(evenementId)
             .orElseThrow(EvenementIntrouvableException::new);
-        Utilisateur utilisateurCourant = principal.getUtilisateur();
-        boolean estAdministrateur = utilisateurCourant.getRole() == TypeRole.ADMIN;
-        boolean estOrganisateur = evenement.getOrganisateur().getId().equals(utilisateurCourant.getId());
-        if (!estAdministrateur && !estOrganisateur) {
+        boolean gestionnaire = peutGerer(evenement, principal);
+        // Un membre voit les inscrits d'un événement qu'il peut consulter, sauf si l'organisateur les a masqués.
+        boolean membreAutorise = evenement.getStatut() == StatutEvenement.PUBLIE
+            && estVisiblePar(evenement, principal.getUtilisateur().getRole())
+            && evenement.isParticipantsVisibles();
+        if (!gestionnaire && !membreAutorise) {
             throw new EvenementIntrouvableException();
         }
 
-        Page<ParticipantEvenementResponse> participants = participationRepository.listerParticipants(
-                evenementId,
-                ReponseParticipation.PARTICIPERA,
-                PageRequest.of(page, taille))
+        PageRequest pagination = PageRequest.of(page, taille);
+        String motifNom = recherche == null || recherche.isBlank() ? "%" : motif(recherche.strip());
+        Page<ParticipantEvenementResponse> participants = (gestionnaire
+                ? participationRepository.listerParticipants(evenementId, ReponseParticipation.PARTICIPERA, motifNom, pagination)
+                : participationRepository.listerParticipantsVisibles(
+                    evenementId,
+                    ReponseParticipation.PARTICIPERA,
+                    motifNom,
+                    List.of(StatutCompte.ACTIF, StatutCompte.EN_ATTENTE),
+                    MembreVisibilite.ROLES_ANNUAIRE,
+                    TypeRole.ORGANISME,
+                    pagination))
             .map(participant -> new ParticipantEvenementResponse(
                 participant.getId(),
                 participant.getNom(),
@@ -335,6 +348,7 @@ public class EvenementService {
         evenement.setDateFin(request.dateFin() != null ? request.dateFin() : request.dateDebut());
         evenement.setAudience(request.audience());
         evenement.setNombrePlaces(request.nombrePlaces());
+        evenement.setParticipantsVisibles(!Boolean.FALSE.equals(request.participantsVisibles()));
     }
 
     /** Filtres de recherche ; un critère absent ne restreint rien. */

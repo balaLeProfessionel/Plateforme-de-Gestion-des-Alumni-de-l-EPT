@@ -75,6 +75,11 @@
             </li>
           </ul>
 
+          @if (peutGerer() || item.participantsVisibles) {
+            <app-apercu-participants [evenementId]="item.id" [nombre]="item.nombreParticipants"
+              [masqueeAuxMembres]="peutGerer() && !item.participantsVisibles" />
+          }
+
           @if (peutRepondre(item)) {
             <section class="reponse-evenement" aria-labelledby="titre-reponse">
               <h2 id="titre-reponse" class="cache">Votre participation</h2>
@@ -147,9 +152,8 @@
             <p class="erreur-action" role="alert">{{ erreurAction() }}</p>
           }
         </section>
-
-        <app-participants-evenement [evenementId]="item.id" [nombre]="item.nombreParticipants" />
       }
+
         </div>
       </div>
     </article>

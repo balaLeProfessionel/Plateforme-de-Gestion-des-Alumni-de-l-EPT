@@ -86,10 +86,11 @@ public class EvenementController {
     @GetMapping("/{id}/participants")
     public ResponseEntity<PageParticipantsResponse> listerParticipants(
             @PathVariable UUID id,
+            @RequestParam(required = false) @Size(max = 100) String recherche,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "12") @Min(1) @Max(48) int taille,
             @AuthenticationPrincipal UtilisateurPrincipal principal) {
-        return ResponseEntity.ok(evenementService.listerParticipants(id, page, taille, principal));
+        return ResponseEntity.ok(evenementService.listerParticipants(id, recherche, page, taille, principal));
     }
 
     @PostMapping

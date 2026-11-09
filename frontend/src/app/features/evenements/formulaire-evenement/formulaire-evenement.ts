@@ -25,6 +25,7 @@ interface ModeleFormulaireEvenement {
   dateFin: string;
   audience: AudienceEvenement;
   nombrePlaces: string;
+  participantsVisibles: boolean;
 }
 
 const CONSEILS: readonly Conseil[] = [
@@ -72,7 +73,7 @@ export class FormulaireEvenement {
   private urlApercuTemporaire: string | null = null;
   protected readonly modele = signal<ModeleFormulaireEvenement>({
     titre: '', description: '', lieu: '', dateDebut: '', dateFin: '',
-    audience: 'TOUS', nombrePlaces: '',
+    audience: 'TOUS', nombrePlaces: '', participantsVisibles: true,
   });
   protected readonly formulaire = form(this.modele, (chemin) => {
     required(chemin.titre, { message: 'Le titre est obligatoire.' });
@@ -119,7 +120,7 @@ export class FormulaireEvenement {
       else {
         this.modele.set({
           titre: '', description: '', lieu: '', dateDebut: '', dateFin: '',
-          audience: 'TOUS', nombrePlaces: '',
+          audience: 'TOUS', nombrePlaces: '', participantsVisibles: true,
         });
         this.imageActuelle.set(null);
         this.fichierImage.set(null);
@@ -145,6 +146,7 @@ export class FormulaireEvenement {
           dateFin: valeurs.dateFin ? new Date(valeurs.dateFin).toISOString() : null,
           audience: valeurs.audience,
           nombrePlaces: valeurs.nombrePlaces === '' ? null : Number(valeurs.nombrePlaces),
+          participantsVisibles: valeurs.participantsVisibles,
         };
         const id = this.identifiantEvenement();
         let evenement = id
@@ -304,6 +306,7 @@ export class FormulaireEvenement {
         dateFin: evenement.dateFin ? this.versDateLocale(evenement.dateFin) : '',
         audience: evenement.audience,
         nombrePlaces: evenement.nombrePlaces?.toString() ?? '',
+        participantsVisibles: evenement.participantsVisibles,
       });
       this.imageActuelle.set(evenement.urlImage);
       this.fichierImage.set(null);

@@ -25,15 +25,13 @@
 .obligatoire, .note-obligatoire span { color: #a33a2f; }
 .erreur-champ { color: #a33a2f; font-size: .82rem; }
 .note-obligatoire { margin: 0; color: var(--ept-text-secondary); font-size: .82rem; }
-.actions-formulaire { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: .65rem; padding-top: 1rem; border-top: 1px solid var(--ept-border); }
-.action-principale, .action-secondaire, .etat-formulaire button { border-radius: var(--ept-radius-sm); display: inline-flex; min-height: 2.9rem; align-items: center; justify-content: center; padding: .7rem 1rem; border: 1px solid var(--ept-primary); font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
-.action-principale { background: var(--ept-primary); color: white; &:hover:not(:disabled) { background: var(--ept-primary-dark); } &:disabled { opacity: .6; cursor: wait; } }
+.action-secondaire, .etat-formulaire button { border-radius: var(--ept-radius-sm); display: inline-flex; min-height: 2.9rem; align-items: center; justify-content: center; padding: .7rem 1rem; border: 1px solid var(--ept-primary); font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
 .action-secondaire { background: white; color: var(--ept-primary); &:hover { background: #f2f8fb; } }
 .message-erreur-api { border-radius: 0 var(--ept-radius-sm) var(--ept-radius-sm) 0; margin: 0; padding: .8rem 1rem; border-left: 3px solid #a33a2f; background: #fff3f1; color: #842d24; }
 .etat-formulaire { border-radius: var(--ept-radius); display: flex; min-height: 8rem; align-items: center; justify-content: center; gap: .7rem; padding: 1.5rem; border: 1px solid var(--ept-border); background: white; color: var(--ept-text-secondary); text-align: center; p { margin: 0; } &.erreur { flex-direction: column; color: #842d24; } }
 .indicateur-chargement { width: 1rem; height: 1rem; border: 2px solid var(--ept-border); border-top-color: var(--ept-primary); border-radius: 50%; animation: rotation .8s linear infinite; }
 @keyframes rotation { to { transform: rotate(360deg); } }
-@media (max-width: 680px) { .formulaire-evenement-page { padding: 1rem 1rem 6rem; } .grille-champs, .bloc-image { grid-template-columns: minmax(0, 1fr); } .apercu-image { order: 0; } .actions-formulaire > button { flex: 1 1 auto; } }
+@media (max-width: 680px) { .formulaire-evenement-page { padding: 1rem 1rem 6rem; } .grille-champs, .bloc-image { grid-template-columns: minmax(0, 1fr); } .apercu-image { order: 0; } }
 @media (prefers-reduced-motion: reduce) { .indicateur-chargement { animation-duration: 1.8s; } }
 
 
@@ -41,4 +39,11 @@
   display: flex; align-items: center; gap: 0.45rem; margin: 0; padding: 0.55rem 0.8rem;
   border: 1px solid var(--ept-primary); border-radius: var(--ept-radius-sm); background: var(--ept-primary-light);
   color: var(--ept-primary-dark); font-size: 0.88rem; font-weight: 600;
+}
+// Case à cocher : la case, son libellé, puis l’aide alignée sous le libellé.
+.champ-case { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: .6rem; row-gap: .2rem; align-items: center; margin-top: 1rem;
+  input { width: 1.15rem; height: 1.15rem; margin: 0; accent-color: var(--ept-primary); }
+  input:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+  label { color: var(--ept-primary-dark); font-weight: 600; cursor: pointer; }
+  small { grid-column: 2; color: var(--ept-text-secondary); }
 }

@@ -41,7 +41,8 @@ public class EvenementMapper {
             nom,
             prenom,
             nombreParticipants,
-            maReponse
+            maReponse,
+            evenement.isParticipantsVisibles()
         );
     }
 }

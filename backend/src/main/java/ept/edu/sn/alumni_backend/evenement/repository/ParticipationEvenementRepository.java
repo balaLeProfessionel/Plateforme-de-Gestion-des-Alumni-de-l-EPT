@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import ept.edu.sn.alumni_backend.evenement.ReponseParticipation;
 import ept.edu.sn.alumni_backend.evenement.entity.ParticipationEvenement;
+import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 
 @Repository
@@ -52,17 +53,62 @@ public interface ParticipationEvenementRepository extends JpaRepository<Particip
         join participation.utilisateur utilisateur
         where participation.evenement.id = :evenementId
           and participation.reponse = :reponse
+          and lower(concat(coalesce(utilisateur.prenom, ''), ' ', utilisateur.nom)) like :motif escape '\\'
         order by utilisateur.nom, utilisateur.prenom, utilisateur.id
         """,
         countQuery = """
         select count(participation.id)
         from ParticipationEvenement participation
+        join participation.utilisateur utilisateur
         where participation.evenement.id = :evenementId
           and participation.reponse = :reponse
+          and lower(concat(coalesce(utilisateur.prenom, ''), ' ', utilisateur.nom)) like :motif escape '\\'
         """)
     Page<ParticipantProjection> listerParticipants(
         @Param("evenementId") UUID evenementId,
         @Param("reponse") ReponseParticipation reponse,
+        /** Motif LIKE déjà échappé et en minuscules ; « % » pour tout le monde. */
+        @Param("motif") String motif,
+        org.springframework.data.domain.Pageable pageable);
+
+    /** Inscrits montrés aux membres : seulement ceux que l'annuaire affiche (même règle que MembreVisibilite). */
+    @Query(value = """
+        select utilisateur.id as id,
+               utilisateur.nom as nom,
+               utilisateur.prenom as prenom,
+               utilisateur.role as role,
+               utilisateur.urlPhoto as urlPhoto
+        from ParticipationEvenement participation
+        join participation.utilisateur utilisateur
+        where participation.evenement.id = :evenementId
+          and participation.reponse = :reponse
+          and lower(concat(coalesce(utilisateur.prenom, ''), ' ', utilisateur.nom)) like :motif escape '\\'
+          and utilisateur.emailVerifie = true
+          and utilisateur.statutCompte in :statuts
+          and utilisateur.role in :roles
+          and (utilisateur.role <> :roleOrganisme or utilisateur.organisme is not null)
+        order by utilisateur.nom, utilisateur.prenom, utilisateur.id
+        """,
+        countQuery = """
+        select count(participation.id)
+        from ParticipationEvenement participation
+        join participation.utilisateur utilisateur
+        where participation.evenement.id = :evenementId
+          and participation.reponse = :reponse
+          and lower(concat(coalesce(utilisateur.prenom, ''), ' ', utilisateur.nom)) like :motif escape '\\'
+          and utilisateur.emailVerifie = true
+          and utilisateur.statutCompte in :statuts
+          and utilisateur.role in :roles
+          and (utilisateur.role <> :roleOrganisme or utilisateur.organisme is not null)
+        """)
+    Page<ParticipantProjection> listerParticipantsVisibles(
+        @Param("evenementId") UUID evenementId,
+        @Param("reponse") ReponseParticipation reponse,
+        /** Motif LIKE déjà échappé et en minuscules ; « % » pour tout le monde. */
+        @Param("motif") String motif,
+        @Param("statuts") Collection<StatutCompte> statuts,
+        @Param("roles") Collection<TypeRole> roles,
+        @Param("roleOrganisme") TypeRole roleOrganisme,
         org.springframework.data.domain.Pageable pageable);
 
     interface NombreParticipantsProjection {

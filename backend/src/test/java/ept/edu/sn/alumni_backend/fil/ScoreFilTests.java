@@ -93,6 +93,6 @@ class ScoreFilTests {
 
     private static EvenementResponse evenement(String lieu, Duration dans, ReponseParticipation reponse) {
         return new EvenementResponse(UUID.randomUUID(), "Rencontre", "Description", lieu, null, MAINTENANT.plus(dans),
-            null, AudienceEvenement.TOUS, null, false, StatutEvenement.PUBLIE, INCONNU, "Nom", "Prénom", 0, reponse);
+            null, AudienceEvenement.TOUS, null, false, StatutEvenement.PUBLIE, INCONNU, "Nom", "Prénom", 0, reponse, true);
     }
 }

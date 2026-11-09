@@ -29,8 +29,10 @@ export class EvenementService {
       { params: parametres(periode, page, filtres, taille) });
   }
 
-  listerParticipants(id: string, page: number, taille = 12) {
-    const params = new HttpParams().set('page', page).set('taille', taille);
+  /** Inscrits confirmés ; `recherche` filtre sur le prénom et le nom. */
+  listerParticipants(id: string, page: number, taille = 12, recherche = '') {
+    let params = new HttpParams().set('page', page).set('taille', taille);
+    if (recherche.trim()) params = params.set('recherche', recherche.trim());
     return this.http.get<PageParticipants>(
       `/api/evenements/${encodeURIComponent(id)}/participants`, { params });
   }

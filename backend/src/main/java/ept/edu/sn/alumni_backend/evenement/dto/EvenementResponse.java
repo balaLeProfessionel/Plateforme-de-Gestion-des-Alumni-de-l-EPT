@@ -23,5 +23,6 @@ public record EvenementResponse(
     String organisateurNom,
     String organisateurPrenom,
     long nombreParticipants,
-    ReponseParticipation maReponse
+    ReponseParticipation maReponse,
+    boolean participantsVisibles
 ) {}

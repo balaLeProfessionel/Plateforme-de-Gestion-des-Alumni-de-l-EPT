@@ -271,7 +271,7 @@ describe('ListeEvenements', () => {
       dateDebut: '2026-10-15T09:00:00Z', dateFin: '2026-10-15T12:00:00Z',
       audience: 'TOUS', nombrePlaces: null, officielEpt: true, statut: 'PUBLIE',
       organisateurId: 'organisateur-1', organisateurNom: 'Diop', organisateurPrenom: 'Awa',
-      nombreParticipants: 8, maReponse: null, ...modifications
+      nombreParticipants: 8, maReponse: null, participantsVisibles: true, ...modifications
     };
   }
 

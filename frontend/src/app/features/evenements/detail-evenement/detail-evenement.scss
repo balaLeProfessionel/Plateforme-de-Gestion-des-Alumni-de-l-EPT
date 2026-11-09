@@ -11,7 +11,7 @@
 .visuel-detail { min-width: 0; margin: 0 0 1.5rem; border-radius: var(--ept-radius); overflow: hidden; border: 1px solid var(--ept-border); }
 .synthese { grid-area: synthese; position: sticky; top: 5rem; display: grid; gap: 1.1rem; min-width: 0; padding: 1.25rem;
   border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: white; box-shadow: 0 6px 18px rgb(1 67 101 / 6%); }
-.description-detail, .gestion-evenement, app-participants-evenement { display: block; border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: white; overflow: hidden; }
+.description-detail, .gestion-evenement { display: block; border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: white; overflow: hidden; }
 .badges-detail { display: flex; flex-wrap: wrap; gap: .55rem; }
 .badge-officiel, .badge-communaute, .badge-statut, .audience { border-radius: 999px; display: inline-flex; align-items: center; gap: .35rem; min-height: 1.8rem; padding: .3rem .55rem; border: 1px solid var(--ept-border); font-size: .75rem; font-weight: 700; }
 .badge-officiel { border-color: #b6dce9; background: #d8edf5; color: var(--ept-primary); }

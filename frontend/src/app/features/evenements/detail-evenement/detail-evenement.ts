@@ -10,11 +10,11 @@ import { Evenement, ReponseParticipation } from '../../../core/services/models/e
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { VisuelEvenement } from '../../../shared/images/visuel-evenement';
 import { etatNavigationEvenement, urlRetourInterne } from '../navigation-evenements';
-import { ParticipantsEvenement } from './participants-evenement';
+import { ApercuParticipants } from './apercu-participants';
 
 @Component({
   selector: 'app-detail-evenement',
-  imports: [RouterLink, BoutonRetour, VisuelEvenement, ParticipantsEvenement],
+  imports: [RouterLink, BoutonRetour, VisuelEvenement, ApercuParticipants],
   templateUrl: './detail-evenement.html',
   styleUrl: './detail-evenement.scss',
 })
