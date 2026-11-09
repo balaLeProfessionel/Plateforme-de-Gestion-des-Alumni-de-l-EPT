@@ -2,6 +2,7 @@ package ept.edu.sn.alumni_backend.evenement.service;
 
 import ept.edu.sn.alumni_backend.evenement.dto.FiltresEvenements;
 import jakarta.persistence.criteria.Predicate;
+import java.text.Normalizer;
 import java.util.Locale;
 import java.util.ArrayList;
 import java.time.Instant;
@@ -278,7 +279,7 @@ public class EvenementService {
         }
 
         PageRequest pagination = PageRequest.of(page, taille);
-        String motifNom = recherche == null || recherche.isBlank() ? "%" : motif(recherche.strip());
+        String motifNom = recherche == null || recherche.isBlank() ? "%" : motif(sansAccents(recherche.strip()));
         Page<ParticipantEvenementResponse> participants = (gestionnaire
                 ? participationRepository.listerParticipants(evenementId, ReponseParticipation.PARTICIPERA, motifNom, pagination)
                 : participationRepository.listerParticipantsVisibles(
@@ -372,6 +373,11 @@ public class EvenementService {
     }
 
     /** Motif LIKE insensible à la casse ; « % », « _ » et « \ » saisis sont cherchés tels quels. */
+    /** « Cissé » devient « Cisse » : la base compare les noms sans accents (voir ParticipationEvenementRepository). */
+    private static String sansAccents(String texte) {
+        return Normalizer.normalize(texte, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+    }
+
     private static String motif(String texte) {
         return "%" + texte.toLowerCase(Locale.ROOT).replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
     }

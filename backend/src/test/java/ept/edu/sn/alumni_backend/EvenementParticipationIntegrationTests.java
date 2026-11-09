@@ -166,6 +166,19 @@ class EvenementParticipationIntegrationTests {
         Evenement evenement = creerEvenement(AudienceEvenement.TOUS, StatutEvenement.PUBLIE, null, false);
         creerParticipation(evenement, alumni, ReponseParticipation.PARTICIPERA);
         creerParticipation(evenement, autreAlumni, ReponseParticipation.PARTICIPERA);
+        Utilisateur accentue = creerUtilisateur(TypeRole.ALUMNI, "Cissé");
+        accentue.setPrenom("Aïssatou");
+        utilisateurRepository.saveAndFlush(accentue);
+        creerParticipation(evenement, accentue, ReponseParticipation.PARTICIPERA);
+
+        // Sans accents dans un sens comme dans l'autre : « cisse » trouve « Cissé », « AÏSSATOU » aussi.
+        for (String recherche : new String[] { "cisse", "Cissé", "AÏSSATOU cisse" }) {
+            mockMvc.perform(requeteAuthentifie(get("/api/evenements/{id}/participants", evenement.getId())
+                    .param("recherche", recherche), autreAlumni))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.contenu[0].nom").value("Cissé"));
+        }
 
         // Prénom et nom réunis, sans tenir compte de la casse ; « % » est cherché tel quel.
         for (UtilisateurDeTest cas : new UtilisateurDeTest[] {

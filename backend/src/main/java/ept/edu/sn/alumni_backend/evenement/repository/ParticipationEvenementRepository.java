@@ -53,7 +53,8 @@ public interface ParticipationEvenementRepository extends JpaRepository<Particip
         join participation.utilisateur utilisateur
         where participation.evenement.id = :evenementId
           and participation.reponse = :reponse
-          and lower(concat(coalesce(utilisateur.prenom, ''), ' ', utilisateur.nom)) like :motif escape '\\'
+          and cast(function('translate', lower(concat(coalesce(utilisateur.prenom, ''), ' ', utilisateur.nom)),
+                'àáâãäåçèéêëìíîïñòóôõöùúûüýÿ', 'aaaaaaceeeeiiiinooooouuuuyy') as String) like :motif escape '\\'
         order by utilisateur.nom, utilisateur.prenom, utilisateur.id
         """,
         countQuery = """
@@ -62,12 +63,13 @@ public interface ParticipationEvenementRepository extends JpaRepository<Particip
         join participation.utilisateur utilisateur
         where participation.evenement.id = :evenementId
           and participation.reponse = :reponse
-          and lower(concat(coalesce(utilisateur.prenom, ''), ' ', utilisateur.nom)) like :motif escape '\\'
+          and cast(function('translate', lower(concat(coalesce(utilisateur.prenom, ''), ' ', utilisateur.nom)),
+                'àáâãäåçèéêëìíîïñòóôõöùúûüýÿ', 'aaaaaaceeeeiiiinooooouuuuyy') as String) like :motif escape '\\'
         """)
     Page<ParticipantProjection> listerParticipants(
         @Param("evenementId") UUID evenementId,
         @Param("reponse") ReponseParticipation reponse,
-        /** Motif LIKE déjà échappé et en minuscules ; « % » pour tout le monde. */
+        /** Motif LIKE échappé, en minuscules et sans accents ; « % » pour tout le monde. */
         @Param("motif") String motif,
         org.springframework.data.domain.Pageable pageable);
 
@@ -82,7 +84,8 @@ public interface ParticipationEvenementRepository extends JpaRepository<Particip
         join participation.utilisateur utilisateur
         where participation.evenement.id = :evenementId
           and participation.reponse = :reponse
-          and lower(concat(coalesce(utilisateur.prenom, ''), ' ', utilisateur.nom)) like :motif escape '\\'
+          and cast(function('translate', lower(concat(coalesce(utilisateur.prenom, ''), ' ', utilisateur.nom)),
+                'àáâãäåçèéêëìíîïñòóôõöùúûüýÿ', 'aaaaaaceeeeiiiinooooouuuuyy') as String) like :motif escape '\\'
           and utilisateur.emailVerifie = true
           and utilisateur.statutCompte in :statuts
           and utilisateur.role in :roles
@@ -95,7 +98,8 @@ public interface ParticipationEvenementRepository extends JpaRepository<Particip
         join participation.utilisateur utilisateur
         where participation.evenement.id = :evenementId
           and participation.reponse = :reponse
-          and lower(concat(coalesce(utilisateur.prenom, ''), ' ', utilisateur.nom)) like :motif escape '\\'
+          and cast(function('translate', lower(concat(coalesce(utilisateur.prenom, ''), ' ', utilisateur.nom)),
+                'àáâãäåçèéêëìíîïñòóôõöùúûüýÿ', 'aaaaaaceeeeiiiinooooouuuuyy') as String) like :motif escape '\\'
           and utilisateur.emailVerifie = true
           and utilisateur.statutCompte in :statuts
           and utilisateur.role in :roles
@@ -104,7 +108,7 @@ public interface ParticipationEvenementRepository extends JpaRepository<Particip
     Page<ParticipantProjection> listerParticipantsVisibles(
         @Param("evenementId") UUID evenementId,
         @Param("reponse") ReponseParticipation reponse,
-        /** Motif LIKE déjà échappé et en minuscules ; « % » pour tout le monde. */
+        /** Motif LIKE échappé, en minuscules et sans accents ; « % » pour tout le monde. */
         @Param("motif") String motif,
         @Param("statuts") Collection<StatutCompte> statuts,
         @Param("roles") Collection<TypeRole> roles,
