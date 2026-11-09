@@ -1,4 +1,4 @@
-// Page dédiée (option A) : un rédacteur plein écran. Barre du haut « × · titre · Publier », l’auteur et son
+// Page dédiée (option A) : un rédacteur plein écran. L’auteur et son
 // public, un grand texte sans cadre, l’image en grand, et la barre d’outils qui reste sous le pouce.
 .integree {
   // Le texte s’étire : la barre d’outils reste en bas de l’espace de rédaction.
@@ -6,18 +6,6 @@
   .message { flex: 1 1 auto; }
   .outils { margin-top: auto; }
 
-  .barre-haut { display: grid; grid-template-columns: 2.75rem minmax(0, 1fr) auto; align-items: center; gap: .75rem;
-    padding: .6rem var(--marge-redaction) .6rem calc(var(--marge-redaction) - .4rem); border-bottom: 1px solid var(--ept-border); }
-  // Le titre passe sur deux lignes plutôt que d’être coupé sur un écran étroit.
-  h1 { margin: 0; color: var(--ept-primary-dark); font-family: var(--ept-font-heading); font-size: 1.15rem;
-    font-weight: 600; line-height: 1.2; text-wrap: balance; overflow-wrap: anywhere; }
-  .fermer { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; padding: 0; border: 0; border-radius: 50%;
-    background: transparent; color: var(--ept-primary-dark); font-size: 1.05rem; }
-  .fermer:hover { background: var(--ept-bg); }
-  .publier-haut { min-height: 2.5rem; padding: .45rem 1.25rem; border: 0; border-radius: 999px; background: var(--ept-primary);
-    color: white; font-weight: 600; }
-  .publier-haut:hover { background: var(--ept-primary-dark); }
-  .fermer:disabled, .publier-haut:disabled { opacity: .6; cursor: wait; }
 
   .auteur { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .4rem .75rem;
     padding: 1rem var(--marge-redaction) .25rem; }
@@ -65,7 +53,4 @@
   // Au-dessus de la barre de navigation mobile.
   .integree .outils { bottom: calc(4.9rem + env(safe-area-inset-bottom)); }
   .integree .cadre-image { width: 100%; }
-  .integree .barre-haut { gap: .5rem; }
-  .integree h1 { font-size: 1.05rem; }
-  .integree .publier-haut { padding-inline: 1rem; }
 }

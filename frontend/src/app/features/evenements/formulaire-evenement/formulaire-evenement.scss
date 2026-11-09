@@ -1,7 +1,10 @@
 @use '../../../../styles/champ-fichier' as *;
 
-.formulaire-evenement-page { width: min(100% - 3rem, 900px); margin: 0 auto; padding: clamp(1.5rem, 5vw, 3.5rem) 0; }
-.entete-formulaire { margin-bottom: 1.5rem; .sur-titre { margin: 0 0 .45rem; color: var(--ept-gold-dark); font-size: .75rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; } h1 { margin: 0; color: var(--ept-primary-dark); font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.12; } p:last-child { max-width: 650px; color: var(--ept-text-secondary); line-height: 1.6; } }
+// Même mise en page que la création d’une publication : le formulaire, et les conseils à droite.
+.formulaire-evenement-page { box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr) 18rem; align-items: start;
+  gap: 1.5rem; max-width: 64rem; margin: 0 auto; padding: 1.5rem 2rem 6rem; }
+.colonne-formulaire { min-width: 0; }
+@media (max-width: 900px) { .formulaire-evenement-page { grid-template-columns: minmax(0, 1fr); } }
 .carte-formulaire { border-radius: var(--ept-radius); display: grid; gap: 1.2rem; padding: clamp(1rem, 3vw, 2rem); border: 1px solid var(--ept-border); background: white; }
 .grille-champs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem; }
 .champ { display: grid; align-content: start; gap: .45rem; min-width: 0;
@@ -30,12 +33,12 @@
 .etat-formulaire { border-radius: var(--ept-radius); display: flex; min-height: 8rem; align-items: center; justify-content: center; gap: .7rem; padding: 1.5rem; border: 1px solid var(--ept-border); background: white; color: var(--ept-text-secondary); text-align: center; p { margin: 0; } &.erreur { flex-direction: column; color: #842d24; } }
 .indicateur-chargement { width: 1rem; height: 1rem; border: 2px solid var(--ept-border); border-top-color: var(--ept-primary); border-radius: 50%; animation: rotation .8s linear infinite; }
 @keyframes rotation { to { transform: rotate(360deg); } }
-@media (max-width: 680px) { .formulaire-evenement-page { width: min(100% - 2rem, 900px); } .grille-champs, .bloc-image { grid-template-columns: minmax(0, 1fr); } .apercu-image { order: 0; } .actions-formulaire > button { flex: 1 1 auto; } }
+@media (max-width: 680px) { .formulaire-evenement-page { padding: 1rem 1rem 6rem; } .grille-champs, .bloc-image { grid-template-columns: minmax(0, 1fr); } .apercu-image { order: 0; } .actions-formulaire > button { flex: 1 1 auto; } }
 @media (prefers-reduced-motion: reduce) { .indicateur-chargement { animation-duration: 1.8s; } }
 
 
-.entete-formulaire p.note-officielle {
-  display: inline-flex; align-items: center; gap: 0.45rem; margin-top: 0.6rem; padding: 0.45rem 0.8rem;
+.note-officielle {
+  display: flex; align-items: center; gap: 0.45rem; margin: 0; padding: 0.55rem 0.8rem;
   border: 1px solid var(--ept-primary); border-radius: var(--ept-radius-sm); background: var(--ept-primary-light);
   color: var(--ept-primary-dark); font-size: 0.88rem; font-weight: 600;
 }

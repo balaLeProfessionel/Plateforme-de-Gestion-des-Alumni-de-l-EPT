@@ -91,13 +91,13 @@ describe('EditionArticle', () => {
     creation.flush(brouillon);
     await vi.waitFor(() => expect(replaceState).toHaveBeenCalledWith('/articles/a1/modifier'));
     fixture.detectChanges();
-    expect(racine().querySelector('.sauvegarde')?.textContent).toBe('Brouillon enregistré');
+    expect(racine().querySelector('app-barre-creation .etat')?.textContent).toBe('Brouillon enregistré');
     expect(navigate).not.toHaveBeenCalled();
   });
 
   it('refuse de publier un article incomplet et n’ouvre pas la fenêtre de publication', async () => {
     await afficher('a1');
-    (racine().querySelector('.publier') as HTMLButtonElement).click();
+    (racine().querySelector('app-barre-creation .action') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(racine().querySelector('#erreur-resume')?.textContent).toContain('Ajoutez un résumé');
     expect(racine().querySelector('#erreur-contenu')?.textContent).toContain('Écrivez le texte');
@@ -108,7 +108,7 @@ describe('EditionArticle', () => {
     await afficher('a1');
     saisir('#article-resume', 'Dix ans de terrain.');
     saisir('#article-contenu', '## Cadrage\n\nLe premier chantier.');
-    (racine().querySelector('.publier') as HTMLButtonElement).click();
+    (racine().querySelector('app-barre-creation .action') as HTMLButtonElement).click();
     fixture.detectChanges();
     const dialogue = racine().querySelector('dialog')!;
     expect(dialogue.open).toBe(true);
@@ -147,7 +147,7 @@ describe('EditionArticle', () => {
     await vi.waitFor(() => {
       fixture.detectChanges();
       expect(racine().querySelector('.message-erreur')?.textContent).toContain('Vous avez déjà 20 brouillons.');
-      expect(racine().querySelector('.sauvegarde')?.textContent).toBe('Enregistrement impossible');
+      expect(racine().querySelector('app-barre-creation .etat')?.textContent).toBe('Enregistrement impossible');
     });
   });
 });

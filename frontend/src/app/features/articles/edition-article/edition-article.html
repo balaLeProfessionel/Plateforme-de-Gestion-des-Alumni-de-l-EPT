@@ -15,14 +15,9 @@
         <i pButtonIcon class="pi pi-arrow-left" aria-hidden="true"></i><span pButtonLabel>Revenir aux articles</span></button>
     </div>
   } @else {
-    <h1 class="cache">{{ article() ? 'Modifier l’article' : 'Nouvel article' }}</h1>
-    <div class="barre-haut">
-      <button pButton type="button" class="fermer" text rounded severity="secondary" aria-label="Fermer l’éditeur" (click)="fermer()">
-        <i pButtonIcon class="pi pi-times" aria-hidden="true"></i></button>
-      <p class="sauvegarde" [class.erreur]="etat() === 'erreur'" role="status">{{ libelleEtat() }}</p>
-      <button pButton type="button" class="publier" rounded (click)="preparerPublication()">
-        <span pButtonLabel>{{ publie() ? 'Enregistrer' : 'Publier' }}</span></button>
-    </div>
+    <app-barre-creation [titre]="article() ? 'Modifier l’article' : 'Nouvel article'" libelleFermer="Fermer l’éditeur"
+      [etat]="libelleEtat()" [etatErreur]="etat() === 'erreur'" [libelleAction]="publie() ? 'Enregistrer' : 'Publier'"
+      (fermer)="fermer()" (valider)="preparerPublication()" />
     @if (messageErreur(); as message) {
       <p-message class="message-erreur" severity="error" icon="pi pi-exclamation-circle">{{ message }}</p-message>
     }

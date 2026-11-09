@@ -1,13 +1,6 @@
 :host { display: block; min-height: 100%; background: var(--ept-surface); }
 .edition-page { box-sizing: border-box; display: flex; flex-direction: column; min-height: calc(100dvh - 3.5rem); }
 
-.barre-haut { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1rem;
-  padding: .6rem 1.25rem; border-bottom: 1px solid var(--ept-border); }
-.fermer { width: 2.75rem; height: 2.75rem; }
-.sauvegarde { overflow: hidden; margin: 0; color: var(--ept-text-secondary); font-size: .85rem; text-align: center;
-  text-overflow: ellipsis; white-space: nowrap; }
-.sauvegarde.erreur { color: var(--ept-error-dark); }
-.publier { min-height: 2.5rem; padding-inline: 1.2rem; }
 .message-erreur { display: block; width: min(44rem, calc(100% - 2.5rem)); margin: .75rem auto 0; }
 .squelette { gap: 1rem; }
 
@@ -46,7 +39,6 @@ button:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
 
 @media (max-width: 760px) {
   .edition-page { min-height: auto; padding-bottom: 5.25rem; }
-  .barre-haut { padding: .5rem .75rem; gap: .5rem; }
   .feuille { padding: 1rem 1rem 1.5rem; }
   .outils { bottom: calc(4.9rem + env(safe-area-inset-bottom)); justify-content: space-between; padding-inline: .5rem;
     border-bottom: 1px solid var(--ept-border); }

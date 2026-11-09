@@ -1,16 +1,11 @@
+<app-barre-creation [titre]="modeEdition() ? 'Modifier l’événement' : 'Nouvel événement'"
+  libelleFermer="Annuler et revenir aux événements" formulaire="formulaire-evenement"
+  [libelleAction]="modeEdition() ? 'Enregistrer' : 'Publier'" libelleEnCours="Enregistrement…"
+  [enCours]="envoiEnCours()" [desactivee]="enChargement() || (modeEdition() && !chargementReussi())"
+  (fermer)="retourner()" />
+
 <div class="formulaire-evenement-page">
-  <app-bouton-retour [secours]="urlSecours" />
-
-  <header class="entete-formulaire">
-    <p class="sur-titre">La vie du réseau</p>
-    <h1>{{ modeEdition() ? 'Modifier l’événement' : 'Créer un événement' }}</h1>
-    <p>Partagez une rencontre avec les membres concernés de la communauté EPT.</p>
-    @if (publieParAdministration()) {
-      <p class="note-officielle"><i class="pi pi-verified" aria-hidden="true"></i>
-        Publié par l’administration, cet événement est présenté comme un événement officiel de l’EPT.</p>
-    }
-  </header>
-
+  <div class="colonne-formulaire">
   @if (enChargement()) {
     <div class="etat-formulaire" aria-busy="true" aria-label="Chargement de l’événement">
       <span class="indicateur-chargement" aria-hidden="true"></span>Chargement…
@@ -21,7 +16,11 @@
       <button type="button" (click)="reessayerChargement()">Réessayer</button>
     </section>
   } @else {
-    <form class="carte-formulaire" (submit)="soumettre($event)" novalidate>
+    <form id="formulaire-evenement" class="carte-formulaire" (submit)="soumettre($event)" novalidate>
+      @if (publieParAdministration()) {
+        <p class="note-officielle"><i class="pi pi-verified" aria-hidden="true"></i>
+          Publié par l’administration, cet événement est présenté comme un événement officiel de l’EPT.</p>
+      }
       @if (messageErreur()) {
         <p class="message-erreur-api" role="alert">{{ messageErreur() }}</p>
       }
@@ -141,4 +140,6 @@
       </div>
     </form>
   }
+  </div>
+  <app-conseils-creation titre="Pour un événement réussi" [conseils]="conseils" />
 </div>

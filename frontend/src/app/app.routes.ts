@@ -220,7 +220,7 @@ export const routes: Routes = [
       },
       {
         path: 'evenements/creer',
-        title: 'Créer un événement | EPT Alumni',
+        title: 'Nouvel événement | EPT Alumni',
         canActivate: [authGuard, changementInitialRequisGuard],
         loadComponent: () =>
           import('./features/evenements/formulaire-evenement/formulaire-evenement').then(

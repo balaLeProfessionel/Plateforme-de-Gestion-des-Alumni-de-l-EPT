@@ -2,15 +2,9 @@
   @if (!ouverte()) {
     <button type="button" class="ouvrir-redaction" (click)="ouvrir()">{{ libelleOuvrir() }}</button>
   } @else {
-    <form (submit)="publier($event)" novalidate>
+    <form [attr.id]="idFormulaire()" (submit)="publier($event)" novalidate>
       @if (integree()) {
-        <div class="barre-haut">
-          <button type="button" class="fermer" aria-label="Annuler et revenir au fil" [disabled]="envoiEnCours()"
-            (click)="annulerRedaction()"><i class="pi pi-times" aria-hidden="true"></i></button>
-          <h1>{{ titreFormulaire() }}</h1>
-          <button type="submit" class="publier-haut" [disabled]="envoiEnCours() || desactivee()">
-            {{ envoiEnCours() ? 'Publication…' : 'Publier' }}</button>
-        </div>
+        <!-- Le titre et « Publier » sont dans la barre de création de la page (app-barre-creation). -->
         <div class="auteur">
           <ng-content />
           <span class="pastille-audience">

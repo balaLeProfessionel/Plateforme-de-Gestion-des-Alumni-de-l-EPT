@@ -9,7 +9,8 @@ import { AuthService } from '../../../core/services/auth/auth-service';
 import { EvenementService } from '../../../core/services/evenements/evenement';
 import { AudienceEvenement, Evenement, EvenementRequest } from '../../../core/services/models/evenement';
 import { RetourNavigation } from '../../../core/navigation/retour-navigation';
-import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
+import { BarreCreation } from '../../../shared/creation/barre-creation';
+import { Conseil, ConseilsCreation } from '../../../shared/creation/conseils-creation';
 import { chargerImagePourRecadrage } from '../../../shared/images/charger-image';
 import { FORMAT_EVENEMENT } from '../../../shared/images/recadrage';
 import { RecadreurImage } from '../../../shared/images/recadreur-image';
@@ -26,9 +27,16 @@ interface ModeleFormulaireEvenement {
   nombrePlaces: string;
 }
 
+const CONSEILS: readonly Conseil[] = [
+  { titre: 'Un titre qui dit tout.', texte: 'La nature de la rencontre et son sujet : « Conférence : construire sa carrière dans l’énergie ».' },
+  { titre: 'Une date et un lieu précis.', texte: 'Ils s’affichent sur la carte de l’événement dans le fil et dans la liste.' },
+  { titre: 'Ajoutez une image.', texte: 'Recadrée au format 16:9 ; sans image, une affiche aux couleurs de l’EPT est créée.' },
+  { titre: 'Choisissez le public.', texte: 'Tous les membres, seulement les alumni ou seulement les étudiants.' },
+];
+
 @Component({
   selector: 'app-formulaire-evenement',
-  imports: [FormField, BoutonRetour, RecadreurImage, VisuelEvenement],
+  imports: [FormField, BarreCreation, ConseilsCreation, RecadreurImage, VisuelEvenement],
   templateUrl: './formulaire-evenement.html',
   styleUrl: './formulaire-evenement.scss',
 })
@@ -50,6 +58,7 @@ export class FormulaireEvenement {
   protected readonly enChargement = signal(false);
   protected readonly chargementReussi = signal(true);
   protected readonly envoiEnCours = signal(false);
+  protected readonly conseils = CONSEILS;
   protected readonly messageErreur = signal<string | null>(null);
   protected readonly imageActuelle = signal<string | null>(null);
   protected readonly fichierImage = signal<File | null>(null);

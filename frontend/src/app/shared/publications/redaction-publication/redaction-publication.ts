@@ -47,6 +47,8 @@ export class RedactionPublication {
    * et « Annuler » émet `annulee` au lieu de replier le formulaire.
    */
   readonly integree = input(false);
+  /** Identifiant du formulaire, pour qu’un bouton placé hors du composant puisse le soumettre. */
+  readonly idFormulaire = input<string | null>(null);
   readonly publiee = output<Publication>();
   readonly annulee = output<void>();
 
@@ -62,6 +64,8 @@ export class RedactionPublication {
   protected readonly libellesTypes = LIBELLES_TYPE_PUBLICATION;
   protected readonly ouverte = linkedSignal(() => this.integree());
   protected readonly envoiEnCours = signal(false);
+  /** Lus par la page qui porte la barre de création. */
+  readonly enCours = this.envoiEnCours.asReadonly();
   protected readonly messagePublication = signal('');
   protected readonly erreurPublication = signal('');
   protected readonly imageSelectionnee = signal<File | undefined>(undefined);
@@ -80,7 +84,7 @@ export class RedactionPublication {
   protected readonly lienOuvert = signal(false);
   protected readonly modele = signal(this.modeleVide());
   protected readonly titreObligatoire = computed(() => this.modele().type !== 'PUBLICATION');
-  protected readonly titreFormulaire = computed(() => TITRES_FORMULAIRE[this.modele().type]);
+  readonly titreFormulaire = computed(() => TITRES_FORMULAIRE[this.modele().type]);
   protected readonly formulaire = form(this.modele, (champ) => {
     required(champ.titre, { when: () => this.titreObligatoire() });
     maxLength(champ.titre, 160);
