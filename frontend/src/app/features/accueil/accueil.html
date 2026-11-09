@@ -1,12 +1,7 @@
 <div class="accueil">
   <section class="fil" aria-labelledby="titre-fil" [attr.aria-busy]="chargement()">
     <h1 id="titre-fil">Fil d’actualité</h1>
-    <a class="invitation" routerLink="/publications/nouvelle">
-      <app-avatar-membre [urlPhoto]="moi()?.urlPhoto" [nom]="moi()?.nom" [prenom]="moi()?.prenom"
-        [roleMembre]="moi()?.role" [taille]="2.75" />
-      <span class="champ"><span class="visuellement-cache">Créer une publication : </span>{{ invitation() }}</span>
-      <span class="bouton" aria-hidden="true"><i class="pi pi-pencil"></i><span class="libelle"> Publier</span></span>
-    </a>
+    <app-composeur-fil />
     @if (confirmation()) {
       <p class="confirmation" role="status"><i class="pi pi-check-circle" aria-hidden="true"></i> {{ confirmation() }}
         <button type="button" (click)="confirmation.set('')" aria-label="Masquer ce message"><i class="pi pi-times" aria-hidden="true"></i></button></p>
@@ -51,4 +46,7 @@
       }
     }
   </section>
+  @if (grandEcran()) {
+    <aside class="colonne" aria-label="Pour vous"><app-colonne-fil /></aside>
+  }
 </div>

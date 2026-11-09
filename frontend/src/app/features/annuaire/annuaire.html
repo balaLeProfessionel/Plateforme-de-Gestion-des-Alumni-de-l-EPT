@@ -30,6 +30,7 @@
       <div class="tri">
         <label for="tri">Trier par</label>
         <select id="tri" [formField]="formulaire.tri" aria-describedby="aide-filtres">
+          <option value="PROFILS_COMPLETS">Profils complets</option>
           <option value="ALPHABETIQUE">Nom</option>
           <option value="PROMOTION_DESC">Promo récente</option>
         </select>
@@ -142,25 +143,26 @@
 
       @if (pageAnnuaire.totalPages > 1) {
         <nav class="pagination" aria-label="Pagination de l’annuaire">
-          <button type="button" (click)="changerPage(pageAnnuaire.page - 1)"
+          <button pButton type="button" outlined (click)="changerPage(pageAnnuaire.page - 1)"
             [disabled]="pageAnnuaire.page === 0" aria-label="Page précédente">
-            <i class="pi pi-chevron-left" aria-hidden="true"></i>
+            <i pButtonIcon class="pi pi-chevron-left" aria-hidden="true"></i>
           </button>
           @for (numero of pagesVisibles(); track $index) {
             @if (numero === 'ellipsis') {
               <span class="ellipse" aria-hidden="true">…</span>
             } @else {
-              <button type="button" (click)="changerPage(numero)"
+              <button pButton type="button" [outlined]="numero !== pageAnnuaire.page" (click)="changerPage(numero)"
                 [class.page-active]="numero === pageAnnuaire.page"
+                [class.voisine]="numero !== pageAnnuaire.page && numero !== 0 && numero !== pageAnnuaire.totalPages - 1"
                 [attr.aria-current]="numero === pageAnnuaire.page ? 'page' : null"
                 [attr.aria-label]="'Page ' + (numero + 1)">
                 {{ numero + 1 }}
               </button>
             }
           }
-          <button type="button" (click)="changerPage(pageAnnuaire.page + 1)"
+          <button pButton type="button" outlined (click)="changerPage(pageAnnuaire.page + 1)"
             [disabled]="pageAnnuaire.page + 1 >= pageAnnuaire.totalPages" aria-label="Page suivante">
-            <i class="pi pi-chevron-right" aria-hidden="true"></i>
+            <i pButtonIcon class="pi pi-chevron-right" aria-hidden="true"></i>
           </button>
         </nav>
       }

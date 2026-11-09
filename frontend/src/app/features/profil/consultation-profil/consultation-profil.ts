@@ -16,9 +16,11 @@ import {
 import { ProfilService } from '../../../core/services/profil/profil-service';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
+import { CompletudeProfil, EtapeCompletude, etapesCompletude } from '../../../shared/profil/completude-profil';
 import { OffreMentoratProfil } from '../../mentorat/offre-mentorat-profil/offre-mentorat-profil';
 import { FenetreParcours, ParcoursOuvert } from './fenetre-parcours/fenetre-parcours';
 import { ElementParcours, FriseParcours, parametresEtape } from './frise-parcours/frise-parcours';
+import { ParcoursVide } from './parcours-vide';
 
 interface Tuile {
   libelle: string;
@@ -34,7 +36,8 @@ interface ProfilAffiche extends ProfilPublic {
 
 @Component({
   selector: 'app-consultation-profil',
-  imports: [DatePipe, RouterLink, BoutonRetour, AvatarMembre, OffreMentoratProfil, FenetreParcours, FriseParcours],
+  imports: [DatePipe, RouterLink, BoutonRetour, AvatarMembre, CompletudeProfil, OffreMentoratProfil, FenetreParcours, FriseParcours,
+    ParcoursVide],
   templateUrl: './consultation-profil.html',
   styleUrl: './consultation-profil.scss'
 })
@@ -62,6 +65,14 @@ export class ConsultationProfil {
     PERSONNEL: 'Personnel',
     VISITEUR: 'Visiteur'
   } as Record<string, string>)[this.profil()?.role ?? ''] ?? this.profil()?.role);
+
+  /** Étapes de complétude de mon profil (la jauge n’est affichée que sur mon profil). */
+  protected readonly etapesCompletude = computed(() => {
+    const profil = this.profil();
+    return profil ? etapesCompletude({ ...profil, nombreExperiences: profil.experiences.length,
+      nombreFormations: profil.formations.length }) : null;
+  });
+  protected readonly nonFaite = (etape: EtapeCompletude) => !etape.fait;
 
   /** L’employeur actuel, déduit de l’expérience en cours. */
   protected readonly organismeActuel = computed(() =>

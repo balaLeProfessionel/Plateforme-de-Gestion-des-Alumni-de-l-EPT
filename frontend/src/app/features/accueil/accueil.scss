@@ -1,16 +1,12 @@
 .accueil { max-width: 46rem; margin: 0 auto; padding: 2rem 2rem; }
+// Grand écran : le fil garde sa largeur de lecture, la colonne « Pour vous » occupe la droite.
+@media (min-width: 1200px) {
+  .accueil { display: grid; grid-template-columns: minmax(0, 42rem) 20rem; justify-content: center; gap: 2rem; max-width: none; }
+  // Reste visible au défilement ; si elle dépasse la hauteur de l’écran, elle défile à l’intérieur.
+  .colonne { position: sticky; top: 5.5rem; align-self: start; max-height: calc(100dvh - 6.5rem); margin-top: 2.6rem;
+    overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+}
 .fil h1 { font-size: 1.4rem; margin: 0 0 1rem; }
-// Invitation à publier : un faux champ qui mène à l’espace de rédaction.
-.invitation { display: flex; align-items: center; gap: .75rem; margin-bottom: .9rem; padding: .85rem 1rem;
-  border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: var(--ept-surface); color: inherit;
-  text-decoration: none; transition: border-color .15s; }
-.invitation:hover { border-color: #b7cdd8; }
-.invitation:hover .champ { background: var(--ept-primary-light); }
-.invitation:focus-visible { outline: 3px solid var(--ept-sky); outline-offset: 2px; }
-.invitation .champ { flex: 1 1 auto; min-width: 0; overflow: hidden; padding: .7rem 1rem; border: 1px solid var(--ept-border);
-  border-radius: 999px; background: var(--ept-bg); color: var(--ept-text-secondary); text-overflow: ellipsis; white-space: nowrap; }
-.invitation .bouton { display: inline-flex; flex: 0 0 auto; align-items: center; gap: .45rem; min-height: 2.6rem; padding: 0 1rem;
-  border-radius: var(--ept-radius-sm); background: var(--ept-primary); color: white; font-weight: 600; }
 .confirmation { display: flex; align-items: center; gap: .5rem; margin: 0 0 .9rem; padding: .55rem .6rem .55rem .9rem;
   border: 1px solid #bfe9f4; border-radius: var(--ept-radius-sm); background: #effbfe; color: var(--ept-primary-dark); font-weight: 600; }
 .confirmation i { color: var(--ept-primary); }
@@ -19,7 +15,6 @@
 .confirmation button:hover { background: rgb(1 67 101 / 8%); }
 .visuellement-cache { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
   clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-@media (prefers-reduced-motion: reduce) { .invitation { transition: none; } }
 // Pastille des nouveautés : reste en haut de l’écran pendant qu’on lit.
 .nouveautes { position: sticky; top: 4.5rem; z-index: 5; display: flex; justify-content: center; height: 0; overflow: visible; }
 .nouveautes button { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.5rem; padding: .45rem 1rem;
@@ -51,8 +46,5 @@
   // Fil plat : chaque élément occupe toute la largeur de l’écran.
   .cartes { margin-inline: -1rem; gap: .5rem; }
   .raison { margin-left: 1rem; }
-  .invitation { margin-inline: -1rem; padding: .7rem 1rem; gap: .6rem; border: 0; border-radius: 0; }
   app-squelette-fil { margin-inline: -1rem; }
-  .invitation .bouton { width: 2.6rem; padding: 0; justify-content: center; }
-  .invitation .libelle { display: none; }
 }

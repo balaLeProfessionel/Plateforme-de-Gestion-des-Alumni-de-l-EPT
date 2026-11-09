@@ -63,7 +63,7 @@
 .liens-gestion a { color: var(--ept-primary); font-size: 0.9rem; font-weight: 700; }
 a:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
 
-.etat-vide { margin: 1rem 0 0; color: var(--ept-text-secondary); font-style: italic; }
+app-parcours-vide { margin-top: 1rem; }
 .etat-vide-public { display: grid; justify-items: center; gap: 0.75rem; padding: 3rem 1rem; color: var(--ept-text-secondary); text-align: center; }
 .etat-vide-public i { font-size: 2rem; }
 .etat-vide-public p { margin: 0; }

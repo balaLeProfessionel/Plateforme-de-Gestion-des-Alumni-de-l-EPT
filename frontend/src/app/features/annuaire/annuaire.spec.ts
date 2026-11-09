@@ -99,7 +99,7 @@ describe('Annuaire', () => {
     http.expectOne((req) => req.url === '/api/annuaire').flush(page());
     composant['modele'].set({
       recherche: ' Awa ', role: 'ETUDIANT', filiere: '', promotion: '2025', ville: ' Thiès ',
-      tri: 'ALPHABETIQUE'
+      tri: 'PROFILS_COMPLETS'
     });
 
     composant['appliquerFiltres']();

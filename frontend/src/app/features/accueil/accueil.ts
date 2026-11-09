@@ -4,15 +4,16 @@ import { Component, computed, DestroyRef, effect, ElementRef, inject, InjectionT
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { fromEvent, interval, merge, MonoTypeOperatorFunction, retry, throwError, timer } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { CarteFil, cleCarte, FilService } from '../../core/services/fil/fil';
 import { Publication, PublicationService } from '../../core/services/publications/publication';
 import { CartePublication } from '../../shared/publications/carte-publication/carte-publication';
 import { CarteEvenementFil } from './cartes-fil/carte-evenement-fil';
 import { CarteProgrammeFil } from './cartes-fil/carte-programme-fil';
 import { SqueletteFil } from './cartes-fil/squelette-fil';
+import { ColonneFil } from './colonne-fil';
+import { ComposeurFil } from './composeur-fil';
 import { AuthService } from '../../core/services/auth/auth-service';
-import { AvatarMembre } from '../../shared/images/avatar-membre';
 import { EtatPublicationCreee } from '../publications/creation-publication/creation-publication';
 
 /** Nombre de cartes après lesquelles une même raison de suggestion peut réapparaître. */
@@ -45,7 +46,7 @@ function reessayer<T>(delai: number): MonoTypeOperatorFunction<T> {
  * Fil d’actualité personnalisé : publications, événements et programmes classés par l’API selon ce qui
  * rapproche le membre de leurs auteurs (promotion, filière, organismes, réactions) et leur fraîcheur.
  */
-@Component({ selector: 'app-accueil', imports: [RouterLink, AvatarMembre, CartePublication, CarteEvenementFil, CarteProgrammeFil, SqueletteFil],
+@Component({ selector: 'app-accueil', imports: [ComposeurFil, ColonneFil, CartePublication, CarteEvenementFil, CarteProgrammeFil, SqueletteFil],
   templateUrl: './accueil.html', styleUrl: './accueil.scss' })
 export class Accueil {
   private readonly fil = inject(FilService);
@@ -83,8 +84,8 @@ export class Accueil {
   private page = 0;
   private reference: string | null = null;
   protected readonly moi = inject(AuthService).utilisateur;
-  protected readonly invitation = computed(() =>
-    this.moi()?.prenom ? `Quoi de neuf, ${this.moi()?.prenom} ?` : 'Partager une actualité avec la communauté');
+  /** La colonne « Pour vous » n’est affichée (et chargée) que sur grand écran. */
+  protected readonly grandEcran = this.suivreLargeur('(min-width: 1200px)');
   /** Confirmation laissée par la page de création quand on revient au fil après avoir publié. */
   protected readonly confirmation = signal(this.lireConfirmation());
 
@@ -129,6 +130,16 @@ export class Accueil {
       },
       error: () => undefined,
     });
+  }
+
+  private suivreLargeur(requete: string) {
+    const media = this.document.defaultView?.matchMedia?.(requete);
+    const correspond = signal(media?.matches ?? false);
+    if (media) {
+      fromEvent<MediaQueryListEvent>(media, 'change').pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((evenement) => correspond.set(evenement.matches));
+    }
+    return correspond.asReadonly();
   }
 
   private lireConfirmation(): string {

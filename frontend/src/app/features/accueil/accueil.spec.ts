@@ -133,6 +133,11 @@ describe('Accueil', () => {
     const invitation = root.querySelector('a.invitation');
     expect(invitation?.getAttribute('href')).toBe('/publications/nouvelle');
     expect(invitation?.textContent).toContain('Créer une publication');
+    const raccourcis = [...root.querySelectorAll<HTMLAnchorElement>('.raccourcis a')]
+      .map((lien) => [lien.textContent?.trim(), lien.getAttribute('href')]);
+    expect(raccourcis).toEqual([
+      ['Publication', '/publications/nouvelle'], ['Article', '/articles/nouveau'], ['Événement', '/evenements/creer'],
+    ]);
     expect(root.querySelector('form')).toBeNull();
     expect(root.querySelector('.confirmation')?.textContent).toContain('Votre publication a été publiée.');
     (root.querySelector('.confirmation button') as HTMLButtonElement).click();

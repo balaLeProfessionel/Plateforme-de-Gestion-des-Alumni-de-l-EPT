@@ -72,6 +72,9 @@
     <div class="grille-profil">
       <!-- Avant le parcours dans l’ordre de lecture (et sur mobile) ; à droite sur grand écran. -->
       <aside class="colonne-laterale" aria-label="Mentorat et informations complémentaires">
+        @if (estMonProfil() && etapesCompletude(); as etapes) {
+          @if (etapes.some(nonFaite)) { <app-completude-profil [etapes]="etapes" /> }
+        }
         @if (participeAuMentorat(membre.role)) {
           <app-offre-mentorat-profil [utilisateurId]="membre.id" [estMonProfil]="estMonProfil()" />
         }
@@ -114,7 +117,7 @@
             @if (parcours().length) {
               <app-frise-parcours [elements]="parcours()" (ouverture)="ouvrirDepuisFrise()" />
             } @else {
-              <p class="etat-vide">Votre parcours est vide : ajoutez vos expériences et vos formations pour le faire apparaître ici.</p>
+              <app-parcours-vide />
             }
           </section>
         }

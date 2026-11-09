@@ -132,12 +132,16 @@
 .etat-centre p { color: var(--ept-text-secondary); }
 .etat-centre button { margin-top: 0.75rem; }
 
-.pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.45rem; margin-top: 3rem; }
-.pagination button { min-width: 2.75rem; padding: 0.55rem; }
-.pagination button:hover:not(:disabled), .pagination .page-active { border-color: var(--ept-primary); background: var(--ept-primary); color: white; }
-.pagination button:disabled { opacity: 0.4; cursor: default; }
-.pagination .ellipse { padding: 0 0.35rem; color: var(--ept-text-secondary); }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 0.4rem; margin-top: 3rem; }
+.pagination button { flex: 0 0 auto; min-width: 2.75rem; height: 2.75rem; padding-inline: 0.5rem; }
+.pagination button[aria-current='page'] { cursor: default; }
+.pagination .ellipse { padding: 0 0.15rem; color: var(--ept-text-secondary); }
 
 @media (max-width: 560px) {
+  .pagination { gap: 0.25rem; }
+  .pagination button { min-width: 2.25rem; height: 2.4rem; padding-inline: 0.35rem; }
   .bouton-filtres, .tri { flex: 1 1 100%; }
 }
+
+// Très petits écrans : première page, page courante et dernière page seulement.
+@media (max-width: 400px) { .pagination .voisine { display: none; } }
