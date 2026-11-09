@@ -7,10 +7,7 @@ h1 { margin: 0; color: var(--ept-primary-dark); font-family: var(--ept-font-head
 .entete p { max-width: 36rem; margin: .3rem 0 0; color: var(--ept-text-secondary); }
 .ecrire, .etat a { min-height: 2.75rem; text-decoration: none; }
 
-.onglets { display: flex; gap: .25rem; margin: 1.25rem 0 1rem; border-bottom: 1px solid var(--ept-border); }
-.onglets a { padding: .6rem .9rem; border-bottom: 3px solid transparent; margin-bottom: -1px; color: var(--ept-text-secondary);
-  font-weight: 600; text-decoration: none; }
-.onglets a[aria-current='page'] { border-bottom-color: var(--ept-primary); color: var(--ept-primary-dark); }
+.onglets { margin-top: 1.25rem; }
 
 .filtres { display: grid; gap: .75rem; margin-bottom: 1rem; }
 .recherche { position: relative; max-width: 32rem; }
@@ -46,7 +43,6 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 @media (max-width: 560px) {
   .articles-page { padding: 1rem 1rem 6rem; }
   .ecrire { flex: 1 1 100%; justify-content: center; }
-  .onglets a { flex: 1 1 0; text-align: center; }
   .themes { flex-wrap: nowrap; margin-inline: -1rem; padding-inline: 1rem; overflow-x: auto; scrollbar-width: none; }
   .themes button { flex: 0 0 auto; }
 }

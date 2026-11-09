@@ -15,7 +15,6 @@ import {
   TypeMembreAnnuaire,
   TriAnnuaire
 } from '../../core/services/models/annuaire.model';
-import { FilAriane } from '../../shared/fil-ariane/fil-ariane';
 import { CarteMembre } from './carte-membre/carte-membre';
 import { CarteMembreSquelette } from './carte-membre/carte-membre-squelette';
 
@@ -32,7 +31,7 @@ const LIBELLES_TYPES: Record<TypeMembreAnnuaire, string> = {
 
 @Component({
   selector: 'app-annuaire',
-  imports: [FormField, ButtonDirective, ButtonIcon, FilAriane, CarteMembre, CarteMembreSquelette],
+  imports: [FormField, ButtonDirective, ButtonIcon, CarteMembre, CarteMembreSquelette],
   templateUrl: './annuaire.html',
   styleUrl: './annuaire.scss',
 })

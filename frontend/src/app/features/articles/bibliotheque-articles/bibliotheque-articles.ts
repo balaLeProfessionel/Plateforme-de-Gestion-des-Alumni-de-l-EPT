@@ -11,6 +11,7 @@ import {
   ArticleService, LIBELLES_THEME, PageArticles, THEMES_ARTICLE, ThemeArticle,
 } from '../../../core/services/articles/article';
 import { CarteArticle } from '../../../shared/articles/carte-article';
+import { Onglet, Onglets } from '../../../shared/onglets/onglets';
 
 const DELAI_SAISIE_MS = 300;
 const TAILLE_PAGE = 12;
@@ -25,7 +26,7 @@ interface Criteres {
 /** Bibliothèque des articles publiés, et « Mes articles » (brouillons compris) pour leur auteur. */
 @Component({
   selector: 'app-bibliotheque-articles',
-  imports: [FormField, RouterLink, ButtonDirective, ButtonIcon, ButtonLabel, Message, Skeleton, CarteArticle],
+  imports: [FormField, RouterLink, ButtonDirective, ButtonIcon, ButtonLabel, Message, Skeleton, CarteArticle, Onglets],
   templateUrl: './bibliotheque-articles.html',
   styleUrl: './bibliotheque-articles.scss',
 })
@@ -38,6 +39,10 @@ export class BibliothequeArticles {
   protected readonly themes = THEMES_ARTICLE;
   protected readonly libellesThemes = LIBELLES_THEME;
   protected readonly criteres = signal<Criteres>({ vue: 'bibliotheque', theme: null, recherche: '', page: 0 });
+  protected readonly vues = computed((): readonly Onglet[] => [
+    { libelle: 'Bibliothèque', lien: '/articles', actif: this.criteres().vue === 'bibliotheque' },
+    { libelle: 'Mes articles', lien: '/articles', parametres: { vue: 'mes' }, actif: this.criteres().vue === 'mes' },
+  ]);
   protected readonly resultat = signal<PageArticles | null>(null);
   protected readonly enChargement = signal(true);
   protected readonly messageErreur = signal<string | null>(null);

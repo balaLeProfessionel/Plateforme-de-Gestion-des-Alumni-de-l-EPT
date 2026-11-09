@@ -1,6 +1,4 @@
 <div class="evenements-page">
-  <app-fil-ariane [etapes]="[{ libelle: 'Accueil', lien: '/accueil' }, { libelle: 'Événements' }]" />
-
   <header class="entete-evenements">
     <div>
       <h1>Événements</h1>
@@ -11,17 +9,9 @@
     </a>
   </header>
 
+  <app-onglets libelle="Afficher les événements" [onglets]="vues()" [fusionner]="true" />
+
   <div class="barre-evenements">
-    <div class="filtre-proprietaire" role="group" aria-label="Afficher les événements">
-      <button type="button" [attr.aria-pressed]="!mesEvenements()" (click)="changerVue(false)">
-        <i class="pi pi-globe" aria-hidden="true"></i>Tous les événements
-      </button>
-      <button type="button" [attr.aria-pressed]="mesEvenements()" (click)="changerVue(true)">
-        <i class="pi pi-user" aria-hidden="true"></i>Mes événements
-      </button>
-    </div>
-
-
     <app-filtres-evenements [filtres]="filtres()" [periode]="periode()"
       (modifies)="appliquerFiltres($event)" (periodeChoisie)="changerPeriode($event)" (effaces)="effacerFiltres()" />
   </div>

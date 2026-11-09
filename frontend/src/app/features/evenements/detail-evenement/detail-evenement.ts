@@ -6,14 +6,15 @@ import { catchError, combineLatest, firstValueFrom, map, of, startWith, Subject,
 
 import { EvenementService } from '../../../core/services/evenements/evenement';
 import { AuthService } from '../../../core/services/auth/auth-service';
-import { Evenement, PageParticipants, ReponseParticipation } from '../../../core/services/models/evenement';
+import { Evenement, ReponseParticipation } from '../../../core/services/models/evenement';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { VisuelEvenement } from '../../../shared/images/visuel-evenement';
 import { etatNavigationEvenement, urlRetourInterne } from '../navigation-evenements';
+import { ParticipantsEvenement } from './participants-evenement';
 
 @Component({
   selector: 'app-detail-evenement',
-  imports: [RouterLink, BoutonRetour, VisuelEvenement],
+  imports: [RouterLink, BoutonRetour, VisuelEvenement, ParticipantsEvenement],
   templateUrl: './detail-evenement.html',
   styleUrl: './detail-evenement.scss',
 })
@@ -29,9 +30,6 @@ export class DetailEvenement {
   protected readonly evenement = signal<Evenement | null>(null);
   protected readonly enChargement = signal(true);
   protected readonly messageErreur = signal<string | null>(null);
-  protected readonly participants = signal<PageParticipants | null>(null);
-  protected readonly chargementParticipants = signal(false);
-  protected readonly erreurParticipants = signal<string | null>(null);
   protected readonly confirmationAnnulation = signal(false);
   protected readonly actionEnCours = signal(false);
   protected readonly erreurAction = signal<string | null>(null);
@@ -68,9 +66,6 @@ export class DetailEvenement {
       this.evenement.set(evenement);
       this.messageErreur.set(erreur);
       this.enChargement.set(false);
-      this.participants.set(null);
-      this.erreurParticipants.set(null);
-      if (evenement && this.peutGerer()) void this.chargerParticipants(evenement.id, 0);
     });
   }
 
@@ -138,8 +133,8 @@ export class DetailEvenement {
     this.reponseEnCours.set(reponse);
     this.erreurReponse.set(null);
     try {
+      // La liste des participants se recharge d’elle-même : leur nombre a changé.
       this.evenement.set(await firstValueFrom(this.evenementService.repondre(evenement.id, reponse)));
-      if (this.peutGerer()) await this.chargerParticipants(evenement.id, 0);
     } catch (erreur) {
       this.erreurReponse.set(erreur instanceof HttpErrorResponse && erreur.status === 409
         ? 'Cet événement est complet. Votre réponse n’a pas été modifiée.'
@@ -148,21 +143,6 @@ export class DetailEvenement {
           : 'Votre réponse n’a pas été enregistrée. Réessayez.');
     } finally {
       this.reponseEnCours.set(null);
-    }
-  }
-
-  protected async chargerParticipants(id = this.evenement()?.id ?? '', page = 0): Promise<void> {
-    if (!id) return;
-    this.chargementParticipants.set(true);
-    this.erreurParticipants.set(null);
-    try {
-      this.participants.set(await firstValueFrom(this.evenementService.listerParticipants(id, page)));
-    } catch (erreur) {
-      this.erreurParticipants.set(erreur instanceof HttpErrorResponse && erreur.status === 404
-        ? 'La liste des participants n’est pas disponible pour ce compte.'
-        : 'Impossible de charger la liste des participants.');
-    } finally {
-      this.chargementParticipants.set(false);
     }
   }
 
@@ -189,19 +169,5 @@ export class DetailEvenement {
     } finally {
       this.actionEnCours.set(false);
     }
-  }
-
-  protected libelleRole(role: string): string {
-    return ({ ETUDIANT: 'Étudiant', ALUMNI: 'Alumni', PERSONNEL: 'Personnel', VISITEUR: 'Visiteur' } as Record<string, string>)[role]
-      ?? 'Membre';
-  }
-
-  protected pagesParticipants(): number[] {
-    const total = this.participants()?.totalPages ?? 0;
-    if (total <= 5) return Array.from({ length: total }, (_, index) => index);
-    const courant = this.participants()?.page ?? 0;
-    const debut = Math.max(0, Math.min(courant - 1, total - 3));
-    const visibles = Array.from({ length: 3 }, (_, index) => debut + index);
-    return [...new Set([0, ...visibles, total - 1])].sort((a, b) => a - b);
   }
 }

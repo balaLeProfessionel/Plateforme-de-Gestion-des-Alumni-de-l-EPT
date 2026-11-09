@@ -9,10 +9,7 @@
       <i pButtonIcon class="pi pi-pen-to-square" aria-hidden="true"></i><span pButtonLabel>Écrire un article</span></a>
   </header>
 
-  <nav class="onglets" aria-label="Vues des articles">
-    <a routerLink="/articles" [attr.aria-current]="c.vue === 'bibliotheque' ? 'page' : null">Bibliothèque</a>
-    <a routerLink="/articles" [queryParams]="{ vue: 'mes' }" [attr.aria-current]="c.vue === 'mes' ? 'page' : null">Mes articles</a>
-  </nav>
+  <app-onglets class="onglets" libelle="Vues des articles" [onglets]="vues()" />
 
   @if (c.vue === 'bibliotheque') {
     <div class="filtres">

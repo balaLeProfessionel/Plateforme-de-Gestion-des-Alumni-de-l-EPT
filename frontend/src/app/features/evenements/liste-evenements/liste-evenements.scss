@@ -10,12 +10,6 @@
   &:hover { background: #fff1ef; } &:disabled { opacity: .6; cursor: wait; }
 }
 .barre-evenements { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; padding: .6rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: var(--ept-surface); }
-.filtre-proprietaire { display: inline-flex; gap: .25rem; padding: .2rem; border-radius: var(--ept-radius-sm); background: var(--ept-bg);
-  button { display: inline-flex; min-height: 2.3rem; align-items: center; gap: .45rem; padding: .4rem .85rem; border: 0; border-radius: var(--ept-radius-sm); background: transparent; color: var(--ept-text-secondary); font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; }
-  button:hover { color: var(--ept-primary); }
-  button[aria-pressed='true'] { background: white; color: var(--ept-primary); box-shadow: 0 1px 3px rgba(1, 46, 69, .12); }
-  button:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
-}
 .resume-evenements { margin: 1rem 0 1.25rem; color: var(--ept-primary-dark); font-size: .9rem; span { color: var(--ept-text-secondary); } }
 .resultats-evenements { min-height: 16rem; }
 .grille-evenements { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin: 0; padding: 0; list-style: none; }
@@ -69,6 +63,4 @@
 @media (max-width: 760px) {
   .grille-evenements { grid-template-columns: minmax(0, 1fr); }
   .entete-evenements { flex-direction: column; align-items: stretch; }
-  .filtre-proprietaire { flex: 1; min-width: 0; button { flex: 1 1 0; min-width: 0; justify-content: center; } }
-  .filtre-proprietaire { i { display: none; } button { padding-inline: .4rem; font-size: clamp(.72rem, 3.4vw, .82rem); line-height: 1.2; text-align: center; } }
 }
