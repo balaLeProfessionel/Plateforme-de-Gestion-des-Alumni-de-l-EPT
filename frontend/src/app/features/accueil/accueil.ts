@@ -11,6 +11,7 @@ import { CartePublication } from '../../shared/publications/carte-publication/ca
 import { CarteEvenementFil } from './cartes-fil/carte-evenement-fil';
 import { CarteProgrammeFil } from './cartes-fil/carte-programme-fil';
 import { SqueletteFil } from './cartes-fil/squelette-fil';
+import { ColonneCollante } from './colonne-collante';
 import { ColonneFil } from './colonne-fil';
 import { ComposeurFil } from './composeur-fil';
 import { AuthService } from '../../core/services/auth/auth-service';
@@ -46,7 +47,7 @@ function reessayer<T>(delai: number): MonoTypeOperatorFunction<T> {
  * Fil d’actualité personnalisé : publications, événements et programmes classés par l’API selon ce qui
  * rapproche le membre de leurs auteurs (promotion, filière, organismes, réactions) et leur fraîcheur.
  */
-@Component({ selector: 'app-accueil', imports: [ComposeurFil, ColonneFil, CartePublication, CarteEvenementFil, CarteProgrammeFil, SqueletteFil],
+@Component({ selector: 'app-accueil', imports: [ComposeurFil, ColonneFil, ColonneCollante, CartePublication, CarteEvenementFil, CarteProgrammeFil, SqueletteFil],
   templateUrl: './accueil.html', styleUrl: './accueil.scss' })
 export class Accueil {
   private readonly fil = inject(FilService);
