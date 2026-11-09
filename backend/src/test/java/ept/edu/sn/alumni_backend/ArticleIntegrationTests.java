@@ -1,6 +1,8 @@
 package ept.edu.sn.alumni_backend;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -114,6 +116,51 @@ class ArticleIntegrationTests {
             .header(HttpHeaders.AUTHORIZATION, jeton(etudiant))).andExpect(jsonPath("$.totalElements").value(0));
         mvc.perform(get("/api/articles").param("recherche", mot).param("theme", "PARCOURS")
             .header(HttpHeaders.AUTHORIZATION, jeton(etudiant))).andExpect(jsonPath("$.totalElements").value(2));
+    }
+
+    @Test
+    void unArticleReserveAuxEtudiantsEstInvisibleDesAlumniPartout() throws Exception {
+        Utilisateur auteur = membre(TypeRole.PERSONNEL);
+        Utilisateur etudiant = membre(TypeRole.ETUDIANT);
+        Utilisateur alumni = membre(TypeRole.ALUMNI);
+        String titre = "Réservé " + UUID.randomUUID().toString().substring(0, 6);
+        ByteArrayOutputStream sortie = new ByteArrayOutputStream();
+        ImageIO.write(new BufferedImage(160, 90, BufferedImage.TYPE_INT_RGB), "png", sortie);
+        String id = JsonPath.read(mvc.perform(multipart("/api/articles")
+                .file(new MockMultipartFile("article", "", "application/json", corps(titre, "Résumé", CORPS, "ETUDIANTS").getBytes()))
+                .file(new MockMultipartFile("couverture", "couverture.png", "image/png", sortie.toByteArray()))
+                .header(HttpHeaders.AUTHORIZATION, jeton(auteur)))
+            .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), "$.id");
+        String publicationId = JsonPath.read(mvc.perform(patch("/api/articles/{id}/publier", id)
+                .header(HttpHeaders.AUTHORIZATION, jeton(auteur)))
+            .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(), "$.publicationId");
+
+        // L'étudiant voit la carte dans le fil, la publication porteuse et la couverture.
+        String filEtudiant = mvc.perform(get("/api/fil").param("taille", "30").header(HttpHeaders.AUTHORIZATION, jeton(etudiant)))
+            .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertTrue(filEtudiant.contains(publicationId));
+        mvc.perform(get("/api/publications/{id}", publicationId).header(HttpHeaders.AUTHORIZATION, jeton(etudiant)))
+            .andExpect(status().isOk());
+        mvc.perform(get("/api/articles/{id}/couverture", id).header(HttpHeaders.AUTHORIZATION, jeton(etudiant)))
+            .andExpect(status().isOk());
+
+        // L'alumni ne la trouve nulle part : fil, liste et détail des publications, J'aime, commentaires, couverture.
+        String filAlumni = mvc.perform(get("/api/fil").param("taille", "30").header(HttpHeaders.AUTHORIZATION, jeton(alumni)))
+            .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertFalse(filAlumni.contains(publicationId));
+        String listeAlumni = mvc.perform(get("/api/publications").header(HttpHeaders.AUTHORIZATION, jeton(alumni)))
+            .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertFalse(listeAlumni.contains(publicationId));
+        mvc.perform(get("/api/publications/{id}", publicationId).header(HttpHeaders.AUTHORIZATION, jeton(alumni)))
+            .andExpect(status().isNotFound());
+        mvc.perform(put("/api/publications/{id}/jaime", publicationId).header(HttpHeaders.AUTHORIZATION, jeton(alumni)))
+            .andExpect(status().isNotFound());
+        mvc.perform(get("/api/publications/{id}/commentaires", publicationId).header(HttpHeaders.AUTHORIZATION, jeton(alumni)))
+            .andExpect(status().isNotFound());
+        mvc.perform(get("/api/articles/{id}/couverture", id).header(HttpHeaders.AUTHORIZATION, jeton(alumni)))
+            .andExpect(status().isNotFound());
+        mvc.perform(get("/api/articles/{id}", id).header(HttpHeaders.AUTHORIZATION, jeton(alumni)))
+            .andExpect(status().isNotFound());
     }
 
     @Test
