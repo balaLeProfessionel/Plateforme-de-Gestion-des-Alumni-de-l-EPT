@@ -2,18 +2,31 @@
   <app-bouton-retour secours="/articles" libelle="Retour aux articles" />
 
   @switch (etat()) {
-    @case ('chargement') { <p class="etat" role="status">Chargement de l’article…</p> }
+    @case ('chargement') {
+      <div class="article squelette" role="status">
+        <span class="cache">Chargement de l’article…</span>
+        <div class="couverture"><p-skeleton height="100%" borderRadius="0" /></div>
+        <div class="lignes">
+          <p-skeleton width="6rem" height="1.4rem" borderRadius="999px" />
+          <p-skeleton width="85%" height="2rem" />
+          <p-skeleton width="100%" height="1rem" />
+          <p-skeleton width="60%" height="1rem" />
+        </div>
+      </div>
+    }
     @case ('introuvable') {
       <section class="etat vide">
         <i class="pi pi-eye-slash" aria-hidden="true"></i>
         <h1>Cet article n’est pas disponible</h1>
         <p>Il a peut-être été retiré, ou il ne s’adresse pas à votre profil.</p>
-        <a routerLink="/articles">Voir les autres articles</a>
+        <a pButton text routerLink="/articles"><span pButtonLabel>Voir les autres articles</span></a>
       </section>
     }
     @case ('erreur') {
-      <p class="etat" role="alert">Impossible de charger l’article.
-        <button type="button" class="lien" (click)="charger()">Réessayer</button></p>
+      <p-message class="message-page" severity="error" icon="pi pi-exclamation-circle">
+        Impossible de charger l’article.
+        <button pButton type="button" text size="small" severity="danger" (click)="charger()">Réessayer</button>
+      </p-message>
     }
     @default {
       @if (article(); as a) {
@@ -21,38 +34,40 @@
           @if (a.estAuteur) {
             <div class="outils">
               @if (a.statut === 'BROUILLON') {
-                <p class="brouillon"><i class="pi pi-lock" aria-hidden="true"></i> Brouillon : vous seul pouvez le lire.</p>
+                <p-message class="brouillon" severity="info" icon="pi pi-lock" size="small">Brouillon : vous seul pouvez le lire.</p-message>
               }
               <div class="boutons">
-                <a class="bouton secondaire" [routerLink]="['/articles', a.id, 'modifier']">
-                  <i class="pi pi-pencil" aria-hidden="true"></i> Modifier</a>
+                <a pButton outlined [routerLink]="['/articles', a.id, 'modifier']">
+                  <i pButtonIcon class="pi pi-pencil" aria-hidden="true"></i><span pButtonLabel>Modifier</span></a>
                 @if (a.statut === 'BROUILLON') {
-                  <button type="button" class="bouton principal" [disabled]="actionEnCours()" (click)="publier()">
-                    <i class="pi pi-send" aria-hidden="true"></i> Publier</button>
+                  <button pButton type="button" [disabled]="actionEnCours()" (click)="publier()">
+                    <i pButtonIcon class="pi pi-send" aria-hidden="true"></i><span pButtonLabel>Publier</span></button>
                 }
-                <button type="button" class="bouton danger" [disabled]="actionEnCours()"
+                <button pButton type="button" outlined severity="danger" [disabled]="actionEnCours()"
                   [attr.aria-expanded]="confirmationSuppression()" aria-controls="confirmation-suppression"
                   (click)="confirmationSuppression.set(!confirmationSuppression())">
-                  <i class="pi pi-trash" aria-hidden="true"></i> Supprimer</button>
+                  <i pButtonIcon class="pi pi-trash" aria-hidden="true"></i><span pButtonLabel>Supprimer</span></button>
               </div>
               @if (confirmationSuppression()) {
                 <div id="confirmation-suppression" class="confirmation" role="group" aria-labelledby="question-suppression">
                   <p id="question-suppression">Supprimer définitivement cet article ? Ses « J’aime » et commentaires disparaîtront aussi.</p>
-                  <button type="button" class="bouton danger" [disabled]="actionEnCours()" (click)="supprimer()">Oui, supprimer</button>
-                  <button type="button" class="bouton secondaire" (click)="confirmationSuppression.set(false)">Annuler</button>
+                  <button pButton type="button" class="danger" severity="danger" [disabled]="actionEnCours()"
+                    (click)="supprimer()"><span pButtonLabel>Oui, supprimer</span></button>
+                  <button pButton type="button" text severity="secondary" (click)="confirmationSuppression.set(false)">
+                    <span pButtonLabel>Annuler</span></button>
                 </div>
               }
-              @if (messageAction(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+              @if (messageAction(); as message) { <p-message class="message" severity="error" size="small">{{ message }}</p-message> }
             </div>
           }
-          @if (messageSucces(); as message) { <p class="message succes" role="status">{{ message }}</p> }
+          @if (messageSucces(); as message) { <p-message class="message succes" severity="success" icon="pi pi-check">{{ message }}</p-message> }
 
           @if (a.urlCouverture) {
             <div class="couverture"><app-image-publication [url]="a.urlCouverture" description="" /></div>
           }
 
           <header class="entete">
-            <p class="theme">{{ themes[a.theme] }}</p>
+            <p-tag class="theme" [value]="themes[a.theme]" rounded />
             <h1 id="titre-article">{{ a.titre }}</h1>
             @if (a.resume) { <p class="chapo">{{ a.resume }}</p> }
             <div class="signature">

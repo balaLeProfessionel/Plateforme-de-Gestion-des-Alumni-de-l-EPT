@@ -3,6 +3,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { afterNextRender, Component, computed, inject, Injector, linkedSignal, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { Message } from 'primeng/message';
+import { Skeleton } from 'primeng/skeleton';
+import { Tag } from 'primeng/tag';
 import { Observable } from 'rxjs';
 import { Article, ArticleService, LIBELLES_THEME } from '../../../core/services/articles/article';
 import { LIBELLES_ROLE_COMPTE, RoleCompte } from '../../../core/services/models/admin.model';
@@ -20,7 +24,7 @@ import { MenuPublication } from '../../../shared/publications/menu-publication/m
  */
 @Component({
   selector: 'app-lecture-article',
-  imports: [DatePipe, RouterLink, BoutonRetour, AvatarMembre, ImagePublication, ContenuArticle, BoutonJaime,
+  imports: [DatePipe, RouterLink, ButtonDirective, ButtonIcon, ButtonLabel, Message, Skeleton, Tag, BoutonRetour, AvatarMembre, ImagePublication, ContenuArticle, BoutonJaime,
     CommentairesPublication, MenuPublication],
   templateUrl: './lecture-article.html',
   styleUrl: './lecture-article.scss',

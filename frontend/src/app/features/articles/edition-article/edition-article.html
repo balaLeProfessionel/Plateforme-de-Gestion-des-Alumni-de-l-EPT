@@ -1,21 +1,31 @@
 <div class="edition-page">
   @if (chargement()) {
-    <p class="etat-page" role="status">Chargement de l’article…</p>
+    <div class="feuille squelette" role="status">
+      <span class="cache">Chargement de l’article…</span>
+      <p-skeleton width="12rem" height="2.5rem" />
+      <p-skeleton width="80%" height="2.25rem" />
+      <p-skeleton width="100%" height="1.1rem" />
+      <p-skeleton width="100%" height="14rem" />
+    </div>
   } @else if (echecChargement(); as message) {
-    <div class="etat-page" role="alert">
+    <div class="etat-page">
       <h1>Modification impossible</h1>
-      <p>{{ message }}</p>
-      <button type="button" class="lien" (click)="fermer()">Revenir aux articles</button>
+      <p-message severity="error" icon="pi pi-exclamation-circle">{{ message }}</p-message>
+      <button pButton type="button" text (click)="fermer()">
+        <i pButtonIcon class="pi pi-arrow-left" aria-hidden="true"></i><span pButtonLabel>Revenir aux articles</span></button>
     </div>
   } @else {
     <h1 class="cache">{{ article() ? 'Modifier l’article' : 'Nouvel article' }}</h1>
     <div class="barre-haut">
-      <button type="button" class="fermer" aria-label="Fermer l’éditeur" (click)="fermer()">
-        <i class="pi pi-times" aria-hidden="true"></i></button>
+      <button pButton type="button" class="fermer" text rounded severity="secondary" aria-label="Fermer l’éditeur" (click)="fermer()">
+        <i pButtonIcon class="pi pi-times" aria-hidden="true"></i></button>
       <p class="sauvegarde" [class.erreur]="etat() === 'erreur'" role="status">{{ libelleEtat() }}</p>
-      <button type="button" class="publier" (click)="preparerPublication()">{{ publie() ? 'Enregistrer' : 'Publier' }}</button>
+      <button pButton type="button" class="publier" rounded (click)="preparerPublication()">
+        <span pButtonLabel>{{ publie() ? 'Enregistrer' : 'Publier' }}</span></button>
     </div>
-    @if (messageErreur(); as message) { <p class="message-erreur" role="alert">{{ message }}</p> }
+    @if (messageErreur(); as message) {
+      <p-message class="message-erreur" severity="error" icon="pi pi-exclamation-circle">{{ message }}</p-message>
+    }
 
     <div class="feuille">
       <app-couverture-article [apercu]="apercuCouverture()" (choisie)="couvertureChoisie($event)" (retiree)="couvertureRetiree()" />
@@ -62,13 +72,14 @@
 
     <div class="outils" role="toolbar" aria-label="Mise en forme du texte" aria-controls="article-contenu">
       @for (o of outils; track o.outil) {
-        <button type="button" [attr.aria-label]="o.libelle" [title]="o.libelle" [disabled]="apercu()"
+        <button pButton type="button" text severity="secondary" [attr.aria-label]="o.libelle" [title]="o.libelle" [disabled]="apercu()"
           [class]="'outil ' + o.outil" (mousedown)="$event.preventDefault()" (click)="appliquer(o.outil)">
-          @if (o.icone) { <i class="pi" [class]="o.icone" aria-hidden="true"></i> } @else { <span aria-hidden="true">{{ o.texte }}</span> }
+          @if (o.icone) { <i pButtonIcon class="pi" [class]="o.icone" aria-hidden="true"></i> } @else { <span aria-hidden="true">{{ o.texte }}</span> }
         </button>
       }
-      <button type="button" class="outil bascule" [attr.aria-pressed]="apercu()" (click)="apercu.set(!apercu())">
-        <i class="pi pi-eye" aria-hidden="true"></i><span>Aperçu</span>
+      <button pButton type="button" class="outil bascule" [text]="!apercu()" [outlined]="apercu()" severity="secondary"
+        [attr.aria-pressed]="apercu()" (click)="apercu.set(!apercu())">
+        <i pButtonIcon class="pi pi-eye" aria-hidden="true"></i><span pButtonLabel>Aperçu</span>
       </button>
     </div>
 

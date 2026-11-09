@@ -6,6 +6,9 @@ import {
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormField, form, maxLength, required, validate } from '@angular/forms/signals';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { Message } from 'primeng/message';
+import { Skeleton } from 'primeng/skeleton';
 import { debounceTime, filter, firstValueFrom } from 'rxjs';
 import { RetourNavigation } from '../../../core/navigation/retour-navigation';
 import { Article, ArticleService, DemandeArticle, LIMITES_ARTICLE, ThemeArticle } from '../../../core/services/articles/article';
@@ -41,7 +44,7 @@ const OUTILS: readonly { outil: OutilMiseEnForme; libelle: string; icone?: strin
  */
 @Component({
   selector: 'app-edition-article',
-  imports: [FormField, ContenuArticle, CouvertureArticle, DialoguePublication],
+  imports: [FormField, ButtonDirective, ButtonIcon, ButtonLabel, Message, Skeleton, ContenuArticle, CouvertureArticle, DialoguePublication],
   templateUrl: './edition-article.html',
   styleUrl: './edition-article.scss',
 })

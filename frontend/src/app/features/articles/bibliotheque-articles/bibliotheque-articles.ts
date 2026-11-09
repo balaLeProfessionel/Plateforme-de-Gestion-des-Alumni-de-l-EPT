@@ -3,6 +3,9 @@ import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormField, form } from '@angular/forms/signals';
 import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { Message } from 'primeng/message';
+import { Skeleton } from 'primeng/skeleton';
 import { catchError, debounceTime, distinctUntilChanged, map, of, skip, switchMap, tap } from 'rxjs';
 import {
   ArticleService, LIBELLES_THEME, PageArticles, THEMES_ARTICLE, ThemeArticle,
@@ -22,7 +25,7 @@ interface Criteres {
 /** Bibliothèque des articles publiés, et « Mes articles » (brouillons compris) pour leur auteur. */
 @Component({
   selector: 'app-bibliotheque-articles',
-  imports: [FormField, RouterLink, CarteArticle],
+  imports: [FormField, RouterLink, ButtonDirective, ButtonIcon, ButtonLabel, Message, Skeleton, CarteArticle],
   templateUrl: './bibliotheque-articles.html',
   styleUrl: './bibliotheque-articles.scss',
 })

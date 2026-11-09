@@ -5,7 +5,8 @@
       <h1>Articles</h1>
       <p>Parcours, recherches et retours d’expérience écrits par les membres de la communauté.</p>
     </div>
-    <a class="ecrire" routerLink="/articles/nouveau"><i class="pi pi-pen-to-square" aria-hidden="true"></i> Écrire un article</a>
+    <a pButton class="ecrire" routerLink="/articles/nouveau">
+      <i pButtonIcon class="pi pi-pen-to-square" aria-hidden="true"></i><span pButtonLabel>Écrire un article</span></a>
   </header>
 
   <nav class="onglets" aria-label="Vues des articles">
@@ -24,9 +25,11 @@
         <span id="aide-recherche-articles" class="sr-only">Les résultats se mettent à jour automatiquement.</span>
       </div>
       <div class="themes" role="group" aria-label="Filtrer par thème">
-        <button type="button" [attr.aria-pressed]="c.theme === null" (click)="choisirTheme(null)">Tous</button>
+        <button pButton type="button" size="small" rounded [outlined]="c.theme !== null"
+          [attr.aria-pressed]="c.theme === null" (click)="choisirTheme(null)">Tous</button>
         @for (theme of themes; track theme) {
-          <button type="button" [attr.aria-pressed]="c.theme === theme" (click)="choisirTheme(theme)">{{ libellesThemes[theme] }}</button>
+          <button pButton type="button" size="small" rounded [outlined]="c.theme !== theme"
+            [attr.aria-pressed]="c.theme === theme" (click)="choisirTheme(theme)">{{ libellesThemes[theme] }}</button>
         }
       </div>
     </div>
@@ -43,23 +46,36 @@
 
   <div aria-live="polite" [attr.aria-busy]="enChargement()">
     @if (enChargement() && !resultat()) {
-      <div class="grille" aria-hidden="true">@for (i of [1, 2, 3, 4, 5, 6]; track i) { <div class="squelette"></div> }</div>
+      <div class="grille" aria-hidden="true">
+        @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+          <div class="squelette">
+            <div class="visuel"><p-skeleton height="100%" borderRadius="0" /></div>
+            <div class="lignes">
+              <p-skeleton width="35%" height=".75rem" />
+              <p-skeleton width="90%" height="1.1rem" />
+              <p-skeleton width="100%" height=".8rem" />
+              <p-skeleton width="70%" height=".8rem" />
+            </div>
+          </div>
+        }
+      </div>
     } @else if (messageErreur(); as message) {
-      <div class="etat" role="alert"><h2>Chargement impossible</h2><p>{{ message }}</p></div>
+      <p-message class="erreur" severity="error" icon="pi pi-exclamation-circle">
+        <strong>Chargement impossible.</strong>&nbsp;{{ message }}</p-message>
     } @else if (resultat()?.contenu?.length === 0) {
       <div class="etat">
         @if (c.vue === 'mes') {
           <h2>Vous n’avez pas encore écrit d’article</h2>
           <p>Racontez votre parcours, un projet ou une recherche : vos brouillons restent privés jusqu’à leur publication.</p>
-          <a class="ecrire" routerLink="/articles/nouveau">Écrire mon premier article</a>
+          <a pButton routerLink="/articles/nouveau"><span pButtonLabel>Écrire mon premier article</span></a>
         } @else if (filtre()) {
           <h2>Aucun article ne correspond</h2>
           <p>Essayez un autre mot ou un autre thème.</p>
-          <button type="button" class="lien" (click)="effacerFiltres()">Effacer les filtres</button>
+          <button pButton type="button" text (click)="effacerFiltres()">Effacer les filtres</button>
         } @else {
           <h2>Aucun article pour l’instant</h2>
           <p>Soyez le premier à partager votre expérience avec la communauté.</p>
-          <a class="ecrire" routerLink="/articles/nouveau">Écrire un article</a>
+          <a pButton routerLink="/articles/nouveau"><span pButtonLabel>Écrire un article</span></a>
         }
       </div>
     } @else if (resultat(); as page) {
@@ -70,11 +86,11 @@
       </ul>
       @if (page.totalPages > 1) {
         <nav class="pagination" aria-label="Pages d’articles">
-          <button type="button" [disabled]="page.page === 0" (click)="allerPage(page.page - 1)">
-            <i class="pi pi-chevron-left" aria-hidden="true"></i> Précédents</button>
+          <button pButton type="button" outlined [disabled]="page.page === 0" (click)="allerPage(page.page - 1)">
+            <i pButtonIcon class="pi pi-chevron-left" aria-hidden="true"></i><span pButtonLabel>Précédents</span></button>
           <span>Page {{ page.page + 1 }} sur {{ page.totalPages }}</span>
-          <button type="button" [disabled]="page.page + 1 >= page.totalPages" (click)="allerPage(page.page + 1)">
-            Suivants <i class="pi pi-chevron-right" aria-hidden="true"></i></button>
+          <button pButton type="button" outlined iconPos="right" [disabled]="page.page + 1 >= page.totalPages" (click)="allerPage(page.page + 1)">
+            <span pButtonLabel>Suivants</span><i pButtonIcon class="pi pi-chevron-right" aria-hidden="true"></i></button>
         </nav>
       }
     }

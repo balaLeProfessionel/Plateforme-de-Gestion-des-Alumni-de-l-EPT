@@ -1,4 +1,6 @@
 import { Component, effect, ElementRef, input, model, output, viewChild } from '@angular/core';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { Message } from 'primeng/message';
 import { LIBELLES_THEME, THEMES_ARTICLE, ThemeArticle } from '../../../core/services/articles/article';
 import { AudiencePublication } from '../../../core/services/publications/publication';
 
@@ -14,12 +16,14 @@ const AUDIENCES: readonly { valeur: AudiencePublication; libelle: string }[] = [
  */
 @Component({
   selector: 'app-dialogue-publication',
+  imports: [ButtonDirective, ButtonIcon, Message],
   template: `
     <dialog #dialogue aria-labelledby="titre-dialogue-publication" (close)="annule.emit()">
       <form method="dialog" (submit)="$event.preventDefault(); confirme.emit()">
         <header>
           <h2 id="titre-dialogue-publication">{{ modification() ? 'Enregistrer les modifications' : 'Publier l’article' }}</h2>
-          <button type="button" class="fermer" aria-label="Fermer" (click)="annule.emit()"><i class="pi pi-times" aria-hidden="true"></i></button>
+          <button pButton type="button" class="fermer" text rounded severity="secondary" aria-label="Fermer" (click)="annule.emit()">
+            <i pButtonIcon class="pi pi-times" aria-hidden="true"></i></button>
         </header>
 
         <fieldset>
@@ -47,11 +51,11 @@ const AUDIENCES: readonly { valeur: AudiencePublication; libelle: string }[] = [
         <p class="note">{{ modification()
           ? 'Les modifications seront visibles tout de suite.'
           : 'Il sera visible tout de suite dans le fil et la bibliothèque.' }}</p>
-        @if (erreur(); as message) { <p class="erreur" role="alert">{{ message }}</p> }
+        @if (erreur(); as message) { <p-message class="erreur" severity="error" size="small">{{ message }}</p-message> }
 
         <footer>
-          <button type="button" class="annuler" (click)="annule.emit()">Annuler</button>
-          <button type="submit" class="confirmer" [disabled]="enCours()">
+          <button pButton type="button" class="annuler" text severity="secondary" rounded (click)="annule.emit()">Annuler</button>
+          <button pButton type="submit" class="confirmer" rounded [disabled]="enCours()" [loading]="enCours()">
             {{ enCours() ? 'Un instant…' : modification() ? 'Enregistrer' : 'Publier maintenant' }}</button>
         </footer>
       </form>
@@ -63,9 +67,7 @@ const AUDIENCES: readonly { valeur: AudiencePublication; libelle: string }[] = [
     dialog::backdrop { background: rgb(1 30 48 / 35%); backdrop-filter: blur(3px); }
     header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; }
     h2 { margin: 0; color: var(--ept-primary-dark); font-family: var(--ept-font-heading); font-size: 1.25rem; }
-    .fermer { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; margin: -.5rem -.5rem 0 0; border: 0; border-radius: 50%;
-      background: transparent; color: var(--ept-text-secondary); cursor: pointer; }
-    .fermer:hover { background: var(--ept-bg); }
+    .fermer { width: 2.5rem; height: 2.5rem; margin: -.5rem -.5rem 0 0; }
     fieldset { min-width: 0; margin: 0 0 1.1rem; padding: 0; border: 0; }
     legend { margin-bottom: .55rem; color: var(--ept-text-secondary); font-size: .85rem; font-weight: 600; }
     .pastilles { display: flex; flex-wrap: wrap; gap: .45rem; }
@@ -78,13 +80,9 @@ const AUDIENCES: readonly { valeur: AudiencePublication; libelle: string }[] = [
     .public label { display: inline-flex; align-items: center; gap: .45rem; min-height: 2rem; font-size: .95rem; cursor: pointer; }
     .public input { width: 1.05rem; height: 1.05rem; margin: 0; accent-color: var(--ept-primary); }
     .note { margin: 0; color: var(--ept-text-secondary); font-size: .85rem; }
-    .erreur { margin: .75rem 0 0; padding: .55rem .75rem; border-radius: var(--ept-radius-sm); background: var(--ept-error-light);
-      color: var(--ept-error-dark); font-size: .88rem; }
+    .erreur { display: block; margin-top: .75rem; }
     footer { display: flex; justify-content: flex-end; gap: .5rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--ept-border); }
-    footer button { min-height: 2.75rem; padding: .5rem 1.1rem; border: 0; border-radius: 999px; font: inherit; font-weight: 600; cursor: pointer; }
-    .annuler { background: transparent; color: var(--ept-text-secondary); }
-    .confirmer { background: var(--ept-primary); color: #fff; }
-    .confirmer:disabled { opacity: .65; cursor: default; }
+    footer button { min-height: 2.75rem; padding-inline: 1.1rem; }
     button:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
   `,
 })

@@ -50,7 +50,7 @@ describe('LectureArticle', () => {
   it('affiche l’article, son corps mis en forme et ses « J’aime », sans outils pour un lecteur', async () => {
     await recevoir(publie);
     expect(racine().querySelector('h1')?.textContent).toBe('De Thiès à Montréal');
-    expect(racine().querySelector('.theme')?.textContent).toBe('Parcours');
+    expect(racine().querySelector('.theme')?.textContent?.trim()).toBe('Parcours');
     expect(racine().querySelector('app-contenu-article h2')?.textContent).toBe('Débuts');
     expect(racine().querySelector('.meta')?.textContent).toContain('6 min de lecture');
     expect(racine().querySelector('app-bouton-jaime')?.textContent).toContain('3');

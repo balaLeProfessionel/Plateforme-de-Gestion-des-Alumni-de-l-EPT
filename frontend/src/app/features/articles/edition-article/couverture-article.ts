@@ -1,4 +1,6 @@
 import { Component, input, OnDestroy, output, signal } from '@angular/core';
+import { ButtonDirective, ButtonIcon, ButtonLabel } from 'primeng/button';
+import { Message } from 'primeng/message';
 import { chargerImagePourRecadrage } from '../../../shared/images/charger-image';
 import { ImagePublication } from '../../../shared/images/image-publication/image-publication';
 import { FORMAT_EVENEMENT } from '../../../shared/images/recadrage';
@@ -7,7 +9,7 @@ import { RecadreurImage } from '../../../shared/images/recadreur-image';
 /** Couverture facultative d’un article : l’image choisie est recadrée au format 16:9 avant d’être retenue. */
 @Component({
   selector: 'app-couverture-article',
-  imports: [ImagePublication, RecadreurImage],
+  imports: [ButtonDirective, ButtonIcon, ButtonLabel, Message, ImagePublication, RecadreurImage],
   template: `
     @if (imageARecadrer(); as image) {
       <app-recadreur-image [image]="image" [format]="format" libelle="Recadrer la couverture au format 16:9"
@@ -15,32 +17,28 @@ import { RecadreurImage } from '../../../shared/images/recadreur-image';
     } @else if (apercu(); as url) {
       <div class="apercu"><app-image-publication [url]="url" description="Couverture de l’article" /></div>
       <div class="actions">
-        <button type="button" (click)="champ.click()"><i class="pi pi-image" aria-hidden="true"></i> Changer</button>
-        <button type="button" (click)="retiree.emit()"><i class="pi pi-times" aria-hidden="true"></i> Retirer la couverture</button>
+        <button pButton type="button" outlined size="small" (click)="champ.click()">
+          <i pButtonIcon class="pi pi-image" aria-hidden="true"></i><span pButtonLabel>Changer</span></button>
+        <button pButton type="button" outlined size="small" severity="secondary" (click)="retiree.emit()">
+          <i pButtonIcon class="pi pi-times" aria-hidden="true"></i><span pButtonLabel>Retirer la couverture</span></button>
       </div>
     } @else {
-      <button type="button" class="choisir" (click)="champ.click()" aria-describedby="aide-couverture">
-        <i class="pi pi-image" aria-hidden="true"></i> Ajouter une couverture
+      <button pButton type="button" class="choisir" text severity="secondary" (click)="champ.click()" aria-describedby="aide-couverture">
+        <i pButtonIcon class="pi pi-image" aria-hidden="true"></i><span pButtonLabel>Ajouter une couverture</span>
       </button>
     }
     <small id="aide-couverture" class="cache">Facultatif. Format 16:9, JPEG ou PNG de 5 Mo au plus.</small>
-    @if (erreur(); as message) { <p class="erreur" role="alert">{{ message }}</p> }
+    @if (erreur(); as message) { <p-message severity="error" size="small">{{ message }}</p-message> }
     <input #champ class="fichier-cache" type="file" accept="image/jpeg,image/png" tabindex="-1" aria-hidden="true"
       (change)="selectionner($event)" />
   `,
   styles: `
     :host { display: grid; gap: .5rem; }
     .apercu { width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: var(--ept-radius-sm); }
-    .choisir { display: inline-flex; align-items: center; justify-self: start; gap: .5rem; min-height: 2.5rem; padding: .25rem .1rem;
-      border: 0; background: transparent; color: var(--ept-text-secondary); font: inherit; font-size: .92rem; cursor: pointer; }
-    .choisir:hover { color: var(--ept-primary); }
-    .choisir .pi { font-size: 1.05rem; }
+    .choisir { justify-self: start; min-height: 2.5rem; margin-left: -.75rem; }
     .actions { display: flex; flex-wrap: wrap; gap: .5rem; }
-    .actions button { display: inline-flex; align-items: center; gap: .35rem; min-height: 2.25rem; padding: .3rem .75rem;
-      border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm); background: var(--ept-surface);
-      color: var(--ept-primary); font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; }
+    .actions button { min-height: 2.25rem; }
     .cache { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-    .erreur { margin: 0; color: var(--ept-error-dark); font-size: .88rem; }
     .fichier-cache { display: none; }
     button:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
   `,

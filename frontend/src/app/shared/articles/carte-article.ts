@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Tag } from 'primeng/tag';
 import { LIBELLES_THEME, ResumeArticle } from '../../core/services/articles/article';
 import { AvatarMembre } from '../images/avatar-membre';
 import { ImagePublication } from '../images/image-publication/image-publication';
@@ -8,7 +9,7 @@ import { ImagePublication } from '../images/image-publication/image-publication'
 /** Un article dans la bibliothèque ou dans « Mes articles » : toute la carte mène à sa page. */
 @Component({
   selector: 'app-carte-article',
-  imports: [DatePipe, RouterLink, AvatarMembre, ImagePublication],
+  imports: [DatePipe, RouterLink, Tag, AvatarMembre, ImagePublication],
   host: { class: 'carte-cliquable' },
   template: `
     @let a = article();
@@ -23,7 +24,8 @@ import { ImagePublication } from '../images/image-publication/image-publication'
       <p class="meta-haut">
         <span class="theme">{{ themes[a.theme] }}</span>
         @if (avecStatut()) {
-          <span class="statut" [class.brouillon]="a.statut === 'BROUILLON'">{{ a.statut === 'BROUILLON' ? 'Brouillon' : 'Publié' }}</span>
+          <p-tag class="statut" rounded [severity]="a.statut === 'BROUILLON' ? 'secondary' : 'success'"
+            [value]="a.statut === 'BROUILLON' ? 'Brouillon' : 'Publié'" />
         }
         <span class="duree">{{ a.tempsLecture }} min</span>
       </p>
@@ -57,8 +59,7 @@ import { ImagePublication } from '../images/image-publication/image-publication'
     .meta-haut { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin: 0; font-size: .78rem; font-weight: 600; }
     .theme { color: var(--ept-primary); }
     .duree { margin-left: auto; color: var(--ept-text-secondary); font-weight: 500; }
-    .statut { padding: .05rem .5rem; border-radius: 999px; background: var(--ept-success-light); color: var(--ept-success-dark); }
-    .statut.brouillon { background: var(--ept-bg); color: var(--ept-text-secondary); }
+    .statut { font-size: .72rem; }
     h3 { margin: 0; font-family: var(--ept-font-heading); font-size: 1.05rem; line-height: 1.3; overflow-wrap: anywhere; }
     h3 a { color: var(--ept-primary-dark); text-decoration: none; }
     :host:hover h3 a { text-decoration: underline; }
