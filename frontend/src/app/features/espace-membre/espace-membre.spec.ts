@@ -159,6 +159,10 @@ describe('Navigation de l’espace membre', () => {
     expect(racine.querySelector('.menu-mobile a')?.getAttribute('href'))
       .toBe('/organisme/parametres');
     expect(racine.querySelector('.menu-mobile a[aria-label="Paramètres du profil"]')).toBeNull();
+    // Un organisme publie, écrit et organise ; le mentorat ne le concerne pas.
+    expect(racine.querySelector('a[href="/mentorat"]')).toBeNull();
+    expect(racine.querySelector('a[href="/evenements"]')).not.toBeNull();
+    expect(racine.querySelector('a[href="/articles"]')).not.toBeNull();
     (racine.querySelector('.bouton-compte-lateral') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect([...document.querySelectorAll('#menu-compte [role="menuitem"]')].map((entree) => entree.textContent?.trim()))

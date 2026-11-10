@@ -45,6 +45,8 @@ export interface Publication {
   auteurPrenom: string | null;
   auteurRole: string;
   auteurPhoto: string | null;
+  /** Fiche de l’organisme quand l’auteur est un compte organisme (lien vers /organismes/:id). */
+  auteurOrganismeId?: string | null;
   nombreJaime: number;
   /** Le lecteur aime cette publication. */
   jaime: boolean;
@@ -100,6 +102,8 @@ export interface CommentairePublication {
   auteurPrenom: string | null;
   auteurRole: string;
   auteurPhoto: string | null;
+  /** Fiche de l’organisme quand l’auteur est un compte organisme (lien vers /organismes/:id). */
+  auteurOrganismeId?: string | null;
   contenu: string;
   creeLe: string;
 }

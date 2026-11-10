@@ -22,6 +22,7 @@ import ept.edu.sn.alumni_backend.publication.exception.ConflitPublicationExcepti
 import ept.edu.sn.alumni_backend.publication.exception.SignalementIntrouvableException;
 import ept.edu.sn.alumni_backend.publication.repository.SignalementPublicationRepository;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
+import ept.edu.sn.alumni_backend.utilisateur.IdentitePublique;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import lombok.RequiredArgsConstructor;
 
@@ -123,6 +124,6 @@ public class SignalementPublicationService {
             traitePar == null ? null : traitePar.getPrenom(), traitePar == null ? null : traitePar.getNom(),
             new SignalementResponse.PublicationSignalee(p.getId(), p.getType(), p.getTitre(), p.getContenu(),
                 PublicationService.urlImage(p), p.getStatut(), p.getPublieLe(), auteurPublication.getId(),
-                auteurPublication.getPrenom(), auteurPublication.getNom()));
+                IdentitePublique.de(auteurPublication).prenom(), IdentitePublique.de(auteurPublication).nom()));
     }
 }

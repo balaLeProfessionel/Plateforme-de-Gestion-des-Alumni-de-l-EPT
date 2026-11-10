@@ -19,6 +19,8 @@ export interface Evenement {
   organisateurId: string;
   organisateurNom: string;
   organisateurPrenom: string | null;
+  /** Fiche de l’organisme organisateur, absente si ce n’est pas un compte organisme. */
+  organisateurOrganismeId?: string | null;
   nombreParticipants: number;
   maReponse: ReponseParticipation | null;
   /** Liste des inscrits montrée aux membres ; l’organisateur peut la masquer. */

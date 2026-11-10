@@ -38,6 +38,8 @@ export interface Article {
   auteurPrenom: string | null;
   auteurRole: string;
   auteurPhoto: string | null;
+  /** Fiche de l’organisme quand l’auteur est un compte organisme (lien vers /organismes/:id). */
+  auteurOrganismeId?: string | null;
   estAuteur: boolean;
   nombreJaime: number;
   jaime: boolean;
@@ -61,6 +63,8 @@ export interface ResumeArticle {
   auteurPrenom: string | null;
   auteurRole: string;
   auteurPhoto: string | null;
+  /** Fiche de l’organisme quand l’auteur est un compte organisme (lien vers /organismes/:id). */
+  auteurOrganismeId?: string | null;
 }
 
 export interface PageArticles {

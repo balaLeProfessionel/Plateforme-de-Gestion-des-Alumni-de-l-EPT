@@ -50,6 +50,7 @@ export class EspaceMembre implements OnDestroy {
   protected readonly menuOuvert = signal(false);
   protected readonly sidebarOuverte = signal(!this.formatNavigation?.matches);
   protected readonly compteurMentorat = inject(CompteurDemandesMentorat);
+  private readonly mentorat = computed(() => participeAuMentorat(this.authService.utilisateur()?.role));
   private readonly compteurInscriptions = inject(CompteurInscriptions);
   private readonly compteurSignalements = inject(CompteurSignalements);
   private readonly notificationService = inject(NotificationService);
@@ -63,10 +64,11 @@ export class EspaceMembre implements OnDestroy {
         { libelle: 'Annuaire', icone: 'pi-users', route: '/annuaire', exact: false },
         { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
         { libelle: 'Articles', icone: 'pi-book', route: '/articles', exact: false },
-        {
+        // Un compte organisme publie, écrit et organise, mais ne prend pas part au mentorat.
+        ...(this.mentorat() ? [{
           libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', exact: false,
           compteur: this.compteurMentorat.nombre(), libelleCompteur: 'demandes en attente',
-        },
+        }] : []),
       ] }];
     }
     const peut = (permission: PermissionAdmin) => this.authService.aPermission(permission);
@@ -115,7 +117,8 @@ export class EspaceMembre implements OnDestroy {
       .filter((lien) => !['/annuaire', '/evenements'].includes(lien.route))
     : [
       { libelle: 'Articles', icone: 'pi-book', route: '/articles' },
-      { libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() },
+      ...(this.mentorat()
+        ? [{ libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() }] : []),
     ]);
 
   private readonly urlCourante = toSignal(this.router.events.pipe(

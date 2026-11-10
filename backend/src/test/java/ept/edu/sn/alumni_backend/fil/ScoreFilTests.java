@@ -88,11 +88,11 @@ class ScoreFilTests {
     private static PublicationResponse publication(UUID auteur, Duration age, long jaimes, long commentaires) {
         return new PublicationResponse(UUID.randomUUID(), TypePublication.PUBLICATION, null, "Texte", AudiencePublication.TOUS,
             null, null, null, MAINTENANT.minus(age), null, auteur, "Nom", "Prénom", TypeRole.ALUMNI, null,
-            jaimes, false, commentaires, null, null, null);
+            jaimes, false, commentaires, null, null, null, null);
     }
 
     private static EvenementResponse evenement(String lieu, Duration dans, ReponseParticipation reponse) {
         return new EvenementResponse(UUID.randomUUID(), "Rencontre", "Description", lieu, null, MAINTENANT.plus(dans),
-            null, AudienceEvenement.TOUS, null, false, StatutEvenement.PUBLIE, INCONNU, "Nom", "Prénom", 0, reponse, true);
+            null, AudienceEvenement.TOUS, null, false, StatutEvenement.PUBLIE, INCONNU, "Nom", "Prénom", 0, reponse, true, null);
     }
 }

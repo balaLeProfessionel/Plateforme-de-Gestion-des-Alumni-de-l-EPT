@@ -74,7 +74,7 @@
               <app-avatar-membre [urlPhoto]="a.auteurPhoto" [nom]="a.auteurNom" [prenom]="a.auteurPrenom"
                 [roleMembre]="a.auteurRole" [taille]="2.75" />
               <div class="identite">
-                <p><a class="nom" [routerLink]="['/profil', a.auteurId]">{{ auteur() }}</a>
+                <p><a class="nom" [routerLink]="lienAuteur(a)">{{ auteur() }}</a>
                   @if (role()) { <span class="role">{{ role() }}</span> }</p>
                 <p class="meta">
                   @if (a.publieLe) {

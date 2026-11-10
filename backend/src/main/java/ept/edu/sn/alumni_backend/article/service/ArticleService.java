@@ -43,6 +43,7 @@ import ept.edu.sn.alumni_backend.publication.repository.PublicationRepository;
 import ept.edu.sn.alumni_backend.publication.service.PublicationService;
 import ept.edu.sn.alumni_backend.publication.service.StockageImagePublication;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
+import ept.edu.sn.alumni_backend.utilisateur.IdentitePublique;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
@@ -300,16 +301,19 @@ public class ArticleService {
             nombreCommentaires = interactions.nombreCommentaires();
         }
         Utilisateur auteur = a.getAuteur();
+        IdentitePublique identite = IdentitePublique.de(auteur);
         return new ArticleResponse(a.getId(), porteuse == null ? null : porteuse.getId(), a.getTitre(), a.getResume(),
             a.getContenu(), a.getTheme(), urlCouverture(a), a.getTempsLecture(), a.getAudience(), a.getStatut(),
-            a.getCreeLe(), a.getModifieLe(), a.getPublieLe(), auteur.getId(), auteur.getNom(), auteur.getPrenom(),
-            auteur.getRole(), auteur.getUrlPhoto(), estAuteur(a, principal), nombreJaime, jaime, nombreCommentaires);
+            a.getCreeLe(), a.getModifieLe(), a.getPublieLe(), auteur.getId(), identite.nom(), identite.prenom(),
+            auteur.getRole(), identite.photo(), estAuteur(a, principal), nombreJaime, jaime, nombreCommentaires,
+            identite.organismeId());
     }
 
     private static ArticleResumeResponse versResume(Article a, UUID publicationId) {
         Utilisateur auteur = a.getAuteur();
+        IdentitePublique identite = IdentitePublique.de(auteur);
         return new ArticleResumeResponse(a.getId(), publicationId, a.getTitre(), a.getResume(), a.getTheme(),
             urlCouverture(a), a.getTempsLecture(), a.getStatut(), a.getModifieLe(), a.getPublieLe(), auteur.getId(),
-            auteur.getNom(), auteur.getPrenom(), auteur.getRole(), auteur.getUrlPhoto());
+            identite.nom(), identite.prenom(), auteur.getRole(), identite.photo(), identite.organismeId());
     }
 }

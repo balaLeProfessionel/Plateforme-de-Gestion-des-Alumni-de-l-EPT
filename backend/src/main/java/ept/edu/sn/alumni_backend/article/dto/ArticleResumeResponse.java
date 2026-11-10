@@ -10,4 +10,4 @@ import ept.edu.sn.alumni_backend.enums.TypeRole;
 /** Article dans une liste (bibliothèque, « Mes articles ») : sans le corps. */
 public record ArticleResumeResponse(UUID id, UUID publicationId, String titre, String resume, ThemeArticle theme,
     String urlCouverture, int tempsLecture, StatutArticle statut, Instant modifieLe, Instant publieLe, UUID auteurId,
-    String auteurNom, String auteurPrenom, TypeRole auteurRole, String auteurPhoto) {}
+    String auteurNom, String auteurPrenom, TypeRole auteurRole, String auteurPhoto, UUID auteurOrganismeId) {}

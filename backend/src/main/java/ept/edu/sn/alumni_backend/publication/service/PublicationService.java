@@ -48,6 +48,7 @@ import ept.edu.sn.alumni_backend.publication.repository.CommentairePublicationRe
 import ept.edu.sn.alumni_backend.publication.repository.CompteParPublication;
 import ept.edu.sn.alumni_backend.publication.repository.JaimePublicationRepository;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
+import ept.edu.sn.alumni_backend.utilisateur.IdentitePublique;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
@@ -278,13 +279,15 @@ public class PublicationService {
 
     private PublicationResponse versResponse(Publication p, Interactions interactions) {
         Utilisateur auteur = p.getAuteur();
+        IdentitePublique identite = IdentitePublique.de(auteur);
         return new PublicationResponse(p.getId(), p.getType(), p.getTitre(), p.getContenu(), p.getAudience(), urlImage(p),
-            p.getTexteAlternatif(), p.getDateLimite(), p.getPublieLe(), p.getModifieLe(), auteur.getId(), auteur.getNom(),
-            auteur.getPrenom(), auteur.getRole(), auteur.getUrlPhoto(), interactions.nombreJaime(), interactions.jaime(),
+            p.getTexteAlternatif(), p.getDateLimite(), p.getPublieLe(), p.getModifieLe(), auteur.getId(), identite.nom(),
+            identite.prenom(), auteur.getRole(), identite.photo(), interactions.nombreJaime(), interactions.jaime(),
             interactions.nombreCommentaires(), interactions.apercuCommentaire(),
             p.getLienUrl() == null ? null
                 : new LienPublicationResponse(p.getLienUrl(), p.getLienTitre(), p.getLienDescription(), p.getLienSite()),
             p.getArticle() == null ? null
-                : new ArticlePublicationResponse(p.getArticle().getId(), p.getArticle().getTheme(), p.getArticle().getTempsLecture()));
+                : new ArticlePublicationResponse(p.getArticle().getId(), p.getArticle().getTheme(), p.getArticle().getTempsLecture()),
+            identite.organismeId());
     }
 }

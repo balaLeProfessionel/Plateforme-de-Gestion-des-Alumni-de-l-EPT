@@ -4,6 +4,8 @@
   p { display: flex; align-items: center; gap: .45rem; margin: 0; }
 }
 .organisateur { color: var(--ept-text-secondary); font-weight: 600; }
+.organisateur a { color: var(--ept-primary); text-underline-offset: 3px; }
+.organisateur a:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
 .bandeau-officiel { margin-top: .35rem !important; color: var(--ept-primary); font-size: .85rem; font-weight: 700; }
 // Bureau : contenu à gauche, carte « infos + réponse » collante à droite.
 .corps-fiche { display: grid; grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem); grid-template-areas: 'principal synthese'; gap: 1.5rem; align-items: start; }

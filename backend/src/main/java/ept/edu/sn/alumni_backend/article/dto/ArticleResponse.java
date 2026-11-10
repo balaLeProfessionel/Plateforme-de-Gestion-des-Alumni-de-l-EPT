@@ -17,4 +17,4 @@ public record ArticleResponse(UUID id, UUID publicationId, String titre, String 
     ThemeArticle theme, String urlCouverture, int tempsLecture, AudiencePublication audience, StatutArticle statut,
     Instant creeLe, Instant modifieLe, Instant publieLe, UUID auteurId, String auteurNom, String auteurPrenom,
     TypeRole auteurRole, String auteurPhoto, boolean estAuteur, long nombreJaime, boolean jaime,
-    long nombreCommentaires) {}
+    long nombreCommentaires, UUID auteurOrganismeId) {}

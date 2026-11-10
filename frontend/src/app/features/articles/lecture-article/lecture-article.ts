@@ -13,6 +13,7 @@ import { LIBELLES_ROLE_COMPTE, RoleCompte } from '../../../core/services/models/
 import { ContenuArticle } from '../../../shared/articles/contenu-article';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
+import { lienMembre } from '../../../shared/profil/lien-membre';
 import { ImagePublication } from '../../../shared/images/image-publication/image-publication';
 import { BoutonJaime } from '../../../shared/publications/bouton-jaime/bouton-jaime';
 import { CommentairesPublication } from '../../../shared/publications/commentaires-publication/commentaires-publication';
@@ -43,6 +44,10 @@ export class LectureArticle {
   private readonly echec = signal<'introuvable' | 'erreur' | undefined>(undefined);
   protected readonly etat = computed(() => this.echec() ?? (this.article() ? 'pret' : 'chargement'));
   protected readonly themes = LIBELLES_THEME;
+  protected lienAuteur(article: Article): string[] {
+    return lienMembre(article.auteurId, article.auteurOrganismeId);
+  }
+
   protected readonly auteur = computed(() => {
     const a = this.article();
     return `${a?.auteurPrenom ?? ''} ${a?.auteurNom ?? ''}`.trim() || 'Membre EPT';

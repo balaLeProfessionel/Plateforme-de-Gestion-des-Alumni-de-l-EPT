@@ -24,5 +24,7 @@ public record EvenementResponse(
     String organisateurPrenom,
     long nombreParticipants,
     ReponseParticipation maReponse,
-    boolean participantsVisibles
+    boolean participantsVisibles,
+    /** Fiche de l'organisme organisateur, absente si l'organisateur n'est pas un compte organisme. */
+    UUID organisateurOrganismeId
 ) {}

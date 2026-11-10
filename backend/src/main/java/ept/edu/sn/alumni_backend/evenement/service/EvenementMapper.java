@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import ept.edu.sn.alumni_backend.evenement.dto.EvenementResponse;
 import ept.edu.sn.alumni_backend.evenement.ReponseParticipation;
 import ept.edu.sn.alumni_backend.evenement.entity.Evenement;
-import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.utilisateur.IdentitePublique;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 
 @Component
@@ -19,11 +19,7 @@ public class EvenementMapper {
             long nombreParticipants,
             ReponseParticipation maReponse) {
         Utilisateur organisateur = evenement.getOrganisateur();
-        boolean estOrganisme = organisateur.getRole() == TypeRole.ORGANISME;
-        String nom = estOrganisme && organisateur.getOrganisme() != null
-            ? organisateur.getOrganisme().getNom()
-            : organisateur.getNom();
-        String prenom = estOrganisme ? null : organisateur.getPrenom();
+        IdentitePublique identite = IdentitePublique.de(organisateur);
 
         return new EvenementResponse(
             evenement.getId(),
@@ -38,11 +34,12 @@ public class EvenementMapper {
             evenement.isOfficielEpt(),
             evenement.getStatut(),
             organisateur.getId(),
-            nom,
-            prenom,
+            identite.nom(),
+            identite.prenom(),
             nombreParticipants,
             maReponse,
-            evenement.isParticipantsVisibles()
+            evenement.isParticipantsVisibles(),
+            identite.organismeId()
         );
     }
 }

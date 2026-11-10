@@ -26,7 +26,15 @@
               <span class="audience">{{ libelleAudience(item.audience) }}</span>
             </div>
             <h1>{{ item.titre }}</h1>
-            <p class="organisateur"><i class="pi pi-user" aria-hidden="true"></i> Organisé par {{ organisateur(item) }}</p>
+            <p class="organisateur">
+              <i class="pi" [class.pi-building]="item.organisateurOrganismeId" [class.pi-user]="!item.organisateurOrganismeId" aria-hidden="true"></i>
+              Organisé par
+              @if (item.organisateurOrganismeId) {
+                <a [routerLink]="['/organismes', item.organisateurOrganismeId]">{{ organisateur(item) }}</a>
+              } @else {
+                {{ organisateur(item) }}
+              }
+            </p>
             @if (item.officielEpt) {
               <p class="bandeau-officiel"><i class="pi pi-verified" aria-hidden="true"></i>
                 Événement officiel de l’École Polytechnique de Thiès</p>

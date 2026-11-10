@@ -1,6 +1,7 @@
 package ept.edu.sn.alumni_backend;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -9,12 +10,14 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
+import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
@@ -160,6 +163,64 @@ class OrganismeFicheIntegrationTests {
         mockMvc.perform(requete("/api/evenements").param("organisme", UUID.randomUUID().toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
+    @Test
+    void unOrganismePublieEtCommenteSousLeNomDeSonOrganisme() throws Exception {
+        String organismeId = organisme.getId().toString();
+        String reponse = mockMvc.perform(post("/api/publications").header(HttpHeaders.AUTHORIZATION, jeton(contact))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"type\":\"PUBLICATION\",\"contenu\":\"Nous recrutons des stagiaires.\",\"audience\":\"TOUS\"}"))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.auteurNom").value("Société Exemple"))
+            .andExpect(jsonPath("$.auteurPrenom").doesNotExist())
+            .andExpect(jsonPath("$.auteurRole").value("ORGANISME"))
+            .andExpect(jsonPath("$.auteurOrganismeId").value(organismeId))
+            .andReturn().getResponse().getContentAsString();
+        String publicationId = JsonPath.read(reponse, "$.id");
+
+        mockMvc.perform(post("/api/publications/{id}/commentaires", publicationId)
+                .header(HttpHeaders.AUTHORIZATION, jeton(contact))
+                .contentType(MediaType.APPLICATION_JSON).content("{\"contenu\":\"Candidatures ouvertes jusqu’au 30.\"}"))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.auteurNom").value("Société Exemple"))
+            .andExpect(jsonPath("$.auteurOrganismeId").value(organismeId));
+
+        // Un membre ordinaire n'a pas de fiche organisme.
+        mockMvc.perform(get("/api/publications/{id}", publicationId).header(HttpHeaders.AUTHORIZATION, jeton(lecteur)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.auteurNom").value("Société Exemple"));
+        mockMvc.perform(post("/api/publications/{id}/commentaires", publicationId)
+                .header(HttpHeaders.AUTHORIZATION, jeton(lecteur))
+                .contentType(MediaType.APPLICATION_JSON).content("{\"contenu\":\"Merci !\"}"))
+            .andExpect(jsonPath("$.auteurPrenom").value("Lecteur"))
+            .andExpect(jsonPath("$.auteurOrganismeId").doesNotExist());
+    }
+
+    @Test
+    void unOrganismeEcritUnArticleEtOrganiseUnEvenement() throws Exception {
+        String organismeId = organisme.getId().toString();
+        mockMvc.perform(post("/api/articles").header(HttpHeaders.AUTHORIZATION, jeton(contact))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"titre\":\"Nos métiers\",\"resume\":\"Présentation\",\"contenu\":\"Le conseil en ingénierie.\","
+                    + "\"theme\":\"PARCOURS\",\"audience\":\"TOUS\"}"))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.auteurNom").value("Société Exemple"))
+            .andExpect(jsonPath("$.auteurOrganismeId").value(organismeId));
+
+        Instant debut = Instant.now().plus(5, ChronoUnit.DAYS);
+        mockMvc.perform(post("/api/evenements").header(HttpHeaders.AUTHORIZATION, jeton(contact))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"titre\":\"Journée portes ouvertes\",\"description\":\"Venez nous rencontrer.\",\"lieu\":\"Dakar\","
+                    + "\"dateDebut\":\"" + debut + "\",\"dateFin\":\"" + debut.plus(3, ChronoUnit.HOURS) + "\",\"audience\":\"TOUS\"}"))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.organisateurNom").value("Société Exemple"))
+            .andExpect(jsonPath("$.organisateurOrganismeId").value(organismeId))
+            .andExpect(jsonPath("$.officielEpt").value(false));
+    }
+
+    private String jeton(Utilisateur utilisateur) {
+        return "Bearer " + jwtService.genererToken(new UtilisateurPrincipal(utilisateur));
     }
 
     private MockHttpServletRequestBuilder requete(String chemin, Object... args) {
