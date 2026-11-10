@@ -3,9 +3,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { afterNextRender, Component, computed, ElementRef, inject, Injector, signal, viewChild } from '@angular/core';
 import { email, form, FormField, maxLength, required, validate } from '@angular/forms/signals';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { FILIERES } from '../../../core/data/filieres';
 import { AdminComptesService } from '../../../core/services/admin/admin-comptes';
 import { AuthService } from '../../../core/services/auth/auth-service';
+import { FilieresService } from '../../../core/services/filieres/filieres';
 import {
   CompteCree, LIBELLES_ROLE_COMPTE, RoleAttribuable, ROLES_ATTRIBUABLES,
 } from '../../../core/services/models/admin.model';
@@ -36,7 +36,8 @@ export class NouveauCompte {
   protected readonly roles = ROLES_ATTRIBUABLES.filter((role) =>
     role !== 'ADMIN' || inject(AuthService).aPermission('GERER_ADMINISTRATEURS'));
   protected readonly libellesRole = LIBELLES_ROLE_COMPTE;
-  protected readonly filieres = FILIERES;
+  private readonly filieresService = inject(FilieresService);
+  protected readonly filieres = this.filieresService.proposees();
   protected readonly autreFiliere = AUTRE_FILIERE;
   protected readonly parents = [{ libelle: 'Comptes', lien: '/admin/comptes' }];
   /** Le tableau de bord ouvre ce formulaire avec ?role=ADMIN quand la plateforme n’a qu’un super administrateur. */
@@ -84,6 +85,8 @@ export class NouveauCompte {
       next: (cree) => {
         this.enCours.set(false);
         this.cree.set(cree);
+        // Une filière saisie avec « Autre… » vient peut-être d’être créée.
+        if (this.avecFiliereAutre()) this.filieresService.recharger();
         // Le formulaire disparaît : le focus va au résultat, qui contient le mot de passe affiché une seule fois.
         afterNextRender(() => this.resultat()?.nativeElement.focus(), { injector: this.injector });
       },

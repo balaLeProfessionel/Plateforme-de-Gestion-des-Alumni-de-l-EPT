@@ -1,4 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
+import { fournirFilieres } from '../../../core/services/filieres/filieres.testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -18,6 +19,7 @@ describe('NouveauCompte', () => {
     TestBed.configureTestingModule({
       imports: [NouveauCompte],
       providers: [
+        fournirFilieres(),
         provideHttpClient(), provideHttpClientTesting(), provideRouter([]),
         { provide: AuthService, useValue: authAdmin() },
         { provide: CompteurInscriptions, useValue: { actualiser: vi.fn() } },
@@ -130,6 +132,7 @@ describe('NouveauCompte pour un administrateur ordinaire', () => {
   it('ne propose pas le rôle Administration, même demandé dans l’adresse', async () => {
     TestBed.configureTestingModule({
       providers: [
+        fournirFilieres(),
         provideHttpClient(), provideHttpClientTesting(),
         provideRouter([{ path: 'admin/comptes/nouveau', component: NouveauCompte }]),
         { provide: AuthService, useValue: authAdmin(['CONSULTER_TABLEAU_DE_BORD', 'GERER_COMPTES']) },
@@ -147,6 +150,7 @@ describe('NouveauCompte ouvert depuis le tableau de bord', () => {
   it('préselectionne le rôle Administration demandé dans l’adresse', async () => {
     TestBed.configureTestingModule({
       providers: [
+        fournirFilieres(),
         provideHttpClient(), provideHttpClientTesting(),
         provideRouter([{ path: 'admin/comptes/nouveau', component: NouveauCompte }]),
         { provide: AuthService, useValue: authAdmin() },

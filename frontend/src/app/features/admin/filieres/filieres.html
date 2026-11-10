@@ -1,0 +1,50 @@
+<app-page-admin titre="Filières" [parents]="parents"
+  introduction="Les filières proposées à l’inscription, à la création des comptes et dans les filtres. Une filière retirée n’est plus proposée mais reste sur les comptes qui l’ont. Fusionnez deux filières pour corriger un doublon.">
+  @if (message(); as texte) {
+    <p #zoneMessage class="message" role="status" tabindex="-1">{{ texte }}</p>
+  }
+
+  <form class="carte ajout" (submit)="ajouter($event)" novalidate aria-labelledby="titre-ajout">
+    <h2 id="titre-ajout">Ajouter une filière</h2>
+    @if (erreurAjout(); as erreur) { <p class="message erreur" role="alert">{{ erreur }}</p> }
+    <div class="ligne-ajout">
+      <div class="champ">
+        <label for="nouvelle-filiere">Nom de la filière</label>
+        <input #champNom id="nouvelle-filiere" type="text" autocomplete="off" [formField]="formulaire.nom"
+          [attr.aria-invalid]="formulaire.nom().touched() && formulaire.nom().invalid()" aria-describedby="erreur-nouvelle-filiere" />
+        @if (formulaire.nom().touched() && formulaire.nom().errors()[0]; as erreur) {
+          <small id="erreur-nouvelle-filiere" class="erreur-champ">{{ erreur.message }}</small>
+        }
+      </div>
+      <button type="submit" class="bouton principal" [disabled]="enCours()"><i class="pi pi-plus" aria-hidden="true"></i>Ajouter</button>
+    </div>
+  </form>
+
+  @if (erreurChargement()) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <h2>Les filières n’ont pas pu être chargées</h2>
+      <button type="button" class="bouton" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (filieres(); as liste) {
+    @if (liste.length === 0) {
+      <div class="etat">
+        <i class="pi pi-sitemap" aria-hidden="true"></i>
+        <h2>Aucune filière</h2>
+        <p>Ajoutez la première filière de l’école avec le formulaire ci-dessus.</p>
+      </div>
+    } @else {
+      <p class="resume">{{ liste.length }} {{ liste.length > 1 ? 'filières' : 'filière' }}, dont {{ actives() }} {{ actives() > 1 ? 'proposées' : 'proposée' }}.</p>
+      <ul class="liste" aria-label="Filières">
+        @for (filiere of liste; track filiere.id) {
+          <li>
+            <app-ligne-filiere [filiere]="filiere" [autres]="liste" [estSuper]="estSuper" [chefsPossibles]="chefsPossibles()"
+              (modifiee)="apresModification($event)" />
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement des filières"></div>
+  }
+</app-page-admin>

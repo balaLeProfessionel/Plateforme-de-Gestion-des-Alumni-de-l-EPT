@@ -15,11 +15,14 @@ import ept.edu.sn.alumni_backend.admin.entity.PermissionAdminConverter;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeDiplome;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.filiere.entity.Filiere;
 import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
 import ept.edu.sn.alumni_backend.parcours.entity.ExperienceProfessionelle;
 import ept.edu.sn.alumni_backend.parcours.entity.Formation;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Convert;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
@@ -75,7 +78,10 @@ public class Utilisateur {
     private Integer anneeSortie;
     @Enumerated(EnumType.STRING)
     private TypeDiplome diplome;
-    private String filiere;
+    /** Filière de l'école (TRA-14) ; vide pour un organisme, un visiteur ou le personnel. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "filiere_id", foreignKey = @ForeignKey(name = "fk_utilisateur_filiere"))
+    private Filiere filiere;
     
     private LocalDateTime dateCreation;
 
@@ -103,5 +109,10 @@ public class Utilisateur {
     @PrePersist
     public void onCreate() {
         this.dateCreation = LocalDateTime.now();
+    }
+
+    /** Nom de la filière, ou null : ce que montrent les réponses de l'API. */
+    public String getNomFiliere() {
+        return filiere == null ? null : filiere.getNom();
     }
 }

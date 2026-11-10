@@ -1,7 +1,8 @@
 export type StatutCompte = 'EN_ATTENTE' | 'ACTIF' | 'SUSPENDU';
 export type RoleCompte = 'ETUDIANT' | 'ALUMNI' | 'PERSONNEL' | 'ORGANISME' | 'ADMIN' | 'VISITEUR';
 export type TypeActionAdmin = 'VALIDATION_INSCRIPTION' | 'REFUS_INSCRIPTION' | 'SUSPENSION' | 'REACTIVATION'
-  | 'CREATION_COMPTE' | 'CHANGEMENT_ROLE' | 'DIPLOMATION' | 'MODIFICATION_IDENTITE' | 'MODIFICATION_RESPONSABILITES';
+  | 'CREATION_COMPTE' | 'CHANGEMENT_ROLE' | 'DIPLOMATION' | 'MODIFICATION_IDENTITE' | 'MODIFICATION_RESPONSABILITES'
+  | 'DESIGNATION_CHEF_DEPARTEMENT' | 'RETRAIT_CHEF_DEPARTEMENT';
 
 /** Miroir de CompteAdminResponse : un compte vu par l’administration, coordonnées comprises. */
 export interface CompteAdmin {
@@ -217,6 +218,8 @@ export const LIBELLES_ACTION_ADMIN: Record<TypeActionAdmin, string> = {
   DIPLOMATION: 'Diplôme enregistré',
   MODIFICATION_IDENTITE: 'Nom corrigé',
   MODIFICATION_RESPONSABILITES: 'Responsabilités modifiées',
+  DESIGNATION_CHEF_DEPARTEMENT: 'Désigné chef de département',
+  RETRAIT_CHEF_DEPARTEMENT: 'N’est plus chef de département',
 };
 
 /** Détails lisibles : rôles et responsabilités techniques (« ALUMNI → ADMIN », « GERER_STAGES ») deviennent leurs libellés. */

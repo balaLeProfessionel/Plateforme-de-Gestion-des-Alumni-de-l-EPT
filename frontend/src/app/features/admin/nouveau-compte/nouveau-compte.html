@@ -67,7 +67,7 @@
           <label for="compte-filiere">Filière (facultative)</label>
           <select id="compte-filiere" [formField]="formulaire.filiere">
             <option value="">Non renseignée</option>
-            @for (filiere of filieres; track filiere) { <option [value]="filiere">{{ filiere }}</option> }
+            @for (filiere of filieres(); track filiere.id) { <option [value]="filiere.nom">{{ filiere.nom }}</option> }
             <option [value]="autreFiliere">Autre…</option>
           </select>
         </div>

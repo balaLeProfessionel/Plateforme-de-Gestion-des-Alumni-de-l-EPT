@@ -60,8 +60,8 @@ class MotDePasseOublieTests {
             mock(AuthenticationManager.class),
             mock(JwtService.class),
             emailService,
-            refreshTokenService
-        );
+            refreshTokenService,
+            mock(ept.edu.sn.alumni_backend.filiere.service.FiliereService.class));
     }
 
     @Test

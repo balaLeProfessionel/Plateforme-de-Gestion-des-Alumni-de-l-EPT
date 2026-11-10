@@ -38,7 +38,7 @@ public class AnnuaireMapper {
             utilisateur.getUrlPhoto(),
             utilisateur.getPosteActuel(),
             utilisateur.getVilleResidence(),
-            utilisateur.getFiliere(),
+            utilisateur.getNomFiliere(),
             utilisateur.getAnneeSortie(),
             null,
             null,

@@ -84,13 +84,14 @@ public class SecurityConfig {
                     "/api/auth/renvoyer-otp",
                     "/api/auth/refresh"
                 ).permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/public/annuaire", "/api/public/evenements", "/api/public/temoignages").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/public/annuaire", "/api/public/evenements", "/api/public/temoignages", "/api/public/filieres").permitAll()
                 .requestMatchers("/api/photos/**").permitAll()
                 .requestMatchers("/api/evenement-images/**").permitAll()
                 // Administration : chaque domaine exige sa permission (voir PermissionAdmin).
                 .requestMatchers("/api/admin/tableau-de-bord").hasAuthority(PermissionAdmin.CONSULTER_TABLEAU_DE_BORD.name())
                 .requestMatchers("/api/admin/journal/**", "/api/admin/journal").hasAuthority(PermissionAdmin.CONSULTER_JOURNAL.name())
-                .requestMatchers("/api/admin/comptes/**", "/api/admin/comptes").hasAuthority(PermissionAdmin.GERER_COMPTES.name())
+                .requestMatchers("/api/admin/comptes/**", "/api/admin/comptes", "/api/admin/filieres/**", "/api/admin/filieres")
+                    .hasAuthority(PermissionAdmin.GERER_COMPTES.name())
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/organisme/me").hasRole("ORGANISME")
                 .requestMatchers("/api/formations/**", "/api/experiences/**")

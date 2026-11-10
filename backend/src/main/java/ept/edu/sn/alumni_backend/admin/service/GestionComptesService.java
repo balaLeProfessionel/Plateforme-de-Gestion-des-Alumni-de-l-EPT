@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.admin.service;
 
+import ept.edu.sn.alumni_backend.filiere.entity.Filiere;
 import ept.edu.sn.alumni_backend.admin.NomCompte;
 import java.util.EnumSet;
 import java.util.List;
@@ -78,10 +79,10 @@ public class GestionComptesService {
         }
         if (sansFiliere) {
             specification = specification.and((racine, requete, cb) ->
-                cb.or(cb.isNull(racine.get("filiere")), cb.equal(cb.trim(racine.get("filiere")), "")));
+                cb.isNull(racine.get("filiere")));
         } else if (filiere != null && !filiere.isBlank()) {
-            String valeur = filiere.trim().toLowerCase(Locale.ROOT);
-            specification = specification.and((racine, requete, cb) -> cb.equal(cb.lower(racine.get("filiere")), valeur));
+            String cle = Filiere.cle(filiere);
+            specification = specification.and((racine, requete, cb) -> cb.equal(racine.get("filiere").get("cle"), cle));
         }
         if (recherche != null && !recherche.isBlank()) {
             String motif = "%" + recherche.trim().toLowerCase(Locale.ROOT) + "%";
@@ -269,7 +270,7 @@ public class GestionComptesService {
     private static CompteAdminResponse versReponse(Utilisateur compte, String motifSuspension, long nombreDecisions) {
         return new CompteAdminResponse(
             compte.getId(), compte.getPrenom(), compte.getNom(), compte.getEmail(), compte.getTelephone(),
-            compte.getRole().name(), compte.getStatutCompte().name(), compte.getFiliere(),
+            compte.getRole().name(), compte.getStatutCompte().name(), compte.getNomFiliere(),
             compte.getAnneeEntree(), compte.getAnneeSortie(),
             compte.getOrganisme() == null ? null : compte.getOrganisme().getNom(),
             compte.getOrganisme() == null ? null : compte.getOrganisme().getId(),

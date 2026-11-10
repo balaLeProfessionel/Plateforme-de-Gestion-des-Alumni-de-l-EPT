@@ -48,6 +48,8 @@ class AdminMembresIntegrationTests {
     @Autowired private MockMvc mockMvc;
     @Autowired private JwtService jwtService;
     @Autowired private UtilisateurRepository utilisateurRepository;
+    @Autowired
+    private ept.edu.sn.alumni_backend.filiere.repository.FiliereRepository filiereRepository;
     @Autowired private ActionAdminRepository actionAdminRepository;
     @Autowired private RefreshTokenRepository refreshTokenRepository;
     @MockitoSpyBean private EmailService emailService;
@@ -64,6 +66,8 @@ class AdminMembresIntegrationTests {
 
     @AfterEach
     void nettoyer() {
+        // Une filière saisie avec « Autre… » note son auteur : détachée pour que les comptes restent supprimables.
+        filiereRepository.saveAll(filiereRepository.findAll().stream().peek(filiere -> filiere.setCreeePar(null)).toList());
         actionAdminRepository.deleteAll();
         refreshTokenRepository.deleteAll();
     }
@@ -112,11 +116,11 @@ class AdminMembresIntegrationTests {
     void m03_importeUnePromotionEtRendCompteDeChaqueLigne() throws Exception {
         envoyer(post("/api/admin/comptes/import"), admin, """
                 {"role":"ETUDIANT","lignes":[
-                  {"prenom":"Awa","nom":"Diop","email":"%1$s.1@example.invalid","filiere":"GIT","anneeEntree":2026},
-                  {"prenom":"Binta","nom":"Sow","email":"pas-une-adresse","filiere":"GIT","anneeEntree":2026},
-                  {"prenom":"Coumba","nom":"Fall","email":"%1$s.1@example.invalid","filiere":"GIT","anneeEntree":2026},
-                  {"prenom":"Dame","nom":"Ka","email":"%2$s","filiere":"GIT","anneeEntree":2026},
-                  {"prenom":"","nom":"Ndiaye","email":"%1$s.5@example.invalid","filiere":"GIT","anneeEntree":2026}
+                  {"prenom":"Awa","nom":"Diop","email":"%1$s.1@example.invalid","filiere":"Génie Civil","anneeEntree":2026},
+                  {"prenom":"Binta","nom":"Sow","email":"pas-une-adresse","filiere":"Génie Civil","anneeEntree":2026},
+                  {"prenom":"Coumba","nom":"Fall","email":"%1$s.1@example.invalid","filiere":"Génie Civil","anneeEntree":2026},
+                  {"prenom":"Dame","nom":"Ka","email":"%2$s","filiere":"Génie Civil","anneeEntree":2026},
+                  {"prenom":"","nom":"Ndiaye","email":"%1$s.5@example.invalid","filiere":"Génie Civil","anneeEntree":2026}
                 ]}
                 """.formatted(lot, admin.getEmail()))
             .andExpect(status().isOk())
@@ -253,7 +257,7 @@ class AdminMembresIntegrationTests {
         utilisateur.setStatutCompte(statut);
         utilisateur.setEmailVerifie(true);
         utilisateur.setAnneeEntree(anneeEntree);
-        utilisateur.setFiliere("F" + lot);
+        utilisateur.setFiliere(FilieresDeTest.filiere(filiereRepository, "F" + lot));
         return utilisateurRepository.saveAndFlush(utilisateur);
     }
 

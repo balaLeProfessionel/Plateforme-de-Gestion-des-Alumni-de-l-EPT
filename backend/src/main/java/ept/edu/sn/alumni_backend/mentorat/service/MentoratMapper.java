@@ -51,7 +51,7 @@ public class MentoratMapper {
             mentor.getPrenom(),
             mentor.getUrlPhoto(),
             mentor.getPosteActuel(),
-            mentor.getFiliere(),
+            mentor.getNomFiliere(),
             mentor.getAnneeSortie(),
             profil.getPresentation(),
             domaines(profil),
@@ -117,7 +117,7 @@ public class MentoratMapper {
             utilisateur.getPrenom(),
             utilisateur.getUrlPhoto(),
             utilisateur.getPosteActuel(),
-            utilisateur.getFiliere(),
+            utilisateur.getNomFiliere(),
             utilisateur.getAnneeSortie(),
             utilisateur.getRole());
     }

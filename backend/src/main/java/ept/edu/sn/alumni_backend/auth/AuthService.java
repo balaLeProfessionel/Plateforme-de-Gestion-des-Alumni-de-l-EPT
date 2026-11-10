@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.auth;
 
+import ept.edu.sn.alumni_backend.filiere.service.FiliereService;
 import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -53,6 +54,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final EmailService emailService;
     private final RefreshTokenService refreshTokenService;
+    private final FiliereService filiereService;
 
     // ==================== INSCRIPTION ====================
 
@@ -85,7 +87,7 @@ public class AuthService {
         utilisateur.setStatutCompte(StatutCompte.EN_ATTENTE);
         utilisateur.setTelephone(request.telephone());
         utilisateur.setAnneeSortie(request.anneeSortie());
-        utilisateur.setFiliere(request.filiere());
+        utilisateur.setFiliere(filiereService.exigerExistante(request.filiere()));
 
         if (request.role() == TypeRole.ORGANISME) {
             Organisme organisme = new Organisme();
@@ -254,6 +256,12 @@ public class AuthService {
 
     @Transactional
     public CompteCreeResponse creerCompteParAdmin(CreerCompteRequest request) {
+        return creerCompteParAdmin(request, null);
+    }
+
+    /** L'auteur est noté comme créateur d'une filière saisie avec « Autre… » (TRA-14). */
+    @Transactional
+    public CompteCreeResponse creerCompteParAdmin(CreerCompteRequest request, Utilisateur auteur) {
         String email = normaliser(request.email());
         if (utilisateurRepository.existsByEmail(email)) {
             throw new EmailDejaUtiliseException("Cet email est déjà utilisé");
@@ -273,7 +281,7 @@ public class AuthService {
         utilisateur.setDoitChangerMotDePasse(true);
         utilisateur.setAnneeEntree(request.anneeEntree());
         utilisateur.setAnneeSortie(request.anneeSortie());
-        utilisateur.setFiliere(request.filiere() == null || request.filiere().isBlank() ? null : request.filiere().trim());
+        utilisateur.setFiliere(filiereService.trouverOuCreer(request.filiere(), auteur));
 
         utilisateur = utilisateurRepository.save(utilisateur);
 

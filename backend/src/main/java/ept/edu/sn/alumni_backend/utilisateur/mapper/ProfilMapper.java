@@ -30,7 +30,7 @@ public class ProfilMapper {
             u.getUrlPhoto(),
             u.getTelephone(),
             u.getDateNaissance(),
-            u.getFiliere(),
+            u.getNomFiliere(),
             u.getAnneeSortie(),
             u.isRecherchePublique()
         );
@@ -52,7 +52,7 @@ public class ProfilMapper {
             utilisateur.getLienLinkedin(),
             utilisateur.getLienPortfolio(),
             utilisateur.getUrlPhoto(),
-            utilisateur.getFiliere(),
+            utilisateur.getNomFiliere(),
             utilisateur.getAnneeSortie(),
             experiences,
             formations

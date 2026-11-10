@@ -41,6 +41,13 @@ class ProfilPublicIntegrationTests {
     private UtilisateurRepository utilisateurRepository;
 
     @Autowired
+
+    private ept.edu.sn.alumni_backend.filiere.repository.FiliereRepository filiereRepository;
+
+    @Autowired
+    private ept.edu.sn.alumni_backend.filiere.repository.ChefDepartementRepository chefDepartementRepository;
+
+    @Autowired
     private OrganismeRepository organismeRepository;
 
     @Autowired
@@ -62,6 +69,9 @@ class ProfilPublicIntegrationTests {
         experienceRepository.deleteAll();
         formationRepository.deleteAll();
         organismeRepository.deleteAll();
+        // Filières et chefs de département référencent des comptes (TRA-14) : on les détache avant de vider.
+        chefDepartementRepository.deleteAll();
+        filiereRepository.saveAll(filiereRepository.findAll().stream().peek(filiere -> filiere.setCreeePar(null)).toList());
         utilisateurRepository.deleteAll();
     }
 
@@ -139,7 +149,7 @@ class ProfilPublicIntegrationTests {
         membre.setTelephone("770000000");
         membre.setDateNaissance(LocalDate.of(2000, 1, 1));
         membre.setVilleResidence("Thiès");
-        membre.setFiliere("Génie Informatique et Télécommunications");
+        membre.setFiliere(FilieresDeTest.filiere(filiereRepository, "Génie Informatique et Télécommunications"));
         membre.setAnneeSortie(2024);
         return utilisateurRepository.save(membre);
     }

@@ -21,6 +21,8 @@ import ept.edu.sn.alumni_backend.auth.exception.NomOrganismeManquantException;
 import ept.edu.sn.alumni_backend.auth.exception.RoleNonAutoriseException;
 import ept.edu.sn.alumni_backend.auth.exception.TokenInvalideException;
 import ept.edu.sn.alumni_backend.evenement.exception.EvenementIntrouvableException;
+import ept.edu.sn.alumni_backend.filiere.exception.ConflitFiliereException;
+import ept.edu.sn.alumni_backend.filiere.exception.FiliereIntrouvableException;
 import ept.edu.sn.alumni_backend.evenement.exception.ImageEvenementIntrouvableException;
 import ept.edu.sn.alumni_backend.evenement.exception.StockageImageEvenementException;
 import ept.edu.sn.alumni_backend.evenement.exception.CapaciteEvenementAtteinteException;
@@ -150,6 +152,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConflitCompteException.class)
     public ResponseEntity<Map<String, String>> gererConflitCompte(ConflitCompteException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(FiliereIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> gererFiliereIntrouvable(FiliereIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ConflitFiliereException.class)
+    public ResponseEntity<Map<String, String>> gererConflitFiliere(ConflitFiliereException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
     }
 

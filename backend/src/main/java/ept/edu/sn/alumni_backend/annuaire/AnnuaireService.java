@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.annuaire;
 
+import ept.edu.sn.alumni_backend.filiere.entity.Filiere;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -59,9 +60,9 @@ public class AnnuaireService {
             );
         }
         if (aDuTexte(filiere)) {
-            String valeur = normaliser(filiere);
+            String cle = Filiere.cle(filiere);
             specification = specification.and((racine, requete, cb) ->
-                cb.equal(cb.lower(racine.get("filiere")), valeur)
+                cb.equal(racine.get("filiere").get("cle"), cle)
             );
         }
         if (aDuTexte(ville)) {
@@ -116,7 +117,7 @@ public class AnnuaireService {
 
         return utilisateurRepository.findAll(specification, pagination).stream()
             .map(membre -> new DiplomePublicResponse(
-                membre.getPrenom(), membre.getNom(), membre.getAnneeSortie(), membre.getFiliere()))
+                membre.getPrenom(), membre.getNom(), membre.getAnneeSortie(), membre.getNomFiliere()))
             .toList();
     }
 

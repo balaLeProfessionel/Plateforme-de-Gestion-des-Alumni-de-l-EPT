@@ -59,8 +59,8 @@
         <label for="filiere">Filière</label>
         <select pInputText id="filiere" [formField]="formulaire.filiere" fluid>
           <option value="" disabled>Choisissez votre filière</option>
-          @for (f of filieres; track f.value) {
-            <option [value]="f.value">{{ f.label }}</option>
+          @for (f of filieres(); track f.id) {
+            <option [value]="f.nom">{{ f.nom }}</option>
           }
         </select>
       </div>

@@ -1,0 +1,98 @@
+@let f = filiere();
+<article class="carte filiere" [class.retiree]="!f.active" [attr.aria-labelledby]="'nom-' + f.id">
+  <div class="entete">
+    <h2 [id]="'nom-' + f.id">{{ f.nom }}</h2>
+    @if (!f.active) { <span class="pastille">Retirée</span> }
+  </div>
+  <dl class="infos">
+    <div><dt>Comptes</dt><dd>{{ f.nombreComptes }}</dd></div>
+    <div>
+      <dt>Chef de département</dt>
+      <dd>
+        @if (f.chef; as chef) {
+          {{ chef.prenom }} {{ chef.nom }} <small>depuis le {{ chef.designeLe | date: 'd MMMM y' }}</small>
+        } @else { Aucun }
+      </dd>
+    </div>
+  </dl>
+
+  @if (erreur(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+
+  @switch (panneau()) {
+    @case ('nom') {
+      <form class="panneau" (submit)="renommer($event)" (keydown.escape)="fermer()" novalidate>
+        <div class="champ">
+          <label [for]="'renommer-' + f.id">Nouveau nom</label>
+          <input #premierChamp [id]="'renommer-' + f.id" type="text" autocomplete="off" [value]="saisie()"
+            (input)="saisir($event)" />
+        </div>
+        <div class="boutons">
+          <button type="submit" class="bouton principal" [disabled]="enCours()">Renommer</button>
+          <button type="button" class="bouton" (click)="fermer()">Annuler</button>
+        </div>
+      </form>
+    }
+    @case ('fusion') {
+      <form class="panneau" (submit)="fusionner($event)" (keydown.escape)="fermer()" novalidate>
+        <div class="champ">
+          <label [for]="'fusion-' + f.id">Fusionner dans</label>
+          <select #premierChamp [id]="'fusion-' + f.id" (change)="saisir($event)" [attr.aria-describedby]="'aide-fusion-' + f.id">
+            <option value="" [selected]="!saisie()">Choisir la filière qui reçoit les comptes…</option>
+            @for (cible of cibles(); track cible.id) { <option [value]="cible.id">{{ cible.nom }}</option> }
+          </select>
+        </div>
+        <p [id]="'aide-fusion-' + f.id" class="aide alerte">
+          @if (cibleChoisie(); as cible) {
+            Les {{ f.nombreComptes }} compte(s) de « {{ f.nom }} » passeront dans « {{ cible.nom }} », puis « {{ f.nom }} » sera supprimée. Cette action ne s’annule pas.
+          } @else {
+            « {{ f.nom }} » sera supprimée et ses comptes passeront dans la filière choisie. Cette action ne s’annule pas.
+          }
+        </p>
+        <div class="boutons">
+          <button type="submit" class="bouton principal" [disabled]="enCours()">Fusionner</button>
+          <button type="button" class="bouton" (click)="fermer()">Annuler</button>
+        </div>
+      </form>
+    }
+    @case ('chef') {
+      <form class="panneau" (submit)="designer($event)" (keydown.escape)="fermer()" novalidate>
+        @if (chefsPossibles().length === 0) {
+          <p class="aide">Aucun compte actif du personnel : créez d’abord le compte du futur chef, avec le rôle « Personnel EPT ».</p>
+        } @else {
+          <div class="champ">
+            <label [for]="'chef-' + f.id">Chef du département</label>
+            <select #premierChamp [id]="'chef-' + f.id" (change)="saisir($event)">
+              <option value="" [selected]="!saisie()">Choisir un membre du personnel…</option>
+              @for (personne of chefsPossibles(); track personne.id) {
+                <option [value]="personne.id" [selected]="personne.id === saisie()">{{ personne.prenom }} {{ personne.nom }} ({{ personne.email }})</option>
+              }
+            </select>
+          </div>
+        }
+        <div class="boutons">
+          @if (chefsPossibles().length) {
+            <button type="submit" class="bouton principal" [disabled]="enCours()">Désigner</button>
+          }
+          @if (f.chef) {
+            <button type="button" class="bouton" [disabled]="enCours()" (click)="retirerChef()">Retirer le chef actuel</button>
+          }
+          <button type="button" class="bouton" (click)="fermer()">Annuler</button>
+        </div>
+      </form>
+    }
+    @default {
+      <div class="boutons actions" role="group" [attr.aria-label]="'Actions sur ' + f.nom">
+        <button type="button" class="bouton petit" (click)="ouvrir('nom')"><i class="pi pi-pencil" aria-hidden="true"></i>Renommer</button>
+        <button type="button" class="bouton petit" [disabled]="enCours()" (click)="changerActivite()">
+          <i class="pi" [class.pi-eye-slash]="f.active" [class.pi-eye]="!f.active" aria-hidden="true"></i>{{ f.active ? 'Retirer' : 'Proposer de nouveau' }}
+        </button>
+        @if (cibles().length) {
+          <button type="button" class="bouton petit" (click)="ouvrir('fusion')"><i class="pi pi-arrow-right-arrow-left" aria-hidden="true"></i>Fusionner</button>
+        }
+        @if (estSuper()) {
+          <button type="button" class="bouton petit" (click)="ouvrir('chef')"><i class="pi pi-user-edit" aria-hidden="true"></i>{{ f.chef ? 'Changer de chef' : 'Désigner le chef' }}</button>
+        }
+      </div>
+    }
+  }
+</article>

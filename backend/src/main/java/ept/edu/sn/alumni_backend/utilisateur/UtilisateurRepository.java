@@ -85,13 +85,13 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, UUID>,
     List<NombreParRoleProjection> compterParRole(@Param("statut") StatutCompte statut);
 
     @Query("""
-        select u.anneeEntree as anneeEntree, u.filiere as filiere, count(u) as nombre
-        from Utilisateur u
+        select u.anneeEntree as anneeEntree, f.nom as filiere, count(u) as nombre
+        from Utilisateur u left join u.filiere f
         where u.role = ept.edu.sn.alumni_backend.enums.TypeRole.ETUDIANT
           and u.emailVerifie = true
           and u.statutCompte <> ept.edu.sn.alumni_backend.enums.StatutCompte.SUSPENDU
-        group by u.anneeEntree, u.filiere
-        order by u.anneeEntree desc, u.filiere
+        group by u.anneeEntree, f.nom
+        order by u.anneeEntree desc, f.nom
         """)
     List<PromotionProjection> compterEtudiantsParPromotion();
 

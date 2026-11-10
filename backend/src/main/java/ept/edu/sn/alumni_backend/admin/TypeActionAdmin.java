@@ -12,5 +12,9 @@ public enum TypeActionAdmin {
     /** Un administrateur corrige son propre nom : le journal garde l'ancien, puisqu'il affiche le nom actuel de l'auteur. */
     MODIFICATION_IDENTITE,
     /** Responsabilités d'un administrateur cochées par un super administrateur (TRA-13) : « avant → après ». */
-    MODIFICATION_RESPONSABILITES
+    MODIFICATION_RESPONSABILITES,
+    /** Compte du personnel désigné chef du département d'une filière (TRA-14) ; le détail nomme la filière. */
+    DESIGNATION_CHEF_DEPARTEMENT,
+    /** Fin de la mission de chef de département : remplacé par un autre ou retiré. */
+    RETRAIT_CHEF_DEPARTEMENT
 }

@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.admin.service;
 
+import ept.edu.sn.alumni_backend.filiere.service.FiliereService;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -46,6 +47,7 @@ public class CreationComptesService {
     private final Validator validator;
     private final TransactionTemplate transaction;
     private final GardeSuperAdministrateur garde;
+    private final FiliereService filiereService;
 
     @Transactional
     public CompteCreeResponse creer(CreerCompteRequest request, UtilisateurPrincipal principal) {
@@ -56,7 +58,7 @@ public class CreationComptesService {
             garde.exiger(principal);
         }
         verifierAnnees(request.anneeEntree(), request.anneeSortie());
-        CompteCreeResponse cree = authService.creerCompteParAdmin(request);
+        CompteCreeResponse cree = authService.creerCompteParAdmin(request, principal.getUtilisateur());
         Utilisateur compte = utilisateurRepository.findById(cree.id()).orElseThrow();
         trace.consigner(principal, compte, TypeActionAdmin.CREATION_COMPTE, null, compte.getRole().name());
         trace.envoyerIdentifiants(compte, cree.motDePasseTemporaire());
@@ -80,6 +82,14 @@ public class CreationComptesService {
             String erreur = premiereErreur(demande);
             if (erreur == null && !emailsVus.add(email)) {
                 erreur = "Cette adresse apparaît plusieurs fois dans le fichier.";
+            }
+            if (erreur == null) {
+                // Un import ne crée pas de filière : une faute de frappe en ferait un doublon (TRA-14).
+                try {
+                    filiereService.exigerExistante(ligne.filiere());
+                } catch (IllegalArgumentException e) {
+                    erreur = e.getMessage();
+                }
             }
             if (erreur != null) {
                 lignes.add(new ResultatImportResponse.Ligne(numero, email, false, erreur, null, null));

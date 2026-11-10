@@ -74,6 +74,7 @@ export class EspaceMembre implements OnDestroy {
         },
         { libelle: 'Comptes', icone: 'pi-users', route: '/admin/comptes', exact: false },
         { libelle: 'Diplômés', icone: 'pi-graduation-cap', route: '/admin/diplomes', exact: false },
+        { libelle: 'Filières', icone: 'pi-sitemap', route: '/admin/filieres', exact: false },
       ] : [] },
       { titre: 'Contenus', liens: [
         { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
