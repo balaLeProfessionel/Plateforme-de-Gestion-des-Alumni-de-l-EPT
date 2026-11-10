@@ -402,6 +402,12 @@ public class EvenementService {
             if (filtres.officiel() != null) {
                 conditions.add(cb.equal(racine.get("officielEpt"), filtres.officiel()));
             }
+            if (filtres.organisme() != null) {
+                // Compte de l'organisme lui-même, pas ses employés : leurs événements restent les leurs.
+                var organisateur = racine.get("organisateur");
+                conditions.add(cb.equal(organisateur.get("role"), TypeRole.ORGANISME));
+                conditions.add(cb.equal(organisateur.get("organisme").get("id"), filtres.organisme()));
+            }
             return cb.and(conditions.toArray(Predicate[]::new));
         };
     }

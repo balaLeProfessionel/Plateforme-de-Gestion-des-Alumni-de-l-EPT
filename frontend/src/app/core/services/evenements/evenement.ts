@@ -73,5 +73,6 @@ function parametres(periode: PeriodeEvenement, page: number, filtres: FiltresEve
   if (filtres.recherche.trim()) params = params.set('recherche', filtres.recherche.trim());
   if (filtres.lieu.trim()) params = params.set('lieu', filtres.lieu.trim());
   if (filtres.officiel) params = params.set('officiel', filtres.officiel === 'oui');
+  if (filtres.organisme) params = params.set('organisme', filtres.organisme);
   return params;
 }

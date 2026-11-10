@@ -42,6 +42,8 @@ export interface FiltresEvenements {
   recherche: string;
   lieu: string;
   officiel: 'oui' | 'non' | '';
+  /** Événements organisés par cet organisme (identifiant de l'organisme, pas du compte). */
+  organisme?: string;
 }
 
 export const AUCUN_FILTRE: FiltresEvenements = { recherche: '', lieu: '', officiel: '' };
