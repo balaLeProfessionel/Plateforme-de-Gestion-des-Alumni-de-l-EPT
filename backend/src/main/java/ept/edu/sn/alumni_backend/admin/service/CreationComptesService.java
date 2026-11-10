@@ -45,11 +45,15 @@ public class CreationComptesService {
     private final TraceCompte trace;
     private final Validator validator;
     private final TransactionTemplate transaction;
+    private final GardeSuperAdministrateur garde;
 
     @Transactional
     public CompteCreeResponse creer(CreerCompteRequest request, UtilisateurPrincipal principal) {
         if (!ROLES_CREABLES.contains(request.role())) {
             throw new IllegalArgumentException("Un compte d'organisme se crée depuis la page d'inscription des organismes.");
+        }
+        if (request.role() == TypeRole.ADMIN) {
+            garde.exiger(principal);
         }
         verifierAnnees(request.anneeEntree(), request.anneeSortie());
         CompteCreeResponse cree = authService.creerCompteParAdmin(request);

@@ -37,7 +37,7 @@ import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 @SpringBootTest
 @AutoConfigureMockMvc
 class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
-    private static final String MESSAGE_ROLE = "Les programmes sont créés et gérés par l'administration.";
+    private static final String MESSAGE_ROLE = "Les programmes sont créés et gérés par l'administration chargée du mentorat.";
 
     /** Administrateur qui crée les programmes des tests. */
     private Utilisateur gestionnaire;

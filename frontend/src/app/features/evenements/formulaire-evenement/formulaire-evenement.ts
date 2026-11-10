@@ -35,9 +35,9 @@ interface ModeleFormulaireEvenement {
 export class FormulaireEvenement {
   private readonly evenementService = inject(EvenementService);
   private readonly authService = inject(AuthService);
-  /** Un événement créé par l’administration est officiel EPT (règle du serveur) : on le dit avant de publier. */
+  /** Un événement créé par l’administration (responsabilité Événements) est officiel EPT (règle du serveur) : on le dit avant de publier. */
   protected readonly publieParAdministration = computed(() =>
-    !this.modeEdition() && this.authService.utilisateur()?.role === 'ADMIN');
+    !this.modeEdition() && this.authService.aPermission('GERER_EVENEMENTS'));
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly retour = inject(RetourNavigation);

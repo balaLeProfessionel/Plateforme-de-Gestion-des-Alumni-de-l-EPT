@@ -300,7 +300,7 @@ public class AuthService {
             utilisateur.isDoitChangerMotDePasse(),
             utilisateur.getUrlPhoto(),
             null,
-            PermissionAdmin.noms(utilisateur.getRole())
+            PermissionAdmin.noms(utilisateur)
         );
     }
 
@@ -402,7 +402,7 @@ public class AuthService {
     private AuthResponse construireReponse(String accessToken, String refreshToken, Utilisateur u, String message) {
         return new AuthResponse(accessToken, refreshToken, u.getId(), u.getEmail(), u.getNom(), u.getPrenom(),
                 u.getRole().name(), u.getStatutCompte().name(), u.isDoitChangerMotDePasse(), u.getUrlPhoto(), message,
-                PermissionAdmin.noms(u.getRole()));
+                PermissionAdmin.noms(u));
     }
 
     public void deconnecter(String refreshToken) {

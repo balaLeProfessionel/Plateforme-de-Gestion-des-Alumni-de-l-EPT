@@ -9,14 +9,14 @@
         <div class="panneau" (keydown.escape)="fermer()">
           @if (confirmationAdmin()) {
             <div class="confirmation" role="group" aria-labelledby="titre-confirmation-admin" aria-describedby="detail-confirmation-admin">
-              <p id="titre-confirmation-admin" class="question">Donner le rôle Administration à {{ nom() }} ?</p>
+              <p id="titre-confirmation-admin" class="question">Donner le rôle Administrateur à {{ nom() }} ?</p>
               <p id="detail-confirmation-admin" class="aide">
-                {{ c.prenom || nom() }} pourra créer, suspendre et réactiver des comptes, changer les rôles, enregistrer les diplômés
-                et lire le journal. Le motif lui est envoyé par e-mail.
+                {{ c.prenom || nom() }} accédera au tableau de bord de l’administration, sans autre responsabilité tant que vous
+                n’en cochez pas sur cette fiche. Le motif lui est envoyé par e-mail.
               </p>
               <div class="boutons">
                 <button #boutonConfirmation type="button" class="bouton principal" [disabled]="enCours()" (click)="confirmer()">
-                  Donner le rôle Administration
+                  Donner le rôle Administrateur
                 </button>
                 <button type="button" class="bouton" (click)="revenirAuChoix()">Revenir au choix</button>
               </div>
@@ -34,9 +34,9 @@
                   <small id="erreur-evolution-role" class="erreur-champ">{{ e.message }}</small>
                 }
                 @if (modele().role === 'ADMIN') {
-                  <p id="alerte-evolution-role" class="aide alerte">Ce compte aura accès à toute l’administration : une confirmation vous sera demandée.</p>
-                } @else if (c.statutCompte === 'EN_ATTENTE') {
-                  <p id="alerte-evolution-role" class="aide">Le rôle Administration sera proposé une fois l’inscription validée.</p>
+                  <p id="alerte-evolution-role" class="aide alerte">Ce compte entrera dans l’administration : une confirmation vous sera demandée.</p>
+                } @else if (c.statutCompte === 'EN_ATTENTE' && superAdministrateur()) {
+                  <p id="alerte-evolution-role" class="aide">Le rôle Administrateur sera proposé une fois l’inscription validée.</p>
                 }
               </div>
               <div class="champ large">

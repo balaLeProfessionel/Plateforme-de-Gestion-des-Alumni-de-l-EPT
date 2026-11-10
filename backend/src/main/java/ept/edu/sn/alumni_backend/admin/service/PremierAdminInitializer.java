@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import ept.edu.sn.alumni_backend.admin.TypeActionAdmin;
 import ept.edu.sn.alumni_backend.admin.entity.ActionAdmin;
 import ept.edu.sn.alumni_backend.admin.repository.ActionAdminRepository;
@@ -23,7 +24,8 @@ import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 import jakarta.validation.Validator;
 
 /**
- * Crée le premier compte d'administration au démarrage : seul un administrateur peut en créer d'autres.
+ * Crée le premier compte d'administration au démarrage, super administrateur : seul un super administrateur peut
+ * en créer d'autres.
  * N'agit que si la base n'en a aucun. Un compte existant n'est jamais modifié ni promu : l'adresse
  * configurée a pu être inscrite par quelqu'un d'autre.
  * Le mot de passe configuré est provisoire : il doit être changé à la première connexion.
@@ -82,6 +84,7 @@ public class PremierAdminInitializer implements ApplicationRunner {
         admin.setStatutCompte(StatutCompte.ACTIF);
         admin.setEmailVerifie(true);
         admin.setDoitChangerMotDePasse(true);
+        admin.getPermissionsAdmin().add(PermissionAdmin.GERER_ADMINISTRATEURS);
         admin = utilisateurRepository.save(admin);
         // Personne d'autre ne l'a créé : le compte figure comme auteur, et le journal affichera son vrai nom une fois choisi.
         actionAdminRepository.save(new ActionAdmin(admin, admin, TypeActionAdmin.CREATION_COMPTE, null,

@@ -10,5 +10,7 @@ public enum TypeActionAdmin {
     CHANGEMENT_ROLE,
     DIPLOMATION,
     /** Un administrateur corrige son propre nom : le journal garde l'ancien, puisqu'il affiche le nom actuel de l'auteur. */
-    MODIFICATION_IDENTITE
+    MODIFICATION_IDENTITE,
+    /** Responsabilités d'un administrateur cochées par un super administrateur (TRA-13) : « avant → après ». */
+    MODIFICATION_RESPONSABILITES
 }

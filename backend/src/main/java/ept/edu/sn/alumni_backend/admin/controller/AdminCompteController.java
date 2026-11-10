@@ -23,9 +23,11 @@ import ept.edu.sn.alumni_backend.admin.dto.DiplomationRequest;
 import ept.edu.sn.alumni_backend.admin.dto.ImportComptesRequest;
 import ept.edu.sn.alumni_backend.admin.dto.PromotionResponse;
 import ept.edu.sn.alumni_backend.admin.dto.ResultatDiplomationResponse;
+import ept.edu.sn.alumni_backend.admin.dto.ResponsabilitesRequest;
 import ept.edu.sn.alumni_backend.admin.dto.ResultatImportResponse;
 import ept.edu.sn.alumni_backend.admin.service.CreationComptesService;
 import ept.edu.sn.alumni_backend.admin.service.EvolutionComptesService;
+import ept.edu.sn.alumni_backend.admin.service.ResponsabilitesAdminService;
 import ept.edu.sn.alumni_backend.admin.dto.FicheCompteResponse;
 import ept.edu.sn.alumni_backend.admin.dto.MotifFacultatifRequest;
 import ept.edu.sn.alumni_backend.admin.dto.MotifRequest;
@@ -43,7 +45,10 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 
-/** Gestion des comptes par l'administration ; /api/admin/** est réservé au rôle ADMIN (SecurityConfig). */
+/**
+ * Gestion des comptes par l'administration : la responsabilité Comptes est exigée (SecurityConfig). Toute décision
+ * sur un compte d'administration demande en plus d'être super administrateur (GardeSuperAdministrateur).
+ */
 @RestController
 @RequestMapping("/api/admin/comptes")
 @RequiredArgsConstructor
@@ -53,6 +58,7 @@ public class AdminCompteController {
     private final GestionComptesService gestionComptesService;
     private final CreationComptesService creationComptesService;
     private final EvolutionComptesService evolutionComptesService;
+    private final ResponsabilitesAdminService responsabilitesAdminService;
 
     /** Création d'un compte (étudiant, alumni, personnel…) : le mot de passe provisoire part par e-mail. */
     @PostMapping
@@ -77,6 +83,15 @@ public class AdminCompteController {
             @Valid @RequestBody ChangementRoleRequest request,
             @AuthenticationPrincipal UtilisateurPrincipal principal) {
         return ResponseEntity.ok(evolutionComptesService.changerRole(id, request.role(), request.motif().trim(), principal));
+    }
+
+    /** Réservé au super administrateur (TRA-13) : la liste remplace les responsabilités du compte. */
+    @PatchMapping("/{id}/responsabilites")
+    public ResponseEntity<FicheCompteResponse> modifierResponsabilites(
+            @PathVariable UUID id,
+            @Valid @RequestBody ResponsabilitesRequest request,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(responsabilitesAdminService.modifier(id, request.responsabilites(), principal));
     }
 
     @PostMapping("/diplomation")

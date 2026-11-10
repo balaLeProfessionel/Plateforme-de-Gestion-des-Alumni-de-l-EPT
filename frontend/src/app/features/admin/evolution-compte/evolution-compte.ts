@@ -29,17 +29,20 @@ export class EvolutionCompte {
   readonly modifie = output<string>();
 
   protected readonly libellesRole = LIBELLES_ROLE_COMPTE;
-  /** Rien à proposer pour soi-même, un organisme ou un compte suspendu (à réactiver d’abord). */
+  /** Seul un super administrateur fait entrer un compte dans l’administration ou l’en fait sortir. */
+  protected readonly superAdministrateur = computed(() => this.authService.aPermission('GERER_ADMINISTRATEURS'));
+  /** Rien à proposer pour soi-même, un organisme, un compte suspendu (à réactiver d’abord) ou, sauf super administrateur, un administrateur. */
   protected readonly disponible = computed(() => {
     const compte = this.compte();
-    return compte.id !== this.authService.utilisateur()?.id && compte.role !== 'ORGANISME' && compte.statutCompte !== 'SUSPENDU';
+    return compte.id !== this.authService.utilisateur()?.id && compte.role !== 'ORGANISME' && compte.statutCompte !== 'SUSPENDU'
+      && (compte.role !== 'ADMIN' || this.superAdministrateur());
   });
-  /** Le rôle Administration ne se donne qu’à un compte vérifié : le serveur refuse aussi les autres cas. */
+  /** Le rôle Administrateur ne se donne qu’à un compte vérifié : le serveur refuse aussi les autres cas. */
   protected readonly rolesPossibles = computed(() => ROLES_ATTRIBUABLES.filter((role) =>
-    role !== this.compte().role && (role !== 'ADMIN' || this.compte().statutCompte === 'ACTIF')));
+    role !== this.compte().role && (role !== 'ADMIN' || (this.compte().statutCompte === 'ACTIF' && this.superAdministrateur()))));
   protected readonly nom = computed(() => nomDuCompte(this.compte()));
   protected readonly panneau = signal<Panneau | null>(null);
-  /** Deuxième étape avant de donner le rôle Administration : elle nomme la personne et ce qu’elle pourra faire. */
+  /** Deuxième étape avant de donner le rôle Administrateur : elle nomme la personne et ce qu’elle pourra faire. */
   protected readonly confirmationAdmin = signal(false);
   protected readonly enCours = signal(false);
   protected readonly erreur = signal<string | null>(null);
@@ -60,7 +63,8 @@ export class EvolutionCompte {
   protected readonly descriptionRole = computed(() => {
     const ids = [
       this.formulaire.role().touched() && this.formulaire.role().invalid() ? 'erreur-evolution-role' : null,
-      this.modele().role === 'ADMIN' || this.compte().statutCompte === 'EN_ATTENTE' ? 'alerte-evolution-role' : null,
+      this.modele().role === 'ADMIN' || (this.compte().statutCompte === 'EN_ATTENTE' && this.superAdministrateur())
+        ? 'alerte-evolution-role' : null,
     ].filter(Boolean);
     return ids.length ? ids.join(' ') : null;
   });

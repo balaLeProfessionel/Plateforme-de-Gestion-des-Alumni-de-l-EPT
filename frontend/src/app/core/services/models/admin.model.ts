@@ -1,7 +1,7 @@
 export type StatutCompte = 'EN_ATTENTE' | 'ACTIF' | 'SUSPENDU';
 export type RoleCompte = 'ETUDIANT' | 'ALUMNI' | 'PERSONNEL' | 'ORGANISME' | 'ADMIN' | 'VISITEUR';
 export type TypeActionAdmin = 'VALIDATION_INSCRIPTION' | 'REFUS_INSCRIPTION' | 'SUSPENSION' | 'REACTIVATION'
-  | 'CREATION_COMPTE' | 'CHANGEMENT_ROLE' | 'DIPLOMATION' | 'MODIFICATION_IDENTITE';
+  | 'CREATION_COMPTE' | 'CHANGEMENT_ROLE' | 'DIPLOMATION' | 'MODIFICATION_IDENTITE' | 'MODIFICATION_RESPONSABILITES';
 
 /** Miroir de CompteAdminResponse : un compte vu par l’administration, coordonnées comprises. */
 export interface CompteAdmin {
@@ -117,9 +117,35 @@ export function lienFicheCompte(compte: CompteAdmin): string[] | null {
   return ROLES_AVEC_PROFIL.includes(compte.role) ? ['/profil', compte.id] : null;
 }
 
-/** Miroir de PermissionAdmin : chaque rubrique de l’administration exige l’une d’elles. */
-export type PermissionAdmin = 'CONSULTER_TABLEAU_DE_BORD' | 'GERER_COMPTES' | 'CONSULTER_JOURNAL';
-export const TOUTES_LES_PERMISSIONS: readonly PermissionAdmin[] = ['CONSULTER_TABLEAU_DE_BORD', 'GERER_COMPTES', 'CONSULTER_JOURNAL'];
+/**
+ * Miroir de PermissionAdmin : chaque rubrique de l’administration exige l’une d’elles. Le tableau de bord est
+ * ouvert à tout administrateur ; les autres sont les responsabilités que le super administrateur coche.
+ */
+export type PermissionAdmin = 'CONSULTER_TABLEAU_DE_BORD' | 'GERER_COMPTES' | 'CONSULTER_JOURNAL' | 'GERER_STAGES'
+  | 'GERER_MOBILITES' | 'GERER_PARTENARIATS' | 'GERER_EVENEMENTS' | 'GERER_MENTORAT' | 'GERER_ADMINISTRATEURS';
+export const TOUTES_LES_PERMISSIONS: readonly PermissionAdmin[] = [
+  'CONSULTER_TABLEAU_DE_BORD', 'GERER_COMPTES', 'CONSULTER_JOURNAL', 'GERER_STAGES', 'GERER_MOBILITES',
+  'GERER_PARTENARIATS', 'GERER_EVENEMENTS', 'GERER_MENTORAT', 'GERER_ADMINISTRATEURS',
+];
+/** Permissions d’une session ouverte avant leur envoi par le serveur : celles que tout administrateur avait alors. */
+export const PERMISSIONS_ANCIENNE_SESSION: readonly PermissionAdmin[] = ['CONSULTER_TABLEAU_DE_BORD', 'GERER_COMPTES', 'CONSULTER_JOURNAL'];
+
+/** Responsabilités qu’un super administrateur attribue, dans l’ordre d’affichage. */
+export type Responsabilite = Exclude<PermissionAdmin, 'CONSULTER_TABLEAU_DE_BORD' | 'GERER_ADMINISTRATEURS'>;
+export const RESPONSABILITES: readonly { valeur: Responsabilite; libelle: string; description: string }[] = [
+  { valeur: 'GERER_COMPTES', libelle: 'Comptes', description: 'Inscriptions, création et import de comptes, diplômés, suspensions.' },
+  { valeur: 'GERER_STAGES', libelle: 'Stages', description: 'Offres, listes définitives, conventions et suivi des stages.' },
+  { valeur: 'GERER_MOBILITES', libelle: 'Mobilités', description: 'Demandes et conventions de mobilité.' },
+  { valeur: 'GERER_PARTENARIATS', libelle: 'Partenariats', description: 'Organismes partenaires et conventions cadres.' },
+  { valeur: 'GERER_EVENEMENTS', libelle: 'Événements', description: 'Événements officiels et gestion des événements des membres.' },
+  { valeur: 'GERER_MENTORAT', libelle: 'Mentorat', description: 'Programmes de mentorat.' },
+  { valeur: 'CONSULTER_JOURNAL', libelle: 'Journal', description: 'Lecture du journal des décisions.' },
+];
+export const LIBELLES_PERMISSION: Record<PermissionAdmin, string> = {
+  CONSULTER_TABLEAU_DE_BORD: 'Tableau de bord',
+  GERER_ADMINISTRATEURS: 'Super administrateur',
+  ...Object.fromEntries(RESPONSABILITES.map((r) => [r.valeur, r.libelle])) as Record<Responsabilite, string>,
+};
 
 export interface FicheCompte {
   compte: CompteAdmin;
@@ -133,6 +159,8 @@ export interface FicheCompte {
   doitChangerMotDePasse: boolean;
   nombreFormations: number;
   nombreExperiences: number;
+  /** Responsabilités enregistrées d’un compte d’administration (vide pour un membre). */
+  responsabilites: PermissionAdmin[];
 }
 
 export interface EntreeJournal {
@@ -148,8 +176,8 @@ export interface EntreeJournal {
 }
 
 export interface TableauDeBordAdmin {
-  /** administrateursActifs : à 1, la plateforme n’a plus de gestionnaire si ce compte perd son accès. */
-  aTraiter: { inscriptionsEnAttente: number; plusAncienneInscription: string | null; administrateursActifs: number };
+  /** superAdministrateursActifs : à 1, plus personne ne peut gérer les administrateurs si ce compte perd son accès. */
+  aTraiter: { inscriptionsEnAttente: number; plusAncienneInscription: string | null; superAdministrateursActifs: number };
   communaute: {
     comptesActifs: number;
     inscritsCeMois: number;
@@ -175,7 +203,7 @@ export const LIBELLES_ROLE_COMPTE: Record<RoleCompte, string> = {
   ALUMNI: 'Alumni',
   PERSONNEL: 'Personnel EPT',
   ORGANISME: 'Organisme',
-  ADMIN: 'Administration',
+  ADMIN: 'Administrateur',
   VISITEUR: 'Visiteur',
 };
 
@@ -188,10 +216,12 @@ export const LIBELLES_ACTION_ADMIN: Record<TypeActionAdmin, string> = {
   CHANGEMENT_ROLE: 'Rôle changé',
   DIPLOMATION: 'Diplôme enregistré',
   MODIFICATION_IDENTITE: 'Nom corrigé',
+  MODIFICATION_RESPONSABILITES: 'Responsabilités modifiées',
 };
 
-/** Détails lisibles : les rôles techniques (« ALUMNI → ADMIN ») deviennent leurs libellés. */
+/** Détails lisibles : rôles et responsabilités techniques (« ALUMNI → ADMIN », « GERER_STAGES ») deviennent leurs libellés. */
 export function detailsLisibles(details: string | null): string | null {
   if (!details) return null;
-  return details.replace(/[A-Z_]{4,}/g, (role) => LIBELLES_ROLE_COMPTE[role as RoleCompte] ?? role);
+  return details.replace(/[A-Z_]{4,}/g, (code) =>
+    LIBELLES_ROLE_COMPTE[code as RoleCompte] ?? LIBELLES_PERMISSION[code as PermissionAdmin] ?? code);
 }

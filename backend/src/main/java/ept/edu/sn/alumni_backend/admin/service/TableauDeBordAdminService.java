@@ -8,12 +8,12 @@ import java.util.EnumSet;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import ept.edu.sn.alumni_backend.admin.dto.TableauDeBordAdminResponse;
 import ept.edu.sn.alumni_backend.admin.dto.TableauDeBordAdminResponse.AFaire;
 import ept.edu.sn.alumni_backend.admin.dto.TableauDeBordAdminResponse.Communaute;
 import ept.edu.sn.alumni_backend.admin.repository.ActionAdminRepository;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
-import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.evenement.StatutEvenement;
 import ept.edu.sn.alumni_backend.evenement.repository.EvenementRepository;
 import ept.edu.sn.alumni_backend.mentorat.StatutMentorat;
@@ -43,7 +43,7 @@ public class TableauDeBordAdminService {
             utilisateurRepository.countByStatutCompteAndEmailVerifieTrue(StatutCompte.EN_ATTENTE),
             utilisateurRepository.findFirstByStatutCompteAndEmailVerifieTrueOrderByDateCreationAsc(StatutCompte.EN_ATTENTE)
                 .map(Utilisateur::getDateCreation).orElse(null),
-            utilisateurRepository.countByRoleAndStatutCompte(TypeRole.ADMIN, StatutCompte.ACTIF));
+            utilisateurRepository.compterAdministrateursActifsAvec(PermissionAdmin.GERER_ADMINISTRATEURS));
         Communaute communaute = new Communaute(
             utilisateurRepository.countByStatutCompteAndEmailVerifieTrue(StatutCompte.ACTIF),
             utilisateurRepository.countByEmailVerifieTrueAndDateCreationGreaterThanEqual(

@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AdminComptesService } from '../../../core/services/admin/admin-comptes';
+import { AuthService } from '../../../core/services/auth/auth-service';
 import { LIBELLES_ACTION_ADMIN, TableauDeBordAdmin } from '../../../core/services/models/admin.model';
 import { PageAdmin } from '../page-admin/page-admin';
 
@@ -17,6 +18,9 @@ const JOUR_MS = 86_400_000;
 })
 export class TableauDeBord {
   protected readonly libellesAction = LIBELLES_ACTION_ADMIN;
+  /** L’alerte « un seul super administrateur » ne sert qu’à qui peut en nommer un autre. */
+  private readonly authService = inject(AuthService);
+  protected readonly superAdministrateur = computed(() => this.authService.aPermission('GERER_ADMINISTRATEURS'));
   protected readonly tableau = signal<TableauDeBordAdmin | null>(null);
   protected readonly erreur = signal<string | null>(null);
   /** Ancienneté de l’inscription la plus ancienne, en jours entiers. */

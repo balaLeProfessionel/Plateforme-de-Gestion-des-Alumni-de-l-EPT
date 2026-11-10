@@ -14,7 +14,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import ept.edu.sn.alumni_backend.enums.TypeRole;
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import ept.edu.sn.alumni_backend.mentorat.StatutMentorat;
 import ept.edu.sn.alumni_backend.mentorat.StatutProgramme;
 import ept.edu.sn.alumni_backend.mentorat.dto.ProgrammeRequest;
@@ -292,9 +292,9 @@ public class ProgrammeMentoratService {
         return programme;
     }
 
-    /** Le programme garde son responsable (l'administrateur qui l'a créé), mais toute l'administration le gère. */
+    /** Le programme garde son responsable (l'administrateur qui l'a créé), mais toute l'administration chargée du mentorat le gère. */
     private static boolean peutGerer(ProgrammeMentorat programme, UtilisateurPrincipal principal) {
-        return principal.getUtilisateur().getRole() == TypeRole.ADMIN;
+        return PermissionAdmin.accordee(principal.getUtilisateur(), PermissionAdmin.GERER_MENTORAT);
     }
 
     private static void exigerFinAVenir(ProgrammeRequest request) {
@@ -304,8 +304,8 @@ public class ProgrammeMentoratService {
     }
 
     private static void exigerGestionnaire(UtilisateurPrincipal principal) {
-        if (principal.getUtilisateur().getRole() != TypeRole.ADMIN) {
-            throw new SecurityException("Les programmes sont créés et gérés par l'administration.");
+        if (!PermissionAdmin.accordee(principal.getUtilisateur(), PermissionAdmin.GERER_MENTORAT)) {
+            throw new SecurityException("Les programmes sont créés et gérés par l'administration chargée du mentorat.");
         }
     }
 

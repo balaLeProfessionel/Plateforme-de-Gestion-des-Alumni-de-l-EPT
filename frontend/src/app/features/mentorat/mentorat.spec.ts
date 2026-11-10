@@ -21,7 +21,7 @@ describe('MentoratPage', () => {
       imports: [MentoratPage],
       providers: [
         provideRouter([]),
-        { provide: AuthService, useValue: { utilisateur } },
+        { provide: AuthService, useValue: { utilisateur, aPermission: (permission: string) => permission === 'GERER_MENTORAT' && utilisateur()?.role === 'ADMIN' } },
         { provide: CompteurDemandesMentorat, useValue: { nombre, actualiser } },
       ],
     });
@@ -62,7 +62,7 @@ describe('MentoratPage', () => {
     const gestion = MENTORAT_ROUTES.filter((route) => route.path?.startsWith('gestion-programmes'));
     expect(gestion.map((route) => route.path)).toEqual(
       ['gestion-programmes', 'gestion-programmes/nouveau', 'gestion-programmes/:id/tableau', 'gestion-programmes/:id']);
-    for (const route of gestion) expect(route.data?.['roles']).toEqual(['ADMIN']);
+    for (const route of gestion) expect(route.data?.['permission']).toBe('GERER_MENTORAT');
   });
 
   it.each(['ORGANISME', 'ADMIN'])('présente le module aux comptes qui n’y participent pas (%s)', (role) => {

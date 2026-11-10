@@ -1,6 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
@@ -9,7 +8,7 @@ import { vi } from 'vitest';
 import { CompteurInscriptions } from '../../../core/services/admin/compteur-inscriptions';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { FicheCompte } from '../../../core/services/models/admin.model';
-import { compte } from '../testing/donnees-admin';
+import { authAdmin, compte } from '../testing/donnees-admin';
 import { FicheComptePage } from './fiche-compte';
 
 describe('FicheComptePage', () => {
@@ -26,7 +25,7 @@ describe('FicheComptePage', () => {
         provideHttpClient(), provideHttpClientTesting(), provideRouter([]),
         { provide: ActivatedRoute, useValue: { paramMap: of(params), snapshot: { paramMap: params } } },
         { provide: CompteurInscriptions, useValue: { actualiser } },
-        { provide: AuthService, useValue: { utilisateur: signal({ id: 'moi' }) } },
+        { provide: AuthService, useValue: authAdmin() },
       ],
     });
     http = TestBed.inject(HttpTestingController);
@@ -89,6 +88,6 @@ function fiche(): FicheCompte {
   return {
     compte: compte({ statutCompte: 'EN_ATTENTE' }), villeResidence: 'Thiès', posteActuel: 'Ingénieure réseau',
     lienLinkedin: null, lienPortfolio: null, bio: null, diplome: 'INGENIEUR', dateNaissance: '1998-04-12',
-    doitChangerMotDePasse: false, nombreFormations: 1, nombreExperiences: 2,
+    doitChangerMotDePasse: false, nombreFormations: 1, nombreExperiences: 2, responsabilites: [],
   };
 }

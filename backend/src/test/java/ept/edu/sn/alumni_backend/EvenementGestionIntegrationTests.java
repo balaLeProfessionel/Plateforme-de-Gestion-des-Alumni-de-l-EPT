@@ -17,6 +17,7 @@ import java.io.ByteArrayOutputStream;
 
 import javax.imageio.ImageIO;
 
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import ept.edu.sn.alumni_backend.evenement.AudienceEvenement;
 import ept.edu.sn.alumni_backend.evenement.ReponseParticipation;
 import ept.edu.sn.alumni_backend.evenement.StatutEvenement;
@@ -444,6 +445,10 @@ class EvenementGestionIntegrationTests {
         utilisateur.setPrenom("Membre");
         utilisateur.setNom(role.name());
         utilisateur.setRole(role);
+        if (role == TypeRole.ADMIN) {
+            // Super administrateur, comme les administrateurs existants après la migration (TRA-13).
+            utilisateur.getPermissionsAdmin().add(PermissionAdmin.GERER_ADMINISTRATEURS);
+        }
         utilisateur.setStatutCompte(statut);
         utilisateur.setEmailVerifie(emailVerifie);
         return utilisateurRepository.saveAndFlush(utilisateur);

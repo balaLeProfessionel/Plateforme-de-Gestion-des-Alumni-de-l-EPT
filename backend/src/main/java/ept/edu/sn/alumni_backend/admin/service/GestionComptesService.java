@@ -55,6 +55,7 @@ public class GestionComptesService {
     private final ActionAdminRepository actionAdminRepository;
     private final RefreshTokenService refreshTokenService;
     private final ApplicationEventPublisher evenements;
+    private final GardeSuperAdministrateur garde;
 
     /**
      * Comptes vérifiés selon les critères. sansAnneeEntree / sansFiliere ciblent les comptes où ces champs sont
@@ -137,7 +138,8 @@ public class GestionComptesService {
         return new FicheCompteResponse(versReponse(compte, motif, nombreDecisions(compte)),
             compte.getVilleResidence(), compte.getPosteActuel(), compte.getLienLinkedin(), compte.getLienPortfolio(),
             compte.getBio(), compte.getDiplome() == null ? null : compte.getDiplome().name(), compte.getDateNaissance(),
-            compte.isDoitChangerMotDePasse(), compte.getFormations().size(), compte.getExperiences().size());
+            compte.isDoitChangerMotDePasse(), compte.getFormations().size(), compte.getExperiences().size(),
+            compte.getPermissionsAdmin().stream().sorted().map(Enum::name).toList());
     }
 
     @Transactional(readOnly = true)
@@ -153,7 +155,7 @@ public class GestionComptesService {
 
     @Transactional
     public CompteAdminResponse valider(UUID id, UtilisateurPrincipal principal) {
-        Utilisateur compte = chargerInscription(id, "valider");
+        Utilisateur compte = chargerInscription(id, "valider", principal);
         compte.setStatutCompte(StatutCompte.ACTIF);
         if (compte.getOrganisme() != null) {
             compte.getOrganisme().setStatutValidation(StatutCompte.ACTIF);
@@ -167,7 +169,7 @@ public class GestionComptesService {
 
     @Transactional
     public CompteAdminResponse refuser(UUID id, String motif, UtilisateurPrincipal principal) {
-        Utilisateur compte = chargerInscription(id, "refuser");
+        Utilisateur compte = chargerInscription(id, "refuser", principal);
         compte.setStatutCompte(StatutCompte.SUSPENDU);
         if (compte.getOrganisme() != null) {
             compte.getOrganisme().setStatutValidation(StatutCompte.SUSPENDU);
@@ -182,7 +184,7 @@ public class GestionComptesService {
 
     @Transactional
     public CompteAdminResponse suspendre(UUID id, String motif, UtilisateurPrincipal principal) {
-        Utilisateur compte = chargerPourModification(id);
+        Utilisateur compte = chargerPourModification(id, principal);
         if (compte.getId().equals(principal.getUtilisateur().getId())) {
             throw new ConflitCompteException("Vous ne pouvez pas suspendre votre propre compte.");
         }
@@ -205,7 +207,7 @@ public class GestionComptesService {
 
     @Transactional
     public CompteAdminResponse reactiver(UUID id, String motif, UtilisateurPrincipal principal) {
-        Utilisateur compte = chargerPourModification(id);
+        Utilisateur compte = chargerPourModification(id, principal);
         if (compte.getStatutCompte() != StatutCompte.SUSPENDU) {
             throw new ConflitCompteException("Ce compte n'est pas suspendu.");
         }
@@ -226,15 +228,19 @@ public class GestionComptesService {
         return versReponse(compte, null, nombreDecisions(compte));
     }
 
-    /** Verrouille le compte : deux administrateurs ne décident pas en même temps. */
-    private Utilisateur chargerPourModification(UUID id) {
+    /**
+     * Verrouille le compte : deux administrateurs ne décident pas en même temps. Un compte d'administration ne se
+     * décide que par un super administrateur.
+     */
+    private Utilisateur chargerPourModification(UUID id, UtilisateurPrincipal principal) {
+        garde.exigerSiAdministration(id, null, principal);
         return utilisateurRepository.findByIdForUpdate(id)
             .filter(Utilisateur::isEmailVerifie)
             .orElseThrow(CompteIntrouvableException::new);
     }
 
-    private Utilisateur chargerInscription(UUID id, String verbe) {
-        Utilisateur compte = chargerPourModification(id);
+    private Utilisateur chargerInscription(UUID id, String verbe, UtilisateurPrincipal principal) {
+        Utilisateur compte = chargerPourModification(id, principal);
         if (compte.getStatutCompte() != StatutCompte.EN_ATTENTE) {
             throw new ConflitCompteException("Cette inscription a déjà été traitée : impossible de la " + verbe + ".");
         }

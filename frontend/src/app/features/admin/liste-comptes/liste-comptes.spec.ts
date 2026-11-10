@@ -1,6 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
@@ -8,7 +7,7 @@ import { vi } from 'vitest';
 import { CompteurInscriptions } from '../../../core/services/admin/compteur-inscriptions';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { CompteAdmin } from '../../../core/services/models/admin.model';
-import { compte, pageDe } from '../testing/donnees-admin';
+import { authAdmin, compte, pageDe } from '../testing/donnees-admin';
 import { DELAI_ANNULATION_MS, ListeComptes } from './liste-comptes';
 
 describe('ListeComptes', () => {
@@ -31,7 +30,7 @@ describe('ListeComptes', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         { provide: CompteurInscriptions, useValue: { actualiser } },
-        { provide: AuthService, useValue: { utilisateur: signal({ id: 'moi' }), getToken: () => 'jeton' } },
+        { provide: AuthService, useValue: authAdmin() },
       ],
     });
     http = TestBed.inject(HttpTestingController);

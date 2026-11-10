@@ -4,7 +4,7 @@ import { inject, Service } from '@angular/core';
 import { AuthService } from '../auth/auth-service';
 import {
   ActionAdmin, CompteAdmin, CompteCree, CreationCompte, CriteresComptes, EntreeJournal, FicheCompte, LigneImport,
-  PromotionEtudiante, ResultatDiplomation, ResultatImport, ResumeComptes, RoleAttribuable, TableauDeBordAdmin, TypeActionAdmin,
+  PermissionAdmin, PromotionEtudiante, ResultatDiplomation, ResultatImport, ResumeComptes, RoleAttribuable, TableauDeBordAdmin, TypeActionAdmin,
 } from '../models/admin.model';
 import { Page } from '../models/mentorat.model';
 
@@ -39,6 +39,11 @@ export class AdminComptesService {
 
   changerRole(id: string, role: RoleAttribuable, motif: string) {
     return this.http.patch<CompteAdmin>(`${API}/${encodeURIComponent(id)}/role`, { role, motif });
+  }
+
+  /** Réservé au super administrateur : la liste remplace les responsabilités du compte. */
+  modifierResponsabilites(id: string, responsabilites: readonly PermissionAdmin[]) {
+    return this.http.patch<FicheCompte>(`${API}/${encodeURIComponent(id)}/responsabilites`, { responsabilites });
   }
 
   marquerDiplomes(ids: readonly string[], anneeSortie: number) {

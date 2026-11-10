@@ -1,5 +1,18 @@
-import { CompteAdmin } from '../../../core/services/models/admin.model';
+import { signal } from '@angular/core';
+import { CompteAdmin, PermissionAdmin, TOUTES_LES_PERMISSIONS } from '../../../core/services/models/admin.model';
 import { Page } from '../../../core/services/models/mentorat.model';
+
+/**
+ * Doublure d’AuthService pour l’administration : le compte connecté (« moi ») et ses permissions,
+ * super administrateur par défaut.
+ */
+export function authAdmin(permissions: readonly PermissionAdmin[] = TOUTES_LES_PERMISSIONS) {
+  return {
+    utilisateur: signal({ id: 'moi' }),
+    aPermission: (permission: PermissionAdmin) => permissions.includes(permission),
+    getToken: () => 'jeton',
+  };
+}
 
 /** Compte de test : une alumni active, sans décision, à surcharger champ par champ. */
 export function compte(changement: Partial<CompteAdmin> = {}): CompteAdmin {

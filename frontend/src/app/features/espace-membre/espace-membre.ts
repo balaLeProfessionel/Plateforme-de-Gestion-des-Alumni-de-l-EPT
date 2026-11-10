@@ -77,7 +77,8 @@ export class EspaceMembre implements OnDestroy {
       ] : [] },
       { titre: 'Contenus', liens: [
         { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
-        { libelle: 'Programmes de mentorat', icone: 'pi-sitemap', route: '/mentorat/gestion-programmes', exact: false },
+        ...(peut('GERER_MENTORAT')
+          ? [{ libelle: 'Programmes de mentorat', icone: 'pi-sitemap', route: '/mentorat/gestion-programmes', exact: false }] : []),
       ] },
       { titre: 'Système', liens: peut('CONSULTER_JOURNAL')
         ? [{ libelle: 'Journal', icone: 'pi-history', route: '/admin/journal', exact: false }] : [] },

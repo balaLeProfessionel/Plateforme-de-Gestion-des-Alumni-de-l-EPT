@@ -7,10 +7,10 @@ import java.util.List;
 public record TableauDeBordAdminResponse(AFaire aTraiter, Communaute communaute, List<EntreeJournalResponse> dernieresDecisions) {
 
     /**
-     * Inscriptions à examiner et date de la plus ancienne (null s'il n'y en a pas), et nombre d'administrateurs
-     * actifs : avec un seul, la plateforme n'a plus de gestionnaire si ce compte perd son accès.
+     * Inscriptions à examiner et date de la plus ancienne (null s'il n'y en a pas), et nombre de super administrateurs
+     * actifs : avec un seul, plus personne ne peut gérer les administrateurs si ce compte perd son accès.
      */
-    public record AFaire(long inscriptionsEnAttente, LocalDateTime plusAncienneInscription, long administrateursActifs) {
+    public record AFaire(long inscriptionsEnAttente, LocalDateTime plusAncienneInscription, long superAdministrateursActifs) {
     }
 
     public record Communaute(long comptesActifs, long inscritsCeMois, long mentoratsEnCours,

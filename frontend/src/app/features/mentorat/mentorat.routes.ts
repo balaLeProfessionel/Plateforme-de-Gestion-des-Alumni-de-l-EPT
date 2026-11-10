@@ -1,14 +1,14 @@
 import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 import { AuthService } from '../../core/services/auth/auth-service';
-import { roleGuard } from '../../core/guards/auth.guard';
+import { permissionGuard, roleGuard } from '../../core/guards/auth.guard';
 import {
-  ROLES_GESTION_PROGRAMMES, ROLES_MENTORAT, RoleMentorat, StatutMentorat, participeAuMentorat,
+  PERMISSION_GESTION_PROGRAMMES, ROLES_MENTORAT, RoleMentorat, StatutMentorat, participeAuMentorat,
 } from '../../core/services/models/mentorat.model';
 import { VueListeMentorats } from './liste-mentorats/liste-mentorats';
 
 const PARTICIPANTS = { roles: ROLES_MENTORAT };
-const GESTIONNAIRES = { roles: ROLES_GESTION_PROGRAMMES };
+const GESTIONNAIRES = { permission: PERMISSION_GESTION_PROGRAMMES };
 
 const section = (titre: string, role: RoleMentorat, statuts: StatutMentorat[]): VueListeMentorats =>
   ({ titre, role, statuts });
@@ -18,28 +18,28 @@ export const MENTORAT_ROUTES: Routes = [
   {
     path: 'gestion-programmes',
     title: 'Programmes de mentorat | EPT Alumni',
-    canActivate: [roleGuard],
+    canActivate: [permissionGuard],
     data: GESTIONNAIRES,
     loadComponent: () => import('./gestion-programmes/programmes-geres/programmes-geres').then((m) => m.ProgrammesGeres)
   },
   {
     path: 'gestion-programmes/nouveau',
     title: 'Créer un programme | EPT Alumni',
-    canActivate: [roleGuard],
+    canActivate: [permissionGuard],
     data: GESTIONNAIRES,
     loadComponent: () => import('./gestion-programmes/formulaire-programme/formulaire-programme').then((m) => m.FormulaireProgramme)
   },
   {
     path: 'gestion-programmes/:id/tableau',
     title: 'Tableau de bord du programme | EPT Alumni',
-    canActivate: [roleGuard],
+    canActivate: [permissionGuard],
     data: GESTIONNAIRES,
     loadComponent: () => import('./gestion-programmes/tableau-programme/tableau-programme').then((m) => m.TableauProgrammePage)
   },
   {
     path: 'gestion-programmes/:id',
     title: 'Modifier un programme | EPT Alumni',
-    canActivate: [roleGuard],
+    canActivate: [permissionGuard],
     data: GESTIONNAIRES,
     loadComponent: () => import('./gestion-programmes/formulaire-programme/formulaire-programme').then((m) => m.FormulaireProgramme)
   },

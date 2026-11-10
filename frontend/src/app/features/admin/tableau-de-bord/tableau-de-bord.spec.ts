@@ -4,22 +4,27 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
 
+import { AuthService } from '../../../core/services/auth/auth-service';
 import { TableauDeBordAdmin } from '../../../core/services/models/admin.model';
+import { authAdmin } from '../testing/donnees-admin';
 import { TableauDeBord } from './tableau-de-bord';
 
 describe('TableauDeBord', () => {
   let fixture: ComponentFixture<TableauDeBord>;
   let http: HttpTestingController;
 
-  beforeEach(() => {
-    vi.useFakeTimers({ now: new Date('2026-10-25T12:00:00Z'), shouldAdvanceTime: true });
+  const preparer = (auth = authAdmin()) => {
     TestBed.configureTestingModule({
       imports: [TableauDeBord],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([]), { provide: AuthService, useValue: auth }],
     });
     http = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(TableauDeBord);
     fixture.detectChanges();
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers({ now: new Date('2026-10-25T12:00:00Z'), shouldAdvanceTime: true });
   });
 
   afterEach(() => {
@@ -35,7 +40,8 @@ describe('TableauDeBord', () => {
   };
 
   it('met en avant les inscriptions à examiner, leur ancienneté et les dernières décisions', async () => {
-    const racine = await charger(tableau({ inscriptionsEnAttente: 20, plusAncienneInscription: '2026-10-13T09:00:00', administrateursActifs: 2 }));
+    preparer();
+    const racine = await charger(tableau({ inscriptionsEnAttente: 20, plusAncienneInscription: '2026-10-13T09:00:00', superAdministrateursActifs: 2 }));
 
     const file = racine.querySelector('a.file') as HTMLAnchorElement;
     expect(file.getAttribute('href')).toBe('/admin/inscriptions');
@@ -52,7 +58,8 @@ describe('TableauDeBord', () => {
   });
 
   it('dit quand rien n’attend, sans prétendre que des inscriptions ont été traitées', async () => {
-    const racine = await charger({ ...tableau({ inscriptionsEnAttente: 0, plusAncienneInscription: null, administrateursActifs: 2 }), dernieresDecisions: [] });
+    preparer();
+    const racine = await charger({ ...tableau({ inscriptionsEnAttente: 0, plusAncienneInscription: null, superAdministrateursActifs: 2 }), dernieresDecisions: [] });
     expect(racine.querySelector('a.file')?.textContent).toContain('Aucune inscription à examiner');
     expect(racine.textContent).not.toContain('ont été traitées');
     expect(racine.querySelector('.seul-admin')).toBeNull();
@@ -61,14 +68,22 @@ describe('TableauDeBord', () => {
     expect(racine.textContent).toContain('Aucune décision pour l’instant.');
   });
 
-  it('demande un second administrateur tant qu’il n’y en a qu’un', async () => {
-    const racine = await charger(tableau({ inscriptionsEnAttente: 0, plusAncienneInscription: null, administrateursActifs: 1 }));
+  it('demande un second super administrateur tant qu’il n’y en a qu’un', async () => {
+    preparer();
+    const racine = await charger(tableau({ inscriptionsEnAttente: 0, plusAncienneInscription: null, superAdministrateursActifs: 1 }));
     const alerte = racine.querySelector('a.seul-admin') as HTMLAnchorElement;
-    expect(alerte.textContent).toContain('Un seul compte d’administration');
+    expect(alerte.textContent).toContain('Un seul super administrateur');
     expect(alerte.getAttribute('href')).toBe('/admin/comptes/nouveau?role=ADMIN');
   });
 
+  it('ne montre pas cette alerte à un administrateur qui ne peut pas nommer de super administrateur', async () => {
+    preparer(authAdmin(['CONSULTER_TABLEAU_DE_BORD', 'GERER_COMPTES']));
+    const racine = await charger(tableau({ inscriptionsEnAttente: 0, plusAncienneInscription: null, superAdministrateursActifs: 1 }));
+    expect(racine.querySelector('.seul-admin')).toBeNull();
+  });
+
   it('signale un chargement impossible', async () => {
+    preparer();
     http.expectOne('/api/admin/tableau-de-bord').flush({ message: 'Accès refusé' }, { status: 403, statusText: 'Forbidden' });
     await fixture.whenStable();
     fixture.detectChanges();

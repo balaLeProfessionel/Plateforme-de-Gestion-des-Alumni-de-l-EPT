@@ -48,6 +48,9 @@ export class DecisionsCompte {
   protected readonly enCours = signal(false);
   protected readonly erreur = signal<string | null>(null);
   protected readonly estMoi = computed(() => this.compte().id === this.authService.utilisateur()?.id);
+  /** Suspendre ou réactiver un administrateur est réservé au super administrateur (règle du serveur). */
+  protected readonly peutDecider = computed(() =>
+    this.compte().role !== 'ADMIN' || this.authService.aPermission('GERER_ADMINISTRATEURS'));
   private readonly nomComplet = computed(() => nomDuCompte(this.compte()));
 
   protected readonly modele = signal({ motif: '' });

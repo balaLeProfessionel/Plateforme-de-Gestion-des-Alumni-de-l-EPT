@@ -33,9 +33,11 @@ public class EvolutionComptesService {
     private final UtilisateurRepository utilisateurRepository;
     private final GestionComptesService gestionComptesService;
     private final TraceCompte trace;
+    private final GardeSuperAdministrateur garde;
 
     @Transactional
     public CompteAdminResponse changerRole(UUID id, TypeRole nouveauRole, String motif, UtilisateurPrincipal principal) {
+        garde.exigerSiAdministration(id, nouveauRole, principal);
         Utilisateur compte = utilisateurRepository.findByIdForUpdate(id)
             .filter(Utilisateur::isEmailVerifie)
             .orElseThrow(CompteIntrouvableException::new);
@@ -56,6 +58,8 @@ public class EvolutionComptesService {
         }
         TypeRole ancienRole = compte.getRole();
         compte.setRole(nouveauRole);
+        // Hors de l'administration, un compte n'a plus de responsabilités ; un nouvel administrateur n'en a pas encore.
+        compte.getPermissionsAdmin().clear();
         trace.consigner(principal, compte, TypeActionAdmin.CHANGEMENT_ROLE, motif, ancienRole.name() + " → " + nouveauRole.name());
         trace.notifier(compte, "Votre rôle sur EPT Alumni a changé",
             "Bonjour " + NomCompte.salutation(compte) + ", l'administration de l'EPT a modifié votre rôle sur EPT Alumni : votre compte a désormais le rôle "

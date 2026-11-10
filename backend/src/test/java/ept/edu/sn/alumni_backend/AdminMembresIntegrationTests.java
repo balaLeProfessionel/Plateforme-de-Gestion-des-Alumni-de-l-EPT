@@ -30,6 +30,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import com.jayway.jsonpath.JsonPath;
 
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import ept.edu.sn.alumni_backend.admin.repository.ActionAdminRepository;
 import ept.edu.sn.alumni_backend.auth.EmailService;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
@@ -153,8 +154,10 @@ class AdminMembresIntegrationTests {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.role").value("ADMIN"));
 
-        // Le même jeton donne aussitôt les droits du nouveau rôle.
-        mockMvc.perform(authentifie(get("/api/admin/journal"), membre))
+        // Le même jeton ouvre aussitôt le tableau de bord ; le journal attend qu'un super administrateur coche cette responsabilité.
+        mockMvc.perform(authentifie(get("/api/admin/tableau-de-bord"), membre)).andExpect(status().isOk());
+        mockMvc.perform(authentifie(get("/api/admin/journal"), membre)).andExpect(status().isForbidden());
+        mockMvc.perform(authentifie(get("/api/admin/journal"), admin))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.contenu[0].type").value("CHANGEMENT_ROLE"))
             .andExpect(jsonPath("$.contenu[0].details").value("PERSONNEL → ADMIN"))
@@ -243,6 +246,10 @@ class AdminMembresIntegrationTests {
         utilisateur.setPrenom(prenom);
         utilisateur.setNom(lot);
         utilisateur.setRole(role);
+        if (role == TypeRole.ADMIN) {
+            // Super administrateur, comme les administrateurs existants après la migration (TRA-13).
+            utilisateur.getPermissionsAdmin().add(PermissionAdmin.GERER_ADMINISTRATEURS);
+        }
         utilisateur.setStatutCompte(statut);
         utilisateur.setEmailVerifie(true);
         utilisateur.setAnneeEntree(anneeEntree);

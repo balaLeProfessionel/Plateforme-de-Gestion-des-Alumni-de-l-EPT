@@ -15,7 +15,12 @@
       </div>
       <p class="sr-only" role="status">{{ copie() ? 'Mot de passe copié.' : '' }}</p>
       <div class="boutons">
-        <a class="bouton principal" [routerLink]="['/admin/comptes', compte.id]">Ouvrir la fiche</a>
+        @if (compte.role === 'ADMIN') {
+          <p class="aide alerte">Ce compte n’a encore aucune responsabilité : choisissez-les sur sa fiche.</p>
+        }
+        <a class="bouton principal" [routerLink]="['/admin/comptes', compte.id]">
+          {{ compte.role === 'ADMIN' ? 'Choisir ses responsabilités' : 'Ouvrir la fiche' }}
+        </a>
         <button type="button" class="bouton" (click)="recommencer()">Créer un autre compte</button>
       </div>
     </section>
@@ -54,15 +59,28 @@
           </select>
           <p id="aide-role" class="aide" [class.alerte]="modele().role === 'ADMIN'" aria-live="polite">
             @if (modele().role === 'ADMIN') {
-              Ce compte pourra créer, suspendre et réactiver des comptes, changer les rôles, enregistrer les diplômés et lire le journal.
+              Ce compte accédera au tableau de bord de l’administration. Vous choisirez ses responsabilités sur sa fiche, après la création.
             } @else { Un organisme s’inscrit lui-même depuis la page d’inscription. }
           </p>
         </div>
         <div class="champ">
           <label for="compte-filiere">Filière (facultative)</label>
-          <input id="compte-filiere" type="text" autocomplete="off" placeholder="Génie informatique et télécommunications"
-            [formField]="formulaire.filiere" />
+          <select id="compte-filiere" [formField]="formulaire.filiere">
+            <option value="">Non renseignée</option>
+            @for (filiere of filieres; track filiere) { <option [value]="filiere">{{ filiere }}</option> }
+            <option [value]="autreFiliere">Autre…</option>
+          </select>
         </div>
+        @if (avecFiliereAutre()) {
+          <div class="champ">
+            <label for="compte-filiere-autre">Nom de la filière</label>
+            <input id="compte-filiere-autre" type="text" autocomplete="off" [formField]="formulaire.filiereAutre"
+              [attr.aria-invalid]="formulaire.filiereAutre().touched() && formulaire.filiereAutre().invalid()" aria-describedby="erreur-filiere-autre" />
+            @if (formulaire.filiereAutre().touched() && formulaire.filiereAutre().errors()[0]; as erreur) {
+              <small id="erreur-filiere-autre" class="erreur-champ">{{ erreur.message }}</small>
+            }
+          </div>
+        }
         <div class="champ">
           <label for="compte-entree">Année d’entrée (facultative)</label>
           <input id="compte-entree" type="text" inputmode="numeric" autocomplete="off" placeholder="2024" [formField]="formulaire.anneeEntree"

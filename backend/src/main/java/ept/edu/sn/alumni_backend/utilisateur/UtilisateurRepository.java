@@ -3,6 +3,7 @@ package ept.edu.sn.alumni_backend.utilisateur;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import jakarta.persistence.LockModeType;
 
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 
@@ -22,6 +24,8 @@ import java.util.Optional;
 @Repository
 public interface UtilisateurRepository extends JpaRepository<Utilisateur, UUID>,
         JpaSpecificationExecutor<Utilisateur> {
+    /** Chargé par le filtre JWT hors transaction : les responsabilités viennent avec le compte. */
+    @EntityGraph(attributePaths = "permissionsAdmin")
     Optional<Utilisateur> findByEmail(String email);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
@@ -31,6 +35,36 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, UUID>,
     boolean existsByEmail(String email);
 
     boolean existsByRole(TypeRole role);
+
+    List<Utilisateur> findByRole(TypeRole role);
+
+    @Query("select u.role from Utilisateur u where u.id = :id")
+    Optional<TypeRole> trouverRole(@Param("id") UUID id);
+
+    /**
+     * Administrateurs actifs ayant cette permission, verrouillés dans l'ordre des identifiants : deux super
+     * administrateurs qui se retirent mutuellement leur statut passent l'un après l'autre.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        select u from Utilisateur u
+        where u.role = ept.edu.sn.alumni_backend.enums.TypeRole.ADMIN
+          and u.statutCompte = ept.edu.sn.alumni_backend.enums.StatutCompte.ACTIF
+          and :permission member of u.permissionsAdmin
+        order by u.id
+        """)
+    List<Utilisateur> verrouillerAdministrateursActifsAvec(@Param("permission") PermissionAdmin permission);
+
+    @Query("""
+        select count(u) from Utilisateur u
+        where u.role = ept.edu.sn.alumni_backend.enums.TypeRole.ADMIN
+          and u.statutCompte = ept.edu.sn.alumni_backend.enums.StatutCompte.ACTIF
+          and :permission member of u.permissionsAdmin
+        """)
+    long compterAdministrateursActifsAvec(@Param("permission") PermissionAdmin permission);
+
+    @Query("select count(u) > 0 from Utilisateur u where u.permissionsAdmin is not empty")
+    boolean existeUneResponsabiliteEnregistree();
 
     long countByRoleAndStatutCompte(TypeRole role, StatutCompte statutCompte);
 

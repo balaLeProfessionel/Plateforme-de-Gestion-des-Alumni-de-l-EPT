@@ -30,12 +30,12 @@
           }
           <i class="pi pi-arrow-right" aria-hidden="true"></i>
         </a>
-        @if (t.aTraiter.administrateursActifs <= 1) {
+        @if (superAdministrateur() && t.aTraiter.superAdministrateursActifs <= 1) {
           <a class="file urgente seul-admin" routerLink="/admin/comptes/nouveau" [queryParams]="{ role: 'ADMIN' }">
             <i class="pi pi-key" aria-hidden="true"></i>
             <span>
-              <strong>Un seul compte d’administration</strong>
-              <small>Si ce compte perd son accès, personne ne pourra plus gérer la plateforme. Créez un second administrateur.</small>
+              <strong>Un seul super administrateur</strong>
+              <small>Si ce compte perd son accès, personne ne pourra plus gérer les administrateurs. Nommez un second super administrateur.</small>
             </span>
             <i class="pi pi-arrow-right" aria-hidden="true"></i>
           </a>

@@ -37,7 +37,7 @@ describe('FormulaireEvenement', () => {
         { provide: Location, useValue: { back: vi.fn(), getState: vi.fn(() => null) } },
         { provide: ActivatedRoute, useValue: { paramMap: routeParams } },
         { provide: EvenementService, useValue: { creer, modifier, obtenir, joindreImage, supprimerImage } },
-        { provide: AuthService, useValue: { utilisateur } },
+        { provide: AuthService, useValue: { utilisateur, aPermission: () => utilisateur()?.['role'] === 'ADMIN' } },
       ],
     }).compileComponents();
     router = TestBed.inject(Router);

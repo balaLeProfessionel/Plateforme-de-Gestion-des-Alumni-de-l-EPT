@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.jayway.jsonpath.JsonPath;
 
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import ept.edu.sn.alumni_backend.admin.TypeActionAdmin;
 import ept.edu.sn.alumni_backend.admin.repository.ActionAdminRepository;
 import ept.edu.sn.alumni_backend.admin.service.PremierAdminInitializer;
@@ -59,6 +60,8 @@ class PremierAdminIntegrationTests {
         assertThat(admin.getRole()).isEqualTo(TypeRole.ADMIN);
         assertThat(admin.getStatutCompte()).isEqualTo(StatutCompte.ACTIF);
         assertThat(admin.getPassword()).isNotEqualTo(MOT_DE_PASSE_PROVISOIRE);
+        // Seul un super administrateur peut nommer les suivants : le premier l'est d'office.
+        assertThat(admin.getPermissionsAdmin()).containsExactly(PermissionAdmin.GERER_ADMINISTRATEURS);
         assertThat(actionAdminRepository.findAll()).anySatisfy(action -> {
             assertThat(action.getType()).isEqualTo(TypeActionAdmin.CREATION_COMPTE);
             assertThat(action.getCible().getId()).isEqualTo(admin.getId());
@@ -105,7 +108,7 @@ class PremierAdminIntegrationTests {
 
         mockMvc.perform(get("/api/admin/tableau-de-bord").header(HttpHeaders.AUTHORIZATION, "Bearer " + nouveauJeton))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.aTraiter.administrateursActifs").value(1));
+            .andExpect(jsonPath("$.aTraiter.superAdministrateursActifs").value(1));
 
         // Le nom se corrige ensuite depuis « Mon compte », et le journal garde l'ancien.
         mockMvc.perform(patch("/api/admin/mon-compte/identite")

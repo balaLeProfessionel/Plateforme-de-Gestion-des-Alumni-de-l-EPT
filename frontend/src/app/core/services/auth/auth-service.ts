@@ -4,7 +4,7 @@ import { AuthResponse } from '../models/auth-response.model';
 import { tap } from 'rxjs';
 import { InscriptionResponse } from '../models/InscriptionResponse';
 import { Profil } from '../models/profil.model';
-import { PermissionAdmin, TOUTES_LES_PERMISSIONS } from '../models/admin.model';
+import { PERMISSIONS_ANCIENNE_SESSION, PermissionAdmin } from '../models/admin.model';
 
 @Service()
 export class AuthService {
@@ -21,9 +21,9 @@ export class AuthService {
   /** Vrai si le compte a cette permission d’administration (voir PermissionAdmin côté serveur). */
   aPermission(permission: PermissionAdmin): boolean {
     const utilisateur = this.utilisateurSignal();
-    // Une session ouverte avant l’ajout des permissions ne les porte pas : on les déduit du rôle
-    // le temps que resynchroniser() les relise.
-    const permissions = utilisateur?.permissions ?? (utilisateur?.role === 'ADMIN' ? TOUTES_LES_PERMISSIONS : []);
+    // Une session ouverte avant l’ajout des permissions ne les porte pas : on lui prête celles qu’avait alors tout
+    // administrateur, le temps que resynchroniser() relise les vraies.
+    const permissions = utilisateur?.permissions ?? (utilisateur?.role === 'ADMIN' ? PERMISSIONS_ANCIENNE_SESSION : []);
     return permissions.includes(permission);
   }
 
