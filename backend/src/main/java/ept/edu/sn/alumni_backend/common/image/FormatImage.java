@@ -22,6 +22,8 @@ import javax.imageio.stream.ImageOutputStream;
 public record FormatImage(int largeur, int hauteur, int largeurMinimale, int hauteurMinimale) {
     /** Images d'événement : 16:9. Une petite image est agrandie (un peu floue) plutôt que refusée. */
     public static final FormatImage EVENEMENT = new FormatImage(1600, 900, 400, 225);
+    /** Images d'offre de stage : 16:9, comme les événements (cartes et page de détail). */
+    public static final FormatImage OFFRE_STAGE = new FormatImage(1600, 900, 400, 225);
     /** Photos de profil : carré. */
     public static final FormatImage PHOTO_PROFIL = new FormatImage(600, 600, 200, 200);
 

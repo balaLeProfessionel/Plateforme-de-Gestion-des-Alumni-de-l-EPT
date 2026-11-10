@@ -55,6 +55,15 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, UUID>,
         """)
     List<Utilisateur> verrouillerAdministrateursActifsAvec(@Param("permission") PermissionAdmin permission);
 
+    /** Administrateurs actifs qui ont au moins une de ces permissions enregistrées (destinataires d'une alerte). */
+    @Query("""
+        select distinct u from Utilisateur u join u.permissionsAdmin p
+        where u.role = ept.edu.sn.alumni_backend.enums.TypeRole.ADMIN
+          and u.statutCompte = ept.edu.sn.alumni_backend.enums.StatutCompte.ACTIF
+          and p in :permissions
+        """)
+    List<Utilisateur> administrateursActifsAvecUneDe(@Param("permissions") java.util.Collection<PermissionAdmin> permissions);
+
     @Query("""
         select count(u) from Utilisateur u
         where u.role = ept.edu.sn.alumni_backend.enums.TypeRole.ADMIN

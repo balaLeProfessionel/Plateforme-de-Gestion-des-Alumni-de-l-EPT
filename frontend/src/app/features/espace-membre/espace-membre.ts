@@ -11,6 +11,7 @@ import { SidebarModule } from 'primeng/sidebar';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurInscriptions } from '../../core/services/admin/compteur-inscriptions';
+import { CompteurOffresAVerifier } from '../../core/services/stages/compteur-offres';
 import { PermissionAdmin, TOUTES_LES_PERMISSIONS } from '../../core/services/models/admin.model';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
 import { participeAuMentorat } from '../../core/services/models/mentorat.model';
@@ -48,6 +49,7 @@ export class EspaceMembre implements OnDestroy {
   protected readonly sidebarOuverte = signal(!this.formatNavigation?.matches);
   protected readonly compteurMentorat = inject(CompteurDemandesMentorat);
   private readonly compteurInscriptions = inject(CompteurInscriptions);
+  private readonly compteurOffres = inject(CompteurOffresAVerifier);
   /** Un compte d’administration navigue par domaine ; un membre garde les rubriques de la communauté. */
   private readonly administration = computed(() =>
     TOUTES_LES_PERMISSIONS.some((permission) => this.authService.aPermission(permission)));
@@ -61,6 +63,7 @@ export class EspaceMembre implements OnDestroy {
           libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', exact: false,
           compteur: this.compteurMentorat.nombre(), libelleCompteur: 'demandes en attente',
         },
+        { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages', exact: false },
       ] }];
     }
     const peut = (permission: PermissionAdmin) => this.authService.aPermission(permission);
@@ -76,6 +79,11 @@ export class EspaceMembre implements OnDestroy {
         { libelle: 'Diplômés', icone: 'pi-graduation-cap', route: '/admin/diplomes', exact: false },
         { libelle: 'Filières', icone: 'pi-sitemap', route: '/admin/filieres', exact: false },
       ] : [] },
+      { titre: 'Stages', liens: peut('GERER_STAGES')
+        ? [{
+          libelle: 'Offres de stage', icone: 'pi-briefcase', route: '/admin/stages/offres', exact: false,
+          compteur: this.compteurOffres.nombre(), libelleCompteur: 'offres à vérifier',
+        }] : [] },
       { titre: 'Contenus', liens: [
         { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
         ...(peut('GERER_MENTORAT')
@@ -104,7 +112,10 @@ export class EspaceMembre implements OnDestroy {
     ? this.groupesNavigation()
       .flatMap((groupe) => groupe.liens)
       .filter((lien) => !['/annuaire', '/evenements'].includes(lien.route))
-    : [{ libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() }]);
+    : [
+      { libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() },
+      { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages' },
+    ]);
 
   private readonly urlCourante = toSignal(this.router.events.pipe(
     filter((evenement): evenement is NavigationEnd => evenement instanceof NavigationEnd),
@@ -161,6 +172,7 @@ export class EspaceMembre implements OnDestroy {
     this.authService.resynchroniser();
     if (participeAuMentorat(this.authService.utilisateur()?.role)) this.compteurMentorat.actualiser();
     if (this.authService.aPermission('GERER_COMPTES')) this.compteurInscriptions.actualiser();
+    if (this.authService.aPermission('GERER_STAGES')) this.compteurOffres.actualiser();
   }
 
   ngOnDestroy(): void {

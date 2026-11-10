@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 
 import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurInscriptions } from '../../core/services/admin/compteur-inscriptions';
+import { CompteurOffresAVerifier } from '../../core/services/stages/compteur-offres';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
 import { EspaceMembre } from './espace-membre';
 
@@ -20,6 +21,8 @@ describe('Navigation de l’espace membre', () => {
   const resynchroniser = vi.fn();
   const inscriptionsEnAttente = signal(0);
   const actualiserInscriptions = vi.fn();
+  const offresAVerifier = signal(0);
+  const actualiserOffres = vi.fn();
 
   beforeEach(() => {
     utilisateur.set({ role: 'ALUMNI', nom: 'Diop', prenom: 'Awa' });
@@ -29,6 +32,8 @@ describe('Navigation de l’espace membre', () => {
     resynchroniser.mockClear();
     inscriptionsEnAttente.set(0);
     actualiserInscriptions.mockClear();
+    offresAVerifier.set(0);
+    actualiserOffres.mockClear();
     TestBed.configureTestingModule({
       imports: [EspaceMembre],
       providers: [
@@ -41,7 +46,8 @@ describe('Navigation de l’espace membre', () => {
           },
         },
         { provide: CompteurDemandesMentorat, useValue: { nombre: demandesEnAttente, actualiser: actualiserCompteur } },
-        { provide: CompteurInscriptions, useValue: { nombre: inscriptionsEnAttente, actualiser: actualiserInscriptions } }
+        { provide: CompteurInscriptions, useValue: { nombre: inscriptionsEnAttente, actualiser: actualiserInscriptions } },
+        { provide: CompteurOffresAVerifier, useValue: { nombre: offresAVerifier, actualiser: actualiserOffres } },
       ]
     });
   });
@@ -53,7 +59,7 @@ describe('Navigation de l’espace membre', () => {
     const liens = [...racine.querySelectorAll('.barre-laterale nav a')]
       .map((lien) => lien.getAttribute('href'));
 
-    expect(liens).toEqual(['/accueil', '/annuaire', '/evenements', '/mentorat']);
+    expect(liens).toEqual(['/accueil', '/annuaire', '/evenements', '/mentorat', '/stages']);
     expect(racine.querySelector('.barre-laterale .marque')?.getAttribute('href')).toBe('/accueil');
     expect([...racine.querySelectorAll('.barre-laterale nav button[aria-disabled="true"]')]
       .map((lien) => lien.getAttribute('aria-label')))
@@ -201,6 +207,7 @@ describe('Navigation de l’espace membre', () => {
   it('range la navigation de l’administration par domaine, avec « Mon compte » à la place du profil', () => {
     utilisateur.set({ role: 'ADMIN', nom: 'EPT', prenom: 'Admin' });
     inscriptionsEnAttente.set(4);
+    offresAVerifier.set(2);
     const fixture = TestBed.createComponent(EspaceMembre);
     fixture.detectChanges();
     const racine = fixture.nativeElement as HTMLElement;
@@ -208,18 +215,20 @@ describe('Navigation de l’espace membre', () => {
     expect(actualiserInscriptions).toHaveBeenCalledOnce();
     expect(actualiserCompteur).not.toHaveBeenCalled();
     expect([...racine.querySelectorAll('.barre-laterale p-sidebar-group-label')].map((titre) => titre.textContent?.trim()))
-      .toEqual(['Pilotage', 'Membres', 'Contenus', 'Système', 'Plateforme', 'À découvrir bientôt']);
+      .toEqual(['Pilotage', 'Membres', 'Stages', 'Contenus', 'Système', 'Plateforme', 'À découvrir bientôt']);
     expect([...racine.querySelectorAll('.barre-laterale nav a')].map((lien) => lien.getAttribute('href'))).toEqual([
-      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/admin/filieres', '/evenements', '/mentorat/gestion-programmes',
+      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/admin/filieres', '/admin/stages/offres', '/evenements', '/mentorat/gestion-programmes',
       '/admin/journal', '/annuaire',
     ]);
     expect(racine.querySelector('.barre-laterale a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
+    expect(actualiserOffres).toHaveBeenCalledOnce();
+    expect(racine.querySelector('.barre-laterale a[href="/admin/stages/offres"]')?.textContent).toContain('2 offres à vérifier');
     // La gestion des rôles existe déjà (Comptes) : elle n’est plus annoncée « à venir ».
     expect(racine.querySelector('.barre-laterale')?.textContent).not.toContain('Rôles et accès');
     // Le panneau mobile reprend les rubriques d'administration ; Annuaire et Événements sont dans la barre du bas.
     expect(racine.querySelector('.menu-mobile a[href="/admin/mon-compte"]')?.textContent?.trim()).toBe('Mon compte');
     expect([...racine.querySelectorAll('.menu-mobile a')].map((lien) => lien.getAttribute('href'))).toEqual([
-      '/admin/mon-compte', '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/admin/filieres', '/mentorat/gestion-programmes', '/admin/journal',
+      '/admin/mon-compte', '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/admin/filieres', '/admin/stages/offres', '/mentorat/gestion-programmes', '/admin/journal',
     ]);
     expect(racine.querySelector('.menu-mobile a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
     expect(racine.querySelectorAll('.navigation-mobile a')).toHaveLength(3);

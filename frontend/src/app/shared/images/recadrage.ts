@@ -15,6 +15,8 @@ export interface FormatRecadrage {
 export const FORMAT_EVENEMENT: FormatRecadrage = {
   largeur: 1600, hauteur: 900, largeurMinimale: 400, hauteurMinimale: 225, largeurConseillee: 800, hauteurConseillee: 450,
 };
+/** Illustration d’une offre de stage (`FormatImage.OFFRE_STAGE`) : 16:9, comme les événements. */
+export const FORMAT_OFFRE_STAGE: FormatRecadrage = { ...FORMAT_EVENEMENT };
 export const FORMAT_PHOTO_PROFIL: FormatRecadrage = {
   largeur: 600, hauteur: 600, largeurMinimale: 200, hauteurMinimale: 200, largeurConseillee: 400, hauteurConseillee: 400,
 };

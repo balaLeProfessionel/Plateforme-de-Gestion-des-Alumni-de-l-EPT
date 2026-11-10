@@ -1,0 +1,56 @@
+<div class="page-stages">
+  <app-fil-ariane [etapes]="etapes" />
+  <header class="entete">
+    <div class="titre">
+      <h1>Mes offres de stage</h1>
+      <a class="bouton principal" routerLink="/stages/publier"><i class="pi pi-plus" aria-hidden="true"></i>Publier une offre</a>
+    </div>
+  </header>
+
+  <p class="statut-message" role="status">{{ message() }}</p>
+
+  @if (erreurChargement()) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Vos offres n’ont pas pu être chargées</h2>
+      <button type="button" class="bouton" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (offres(); as liste) {
+    @if (liste.length === 0) {
+      <div class="etat">
+        <i class="pi pi-briefcase" aria-hidden="true"></i>
+        <h2>Aucune offre pour l’instant</h2>
+        <p>Publiez votre première offre : les étudiants de l’EPT la verront dans la rubrique Stages.</p>
+      </div>
+    } @else {
+      <ul class="liste">
+        @for (offre of liste; track offre.id) {
+          <li class="ligne">
+            <div class="principal">
+              <h2><a [routerLink]="['/stages/offres', offre.id]">{{ offre.titre }}</a></h2>
+              <p class="details">{{ types[offre.typeStage] }} · {{ offre.dureeMois }} mois · candidatures jusqu’au {{ offre.dateLimiteCandidature | date: 'd MMMM y' }}</p>
+              @if (offre.motifDecision) { <p class="motif"><strong>Motif de l’école :</strong> {{ offre.motifDecision }}</p> }
+            </div>
+            <span class="statut" [attr.data-statut]="offre.statut">{{ statuts[offre.statut] }}</span>
+            @if (offre.statut === 'PUBLIEE' || offre.statut === 'SOUMISE') {
+              @if (aRetirer() === offre.id) {
+                <div class="confirmation" role="group" [attr.aria-label]="'Retirer ' + offre.titre">
+                  <p>Retirer cette offre ? Les étudiants ne la verront plus.</p>
+                  @if (erreurRetrait(); as erreur) { <p class="erreur" role="alert">{{ erreur }}</p> }
+                  <div class="boutons">
+                    <button type="button" class="bouton principal" (click)="retirer(offre)">Retirer l’offre</button>
+                    <button type="button" class="bouton" (click)="aRetirer.set(null)">Annuler</button>
+                  </div>
+                </div>
+              } @else {
+                <button type="button" class="bouton petit" (click)="aRetirer.set(offre.id); erreurRetrait.set(null)">Retirer</button>
+              }
+            }
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement de vos offres"></div>
+  }
+</div>

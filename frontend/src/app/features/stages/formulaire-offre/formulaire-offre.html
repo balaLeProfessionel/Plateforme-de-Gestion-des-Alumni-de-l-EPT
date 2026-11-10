@@ -1,0 +1,181 @@
+<div class="page-stages">
+  <app-bouton-retour [secours]="secours" />
+  <header class="entete">
+    <h1>{{ administration ? 'Saisir une offre de stage' : 'Publier une offre de stage' }}</h1>
+    <p class="introduction">
+      @if (administration) {
+        L’offre est publiée directement au nom de l’organisme. S’il n’est pas encore connu de la plateforme, il est créé sans compte.
+      } @else {
+        Si votre organisme est validé par l’école, l’offre est publiée tout de suite. Sinon, l’école la vérifie avant de la publier.
+      }
+    </p>
+  </header>
+
+  @if (publiee(); as offre) {
+    <section #resultat class="carte resultat" tabindex="-1" aria-labelledby="titre-resultat">
+      @if (offre.statut === 'PUBLIEE') {
+        <h2 id="titre-resultat"><i class="pi pi-check-circle" aria-hidden="true"></i> Offre publiée</h2>
+        <p>« {{ offre.titre }} » est visible des membres de la plateforme.</p>
+      } @else {
+        <h2 id="titre-resultat"><i class="pi pi-send" aria-hidden="true"></i> Offre transmise à l’école</h2>
+        <p>« {{ offre.titre }} » sera visible des étudiants une fois vérifiée. Vous serez prévenu par e-mail.</p>
+      }
+      @if (echecsFichiers().length) {
+        <p class="echecs" role="alert">L’offre est enregistrée, mais ces fichiers n’ont pas pu être joints : {{ echecsFichiers().join(', ') }}.
+          Vous pourrez les ajouter depuis la page de l’offre.</p>
+      }
+      <div class="boutons">
+        <a class="bouton principal" [routerLink]="['/stages/offres', offre.id]">Voir l’offre</a>
+        <button type="button" class="bouton" (click)="recommencer()">{{ administration ? 'Saisir une autre offre' : 'Publier une autre offre' }}</button>
+      </div>
+    </section>
+  } @else {
+    <form class="carte" (submit)="envoyer($event)" novalidate>
+      @if (messageErreur(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+      <div class="grille">
+        @if (administration) {
+          <div class="champ large">
+            <label for="offre-organisme">Organisme</label>
+            <input id="offre-organisme" type="text" autocomplete="off" list="organismes-connus" [formField]="formulaire.organisme"
+              [attr.aria-invalid]="formulaire.organisme().touched() && formulaire.organisme().invalid()" aria-describedby="aide-organisme erreur-organisme" />
+            <datalist id="organismes-connus">
+              @for (suggestion of suggestions(); track suggestion.id) { <option [value]="suggestion.nom"></option> }
+            </datalist>
+            <small id="aide-organisme" class="aide" aria-live="polite">
+              @if (organismeConnu(); as connu) { Organisme connu : {{ connu.nom }}. }
+              @else if (modele().organisme.trim()) { Nouvel organisme : il sera créé sans compte. }
+              @else { Commencez à taper son nom pour retrouver un organisme connu. }
+            </small>
+            @if (formulaire.organisme().touched() && formulaire.organisme().errors()[0]; as erreur) {
+              <small id="erreur-organisme" class="erreur-champ">{{ erreur.message }}</small>
+            }
+          </div>
+        }
+        <div class="champ large">
+          <label for="offre-titre">Titre</label>
+          <input id="offre-titre" type="text" autocomplete="off" [formField]="formulaire.titre"
+            [attr.aria-invalid]="formulaire.titre().touched() && formulaire.titre().invalid()" aria-describedby="erreur-titre" />
+          @if (formulaire.titre().touched() && formulaire.titre().errors()[0]; as erreur) {
+            <small id="erreur-titre" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="offre-type">Type de stage</label>
+          <select id="offre-type" [formField]="formulaire.typeStage"
+            [attr.aria-invalid]="formulaire.typeStage().touched() && formulaire.typeStage().invalid()" aria-describedby="erreur-type">
+            <option value="">Choisir…</option>
+            @for (type of types; track type) { <option [value]="type">{{ libellesType[type] }}</option> }
+          </select>
+          @if (formulaire.typeStage().touched() && formulaire.typeStage().errors()[0]; as erreur) {
+            <small id="erreur-type" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="offre-duree">Durée (en mois)</label>
+          <input id="offre-duree" type="text" inputmode="numeric" autocomplete="off" [formField]="formulaire.dureeMois"
+            [attr.aria-invalid]="formulaire.dureeMois().touched() && formulaire.dureeMois().invalid()" aria-describedby="erreur-duree" />
+          @if (formulaire.dureeMois().touched() && formulaire.dureeMois().errors()[0]; as erreur) {
+            <small id="erreur-duree" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="offre-limite">Date limite de candidature</label>
+          <input id="offre-limite" type="date" [formField]="formulaire.dateLimiteCandidature"
+            [attr.aria-invalid]="formulaire.dateLimiteCandidature().touched() && formulaire.dateLimiteCandidature().invalid()" aria-describedby="erreur-limite" />
+          @if (formulaire.dateLimiteCandidature().touched() && formulaire.dateLimiteCandidature().errors()[0]; as erreur) {
+            <small id="erreur-limite" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="offre-debut">Début prévu (facultatif)</label>
+          <input id="offre-debut" type="date" [formField]="formulaire.dateDebutPrevue"
+            [attr.aria-invalid]="formulaire.dateDebutPrevue().touched() && formulaire.dateDebutPrevue().invalid()" aria-describedby="erreur-debut" />
+          @if (formulaire.dateDebutPrevue().touched() && formulaire.dateDebutPrevue().errors()[0]; as erreur) {
+            <small id="erreur-debut" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="offre-lieu">Lieu (facultatif)</label>
+          <input id="offre-lieu" type="text" autocomplete="off" placeholder="Dakar" [formField]="formulaire.lieu" />
+        </div>
+        <div class="champ">
+          <label for="offre-places">Nombre de places (facultatif, indicatif)</label>
+          <input id="offre-places" type="text" inputmode="numeric" autocomplete="off" [formField]="formulaire.nombrePlaces"
+            [attr.aria-invalid]="formulaire.nombrePlaces().touched() && formulaire.nombrePlaces().invalid()" aria-describedby="erreur-places" />
+          @if (formulaire.nombrePlaces().touched() && formulaire.nombrePlaces().errors()[0]; as erreur) {
+            <small id="erreur-places" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ large">
+          <label for="offre-description">Missions</label>
+          <textarea id="offre-description" rows="6" [formField]="formulaire.description"
+            [attr.aria-invalid]="formulaire.description().touched() && formulaire.description().invalid()" aria-describedby="erreur-description"></textarea>
+          @if (formulaire.description().touched() && formulaire.description().errors()[0]; as erreur) {
+            <small id="erreur-description" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ large">
+          <label for="offre-competences">Compétences attendues</label>
+          <textarea id="offre-competences" rows="3" [formField]="formulaire.competences"
+            [attr.aria-invalid]="formulaire.competences().touched() && formulaire.competences().invalid()" aria-describedby="erreur-competences"></textarea>
+          @if (formulaire.competences().touched() && formulaire.competences().errors()[0]; as erreur) {
+            <small id="erreur-competences" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+      </div>
+
+      <section class="fichiers" aria-labelledby="titre-image">
+        <h2 id="titre-image">Image <span class="optionnel">facultative</span></h2>
+        @if (imageARecadrer(); as image) {
+          <app-recadreur-image [image]="image" [format]="formatImage" libelle="Recadrer l’image de l’offre au format 16:9"
+            (recadree)="appliquerRecadrage($event)" (annulee)="annulerRecadrage()" />
+        } @else {
+          @if (apercuImage(); as apercu) {
+            <img class="apercu" [src]="apercu" alt="Aperçu de l’image de l’offre" />
+            <button type="button" class="bouton petit" (click)="retirerImage()">Retirer l’image</button>
+          } @else {
+            <label class="choix-fichier" for="offre-image">
+              <i class="pi pi-image" aria-hidden="true"></i>Choisir une image
+              <input id="offre-image" class="sr-only" type="file" accept="image/jpeg,image/png" aria-describedby="aide-image"
+                (change)="selectionnerImage($event)" />
+            </label>
+          }
+          <small id="aide-image" class="aide">JPEG ou PNG, 5 Mo maximum. Vous la recadrez au format 16:9 ; elle illustre la carte et la page de l’offre.</small>
+          @if (erreurImage(); as erreur) { <small class="erreur-champ" role="alert">{{ erreur }}</small> }
+          @if (avertissementImage(); as avertissement) { <small class="aide" role="status">{{ avertissement }}</small> }
+        }
+      </section>
+
+      <section class="fichiers" aria-labelledby="titre-pieces">
+        <h2 id="titre-pieces">Pièces jointes <span class="optionnel">facultatives</span></h2>
+        @if (pieces().length) {
+          <ul class="pieces">
+            @for (piece of pieces(); track $index) {
+              <li>
+                <i class="pi pi-file-pdf" aria-hidden="true"></i>
+                <span class="nom">{{ piece.name }}</span><small>{{ piece.size | taille }}</small>
+                <button type="button" class="retirer" [attr.aria-label]="'Retirer ' + piece.name" (click)="retirerPiece($index)">
+                  <i class="pi pi-times" aria-hidden="true"></i>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+        @if (pieces().length < piecesMax) {
+          <label class="choix-fichier" for="offre-pieces">
+            <i class="pi pi-paperclip" aria-hidden="true"></i>Ajouter des PDF
+            <input id="offre-pieces" class="sr-only" type="file" accept="application/pdf,.pdf" multiple aria-describedby="aide-pieces"
+              (change)="ajouterPieces($event)" />
+          </label>
+        }
+        <small id="aide-pieces" class="aide">Fiche de poste, présentation de l’organisme… PDF seulement, {{ piecesMax }} fichiers au plus, 5 Mo chacun.</small>
+        @if (erreurPieces(); as erreur) { <small class="erreur-champ" role="alert">{{ erreur }}</small> }
+      </section>
+
+      <div class="boutons">
+        <button type="submit" class="bouton principal" [disabled]="enCours()">{{ administration ? 'Publier l’offre' : 'Envoyer l’offre' }}</button>
+        <a class="bouton" [routerLink]="secours">Annuler</a>
+      </div>
+    </form>
+  }
+</div>

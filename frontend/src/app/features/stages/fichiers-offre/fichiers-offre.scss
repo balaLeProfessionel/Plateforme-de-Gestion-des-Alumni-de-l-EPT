@@ -1,0 +1,34 @@
+.fichiers { display: grid; gap: 0.6rem; }
+h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1.05rem; }
+.pieces {
+  display: grid; gap: 0.35rem; margin: 0; padding: 0; list-style: none;
+  li { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.5rem; min-width: 0; padding: 0.45rem 0.65rem; border: 1px solid var(--ept-border); border-radius: 8px; }
+  .pi-file-pdf { color: var(--ept-error); }
+  small { color: var(--ept-text-secondary); }
+}
+.lien {
+  min-width: 0; padding: 0; border: 0; background: none; color: var(--ept-primary); font: inherit; font-weight: 600; text-align: left;
+  text-decoration: underline; overflow-wrap: anywhere; cursor: pointer;
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+}
+.retirer {
+  display: grid; place-items: center; width: 2.25rem; height: 2.25rem; margin-left: auto; border: 0; border-radius: 6px;
+  background: none; color: var(--ept-text-secondary); cursor: pointer;
+  &:hover:not(:disabled) { background: var(--ept-bg); color: var(--ept-error-dark); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); }
+}
+.gestion { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.choix-fichier {
+  display: inline-flex; align-items: center; gap: 0.45rem; min-height: 2.4rem; padding: 0.4rem 0.9rem; border: 1px dashed var(--ept-primary);
+  border-radius: 8px; color: var(--ept-primary); font-size: 0.85rem; font-weight: 700; cursor: pointer;
+  &:hover { background: var(--ept-primary-light); }
+  &:focus-within { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+}
+.bouton-texte {
+  min-height: 2.4rem; padding: 0 0.5rem; border: 0; background: none; color: var(--ept-error-dark); font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); }
+}
+.aide { color: var(--ept-text-secondary); font-size: 0.8rem; }
+.erreur { margin: 0; color: var(--ept-error-dark); font-weight: 600; }
+.message { margin: 0; color: var(--ept-success-dark); font-weight: 600; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
