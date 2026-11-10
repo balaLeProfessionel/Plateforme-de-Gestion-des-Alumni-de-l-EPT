@@ -18,6 +18,8 @@ import { participeAuMentorat } from '../../core/services/models/mentorat.model';
 import { AvatarMembre } from '../../shared/images/avatar-membre';
 import { MenuMobile, RubriqueAVenir, RubriqueMenu } from './menu-mobile/menu-mobile';
 import { NavigationMobile } from './navigation-mobile/navigation-mobile';
+import { ClocheNotifications } from './cloche-notifications/cloche-notifications';
+import { NotificationService } from '../../core/services/notifications/notifications';
 
 interface LienNavigation extends RubriqueMenu {
   exact: boolean;
@@ -32,7 +34,7 @@ interface GroupeNavigation {
   selector: 'app-espace-membre',
   imports: [
     AvatarMembre, RouterLink, RouterLinkActive, RouterOutlet, SidebarModule, MenuModule, TooltipModule, ButtonModule,
-    IconeSidebar, MenuMobile, NavigationMobile,
+    IconeSidebar, MenuMobile, NavigationMobile, ClocheNotifications,
   ],
   templateUrl: './espace-membre.html',
   styleUrl: './espace-membre.scss',
@@ -44,12 +46,13 @@ export class EspaceMembre implements OnDestroy {
   private readonly formatNavigation = this.document.defaultView?.matchMedia?.('(max-width: 1023px)');
   private readonly changementFormatNavigation = (evenement: MediaQueryListEvent) =>
     this.sidebarOuverte.set(!evenement.matches);
-  /** Partagé par le bouton du compte, la barre du bas et le dialog « Mon espace ». */
+  /** Partagé par le bouton « Menu » de la barre du bas et le dialog « Mon espace ». */
   protected readonly menuOuvert = signal(false);
   protected readonly sidebarOuverte = signal(!this.formatNavigation?.matches);
   protected readonly compteurMentorat = inject(CompteurDemandesMentorat);
   private readonly compteurInscriptions = inject(CompteurInscriptions);
   private readonly compteurSignalements = inject(CompteurSignalements);
+  private readonly notificationService = inject(NotificationService);
   /** Un compte d’administration navigue par domaine ; un membre garde les rubriques de la communauté. */
   private readonly administration = computed(() =>
     TOUTES_LES_PERMISSIONS.some((permission) => this.authService.aPermission(permission)));
@@ -165,14 +168,12 @@ export class EspaceMembre implements OnDestroy {
     if (participeAuMentorat(this.authService.utilisateur()?.role)) this.compteurMentorat.actualiser();
     if (this.authService.aPermission('GERER_COMPTES')) this.compteurInscriptions.actualiser();
     if (this.authService.aPermission('MODERER_PUBLICATIONS')) this.compteurSignalements.actualiser();
+    this.notificationService.demarrer();
   }
 
   ngOnDestroy(): void {
     this.formatNavigation?.removeEventListener('change', this.changementFormatNavigation);
-  }
-
-  protected basculerMenu(): void {
-    this.menuOuvert.update((ouvert) => !ouvert);
+    this.notificationService.arreter();
   }
 
   protected seDeconnecter(): void {

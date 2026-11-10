@@ -3,6 +3,8 @@ package ept.edu.sn.alumni_backend.evenement.service;
 import ept.edu.sn.alumni_backend.evenement.dto.FiltresEvenements;
 import jakarta.persistence.criteria.Predicate;
 import java.text.Normalizer;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.ArrayList;
 import java.time.Instant;
@@ -19,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -45,6 +48,8 @@ import ept.edu.sn.alumni_backend.evenement.dto.EvenementPublicResponse;
 import ept.edu.sn.alumni_backend.evenement.repository.EvenementRepository;
 import ept.edu.sn.alumni_backend.evenement.repository.ParticipationEvenementRepository;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
+import ept.edu.sn.alumni_backend.notification.NouvelleNotification;
+import ept.edu.sn.alumni_backend.notification.TypeNotification;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.MembreVisibilite;
@@ -64,6 +69,7 @@ public class EvenementService {
     private final EvenementMapper evenementMapper;
     private final EvenementProperties evenementProperties;
     private final StockageImageEvenement stockageImageEvenement;
+    private final ApplicationEventPublisher evenements;
 
     @Transactional(readOnly = true)
     public PageEvenementsResponse lister(
@@ -184,7 +190,16 @@ public class EvenementService {
             throw new CapaciteEvenementAtteinteException(
                 "Le nombre de places ne peut pas être inférieur au nombre de participants déjà inscrits.");
         }
+        Instant ancienDebut = evenement.getDateDebut();
+        Instant ancienneFin = evenement.getDateFin();
+        String ancienLieu = evenement.getLieu();
         appliquer(evenement, request);
+        boolean pratiqueChangee = !ancienDebut.equals(evenement.getDateDebut())
+            || !ancienneFin.equals(evenement.getDateFin()) || !ancienLieu.equals(evenement.getLieu());
+        if (pratiqueChangee && evenement.getStatut() == StatutEvenement.PUBLIE) {
+            prevenirParticipants(evenement, principal, "Événement modifié : " + evenement.getTitre(),
+                "Le " + FORMAT_DATE_NOTIFICATION.format(evenement.getDateDebut()) + ", " + evenement.getLieu() + ".");
+        }
         return reponsePourUtilisateur(evenementRepository.save(evenement), principal);
     }
 
@@ -217,6 +232,10 @@ public class EvenementService {
     @Transactional
     public EvenementResponse annuler(UUID evenementId, UtilisateurPrincipal principal) {
         Evenement evenement = trouverPourGestion(evenementId, principal);
+        if (evenement.getStatut() != StatutEvenement.ANNULE) {
+            prevenirParticipants(evenement, principal, "Événement annulé : " + evenement.getTitre(),
+                "L’événement prévu le " + FORMAT_DATE_NOTIFICATION.format(evenement.getDateDebut()) + " n’aura pas lieu.");
+        }
         evenement.setStatut(StatutEvenement.ANNULE);
         return reponsePourUtilisateur(evenementRepository.save(evenement), principal);
     }
@@ -297,6 +316,21 @@ public class EvenementService {
                 participant.getRole(),
                 participant.getUrlPhoto()));
         return PageParticipantsResponse.depuis(participants);
+    }
+
+    /** Heure de Dakar, en toutes lettres : « mercredi 18 novembre 2026 à 18:00 ». */
+    private static final DateTimeFormatter FORMAT_DATE_NOTIFICATION = DateTimeFormatter
+        .ofPattern("EEEE d MMMM yyyy 'à' HH:mm", Locale.FRENCH).withZone(ZoneId.of("Africa/Dakar"));
+
+    /** Cloche des inscrits (« je participe »), sauf l'auteur du changement ; écrite après le commit. */
+    private void prevenirParticipants(Evenement evenement, UtilisateurPrincipal principal, String titre, String message) {
+        UUID auteur = principal.getUtilisateur().getId();
+        for (UUID participant : participationRepository.idsParticipants(evenement.getId(), ReponseParticipation.PARTICIPERA)) {
+            if (!participant.equals(auteur)) {
+                evenements.publishEvent(new NouvelleNotification(
+                    participant, TypeNotification.EVENEMENT, titre, message, "/evenements/" + evenement.getId()));
+            }
+        }
     }
 
     private Evenement trouverPourGestion(UUID evenementId, UtilisateurPrincipal principal) {

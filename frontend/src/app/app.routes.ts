@@ -203,6 +203,13 @@ export const routes: Routes = [
           import('./features/articles/lecture-article/lecture-article').then((m) => m.LectureArticle)
       },
       {
+        path: 'notifications',
+        title: 'Notifications | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/notifications/page-notifications/page-notifications').then((m) => m.PageNotifications)
+      },
+      {
         path: 'annuaire',
         title: 'Annuaire | EPT Alumni',
         canActivate: [authGuard, changementInitialRequisGuard],

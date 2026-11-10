@@ -28,6 +28,7 @@ import ept.edu.sn.alumni_backend.parcours.entity.Formation;
 import ept.edu.sn.alumni_backend.parcours.repository.ExperienceRepository;
 import ept.edu.sn.alumni_backend.parcours.repository.FormationRepository;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
+import ept.edu.sn.alumni_backend.notification.NotificationRepository;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 
 @SpringBootTest
@@ -39,6 +40,11 @@ class ProfilPublicIntegrationTests {
 
     @Autowired
     private UtilisateurRepository utilisateurRepository;
+
+
+    @Autowired
+
+    private NotificationRepository notificationRepository;
 
     @Autowired
     private OrganismeRepository organismeRepository;
@@ -62,6 +68,7 @@ class ProfilPublicIntegrationTests {
         experienceRepository.deleteAll();
         formationRepository.deleteAll();
         organismeRepository.deleteAll();
+        notificationRepository.deleteAll();
         utilisateurRepository.deleteAll();
     }
 

@@ -1,0 +1,125 @@
+:host { position: relative; display: inline-flex; }
+
+.bouton-cloche {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ept-primary);
+  text-decoration: none;
+  cursor: pointer;
+
+  .pi { font-size: 1.2rem; }
+  &:hover, &[aria-expanded='true'], &.active { background: var(--ept-primary-light); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+}
+
+.badge {
+  position: absolute;
+  top: 0.1rem;
+  left: 1.6rem;
+  min-width: 0.95rem;
+  height: 0.95rem;
+  padding: 0 0.22rem;
+  border: 2px solid var(--ept-surface);
+  border-radius: 999px;
+  background: var(--ept-error);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 0.95rem;
+  text-align: center;
+  box-sizing: content-box;
+}
+
+.panneau {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  width: min(23rem, calc(100vw - 2rem));
+  max-height: min(30rem, calc(100dvh - 6rem));
+  border: 1px solid var(--ept-border);
+  border-radius: var(--ept-radius);
+  background: var(--ept-surface);
+  box-shadow: 0 12px 32px rgba(1, 67, 101, 0.16);
+  overflow: hidden;
+}
+
+.entete-panneau {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border-bottom: 1px solid var(--ept-border);
+
+  h2 { margin: 0; font-family: var(--ept-font-heading); font-size: 1rem; color: var(--ept-primary-dark); }
+}
+
+.corps-panneau {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  // Chrome, Edge, Safari : 6 px, sans flèches. Les propriétés standard l’emporteraient sur ces règles.
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-button { display: none; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { border-radius: 999px; background: #c3cfd7; }
+
+  // Firefox, qui ignore les pseudo-éléments ci-dessus.
+  @supports not selector(::-webkit-scrollbar) {
+    scrollbar-width: thin;
+    scrollbar-color: #c3cfd7 transparent;
+  }
+}
+
+.lien-action {
+  min-height: 2.25rem;
+  padding: 0 0.25rem;
+  border: 0;
+  background: transparent;
+  color: var(--ept-primary);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { text-decoration: underline; }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+}
+
+.etat {
+  margin: 0;
+  padding: 1.75rem 1.25rem;
+  color: var(--ept-text-secondary);
+  font-size: 0.875rem;
+  text-align: center;
+
+  p { margin: 0 0 0.5rem; }
+  &.vide .pi { margin-bottom: 0.5rem; font-size: 1.5rem; color: var(--ept-text-secondary); }
+}
+
+.liste { margin: 0; padding: 0; list-style: none; }
+.liste li + li { border-top: 1px solid var(--ept-border); }
+
+.tout-voir {
+  display: grid;
+  place-items: center;
+  min-height: 2.75rem;
+  border-top: 1px solid var(--ept-border);
+  color: var(--ept-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover { background: var(--ept-bg); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: -2px; }
+}

@@ -23,6 +23,12 @@ public interface ParticipationEvenementRepository extends JpaRepository<Particip
     Optional<ParticipationEvenement> findByEvenement_IdAndUtilisateur_Id(UUID evenementId, UUID utilisateurId);
 
     @Query("""
+        select participation.utilisateur.id from ParticipationEvenement participation
+        where participation.evenement.id = :evenementId and participation.reponse = :reponse
+        """)
+    List<UUID> idsParticipants(@Param("evenementId") UUID evenementId, @Param("reponse") ReponseParticipation reponse);
+
+    @Query("""
         select participation.evenement.id as evenementId, count(participation.id) as nombre
         from ParticipationEvenement participation
         where participation.evenement.id in :evenementIds

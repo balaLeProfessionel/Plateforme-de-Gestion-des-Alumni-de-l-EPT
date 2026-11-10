@@ -34,6 +34,7 @@ import ept.edu.sn.alumni_backend.organisme.repository.OrganismeRepository;
 import ept.edu.sn.alumni_backend.security.JwtService;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
+import ept.edu.sn.alumni_backend.notification.NotificationRepository;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 
 @SpringBootTest
@@ -47,6 +48,11 @@ class AnnuaireIntegrationTests {
 
     @Autowired
     private UtilisateurRepository utilisateurRepository;
+
+
+    @Autowired
+
+    private NotificationRepository notificationRepository;
 
     @Autowired
     private OrganismeRepository organismeRepository;
@@ -67,6 +73,7 @@ class AnnuaireIntegrationTests {
     void preparerUtilisateurs() {
         participationEvenementRepository.deleteAll();
         evenementRepository.deleteAll();
+        notificationRepository.deleteAll();
         utilisateurRepository.deleteAll();
         utilisateurRepository.saveAll(List.of(
             utilisateur("Awa", "Diop", TypeRole.ETUDIANT, StatutCompte.ACTIF, true, "Thiès", GIT, 2025),
