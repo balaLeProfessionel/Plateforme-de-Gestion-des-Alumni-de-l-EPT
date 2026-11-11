@@ -92,6 +92,11 @@ public class Stage {
     @Column(nullable = false, length = 20)
     private StatutStage statut;
 
+    /** Encadrant à l'EPT, un compte du personnel désigné par l'administrateur Stages (STA-08). */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "encadrant_interne_id")
+    private Utilisateur encadrantInterne;
+
     /** Maître de stage côté organisme (STA-10, puis suivi). */
     @Column(name = "tuteur_nom", length = 150)
     private String tuteurNom;

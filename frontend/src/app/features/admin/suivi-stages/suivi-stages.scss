@@ -1,0 +1,9 @@
+@use 'responsive' as *;
+
+.filtres { display: grid; gap: 0.6rem; align-items: end; margin-bottom: 1rem;
+  @include a-partir-de(tablette) { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) auto; } }
+.case { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.6rem; color: var(--ept-primary-dark); font-size: 0.88rem; font-weight: 600; cursor: pointer;
+  input { width: 1.1rem; height: 1.1rem; accent-color: var(--ept-primary); }
+  input:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+.liste { display: grid; gap: 0.75rem; margin: 0; padding: 0; list-style: none; }
+.aide { margin: 0 0 0.5rem; }

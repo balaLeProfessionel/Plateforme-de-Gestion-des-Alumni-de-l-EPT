@@ -14,7 +14,7 @@ import org.springframework.data.repository.query.Param;
 import ept.edu.sn.alumni_backend.stage.StatutStage;
 import ept.edu.sn.alumni_backend.stage.entity.Stage;
 
-public interface StageRepository extends JpaRepository<Stage, UUID> {
+public interface StageRepository extends JpaRepository<Stage, UUID>, org.springframework.data.jpa.repository.JpaSpecificationExecutor<Stage> {
     Optional<Stage> findByOffre_IdAndEtudiant_Id(UUID offreId, UUID etudiantId);
 
     @EntityGraph(attributePaths = {"etudiant", "etudiant.filiere", "candidature"})
@@ -31,6 +31,27 @@ public interface StageRepository extends JpaRepository<Stage, UUID> {
     org.springframework.data.domain.Page<Stage> findByOffreIsNullAndStatut(StatutStage statut, org.springframework.data.domain.Pageable page);
 
     long countByOffreIsNullAndStatut(StatutStage statut);
+
+    @EntityGraph(attributePaths = {"etudiant", "etudiant.filiere", "organisme", "encadrantInterne"})
+    List<Stage> findByEncadrantInterne_IdAndStatutOrderByDateDebutDesc(UUID encadrantId, StatutStage statut);
+
+    @EntityGraph(attributePaths = {"etudiant", "etudiant.filiere", "organisme", "encadrantInterne"})
+    List<Stage> findByOrganisme_IdAndStatutOrderByDateDebutDesc(UUID organismeId, StatutStage statut);
+
+    /** Stages confirmés des étudiants des filières que ce compte dirige (chef de département). */
+    @EntityGraph(attributePaths = {"etudiant", "etudiant.filiere", "organisme", "encadrantInterne"})
+    @Query("""
+        select s from Stage s
+        where s.statut = ept.edu.sn.alumni_backend.stage.StatutStage.CONFIRME
+          and s.etudiant.filiere.id in (select c.filiereId from ChefDepartement c where c.chef.id = :chef)
+        order by s.dateDebut desc
+        """)
+    List<Stage> duDepartementDe(@Param("chef") UUID chefId);
+
+    @Override
+    @EntityGraph(attributePaths = {"etudiant", "etudiant.filiere", "organisme", "encadrantInterne"})
+    org.springframework.data.domain.Page<Stage> findAll(org.springframework.data.jpa.domain.Specification<Stage> specification,
+        org.springframework.data.domain.Pageable page);
 
     @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from Stage s left join fetch s.organisme join fetch s.etudiant where s.id = :id")

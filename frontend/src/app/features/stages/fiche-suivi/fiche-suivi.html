@@ -1,0 +1,28 @@
+@let s = stage();
+<div class="entete-fiche">
+  <app-avatar-membre [urlPhoto]="s.etudiant.urlPhoto" [prenom]="s.etudiant.prenom" [nom]="s.etudiant.nom" roleMembre="ETUDIANT" [taille]="2.5" />
+  <div class="texte">
+    <h3><a [routerLink]="['/profil', s.etudiant.id]">{{ s.etudiant.prenom }} {{ s.etudiant.nom }}</a></h3>
+    <p class="details">{{ libelleClasse(s.etudiant.classe) ?? 'Classe non renseignée' }} · {{ s.etudiant.filiere ?? 'Filière non renseignée' }}
+      @if (s.email) { · <a [href]="'mailto:' + s.email">{{ s.email }}</a> }</p>
+  </div>
+  <span class="deroulement" [attr.data-deroulement]="s.deroulement">{{ deroulements[s.deroulement] }}</span>
+</div>
+<dl>
+  <dt>Stage</dt>
+  <dd><strong>@if (s.offreId) { <a [routerLink]="['/stages/offres', s.offreId]">{{ s.sujet }}</a> } @else { {{ s.sujet }} }</strong>
+    · {{ types[s.typeStage] }}@if (s.declare) { · trouvé par l’étudiant }</dd>
+  <dt>Organisme</dt><dd>{{ s.organisme }}@if (s.lieu) { · {{ s.lieu }} }</dd>
+  <dt>Dates</dt><dd>Du {{ s.dateDebut | date: 'd MMMM y' }} au {{ s.dateFin | date: 'd MMMM y' }}</dd>
+  <dt>Encadrant à l’EPT</dt>
+  <dd [class.vide]="!s.encadrant">@if (s.encadrant; as e) { {{ e.prenom }} {{ e.nom }} · <a [href]="'mailto:' + e.email">{{ e.email }}</a> } @else { Pas encore désigné }</dd>
+  <dt>Maître de stage</dt>
+  <dd [class.vide]="!s.tuteurNom">
+    @if (s.tuteurNom) {
+      {{ s.tuteurNom }}@if (s.tuteurFonction) { , {{ s.tuteurFonction }} }
+      @if (s.tuteurEmail) { · <a [href]="'mailto:' + s.tuteurEmail">{{ s.tuteurEmail }}</a> }
+      @if (s.tuteurTelephone) { · {{ s.tuteurTelephone }} }
+    } @else { Non renseigné }
+  </dd>
+</dl>
+<ng-content />

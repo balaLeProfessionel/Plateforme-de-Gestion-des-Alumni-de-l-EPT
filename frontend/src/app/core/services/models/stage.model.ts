@@ -245,3 +245,40 @@ export type EtudiantSuggestion = EtudiantStage;
 
 /** Critères de recherche d’un étudiant à ajouter : nom, code de classe, identifiant de filière ('' = tous). */
 export interface CritereEtudiants { texte: string; classe: string; filiere: string }
+
+/** Déroulement d’un stage confirmé, déduit des dates par le serveur. */
+export type Deroulement = 'A_VENIR' | 'EN_COURS' | 'TERMINE';
+export const LIBELLES_DEROULEMENT: Record<Deroulement, string> = { A_VENIR: 'À venir', EN_COURS: 'En cours', TERMINE: 'Terminé' };
+
+/** Miroir de SuiviStageResponse (STA-08) : l’e-mail de l’étudiant n’est donné qu’à l’école. */
+export interface SuiviStage {
+  id: string;
+  offreId: string | null;
+  etudiant: EtudiantStage;
+  email: string | null;
+  organismeId: string | null;
+  organisme: string;
+  typeStage: TypeStage;
+  sujet: string;
+  lieu: string | null;
+  dateDebut: string;
+  dateFin: string;
+  deroulement: Deroulement;
+  encadrant: { id: string; prenom: string; nom: string; email: string } | null;
+  tuteurNom: string | null;
+  tuteurFonction: string | null;
+  tuteurEmail: string | null;
+  tuteurTelephone: string | null;
+  declare: boolean;
+}
+
+/** Ce que suit le membre connecté : stages encadrés et de son département (personnel), accueillis (organisme). */
+export interface MesSuivis {
+  encadres: SuiviStage[];
+  departement: SuiviStage[];
+  accueillis: SuiviStage[];
+}
+
+export interface PersonnelSuggestion { id: string; prenom: string; nom: string; email: string; urlPhoto: string | null }
+
+export interface Tuteur { nom: string; fonction: string | null; email: string | null; telephone: string | null }

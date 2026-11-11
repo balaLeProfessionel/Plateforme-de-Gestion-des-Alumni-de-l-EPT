@@ -89,7 +89,7 @@ export class EspaceMembre implements OnDestroy {
         }, {
           libelle: 'Stages déclarés', icone: 'pi-inbox', route: '/admin/stages/declarations', exact: false,
           compteur: this.compteurDeclarations.nombre(), libelleCompteur: 'stages déclarés à traiter',
-        }] : [] },
+        }, { libelle: 'Suivi des stages', icone: 'pi-eye', route: '/admin/stages/suivi', exact: false }] : [] },
       { titre: 'Contenus', liens: [
         { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
         ...(peut('GERER_MENTORAT')

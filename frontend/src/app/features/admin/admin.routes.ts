@@ -82,6 +82,13 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./liste-definitive/liste-definitive').then((m) => m.ListeDefinitivePage),
   },
   {
+    path: 'stages/suivi',
+    title: 'Suivi des stages | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_STAGES' },
+    loadComponent: () => import('./suivi-stages/suivi-stages').then((m) => m.SuiviStagesPage),
+  },
+  {
     path: 'stages/declarations',
     title: 'Stages déclarés | EPT Alumni',
     canActivate: [permissionGuard],

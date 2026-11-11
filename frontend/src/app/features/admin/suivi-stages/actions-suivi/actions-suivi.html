@@ -1,0 +1,56 @@
+@let s = stage();
+@switch (mode()) {
+  @case ('encadrant') {
+    <div class="zone" role="group" [attr.aria-label]="'Encadrant du stage de ' + s.etudiant.prenom + ' ' + s.etudiant.nom">
+      <div class="champ">
+        <label [for]="'personnel-' + s.id">Membre du personnel</label>
+        <input [id]="'personnel-' + s.id" type="search" autocomplete="off" placeholder="Prénom ou nom" [value]="recherche()" (input)="chercher($event)" />
+      </div>
+      <div aria-live="polite">
+        @if (suggestions(); as liste) {
+          @if (liste.length === 0) { <p class="aide">Aucun membre du personnel actif ne correspond.</p> }
+          @else {
+            <ul class="suggestions">
+              @for (p of liste; track p.id) {
+                <li><span>{{ p.prenom }} {{ p.nom }} <small>{{ p.email }}</small></span>
+                  <button type="button" class="bouton petit" [disabled]="enCours() || p.id === s.encadrant?.id" (click)="designer(p)"
+                    [attr.aria-label]="'Désigner ' + p.prenom + ' ' + p.nom">Désigner</button></li>
+              }
+            </ul>
+          }
+        }
+      </div>
+      @if (erreur(); as message) { <p class="erreur-champ" role="alert">{{ message }}</p> }
+      <div class="boutons">
+        @if (s.encadrant) { <button type="button" class="bouton" [disabled]="enCours()" (click)="designer(null)">Retirer l’encadrant</button> }
+        <button type="button" class="bouton" (click)="mode.set('lecture')">Fermer</button>
+      </div>
+    </div>
+  }
+  @case ('tuteur') {
+    <div class="zone" role="group" [attr.aria-label]="'Maître de stage de ' + s.etudiant.prenom + ' ' + s.etudiant.nom">
+      <div class="grille-champs">
+        <div class="champ"><label [for]="'tuteur-nom-' + s.id">Nom</label>
+          <input [id]="'tuteur-nom-' + s.id" type="text" [value]="tuteur().nom" (input)="saisirTuteur('nom', $event)" /></div>
+        <div class="champ"><label [for]="'tuteur-fonction-' + s.id">Fonction (facultative)</label>
+          <input [id]="'tuteur-fonction-' + s.id" type="text" [value]="tuteur().fonction" (input)="saisirTuteur('fonction', $event)" /></div>
+        <div class="champ"><label [for]="'tuteur-email-' + s.id">E-mail (facultatif)</label>
+          <input [id]="'tuteur-email-' + s.id" type="email" [value]="tuteur().email" (input)="saisirTuteur('email', $event)" /></div>
+        <div class="champ"><label [for]="'tuteur-telephone-' + s.id">Téléphone (facultatif)</label>
+          <input [id]="'tuteur-telephone-' + s.id" type="tel" [value]="tuteur().telephone" (input)="saisirTuteur('telephone', $event)" /></div>
+      </div>
+      @if (erreur(); as message) { <p class="erreur-champ" role="alert">{{ message }}</p> }
+      <div class="boutons">
+        <button type="button" class="bouton principal" [disabled]="enCours()" (click)="enregistrerTuteur()">Enregistrer</button>
+        <button type="button" class="bouton" (click)="mode.set('lecture')">Annuler</button>
+      </div>
+    </div>
+  }
+  @default {
+    <div class="boutons">
+      <button type="button" class="bouton petit" [class.principal]="!s.encadrant" (click)="ouvrir('encadrant')">
+        {{ s.encadrant ? 'Changer l’encadrant' : 'Désigner l’encadrant' }}</button>
+      <button type="button" class="bouton petit" (click)="ouvrir('tuteur')">Maître de stage</button>
+    </div>
+  }
+}

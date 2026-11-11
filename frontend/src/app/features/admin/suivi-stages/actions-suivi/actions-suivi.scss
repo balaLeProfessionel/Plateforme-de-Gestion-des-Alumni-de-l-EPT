@@ -1,0 +1,9 @@
+:host { display: block; }
+.zone { display: grid; gap: 0.5rem; padding: 0.75rem; border: 1px solid var(--ept-primary); border-radius: 8px; background: var(--ept-primary-light);
+  .boutons { margin-top: 0; } }
+.boutons { margin-top: 0; }
+.bouton.petit { min-height: 2.25rem; padding: 0.3rem 0.75rem; font-size: 0.82rem; }
+.suggestions { display: grid; gap: 0.35rem; margin: 0; padding: 0; list-style: none;
+  li { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; min-width: 0; padding: 0.45rem 0.6rem; border-radius: 8px; background: white; }
+  span { display: grid; min-width: 0; color: var(--ept-primary-dark); font-weight: 600; overflow-wrap: anywhere; }
+  small { color: var(--ept-text-secondary); font-weight: 400; } }

@@ -1,0 +1,41 @@
+<app-page-admin titre="Suivi des stages" [parents]="parents"
+  introduction="Stages confirmés, par la liste d’une offre ou la validation d’une déclaration. Désignez l’encadrant de chacun à l’EPT et tenez à jour son maître de stage.">
+  <section class="filtres" aria-label="Filtrer les stages">
+    <div class="champ">
+      <label for="suivi-texte">Étudiant, sujet ou organisme</label>
+      <input id="suivi-texte" type="search" autocomplete="off" [value]="criteres().texte" (input)="saisirTexte($event)" />
+    </div>
+    <div class="champ">
+      <label for="suivi-filiere">Filière</label>
+      <select id="suivi-filiere" (change)="choisirFiliere($event)">
+        <option value="" [selected]="!criteres().filiere">Toutes</option>
+        @for (f of filieres(); track f.id) { <option [value]="f.id" [selected]="f.id === criteres().filiere">{{ f.nom }}</option> }
+      </select>
+    </div>
+    <label class="case"><input type="checkbox" [checked]="criteres().sansEncadrant" (change)="basculerSansEncadrant($event)" />Sans encadrant seulement</label>
+  </section>
+
+  <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
+
+  @if (erreurChargement(); as erreur) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ erreur }}</p></div>
+  } @else if (page(); as p) {
+    @if (p.contenu.length === 0) {
+      <div class="etat">
+        <i class="pi pi-inbox" aria-hidden="true"></i>
+        <h2>Aucun stage</h2>
+        <p>Les stages apparaissent ici une fois confirmés, par la liste définitive d’une offre ou la validation d’une déclaration.</p>
+      </div>
+    } @else {
+      <p class="aide" aria-live="polite">{{ p.totalElements }} stage{{ p.totalElements > 1 ? 's' : '' }}</p>
+      <ul class="liste">
+        @for (stage of p.contenu; track stage.id) {
+          <li><app-fiche-suivi [stage]="stage"><app-actions-suivi [stage]="stage" (modifie)="apresModification($event)" /></app-fiche-suivi></li>
+        }
+      </ul>
+      <app-pagination-admin [page]="p.page" [totalPages]="p.totalPages" libelle="Pagination des stages" (changer)="changerPage($event)" />
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement des stages"></div>
+  }
+</app-page-admin>

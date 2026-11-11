@@ -26,3 +26,15 @@ export function authStages(role: string, permissions: readonly string[] = []) {
     estConnecte: () => true,
   };
 }
+
+/** Un stage confirmé dans le suivi (STA-08) ; `changement` remplace les champs voulus. */
+export function unSuivi(changement: Partial<import('../../../core/services/models/stage.model').SuiviStage> = {}):
+    import('../../../core/services/models/stage.model').SuiviStage {
+  return {
+    id: 's1', offreId: 'o1', etudiant: { id: 'e1', prenom: 'Awa', nom: 'Diop', filiere: 'Génie Civil', classe: 'DIC2', anneeEntree: 2023, urlPhoto: null },
+    email: 'awa@ept.sn', organismeId: 'org1', organisme: 'Kër Data', typeStage: 'PFE', sujet: 'Portail client', lieu: 'Dakar',
+    dateDebut: '2027-02-01', dateFin: '2027-06-30', deroulement: 'A_VENIR', encadrant: null,
+    tuteurNom: 'Moussa Ndiaye', tuteurFonction: 'CTO', tuteurEmail: null, tuteurTelephone: null, declare: false,
+    ...changement,
+  };
+}
