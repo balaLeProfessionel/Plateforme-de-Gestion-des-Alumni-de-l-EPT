@@ -104,6 +104,23 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, UUID>,
         """)
     List<PromotionProjection> compterEtudiantsParPromotion();
 
+    /** Étudiants non suspendus par classe et filière, pour le passage annuel (classe vide comprise). */
+    @Query("""
+        select u.classe as classe, f.nom as filiere, count(u) as nombre
+        from Utilisateur u left join u.filiere f
+        where u.role = ept.edu.sn.alumni_backend.enums.TypeRole.ETUDIANT
+          and u.emailVerifie = true
+          and u.statutCompte <> ept.edu.sn.alumni_backend.enums.StatutCompte.SUSPENDU
+        group by u.classe, f.nom
+        """)
+    List<ClasseEtudianteProjection> compterEtudiantsParClasse();
+
+    interface ClasseEtudianteProjection {
+        ept.edu.sn.alumni_backend.enums.Classe getClasse();
+        String getFiliere();
+        long getNombre();
+    }
+
     interface PromotionProjection {
         Integer getAnneeEntree();
         String getFiliere();

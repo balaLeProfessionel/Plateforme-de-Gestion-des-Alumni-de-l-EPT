@@ -54,6 +54,9 @@ export interface CriteresComptes {
   sansAnneeEntree?: boolean;
   filiere?: string | null;
   sansFiliere?: boolean;
+  /** Classe (passage annuel) ; « sansClasse » cible les étudiants sans classe renseignée. */
+  classe?: Classe | null;
+  sansClasse?: boolean;
 }
 
 /** Rôles qu’on peut créer ou attribuer depuis l’administration (un organisme a sa propre inscription). */
@@ -99,6 +102,18 @@ export interface ResultatImport {
 
 export interface ResultatDiplomation {
   diplomes: number;
+  ignores: { id: string; nom: string | null; raison: string }[];
+}
+
+/** Miroir de ClasseEtudianteResponse : étudiants d’une classe et d’une filière (null : non renseignée). */
+export interface ClasseEtudiante {
+  classe: Classe | null;
+  filiere: string | null;
+  nombre: number;
+}
+
+export interface ResultatPassage {
+  passes: number;
   ignores: { id: string; nom: string | null; raison: string }[];
 }
 

@@ -76,6 +76,7 @@ export class EspaceMembre implements OnDestroy {
           compteur: this.compteurInscriptions.nombre(), libelleCompteur: 'inscriptions à examiner',
         },
         { libelle: 'Comptes', icone: 'pi-users', route: '/admin/comptes', exact: false },
+        { libelle: 'Passage de classe', icone: 'pi-angle-double-up', route: '/admin/passage-classe', exact: false },
         { libelle: 'Diplômés', icone: 'pi-graduation-cap', route: '/admin/diplomes', exact: false },
         { libelle: 'Filières', icone: 'pi-sitemap', route: '/admin/filieres', exact: false },
       ] : [] },

@@ -31,6 +31,7 @@ import ept.edu.sn.alumni_backend.admin.exception.ConflitCompteException;
 import ept.edu.sn.alumni_backend.admin.repository.ActionAdminRepository;
 import ept.edu.sn.alumni_backend.admin.repository.ActionAdminRepository.NombreParCibleProjection;
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
+import ept.edu.sn.alumni_backend.enums.Classe;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.security.RefreshTokenService;
@@ -64,7 +65,8 @@ public class GestionComptesService {
      */
     @Transactional(readOnly = true)
     public PageResponse<CompteAdminResponse> rechercher(String recherche, TypeRole role, StatutCompte statut,
-            Integer anneeEntree, boolean sansAnneeEntree, String filiere, boolean sansFiliere, int page, int taille) {
+            Integer anneeEntree, boolean sansAnneeEntree, String filiere, boolean sansFiliere, Classe classe, boolean sansClasse,
+            int page, int taille) {
         Specification<Utilisateur> specification = (racine, requete, cb) -> cb.isTrue(racine.get("emailVerifie"));
         if (role != null) {
             specification = specification.and((racine, requete, cb) -> cb.equal(racine.get("role"), role));
@@ -83,6 +85,11 @@ public class GestionComptesService {
         } else if (filiere != null && !filiere.isBlank()) {
             String cle = Filiere.cle(filiere);
             specification = specification.and((racine, requete, cb) -> cb.equal(racine.get("filiere").get("cle"), cle));
+        }
+        if (sansClasse) {
+            specification = specification.and((racine, requete, cb) -> cb.isNull(racine.get("classe")));
+        } else if (classe != null) {
+            specification = specification.and((racine, requete, cb) -> cb.equal(racine.get("classe"), classe));
         }
         if (recherche != null && !recherche.isBlank()) {
             String motif = "%" + recherche.trim().toLowerCase(Locale.ROOT) + "%";

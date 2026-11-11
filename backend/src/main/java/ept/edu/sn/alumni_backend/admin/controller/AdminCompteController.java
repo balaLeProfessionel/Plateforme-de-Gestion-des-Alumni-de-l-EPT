@@ -18,6 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ept.edu.sn.alumni_backend.admin.dto.ActionAdminResponse;
 import ept.edu.sn.alumni_backend.admin.dto.ChangementRoleRequest;
+import ept.edu.sn.alumni_backend.admin.dto.ClasseEtudianteResponse;
+import ept.edu.sn.alumni_backend.admin.dto.PassageClasseRequest;
+import ept.edu.sn.alumni_backend.admin.dto.ResultatPassageResponse;
+import ept.edu.sn.alumni_backend.enums.Classe;
 import ept.edu.sn.alumni_backend.admin.dto.ClasseRequest;
 import ept.edu.sn.alumni_backend.admin.dto.CompteAdminResponse;
 import ept.edu.sn.alumni_backend.admin.dto.DiplomationRequest;
@@ -110,6 +114,19 @@ public class AdminCompteController {
         return ResponseEntity.ok(evolutionComptesService.marquerDiplomes(request.ids(), request.anneeSortie(), principal));
     }
 
+    /** Passage annuel en masse ; chaque passage est consigné au journal. */
+    @PostMapping("/passage-classe")
+    public ResponseEntity<ResultatPassageResponse> passerEnClasse(
+            @Valid @RequestBody PassageClasseRequest request,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(evolutionComptesService.passerEnClasse(request.ids(), request.classeDepart(), request.classeArrivee(), principal));
+    }
+
+    @GetMapping("/classes")
+    public ResponseEntity<List<ClasseEtudianteResponse>> classes() {
+        return ResponseEntity.ok(evolutionComptesService.classesEtudiantes());
+    }
+
     @GetMapping("/promotions")
     public ResponseEntity<List<PromotionResponse>> promotions() {
         return ResponseEntity.ok(evolutionComptesService.promotionsEtudiantes());
@@ -124,9 +141,12 @@ public class AdminCompteController {
             @RequestParam(defaultValue = "false") boolean sansAnneeEntree,
             @RequestParam(required = false) @Size(max = 120) String filiere,
             @RequestParam(defaultValue = "false") boolean sansFiliere,
+            @RequestParam(required = false) Classe classe,
+            @RequestParam(defaultValue = "false") boolean sansClasse,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int taille) {
-        return ResponseEntity.ok(gestionComptesService.rechercher(recherche, role, statut, anneeEntree, sansAnneeEntree, filiere, sansFiliere, page, taille));
+        return ResponseEntity.ok(gestionComptesService.rechercher(recherche, role, statut, anneeEntree, sansAnneeEntree, filiere, sansFiliere,
+            classe, sansClasse, page, taille));
     }
 
     @GetMapping("/resume")

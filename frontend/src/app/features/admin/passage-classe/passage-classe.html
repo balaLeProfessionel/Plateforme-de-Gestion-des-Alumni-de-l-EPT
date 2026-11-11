@@ -1,0 +1,97 @@
+<app-page-admin titre="Passage de classe" [parents]="[{ libelle: 'Comptes', lien: '/admin/comptes' }]"
+  introduction="Chaque année, faites passer une classe dans la suivante : choisissez la classe et la filière, décochez les redoublants, puis confirmez. Chaque passage est inscrit au journal.">
+  @if (resultat(); as r) {
+    <p #messageResultat class="message" role="status" tabindex="-1">
+      {{ r.resultat.passes }} {{ r.resultat.passes > 1 ? 'étudiants sont passés' : 'étudiant est passé' }} en {{ libelles[r.arrivee] }}.
+      @for (ignore of r.resultat.ignores; track ignore.id) { <br />{{ ignore.nom ?? 'Un compte' }} : {{ ignore.raison }} }
+    </p>
+  }
+
+  <section class="carte" aria-labelledby="titre-classe">
+    <h2 id="titre-classe">1. La classe de départ</h2>
+    @if (groupes(); as liste) {
+      @if (liste.length === 0) {
+        <p class="aide">Aucun étudiant inscrit pour l’instant.</p>
+      } @else {
+        <div class="champ">
+          <label for="passage-groupe">Classe et filière</label>
+          <!-- [selected] sur chaque option : la liste arrive après le choix lu dans l’URL. -->
+          <select #choixGroupe id="passage-groupe" (change)="choisirGroupe(choixGroupe.value)">
+            <option value="" [selected]="!choix().choisi">Choisir…</option>
+            @for (groupe of liste; track cleDe(groupe)) {
+              <option [value]="cleDe(groupe)" [selected]="choix().choisi && cleDe(groupe) === cleChoisie()">{{ libelleGroupe(groupe) }}</option>
+            }
+          </select>
+        </div>
+      }
+    } @else {
+      <p class="aide" aria-busy="true">Chargement des classes…</p>
+    }
+  </section>
+
+  @if (erreur(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+
+  @if (etudiants(); as liste) {
+    <section class="carte" aria-labelledby="titre-etudiants">
+      <div class="titre-section">
+        <h2 id="titre-etudiants">2. Les étudiants qui passent</h2>
+        @if (liste.length > 1) {
+          <button type="button" class="bouton petit" (click)="toutBasculer()">{{ selection().size === liste.length ? 'Tout décocher' : 'Tout cocher' }}</button>
+        }
+      </div>
+      @if (liste.length === 0) {
+        <p class="aide">Plus aucun étudiant dans cette classe.</p>
+      } @else {
+        @if (finDeCycle()) {
+          <p class="aide alerte">{{ libelles[choix().classe!] }} termine le cycle : les étudiants diplômés passent alumni depuis la page
+            <a routerLink="/admin/diplomes">Diplômés</a>. Choisissez une classe ci-dessous seulement pour corriger une erreur.</p>
+        }
+        <ul class="etudiants">
+          @for (etudiant of liste; track etudiant.id) {
+            <li>
+              <label>
+                <input type="checkbox" [checked]="selection().has(etudiant.id)" (change)="basculer(etudiant.id)" />
+                <span>{{ nomDuCompte(etudiant) }}</span>
+              </label>
+              <small>{{ etudiant.email }}</small>
+              <a [routerLink]="['/admin/comptes', etudiant.id]" [attr.aria-label]="'Ouvrir la fiche de ' + nomDuCompte(etudiant)">Fiche</a>
+            </li>
+          }
+        </ul>
+        <p class="aide">Décochez les redoublants : ils restent dans leur classe.</p>
+
+        <div class="champ arrivee">
+          <label for="passage-arrivee">Classe d’arrivée</label>
+          <select #choixArrivee id="passage-arrivee" (change)="choisirArrivee(choixArrivee.value)">
+            <option value="" [selected]="!arrivee()">Choisir…</option>
+            @for (cycle of classesParCycle; track cycle.cycle) {
+              <optgroup [label]="cycle.cycle">
+                @for (classe of cycle.classes; track classe) {
+                  @if (classe !== choix().classe) { <option [value]="classe" [selected]="classe === arrivee()">{{ libelles[classe] }}</option> }
+                }
+              </optgroup>
+            }
+          </select>
+        </div>
+
+        @if (confirmation() && arrivee(); as classe) {
+          <div class="confirmation" role="group" aria-label="Confirmer le passage">
+            <p>Faire passer <strong>{{ selection().size }}</strong> {{ selection().size > 1 ? 'étudiants' : 'étudiant' }}
+              de <strong>{{ choix().classe ? libelles[choix().classe!] : 'classe non renseignée' }}</strong> en <strong>{{ libelles[classe] }}</strong> ?</p>
+            <div class="boutons">
+              <button #boutonConfirmer type="button" class="bouton principal" [disabled]="enCours()" (click)="passer()">Confirmer</button>
+              <button type="button" class="bouton" (click)="confirmation.set(false)">Annuler</button>
+            </div>
+          </div>
+        } @else {
+          <div class="boutons">
+            <button type="button" class="bouton principal" [disabled]="selection().size === 0 || !arrivee()" (click)="demanderConfirmation()">
+              <i class="pi pi-angle-double-up" aria-hidden="true"></i>
+              Faire passer {{ selection().size }} {{ selection().size > 1 ? 'étudiants' : 'étudiant' }}@if (arrivee(); as classe) { en {{ libelles[classe] }} }
+            </button>
+          </div>
+        }
+      }
+    </section>
+  }
+</app-page-admin>

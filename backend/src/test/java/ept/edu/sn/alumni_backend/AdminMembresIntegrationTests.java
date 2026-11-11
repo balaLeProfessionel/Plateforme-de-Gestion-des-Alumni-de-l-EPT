@@ -284,6 +284,64 @@ class AdminMembresIntegrationTests {
         assertThat(utilisateurRepository.findById(UUID.fromString(id))).get().extracting(Utilisateur::getClasse).isNull();
     }
 
+    @Test
+    void m09_lePassageAnnuelFaitMonterUneClasseEtLaisseDeCoteCeuxQuiNOntPlusLaClasseDeDepart() throws Exception {
+        Utilisateur awa = etudiantEn("Awa", ept.edu.sn.alumni_backend.enums.Classe.DIC1, StatutCompte.ACTIF);
+        Utilisateur binta = etudiantEn("Binta", ept.edu.sn.alumni_backend.enums.Classe.DIC1, StatutCompte.ACTIF);
+        Utilisateur dejaPassee = etudiantEn("Coumba", ept.edu.sn.alumni_backend.enums.Classe.DIC2, StatutCompte.ACTIF);
+        Utilisateur suspendue = etudiantEn("Dieynaba", ept.edu.sn.alumni_backend.enums.Classe.DIC1, StatutCompte.SUSPENDU);
+        Utilisateur sansClasse = etudiantEn("Eva", null, StatutCompte.ACTIF);
+
+        mockMvc.perform(authentifie(get("/api/admin/comptes/classes"), admin))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[?(@.classe == 'DIC1' && @.filiere == '%s')].nombre".formatted("F" + lot)).value(hasItem(2)))
+            .andExpect(jsonPath("$[?(@.classe == null && @.filiere == '%s')].nombre".formatted("F" + lot)).value(hasItem(1)));
+        mockMvc.perform(authentifie(get("/api/admin/comptes").param("role", "ETUDIANT").param("classe", "DIC1")
+                .param("filiere", "f" + lot), admin))
+            .andExpect(jsonPath("$.totalElements").value(3));
+        mockMvc.perform(authentifie(get("/api/admin/comptes").param("role", "ETUDIANT").param("sansClasse", "true")
+                .param("filiere", "f" + lot), admin))
+            .andExpect(jsonPath("$.totalElements").value(1));
+
+        envoyer(post("/api/admin/comptes/passage-classe"), admin, """
+                {"ids":["%s","%s","%s","%s"],"classeDepart":"DIC1","classeArrivee":"DIC2"}
+                """.formatted(awa.getId(), binta.getId(), dejaPassee.getId(), suspendue.getId()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.passes").value(2))
+            .andExpect(jsonPath("$.ignores[*].raison").value(org.hamcrest.Matchers.containsInAnyOrder(
+                "Sa classe a changé entre-temps (DIC2).", "Ce compte est suspendu.")));
+        assertThat(utilisateurRepository.findById(awa.getId())).get()
+            .extracting(Utilisateur::getClasse).isEqualTo(ept.edu.sn.alumni_backend.enums.Classe.DIC2);
+        mockMvc.perform(authentifie(get("/api/admin/comptes/{id}/historique", binta.getId()), admin))
+            .andExpect(jsonPath("$[0].type").value("MODIFICATION_CLASSE"))
+            .andExpect(jsonPath("$[0].details").value("DIC1 → DIC2 (passage annuel)"));
+
+        // Rejoué par erreur, le même passage ne fait plus rien.
+        envoyer(post("/api/admin/comptes/passage-classe"), admin, """
+                {"ids":["%s"],"classeDepart":"DIC1","classeArrivee":"DIC2"}
+                """.formatted(awa.getId()))
+            .andExpect(jsonPath("$.passes").value(0));
+        // Une classe non renseignée se rattrape aussi en masse.
+        envoyer(post("/api/admin/comptes/passage-classe"), admin, """
+                {"ids":["%s"],"classeArrivee":"TC1"}
+                """.formatted(sansClasse.getId()))
+            .andExpect(jsonPath("$.passes").value(1));
+        envoyer(post("/api/admin/comptes/passage-classe"), admin, """
+                {"ids":["%s"],"classeDepart":"TC1","classeArrivee":"TC1"}
+                """.formatted(sansClasse.getId()))
+            .andExpect(status().isBadRequest());
+        envoyer(post("/api/admin/comptes/passage-classe"), creerUtilisateur(TypeRole.ETUDIANT, StatutCompte.ACTIF, "Moi", null), """
+                {"ids":["%s"],"classeArrivee":"TC2"}
+                """.formatted(sansClasse.getId()))
+            .andExpect(status().isForbidden());
+    }
+
+    private Utilisateur etudiantEn(String prenom, ept.edu.sn.alumni_backend.enums.Classe classe, StatutCompte statut) {
+        Utilisateur etudiant = creerUtilisateur(TypeRole.ETUDIANT, statut, prenom, 2024);
+        etudiant.setClasse(classe);
+        return utilisateurRepository.saveAndFlush(etudiant);
+    }
+
     private Utilisateur creerUtilisateur(TypeRole role, StatutCompte statut, String prenom, Integer anneeEntree) {
         Utilisateur utilisateur = new Utilisateur();
         utilisateur.setEmail(lot + "." + UUID.randomUUID() + "@example.invalid");

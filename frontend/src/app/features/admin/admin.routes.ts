@@ -47,6 +47,13 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./diplomes/diplomes').then((m) => m.Diplomes),
   },
   {
+    path: 'passage-classe',
+    title: 'Passage de classe | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_COMPTES' },
+    loadComponent: () => import('./passage-classe/passage-classe').then((m) => m.PassageClasse),
+  },
+  {
     path: 'filieres',
     title: 'Filières | EPT Alumni',
     canActivate: [permissionGuard],

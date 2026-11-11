@@ -14,6 +14,13 @@ export const CLASSES_PAR_CYCLE: readonly { cycle: string; classes: readonly Clas
   { cycle: 'Doctorat', classes: ['DOCTORAT1', 'DOCTORAT2', 'DOCTORAT3'] },
 ];
 
+/** Classe de l’année suivante (miroir de Classe.suivante) ; null en fin de cycle : l’étudiant est diplômé. */
+export const CLASSE_SUIVANTE: Record<Classe, Classe | null> = {
+  TC1: 'TC2', TC2: 'DIC1', DIC1: 'DIC2', DIC2: 'DIC3', DIC3: null,
+  MASTER1: 'MASTER2', MASTER2: null,
+  DOCTORAT1: 'DOCTORAT2', DOCTORAT2: 'DOCTORAT3', DOCTORAT3: null,
+};
+
 /** Libellé d’une classe reçue du serveur, ou null. */
 export function libelleClasse(classe: string | null | undefined): string | null {
   return classe && classe in LIBELLES_CLASSE ? LIBELLES_CLASSE[classe as Classe] : null;

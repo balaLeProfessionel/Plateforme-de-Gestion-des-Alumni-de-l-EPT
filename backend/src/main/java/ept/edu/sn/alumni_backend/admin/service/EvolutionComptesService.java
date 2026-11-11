@@ -12,7 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 import ept.edu.sn.alumni_backend.admin.TypeActionAdmin;
 import ept.edu.sn.alumni_backend.admin.dto.CompteAdminResponse;
 import ept.edu.sn.alumni_backend.admin.dto.PromotionResponse;
+import ept.edu.sn.alumni_backend.admin.dto.ClasseEtudianteResponse;
 import ept.edu.sn.alumni_backend.admin.dto.ResultatDiplomationResponse;
+import ept.edu.sn.alumni_backend.admin.dto.ResultatPassageResponse;
 import ept.edu.sn.alumni_backend.admin.exception.CompteIntrouvableException;
 import ept.edu.sn.alumni_backend.admin.exception.ConflitCompteException;
 import ept.edu.sn.alumni_backend.enums.Classe;
@@ -115,6 +117,49 @@ public class EvolutionComptesService {
             diplomes++;
         }
         return new ResultatDiplomationResponse(diplomes, ignores);
+    }
+
+    /**
+     * Passage annuel en masse : chaque étudiant choisi, encore dans la classe de départ, passe dans la classe
+     * d'arrivée ; un compte suspendu, qui n'est plus étudiant ou dont la classe a changé entre-temps est laissé de côté.
+     */
+    @Transactional
+    public ResultatPassageResponse passerEnClasse(List<UUID> ids, Classe depart, Classe arrivee, UtilisateurPrincipal principal) {
+        if (depart == arrivee) {
+            throw new IllegalArgumentException("La classe d'arrivée doit différer de la classe de départ.");
+        }
+        String detail = (depart == null ? "non renseignée" : depart.libelle()) + " → " + arrivee.libelle() + " (passage annuel)";
+        int passes = 0;
+        List<ResultatDiplomationResponse.Ignore> ignores = new ArrayList<>();
+        // Ordre fixe des verrous : deux passages simultanés ne se bloquent pas mutuellement.
+        for (UUID id : new java.util.TreeSet<>(ids)) {
+            Utilisateur compte = utilisateurRepository.findByIdForUpdate(id).filter(Utilisateur::isEmailVerifie).orElse(null);
+            String raison = compte == null ? "Compte introuvable."
+                : compte.getRole() != TypeRole.ETUDIANT ? "Ce compte n'est pas un compte étudiant."
+                : compte.getStatutCompte() == StatutCompte.SUSPENDU ? "Ce compte est suspendu."
+                : compte.getClasse() != depart ? "Sa classe a changé entre-temps ("
+                    + (compte.getClasse() == null ? "non renseignée" : compte.getClasse().libelle()) + ")." : null;
+            if (raison != null) {
+                ignores.add(new ResultatDiplomationResponse.Ignore(id, compte == null ? null : NomCompte.complet(compte), raison));
+                continue;
+            }
+            compte.setClasse(arrivee);
+            trace.consigner(principal, compte, TypeActionAdmin.MODIFICATION_CLASSE, null, detail);
+            passes++;
+        }
+        return new ResultatPassageResponse(passes, ignores);
+    }
+
+    /** Étudiants par classe et filière, pour choisir qui faire passer ; les classes dans l'ordre du cursus. */
+    @Transactional(readOnly = true)
+    public List<ClasseEtudianteResponse> classesEtudiantes() {
+        return utilisateurRepository.compterEtudiantsParClasse().stream()
+            .sorted(java.util.Comparator.comparing((UtilisateurRepository.ClasseEtudianteProjection l) -> l.getClasse(),
+                    java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
+                .thenComparing(UtilisateurRepository.ClasseEtudianteProjection::getFiliere,
+                    java.util.Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+            .map(l -> new ClasseEtudianteResponse(l.getClasse() == null ? null : l.getClasse().name(), l.getFiliere(), l.getNombre()))
+            .toList();
     }
 
     /** Promotions d'entrée où il reste des étudiants, pour choisir qui marquer diplômé. */

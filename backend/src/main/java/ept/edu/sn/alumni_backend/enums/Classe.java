@@ -30,6 +30,20 @@ public enum Classe {
         return libelle;
     }
 
+    /** Classe de l'année suivante ; vide en fin de cycle (DIC3, Master 2, Doctorat 3) : l'étudiant est alors diplômé. */
+    public Optional<Classe> suivante() {
+        return Optional.ofNullable(switch (this) {
+            case TC1 -> TC2;
+            case TC2 -> DIC1;
+            case DIC1 -> DIC2;
+            case DIC2 -> DIC3;
+            case MASTER1 -> MASTER2;
+            case DOCTORAT1 -> DOCTORAT2;
+            case DOCTORAT2 -> DOCTORAT3;
+            case DIC3, MASTER2, DOCTORAT3 -> null;
+        });
+    }
+
     /** « DIC 1 », « dic1 », « Master 2 », « MASTER2 » : espaces et casse ignorés (import d'une promotion). */
     public static Optional<Classe> depuisTexte(String texte) {
         if (texte == null || texte.isBlank()) return Optional.empty();

@@ -3,8 +3,8 @@ import { DOCUMENT } from '@angular/common';
 import { inject, Service } from '@angular/core';
 import { AuthService } from '../auth/auth-service';
 import {
-  ActionAdmin, CompteAdmin, CompteCree, CreationCompte, CriteresComptes, EntreeJournal, FicheCompte, LigneImport,
-  PermissionAdmin, PromotionEtudiante, ResultatDiplomation, ResultatImport, ResumeComptes, RoleAttribuable, TableauDeBordAdmin, TypeActionAdmin,
+  ActionAdmin, ClasseEtudiante, CompteAdmin, CompteCree, CreationCompte, CriteresComptes, EntreeJournal, FicheCompte, LigneImport,
+  PermissionAdmin, PromotionEtudiante, ResultatDiplomation, ResultatImport, ResultatPassage, ResumeComptes, RoleAttribuable, TableauDeBordAdmin, TypeActionAdmin,
 } from '../models/admin.model';
 import { Classe } from '../models/classe.model';
 import { Page } from '../models/mentorat.model';
@@ -27,6 +27,8 @@ export class AdminComptesService {
     else if (criteres.anneeEntree) params = params.set('anneeEntree', criteres.anneeEntree);
     if (criteres.sansFiliere) params = params.set('sansFiliere', true);
     else if (criteres.filiere) params = params.set('filiere', criteres.filiere);
+    if (criteres.sansClasse) params = params.set('sansClasse', true);
+    else if (criteres.classe) params = params.set('classe', criteres.classe);
     return this.http.get<Page<CompteAdmin>>(API, { params });
   }
 
@@ -54,6 +56,16 @@ export class AdminComptesService {
 
   marquerDiplomes(ids: readonly string[], anneeSortie: number) {
     return this.http.post<ResultatDiplomation>(`${API}/diplomation`, { ids, anneeSortie });
+  }
+
+  /** Étudiants par classe et filière, pour le passage annuel. */
+  classes() {
+    return this.http.get<ClasseEtudiante[]>(`${API}/classes`);
+  }
+
+  /** classeDepart null : étudiants sans classe renseignée. */
+  passerEnClasse(ids: readonly string[], classeDepart: Classe | null, classeArrivee: Classe) {
+    return this.http.post<ResultatPassage>(`${API}/passage-classe`, { ids, classeDepart, classeArrivee });
   }
 
   promotions() {
