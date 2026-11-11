@@ -218,11 +218,14 @@ public class ListeDefinitiveService {
             .map(s -> new StagiaireResponse(s.getId(), etudiant(s.getEtudiant()), s.getDateDebut(), s.getDateFin())).toList();
     }
 
+    /** Stages confirmés de l'étudiant, et ses déclarations en attente ou refusées (STA-10). */
     @Transactional(readOnly = true)
     public List<MonStageResponse> mesStages(UtilisateurPrincipal principal) {
-        return stageRepository.findByEtudiant_IdAndStatutOrderByDateDebutDesc(principal.getUtilisateur().getId(), StatutStage.CONFIRME).stream()
+        return stageRepository.findByEtudiant_IdAndStatutInOrderByDateDebutDesc(principal.getUtilisateur().getId(),
+                List.of(StatutStage.CONFIRME, StatutStage.DECLARE, StatutStage.REFUSE)).stream()
             .map(s -> new MonStageResponse(s.getId(), s.getOffre() == null ? null : s.getOffre().getId(), s.getSujet(),
-                s.getOrganisme().getNom(), s.getTypeStage().name(), s.getLieu(), s.getDateDebut(), s.getDateFin(), s.getConfirmeLe()))
+                s.nomOrganisme(), s.getTypeStage().name(), s.getLieu(), s.getDateDebut(), s.getDateFin(), s.getConfirmeLe(),
+                s.getStatut().name(), s.getStatut() == StatutStage.REFUSE ? s.getMotif() : null, s.getOffre() == null))
             .toList();
     }
 
@@ -248,7 +251,8 @@ public class ListeDefinitiveService {
         stage.confirmer();
     }
 
-    private void verifierChevauchement(Stage stage, Utilisateur etudiant) {
+    /** 409 si l'étudiant a déjà un stage confirmé aux dates qui touchent celles de ce stage. */
+    void verifierChevauchement(Stage stage, Utilisateur etudiant) {
         UUID exclu = stage.getId() == null ? new UUID(0, 0) : stage.getId();
         stageRepository.chevauchements(etudiant.getId(), exclu, stage.getDateDebut(), stage.getDateFin()).stream().findFirst()
             .ifPresent(autre -> {
@@ -287,7 +291,7 @@ public class ListeDefinitiveService {
             s.getDateDebut(), s.getDateFin(), s.getMotif(), s.getConfirmeLe(), s.getAnnuleLe());
     }
 
-    private static CandidatureRecueResponse.Etudiant etudiant(Utilisateur e) {
+    static CandidatureRecueResponse.Etudiant etudiant(Utilisateur e) {
         return new CandidatureRecueResponse.Etudiant(e.getId(), e.getPrenom(), e.getNom(), e.getNomFiliere(),
                 e.getClasse() == null ? null : e.getClasse().name(), e.getAnneeEntree(), e.getUrlPhoto());
     }
@@ -310,7 +314,7 @@ public class ListeDefinitiveService {
             + stage.getOrganisme().getNom() + ", " + periode(stage) + ". Retrouvez-le dans Stages › Mes stages.";
     }
 
-    private static String periode(Stage stage) {
+    static String periode(Stage stage) {
         return "du " + FORMAT_DATE.format(stage.getDateDebut()) + " au " + FORMAT_DATE.format(stage.getDateFin());
     }
 

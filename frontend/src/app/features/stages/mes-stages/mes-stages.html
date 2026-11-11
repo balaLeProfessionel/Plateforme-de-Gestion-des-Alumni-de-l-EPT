@@ -3,10 +3,15 @@
   <header class="entete">
     <div class="titre">
       <h1>Mes stages</h1>
-      <a class="bouton" routerLink="/stages/mes-candidatures"><i class="pi pi-send" aria-hidden="true"></i>Mes candidatures</a>
+      <div class="actions">
+        <a class="bouton" routerLink="/stages/mes-candidatures"><i class="pi pi-send" aria-hidden="true"></i>Mes candidatures</a>
+        <a class="bouton principal" routerLink="/stages/declarer"><i class="pi pi-plus" aria-hidden="true"></i>Déclarer un stage</a>
+      </div>
     </div>
-    <p class="introduction">Les stages dont l’école a publié la liste définitive avec votre nom.</p>
+    <p class="introduction">Vos stages retenus par l’école sur la liste d’une offre, et ceux que vous avez trouvés par vous-même et déclarés.</p>
   </header>
+
+  <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
 
   @if (erreur()) {
     <div class="etat" role="alert">
@@ -18,21 +23,42 @@
     @if (liste.length === 0) {
       <div class="etat">
         <i class="pi pi-briefcase" aria-hidden="true"></i>
-        <h2>Aucun stage confirmé pour l’instant</h2>
-        <p>Un stage apparaît ici dès que l’école publie la liste définitive d’une offre où vous figurez.</p>
+        <h2>Aucun stage pour l’instant</h2>
+        <p>Un stage apparaît ici quand l’école publie la liste d’une offre où vous figurez, ou quand vous déclarez un stage trouvé par vous-même.</p>
         <a class="bouton principal" routerLink="/stages">Voir les offres</a>
       </div>
     } @else {
       <ul class="liste">
         @for (s of liste; track s.id) {
-          <li class="stage" [class.carte-cliquable]="s.offreId">
-            <span class="type">{{ types[s.typeStage] }}</span>
+          <li class="stage" [attr.data-statut]="s.statut" [class.carte-cliquable]="s.offreId">
+            <p class="pastilles">
+              <span class="type">{{ types[s.typeStage] }}</span>
+              @if (s.statut !== 'CONFIRME') { <span class="statut" [attr.data-statut]="s.statut">{{ statuts[s.statut] }}</span> }
+              @if (s.declare) { <span class="origine">Trouvé par vous</span> }
+            </p>
             <h2>
               @if (s.offreId) { <a class="lien-etire" [routerLink]="['/stages/offres', s.offreId]">{{ s.sujet }}</a> } @else { {{ s.sujet }} }
             </h2>
             <p class="organisme">{{ s.organisme }}@if (s.lieu) { · {{ s.lieu }} }</p>
             <p class="periode"><i class="pi pi-calendar" aria-hidden="true"></i>Du {{ s.dateDebut | date: 'd MMMM y' }} au {{ s.dateFin | date: 'd MMMM y' }}</p>
-            <p class="details">Confirmé le {{ s.confirmeLe | date: 'd MMMM y' }}</p>
+            @if (s.statut === 'CONFIRME') {
+              <p class="details">Confirmé le {{ s.confirmeLe | date: 'd MMMM y' }}</p>
+            } @else if (s.statut === 'REFUSE') {
+              <p class="motif"><strong>Motif de l’école :</strong> {{ s.motif }}</p>
+            } @else {
+              @if (aRetirer() === s.id) {
+                <div class="confirmation" role="group" [attr.aria-label]="'Retirer la déclaration ' + s.sujet">
+                  <p>Retirer cette déclaration ? L’école ne la traitera pas.</p>
+                  @if (erreurRetrait(); as texte) { <p class="erreur" role="alert">{{ texte }}</p> }
+                  <div class="actions">
+                    <button type="button" class="bouton principal" (click)="retirer(s)">Retirer</button>
+                    <button type="button" class="bouton" (click)="aRetirer.set(null)">Garder</button>
+                  </div>
+                </div>
+              } @else {
+                <button type="button" class="bouton" (click)="aRetirer.set(s.id); erreurRetrait.set(null)">Retirer la déclaration</button>
+              }
+            }
           </li>
         }
       </ul>

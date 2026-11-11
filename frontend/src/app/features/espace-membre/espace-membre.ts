@@ -11,6 +11,7 @@ import { SidebarModule } from 'primeng/sidebar';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurInscriptions } from '../../core/services/admin/compteur-inscriptions';
+import { CompteurDeclarationsATraiter } from '../../core/services/stages/compteur-declarations';
 import { CompteurOffresAVerifier } from '../../core/services/stages/compteur-offres';
 import { PermissionAdmin, TOUTES_LES_PERMISSIONS } from '../../core/services/models/admin.model';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
@@ -50,6 +51,7 @@ export class EspaceMembre implements OnDestroy {
   protected readonly compteurMentorat = inject(CompteurDemandesMentorat);
   private readonly compteurInscriptions = inject(CompteurInscriptions);
   private readonly compteurOffres = inject(CompteurOffresAVerifier);
+  private readonly compteurDeclarations = inject(CompteurDeclarationsATraiter);
   /** Un compte d’administration navigue par domaine ; un membre garde les rubriques de la communauté. */
   private readonly administration = computed(() =>
     TOUTES_LES_PERMISSIONS.some((permission) => this.authService.aPermission(permission)));
@@ -84,6 +86,9 @@ export class EspaceMembre implements OnDestroy {
         ? [{
           libelle: 'Offres de stage', icone: 'pi-briefcase', route: '/admin/stages/offres', exact: false,
           compteur: this.compteurOffres.nombre(), libelleCompteur: 'offres à vérifier',
+        }, {
+          libelle: 'Stages déclarés', icone: 'pi-inbox', route: '/admin/stages/declarations', exact: false,
+          compteur: this.compteurDeclarations.nombre(), libelleCompteur: 'stages déclarés à traiter',
         }] : [] },
       { titre: 'Contenus', liens: [
         { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
@@ -173,7 +178,10 @@ export class EspaceMembre implements OnDestroy {
     this.authService.resynchroniser();
     if (participeAuMentorat(this.authService.utilisateur()?.role)) this.compteurMentorat.actualiser();
     if (this.authService.aPermission('GERER_COMPTES')) this.compteurInscriptions.actualiser();
-    if (this.authService.aPermission('GERER_STAGES')) this.compteurOffres.actualiser();
+    if (this.authService.aPermission('GERER_STAGES')) {
+      this.compteurOffres.actualiser();
+      this.compteurDeclarations.actualiser();
+    }
   }
 
   ngOnDestroy(): void {

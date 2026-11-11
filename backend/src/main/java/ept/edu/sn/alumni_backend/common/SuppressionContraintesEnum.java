@@ -28,6 +28,12 @@ public class SuppressionContraintesEnum implements ApplicationRunner {
         "utilisateur.utilisateur_classe_check",
         "utilisateur_permission_admin.utilisateur_permission_admin_permission_check");
 
+    /**
+     * Colonnes devenues facultatives : ddl-auto=update ne relâche jamais un NOT NULL déjà posé.
+     * stage.organisme_id : une déclaration (STA-10) peut nommer un organisme encore inconnu de la plateforme.
+     */
+    static final List<String> COLONNES_FACULTATIVES = List.of("stage.organisme_id");
+
     private final JdbcTemplate jdbcTemplate;
 
     @Override
@@ -35,6 +41,10 @@ public class SuppressionContraintesEnum implements ApplicationRunner {
         for (String contrainte : CONTRAINTES) {
             String[] parties = contrainte.split("\\.");
             jdbcTemplate.execute("alter table " + parties[0] + " drop constraint if exists " + parties[1]);
+        }
+        for (String colonne : COLONNES_FACULTATIVES) {
+            String[] parties = colonne.split("\\.");
+            jdbcTemplate.execute("alter table " + parties[0] + " alter column " + parties[1] + " drop not null");
         }
     }
 }

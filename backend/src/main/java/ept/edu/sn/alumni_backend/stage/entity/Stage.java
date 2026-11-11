@@ -53,9 +53,14 @@ public class Stage {
     @JoinColumn(name = "etudiant_id", nullable = false)
     private Utilisateur etudiant;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "organisme_id", nullable = false)
+    /** Vide pour une déclaration dont l'organisme n'est pas encore connu de la plateforme : voir organismePropose. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organisme_id")
     private Organisme organisme;
+
+    /** Nom saisi par l'étudiant pour un organisme inconnu ; l'administrateur Stages l'enregistre à la validation. */
+    @Column(name = "organisme_propose", length = 150)
+    private String organismePropose;
 
     /** Vide pour un stage trouvé hors offre (STA-10). */
     @ManyToOne(fetch = FetchType.LAZY)
@@ -87,7 +92,20 @@ public class Stage {
     @Column(nullable = false, length = 20)
     private StatutStage statut;
 
-    /** Motif d'une annulation. */
+    /** Maître de stage côté organisme (STA-10, puis suivi). */
+    @Column(name = "tuteur_nom", length = 150)
+    private String tuteurNom;
+
+    @Column(name = "tuteur_fonction", length = 150)
+    private String tuteurFonction;
+
+    @Column(name = "tuteur_email", length = 150)
+    private String tuteurEmail;
+
+    @Column(name = "tuteur_telephone", length = 30)
+    private String tuteurTelephone;
+
+    /** Motif d'une annulation ou d'un refus. */
     @Column(length = LONGUEUR_MOTIF)
     private String motif;
 
@@ -103,6 +121,14 @@ public class Stage {
 
     @Column(name = "annule_le")
     private Instant annuleLe;
+
+    /** Administrateur Stages qui a validé ou refusé une déclaration, et quand. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "decide_par_id")
+    private Utilisateur decidePar;
+
+    @Column(name = "decide_le")
+    private Instant decideLe;
 
     @Version
     private long version;
@@ -123,6 +149,11 @@ public class Stage {
         statut = StatutStage.ANNULE;
         motif = motifAnnulation;
         annuleLe = Instant.now();
+    }
+
+    /** Nom affiché de l'organisme : celui de la plateforme, ou celui proposé par l'étudiant. */
+    public String nomOrganisme() {
+        return organisme != null ? organisme.getNom() : organismePropose;
     }
 
     public boolean datesRenseignees() {

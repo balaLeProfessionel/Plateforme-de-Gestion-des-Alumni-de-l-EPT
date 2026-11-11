@@ -24,7 +24,17 @@ public interface StageRepository extends JpaRepository<Stage, UUID> {
     List<Stage> findByOffre_IdAndStatutOrderByCreeLeAsc(UUID offreId, StatutStage statut);
 
     @EntityGraph(attributePaths = {"offre", "organisme"})
-    List<Stage> findByEtudiant_IdAndStatutOrderByDateDebutDesc(UUID etudiantId, StatutStage statut);
+    List<Stage> findByEtudiant_IdAndStatutInOrderByDateDebutDesc(UUID etudiantId, java.util.Collection<StatutStage> statuts);
+
+    /** Déclarations (STA-10) d'un statut, les plus anciennes d'abord : la file se traite dans l'ordre d'arrivée. */
+    @EntityGraph(attributePaths = {"etudiant", "etudiant.filiere", "organisme"})
+    org.springframework.data.domain.Page<Stage> findByOffreIsNullAndStatut(StatutStage statut, org.springframework.data.domain.Pageable page);
+
+    long countByOffreIsNullAndStatut(StatutStage statut);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("select s from Stage s left join fetch s.organisme join fetch s.etudiant where s.id = :id")
+    Optional<Stage> findByIdForUpdate(@Param("id") UUID id);
 
     @EntityGraph(attributePaths = {"offre", "etudiant", "organisme"})
     Optional<Stage> findWithOffreById(UUID id);

@@ -1,0 +1,68 @@
+@let d = declaration();
+<div class="entete-carte">
+  <app-avatar-membre [urlPhoto]="d.etudiant.urlPhoto" [prenom]="d.etudiant.prenom" [nom]="d.etudiant.nom" roleMembre="ETUDIANT" [taille]="2.5" />
+  <div class="texte">
+    <h2><a [routerLink]="['/admin/comptes', d.etudiant.id]">{{ nom() }}</a></h2>
+    <p class="details">{{ libelleClasse(d.etudiant.classe) ?? 'Classe non renseignée' }} · {{ d.etudiant.filiere ?? 'Filière non renseignée' }}
+      @if (d.email) { · <a [href]="'mailto:' + d.email">{{ d.email }}</a> }</p>
+  </div>
+  @if (d.statut !== 'DECLARE') { <span class="statut" [attr.data-statut]="d.statut">{{ d.statut === 'CONFIRME' ? 'Validé' : statuts[d.statut] }}</span> }
+</div>
+
+<dl>
+  <dt>Stage</dt><dd><strong>{{ d.sujet }}</strong> · {{ types[d.typeStage] }}</dd>
+  <dt>Organisme</dt>
+  <dd>{{ d.organisme }}@if (!d.organismeId) { <span class="nouveau">nouveau, à enregistrer</span> }@if (d.lieu) { · {{ d.lieu }} }</dd>
+  <dt>Dates</dt><dd>Du {{ d.dateDebut | date: 'd MMMM y' }} au {{ d.dateFin | date: 'd MMMM y' }}</dd>
+  <dt>Maître de stage</dt>
+  <dd>{{ d.tuteurNom }}@if (d.tuteurFonction) { , {{ d.tuteurFonction }} }
+    @if (d.tuteurEmail) { · <a [href]="'mailto:' + d.tuteurEmail">{{ d.tuteurEmail }}</a> }
+    @if (d.tuteurTelephone) { · {{ d.tuteurTelephone }} }</dd>
+  <dt>Déclaré le</dt><dd>{{ d.creeLe | date: 'd MMMM y' }}@if (d.decideLe) { · traité le {{ d.decideLe | date: 'd MMMM y' }} }</dd>
+  @if (d.motif) { <dt>Motif</dt><dd>{{ d.motif }}</dd> }
+</dl>
+
+@if (d.statut === 'DECLARE') {
+  @switch (mode()) {
+    @case ('valider') {
+      <div class="zone" role="group" [attr.aria-label]="'Valider le stage de ' + nom()">
+        <div class="champ">
+          <label [for]="'organisme-' + d.id">Organisme d’accueil</label>
+          <input [id]="'organisme-' + d.id" type="text" autocomplete="off" [attr.list]="'organismes-' + d.id" [value]="organisme()"
+            (input)="saisirOrganisme($event)" [attr.aria-describedby]="'aide-organisme-' + d.id" />
+          <datalist [id]="'organismes-' + d.id">
+            @for (s of suggestions(); track s.id) { <option [value]="s.nom"></option> }
+          </datalist>
+          <small [id]="'aide-organisme-' + d.id" class="aide" aria-live="polite">
+            @if (organismeConnu(); as connu) { Organisme connu : le stage lui sera rattaché. }
+            @else { Organisme inconnu : il sera créé sans compte. Vérifiez d’abord qu’il n’existe pas sous un autre nom. }
+          </small>
+        </div>
+        @if (erreur(); as message) { <p class="erreur-champ" role="alert">{{ message }}</p> }
+        <div class="boutons">
+          <button type="button" class="bouton principal" [disabled]="enCours()" (click)="valider()">Valider le stage</button>
+          <button type="button" class="bouton" (click)="mode.set('lecture')">Annuler</button>
+        </div>
+      </div>
+    }
+    @case ('refuser') {
+      <div class="zone" role="group" [attr.aria-label]="'Refuser la déclaration de ' + nom()">
+        <div class="champ">
+          <label [for]="'motif-' + d.id">Motif, envoyé à l’étudiant</label>
+          <textarea [id]="'motif-' + d.id" rows="2" [attr.maxlength]="longueurMotif" [value]="motif()" (input)="saisirMotif($event)"></textarea>
+        </div>
+        @if (erreur(); as message) { <p class="erreur-champ" role="alert">{{ message }}</p> }
+        <div class="boutons">
+          <button type="button" class="bouton principal" [disabled]="enCours()" (click)="refuser()">Refuser la déclaration</button>
+          <button type="button" class="bouton" (click)="mode.set('lecture')">Annuler</button>
+        </div>
+      </div>
+    }
+    @default {
+      <div class="boutons">
+        <button type="button" class="bouton principal petit" (click)="ouvrir('valider')">Valider…</button>
+        <button type="button" class="bouton petit" (click)="ouvrir('refuser')">Refuser…</button>
+      </div>
+    }
+  }
+}

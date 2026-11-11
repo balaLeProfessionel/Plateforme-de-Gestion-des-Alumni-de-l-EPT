@@ -1,0 +1,31 @@
+<app-page-admin titre="Stages déclarés" [parents]="parents"
+  introduction="Stages trouvés par les étudiants eux-mêmes. Validez-les, en enregistrant l’organisme s’il est nouveau, ou refusez-les avec un motif.">
+  <nav class="onglets" aria-label="Déclarations par statut">
+    @for (o of onglets; track o.valeur) {
+      <button type="button" [attr.aria-pressed]="onglet() === o.valeur" (click)="choisirOnglet(o.valeur)">{{ o.libelle }}</button>
+    }
+  </nav>
+
+  <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
+
+  @if (erreurChargement(); as erreur) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ erreur }}</p></div>
+  } @else if (page(); as p) {
+    @if (p.contenu.length === 0) {
+      <div class="etat">
+        <i class="pi pi-inbox" aria-hidden="true"></i>
+        <h2>{{ onglet() === 'DECLARE' ? 'Aucun stage déclaré à traiter' : onglet() === 'CONFIRME' ? 'Aucun stage déclaré validé' : 'Aucune déclaration refusée' }}</h2>
+        @if (onglet() === 'DECLARE') { <p>Les stages que les étudiants trouvent par eux-mêmes arriveront ici.</p> }
+      </div>
+    } @else {
+      <ul class="liste">
+        @for (declaration of p.contenu; track declaration.id) {
+          <li><app-carte-declaration [declaration]="declaration" (traitee)="apresDecision($event)" /></li>
+        }
+      </ul>
+      <app-pagination-admin [page]="p.page" [totalPages]="p.totalPages" libelle="Pagination des stages déclarés" (changer)="changerPage($event)" />
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement des stages déclarés"></div>
+  }
+</app-page-admin>

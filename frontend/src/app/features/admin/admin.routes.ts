@@ -82,6 +82,13 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./liste-definitive/liste-definitive').then((m) => m.ListeDefinitivePage),
   },
   {
+    path: 'stages/declarations',
+    title: 'Stages déclarés | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_STAGES' },
+    loadComponent: () => import('./declarations-stage/declarations-stage').then((m) => m.DeclarationsStage),
+  },
+  {
     path: 'stages/offres/saisir',
     title: 'Saisir une offre de stage | EPT Alumni',
     canActivate: [permissionGuard],

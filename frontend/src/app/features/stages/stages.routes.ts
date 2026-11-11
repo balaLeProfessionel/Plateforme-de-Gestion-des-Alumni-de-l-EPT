@@ -43,6 +43,13 @@ export const STAGES_ROUTES: Routes = [
     loadComponent: () => import('./mes-stages/mes-stages').then((m) => m.MesStages),
   },
   {
+    path: 'declarer',
+    title: 'Déclarer un stage | EPT Alumni',
+    canActivate: [roleGuard],
+    data: { roles: ['ETUDIANT'] },
+    loadComponent: () => import('./declarer-stage/declarer-stage').then((m) => m.DeclarerStage),
+  },
+  {
     path: 'publier',
     title: 'Publier une offre de stage | EPT Alumni',
     canActivate: [roleGuard],

@@ -140,10 +140,10 @@ export interface OrganismeOffres {
   nom: string;
 }
 
-/** Miroir de StatutStage (STA-04). */
-export type StatutStage = 'EN_PREPARATION' | 'CONFIRME' | 'ANNULE';
+/** Miroir de StatutStage : liste définitive (STA-04) et stages déclarés par l’étudiant (STA-10). */
+export type StatutStage = 'EN_PREPARATION' | 'CONFIRME' | 'ANNULE' | 'DECLARE' | 'REFUSE';
 export const LIBELLES_STATUT_STAGE: Record<StatutStage, string> = {
-  EN_PREPARATION: 'Brouillon', CONFIRME: 'Confirmé', ANNULE: 'Annulé',
+  EN_PREPARATION: 'Brouillon', CONFIRME: 'Confirmé', ANNULE: 'Annulé', DECLARE: 'En attente de l’école', REFUSE: 'Refusé',
 };
 
 /** Miroir de LigneListeResponse : une ligne de la liste définitive, vue par l’administrateur Stages. */
@@ -192,7 +192,52 @@ export interface MonStage {
   lieu: string | null;
   dateDebut: string;
   dateFin: string;
-  confirmeLe: string;
+  /** Null pour une déclaration pas encore validée. */
+  confirmeLe: string | null;
+  /** CONFIRME, ou DECLARE / REFUSE pour un stage déclaré par l’étudiant. */
+  statut: StatutStage;
+  /** Motif d’un refus de déclaration. */
+  motif: string | null;
+  /** Vrai pour un stage trouvé par l’étudiant hors offre (STA-10). */
+  declare: boolean;
+}
+
+/** Miroir de DeclarationResponse : stage déclaré, vu par l’étudiant ou l’administrateur Stages (e-mail pour l’école). */
+export interface Declaration {
+  id: string;
+  etudiant: EtudiantStage;
+  email: string | null;
+  /** Null tant que l’organisme proposé par l’étudiant n’est pas enregistré. */
+  organismeId: string | null;
+  organisme: string;
+  typeStage: TypeStage;
+  sujet: string;
+  lieu: string | null;
+  dateDebut: string;
+  dateFin: string;
+  tuteurNom: string;
+  tuteurFonction: string | null;
+  tuteurEmail: string | null;
+  tuteurTelephone: string | null;
+  statut: StatutStage;
+  motif: string | null;
+  creeLe: string;
+  decideLe: string | null;
+}
+
+/** Miroir de DeclarationStageRequest : organismeId pour un organisme connu, sinon nomOrganisme. */
+export interface DeclarationRequete {
+  organismeId: string | null;
+  nomOrganisme: string | null;
+  typeStage: TypeStage;
+  sujet: string;
+  lieu: string | null;
+  dateDebut: string;
+  dateFin: string;
+  tuteurNom: string;
+  tuteurFonction: string | null;
+  tuteurEmail: string | null;
+  tuteurTelephone: string | null;
 }
 
 /** Miroir de EtudiantSuggestionResponse. */
