@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { roleGuard } from '../../core/guards/auth.guard';
 
-/** Module Stages (STA-01, STA-02) : les offres pour tous les membres connectés, la publication pour les organismes. */
+/** Module Stages (STA-01 à STA-04, STA-09) : les offres pour tous les membres connectés, la publication pour les organismes. */
 export const STAGES_ROUTES: Routes = [
   {
     path: '',
@@ -34,6 +34,13 @@ export const STAGES_ROUTES: Routes = [
     canActivate: [roleGuard],
     data: { roles: ['ETUDIANT'] },
     loadComponent: () => import('./mes-candidatures/mes-candidatures').then((m) => m.MesCandidatures),
+  },
+  {
+    path: 'mes-stages',
+    title: 'Mes stages | EPT Alumni',
+    canActivate: [roleGuard],
+    data: { roles: ['ETUDIANT'] },
+    loadComponent: () => import('./mes-stages/mes-stages').then((m) => m.MesStages),
   },
   {
     path: 'publier',

@@ -15,6 +15,7 @@ import ept.edu.sn.alumni_backend.admin.dto.PromotionResponse;
 import ept.edu.sn.alumni_backend.admin.dto.ResultatDiplomationResponse;
 import ept.edu.sn.alumni_backend.admin.exception.CompteIntrouvableException;
 import ept.edu.sn.alumni_backend.admin.exception.ConflitCompteException;
+import ept.edu.sn.alumni_backend.enums.Classe;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
@@ -58,12 +59,32 @@ public class EvolutionComptesService {
         }
         TypeRole ancienRole = compte.getRole();
         compte.setRole(nouveauRole);
+        // La classe n'a de sens que pour un étudiant.
+        if (nouveauRole != TypeRole.ETUDIANT) compte.setClasse(null);
         // Hors de l'administration, un compte n'a plus de responsabilités ; un nouvel administrateur n'en a pas encore.
         compte.getPermissionsAdmin().clear();
         trace.consigner(principal, compte, TypeActionAdmin.CHANGEMENT_ROLE, motif, ancienRole.name() + " → " + nouveauRole.name());
         trace.notifier(compte, "Votre rôle sur EPT Alumni a changé",
             "Bonjour " + NomCompte.salutation(compte) + ", l'administration de l'EPT a modifié votre rôle sur EPT Alumni : votre compte a désormais le rôle "
                 + NomCompte.role(nouveauRole) + ". Motif : " + motif);
+        return gestionComptesService.reponse(compte);
+    }
+
+    /** Classe d'un étudiant : passage en classe supérieure ou correction, consigné au journal. */
+    @Transactional
+    public CompteAdminResponse changerClasse(UUID id, Classe classe, UtilisateurPrincipal principal) {
+        Utilisateur compte = utilisateurRepository.findByIdForUpdate(id)
+            .filter(Utilisateur::isEmailVerifie)
+            .orElseThrow(CompteIntrouvableException::new);
+        if (compte.getRole() != TypeRole.ETUDIANT) {
+            throw new ConflitCompteException("Seul un compte étudiant a une classe.");
+        }
+        if (compte.getClasse() == classe) {
+            throw new ConflitCompteException("Ce compte est déjà dans cette classe.");
+        }
+        String avant = compte.getClasse() == null ? "non renseignée" : compte.getClasse().libelle();
+        compte.setClasse(classe);
+        trace.consigner(principal, compte, TypeActionAdmin.MODIFICATION_CLASSE, null, avant + " → " + classe.libelle());
         return gestionComptesService.reponse(compte);
     }
 
@@ -86,6 +107,7 @@ public class EvolutionComptesService {
             }
             compte.setRole(TypeRole.ALUMNI);
             compte.setAnneeSortie(anneeSortie);
+            compte.setClasse(null);
             trace.consigner(principal, compte, TypeActionAdmin.DIPLOMATION, null, "Promotion " + anneeSortie);
             trace.notifier(compte, "Félicitations, vous êtes alumni de l'EPT",
                 "Bonjour " + NomCompte.salutation(compte) + ", l'administration de l'EPT a enregistré votre diplôme (promotion "

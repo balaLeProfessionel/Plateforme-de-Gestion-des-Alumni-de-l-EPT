@@ -31,6 +31,7 @@ public class ProfilMapper {
             u.getTelephone(),
             u.getDateNaissance(),
             u.getNomFiliere(),
+            u.getClasse() == null ? null : u.getClasse().name(),
             u.getAnneeSortie(),
             u.isRecherchePublique()
         );
@@ -53,6 +54,7 @@ public class ProfilMapper {
             utilisateur.getLienPortfolio(),
             utilisateur.getUrlPhoto(),
             utilisateur.getNomFiliere(),
+            utilisateur.getClasse() == null ? null : utilisateur.getClasse().name(),
             utilisateur.getAnneeSortie(),
             experiences,
             formations

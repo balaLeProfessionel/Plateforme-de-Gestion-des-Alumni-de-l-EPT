@@ -9,6 +9,7 @@ import { FilieresService } from '../../../core/services/filieres/filieres';
 import {
   CompteCree, LIBELLES_ROLE_COMPTE, RoleAttribuable, ROLES_ATTRIBUABLES,
 } from '../../../core/services/models/admin.model';
+import { Classe, CLASSES_PAR_CYCLE, LIBELLES_CLASSE } from '../../../core/services/models/classe.model';
 import { focaliserPremiereErreur } from '../../../shared/formulaires/focus-premiere-erreur';
 import { PageAdmin } from '../page-admin/page-admin';
 import { anneeOuNull, erreurAnnee } from '../saisie-annee';
@@ -17,6 +18,7 @@ import { anneeOuNull, erreurAnnee } from '../saisie-annee';
 const AUTRE_FILIERE = 'autre';
 const VIERGE = {
   prenom: '', nom: '', email: '', role: 'ETUDIANT' as RoleAttribuable, filiere: '', filiereAutre: '', anneeEntree: '', anneeSortie: '',
+  classe: '' as Classe | '',
 };
 
 /** Création d’un compte par l’administration : le mot de passe provisoire est montré une fois, et envoyé par e-mail. */
@@ -39,6 +41,8 @@ export class NouveauCompte {
   private readonly filieresService = inject(FilieresService);
   protected readonly filieres = this.filieresService.proposees();
   protected readonly autreFiliere = AUTRE_FILIERE;
+  protected readonly classesParCycle = CLASSES_PAR_CYCLE;
+  protected readonly libellesClasse = LIBELLES_CLASSE;
   protected readonly parents = [{ libelle: 'Comptes', lien: '/admin/comptes' }];
   /** Le tableau de bord ouvre ce formulaire avec ?role=ADMIN quand la plateforme n’a qu’un super administrateur. */
   private readonly roleDemande = inject(ActivatedRoute).snapshot.queryParamMap.get('role');
@@ -61,6 +65,8 @@ export class NouveauCompte {
   });
   /** L’année de sortie n’a de sens que pour un alumni. */
   protected readonly avecSortie = computed(() => this.modele().role === 'ALUMNI');
+  /** La classe n’a de sens que pour un étudiant. */
+  protected readonly avecClasse = computed(() => this.modele().role === 'ETUDIANT');
   protected readonly avecFiliereAutre = computed(() => this.modele().filiere === AUTRE_FILIERE);
   protected readonly enCours = signal(false);
   protected readonly messageErreur = signal<string | null>(null);
@@ -81,6 +87,7 @@ export class NouveauCompte {
       prenom: saisie.prenom.trim(), nom: saisie.nom.trim(), email: saisie.email.trim(), role: saisie.role,
       filiere: (this.avecFiliereAutre() ? saisie.filiereAutre.trim() : saisie.filiere) || null, anneeEntree: anneeOuNull(saisie.anneeEntree),
       anneeSortie: this.avecSortie() ? anneeOuNull(saisie.anneeSortie) : null,
+      classe: this.avecClasse() ? saisie.classe || null : null,
     }).subscribe({
       next: (cree) => {
         this.enCours.set(false);
@@ -107,8 +114,8 @@ export class NouveauCompte {
   }
 
   protected recommencer(): void {
-    const { role, filiere, filiereAutre, anneeEntree } = this.modele();
-    this.modele.set({ ...VIERGE, role, filiere, filiereAutre, anneeEntree });
+    const { role, filiere, filiereAutre, anneeEntree, classe } = this.modele();
+    this.modele.set({ ...VIERGE, role, filiere, filiereAutre, anneeEntree, classe });
     this.formulaire().reset();
     this.cree.set(null);
     this.copie.set(false);

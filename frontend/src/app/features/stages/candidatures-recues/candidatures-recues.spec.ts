@@ -12,7 +12,7 @@ describe('CandidaturesRecues', () => {
   let fixture: ComponentFixture<CandidaturesRecues>;
   let http: HttpTestingController;
   const awa: CandidatureRecue = {
-    id: 'c1', etudiant: { id: 'e1', prenom: 'Awa', nom: 'Diop', filiere: 'Génie Civil', anneeEntree: 2023, urlPhoto: null },
+    id: 'c1', etudiant: { id: 'e1', prenom: 'Awa', nom: 'Diop', filiere: 'Génie Civil', classe: 'DIC1', anneeEntree: 2023, urlPhoto: null },
     email: null, statut: 'ENVOYEE', avisOrganisme: 'EN_ATTENTE', lettreMotivation: 'Motivée.', nomCv: 'CV Awa.pdf',
     envoyeeLe: '2026-11-10T10:00:00Z', avisDonneLe: null,
   };
@@ -41,7 +41,7 @@ describe('CandidaturesRecues', () => {
   it('montre à l’organisme les candidats sans e-mail et enregistre son avis', () => {
     const racine = afficher(false, [awa]);
     expect(racine.querySelector('h2')?.textContent).toContain('Awa Diop');
-    expect(racine.querySelector('.details')?.textContent).toContain('Génie Civil · entrée en 2023');
+    expect(racine.querySelector('.details')?.textContent).toContain('DIC1 · Génie Civil');
     expect(racine.querySelector('a[href^="mailto:"]')).toBeNull();
     expect(bouton(racine, 'Sans avis').getAttribute('aria-pressed')).toBe('true');
 

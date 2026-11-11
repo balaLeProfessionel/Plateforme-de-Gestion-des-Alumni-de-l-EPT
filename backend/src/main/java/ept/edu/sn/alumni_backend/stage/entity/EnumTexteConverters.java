@@ -3,6 +3,7 @@ package ept.edu.sn.alumni_backend.stage.entity;
 import ept.edu.sn.alumni_backend.stage.AvisOrganisme;
 import ept.edu.sn.alumni_backend.stage.StatutCandidature;
 import ept.edu.sn.alumni_backend.stage.StatutOffre;
+import ept.edu.sn.alumni_backend.stage.StatutStage;
 import ept.edu.sn.alumni_backend.stage.TypeStage;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
@@ -64,6 +65,19 @@ public final class EnumTexteConverters {
         @Override
         public TypeStage convertToEntityAttribute(String valeur) {
             return valeur == null ? null : TypeStage.valueOf(valeur);
+        }
+    }
+
+    @Converter
+    public static class StatutStageConverter implements AttributeConverter<StatutStage, String> {
+        @Override
+        public String convertToDatabaseColumn(StatutStage statut) {
+            return statut == null ? null : statut.name();
+        }
+
+        @Override
+        public StatutStage convertToEntityAttribute(String valeur) {
+            return valeur == null ? null : StatutStage.valueOf(valeur);
         }
     }
 }

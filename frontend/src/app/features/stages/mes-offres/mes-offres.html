@@ -34,6 +34,10 @@
                 <a class="lien-candidatures" [routerLink]="['/stages/mes-offres', offre.id, 'candidatures']">
                   <i class="pi pi-users" aria-hidden="true"></i>{{ offre.nombreCandidatures ?? 0 }} candidature{{ (offre.nombreCandidatures ?? 0) > 1 ? 's' : '' }}
                 </a>
+              } @else if (offre.statut === 'LISTE_PUBLIEE') {
+                <a class="lien-candidatures" [routerLink]="['/stages/mes-offres', offre.id, 'candidatures']">
+                  <i class="pi pi-check-circle" aria-hidden="true"></i>Liste définitive et candidatures
+                </a>
               }
             </div>
             <span class="statut" [attr.data-statut]="offre.statut">{{ statuts[offre.statut] }}</span>

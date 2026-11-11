@@ -3,9 +3,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
-  AvisOrganisme, CandidatureRecue, LIBELLES_AVIS_ORGANISME, LIBELLES_STATUT_CANDIDATURE, OffreStage,
+  AvisOrganisme, CandidatureRecue, LIBELLES_AVIS_ORGANISME, LIBELLES_STATUT_CANDIDATURE, OffreStage, Stagiaire,
 } from '../../../core/services/models/stage.model';
+import { libelleClasse } from '../../../core/services/models/classe.model';
 import { CandidaturesService } from '../../../core/services/stages/candidatures';
+import { ListeDefinitiveService } from '../../../core/services/stages/liste-definitive';
 import { OffresStageService } from '../../../core/services/stages/offres-stage';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
 import { FilAriane } from '../../../shared/fil-ariane/fil-ariane';
@@ -14,6 +16,7 @@ import { enregistrerFichier } from '../../../shared/telecharger';
 /**
  * Candidatures reçues par une offre. L’organisme (route data `administration` absente) voit les candidatures
  * envoyées et donne son avis (STA-09) ; l’administrateur Stages voit aussi les retirées, l’e-mail et l’avis donné.
+ * Une fois la liste définitive publiée, la page montre en tête les stagiaires confirmés par l’école et fige les avis.
  */
 @Component({
   selector: 'app-candidatures-recues',
@@ -24,6 +27,7 @@ import { enregistrerFichier } from '../../../shared/telecharger';
 export class CandidaturesRecues implements OnInit {
   private readonly service = inject(CandidaturesService);
   private readonly offresService = inject(OffresStageService);
+  private readonly listeService = inject(ListeDefinitiveService);
   private readonly document = inject(DOCUMENT);
   private readonly route = inject(ActivatedRoute);
 
@@ -35,9 +39,14 @@ export class CandidaturesRecues implements OnInit {
     : [{ libelle: 'Mes offres', lien: '/stages/mes-offres' },
       { libelle: this.offre()?.titre ?? 'Offre', lien: `/stages/offres/${this.offreId}` }, { libelle: 'Candidatures' }]);
   protected readonly statuts = LIBELLES_STATUT_CANDIDATURE;
+  protected readonly libelleClasse = libelleClasse;
   protected readonly libellesAvis = LIBELLES_AVIS_ORGANISME;
   protected readonly avisPossibles: readonly AvisOrganisme[] = ['RETENUE', 'NON_RETENUE', 'EN_ATTENTE'];
   protected readonly offre = signal<OffreStage | null>(null);
+  /** Stagiaires confirmés par l’école, une fois la liste définitive publiée (STA-04). */
+  protected readonly stagiaires = signal<readonly Stagiaire[] | null>(null);
+  /** L’avis de l’organisme ne change plus quand l’offre n’est plus ouverte aux candidatures (liste publiée). */
+  protected readonly avisFiges = computed(() => this.offre()?.statut === 'LISTE_PUBLIEE');
   protected readonly candidatures = signal<readonly CandidatureRecue[] | null>(null);
   protected readonly erreurChargement = signal<string | null>(null);
   protected readonly erreurAction = signal<{ id: string; message: string } | null>(null);
@@ -45,7 +54,15 @@ export class CandidaturesRecues implements OnInit {
   protected readonly retenues = computed(() => (this.candidatures() ?? []).filter((c) => c.statut === 'ENVOYEE' && c.avisOrganisme === 'RETENUE').length);
 
   ngOnInit(): void {
-    this.offresService.detail(this.offreId).subscribe({ next: (offre) => this.offre.set(offre), error: () => undefined });
+    this.offresService.detail(this.offreId).subscribe({
+      next: (offre) => {
+        this.offre.set(offre);
+        if (offre.statut === 'LISTE_PUBLIEE') {
+          this.listeService.stagiaires(this.offreId).subscribe({ next: (liste) => this.stagiaires.set(liste), error: () => undefined });
+        }
+      },
+      error: () => undefined,
+    });
     this.service.recues(this.offreId).subscribe({
       next: (liste) => this.candidatures.set(liste),
       error: (erreur: HttpErrorResponse) => this.erreurChargement.set(erreur.status === 404

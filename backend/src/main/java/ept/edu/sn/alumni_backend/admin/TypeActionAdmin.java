@@ -16,5 +16,7 @@ public enum TypeActionAdmin {
     /** Compte du personnel désigné chef du département d'une filière (TRA-14) ; le détail nomme la filière. */
     DESIGNATION_CHEF_DEPARTEMENT,
     /** Fin de la mission de chef de département : remplacé par un autre ou retiré. */
-    RETRAIT_CHEF_DEPARTEMENT
+    RETRAIT_CHEF_DEPARTEMENT,
+    /** Classe d'un étudiant modifiée par l'administration (passage en classe supérieure, correction) : « avant → après ». */
+    MODIFICATION_CLASSE
 }

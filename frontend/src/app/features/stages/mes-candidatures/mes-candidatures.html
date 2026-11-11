@@ -1,6 +1,12 @@
 <div class="page-stages">
   <app-fil-ariane [etapes]="etapes" />
-  <header class="entete"><h1>Mes candidatures</h1></header>
+  <header class="entete">
+    <div class="titre">
+      <h1>Mes candidatures</h1>
+      <a class="bouton" routerLink="/stages/mes-stages"><i class="pi pi-briefcase" aria-hidden="true"></i>Mes stages</a>
+    </div>
+    <p class="introduction">« Retenue » ou « non retenue » s’affiche quand l’école publie la liste définitive de l’offre.</p>
+  </header>
 
   @if (erreur()) {
     <div class="etat" role="alert">
@@ -28,7 +34,11 @@
                 <p class="details">Vous pouvez la renvoyer jusqu’au {{ c.dateLimiteCandidature | date: 'd MMMM y' }}.</p>
               }
             </div>
-            <span class="statut" [attr.data-statut]="c.statut">{{ statuts[c.statut] }}</span>
+            @if (c.resultat; as resultat) {
+              <span class="statut" [attr.data-statut]="resultat">{{ resultats[resultat] }}</span>
+            } @else {
+              <span class="statut" [attr.data-statut]="c.statut">{{ statuts[c.statut] }}</span>
+            }
           </li>
         }
       </ul>

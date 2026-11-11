@@ -13,7 +13,7 @@ describe('CandidatureOffre', () => {
   const envoyee: MaCandidature = {
     id: 'c1', offreId: 'o1', titreOffre: 'Développeur web', organisme: 'Kër Data', dateLimiteCandidature: '2026-12-15',
     candidaturesOuvertes: true, statut: 'ENVOYEE', lettreMotivation: 'Motivée.', nomCv: 'CV Awa.pdf',
-    envoyeeLe: '2026-11-10T10:00:00Z', retireeLe: null,
+    envoyeeLe: '2026-11-10T10:00:00Z', retireeLe: null, resultat: null,
   };
 
   const afficher = (existante: MaCandidature | null, offre: OffreStage = uneOffre()) => {
@@ -88,5 +88,18 @@ describe('CandidatureOffre', () => {
     const racine = afficher(null, uneOffre({ candidaturesOuvertes: false }));
     expect(racine.textContent).toContain('La date limite est passée');
     expect(racine.querySelector('form')).toBeNull();
+  });
+
+  it('affiche le résultat de la liste publiée et ne propose plus de retirer la candidature', () => {
+    const racine = afficher({ ...envoyee, resultat: 'RETENUE' }, uneOffre({ statut: 'LISTE_PUBLIEE', candidaturesOuvertes: false }));
+    expect(racine.querySelector('.resultat.retenue')?.textContent).toContain('retenu votre candidature');
+    expect(racine.querySelector('.resultat a')?.getAttribute('href')).toBe('/stages/mes-stages');
+    expect(bouton(racine, 'Retirer ma candidature')).toBeUndefined();
+    expect(racine.querySelector('form')).toBeNull();
+  });
+
+  it('annonce une candidature non retenue', () => {
+    const racine = afficher({ ...envoyee, resultat: 'NON_RETENUE' }, uneOffre({ statut: 'LISTE_PUBLIEE', candidaturesOuvertes: false }));
+    expect(racine.querySelector('.resultat')?.textContent).toContain('n’a pas été retenue');
   });
 });

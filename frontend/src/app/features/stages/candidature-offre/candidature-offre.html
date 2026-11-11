@@ -9,7 +9,13 @@
     <div #zoneEtat class="etat-candidature" tabindex="-1">
       @if (message(); as texte) { <p class="message" role="status">{{ texte }}</p> }
       @if (candidature(); as c) {
-        @if (c.statut === 'ENVOYEE') {
+        @if (c.resultat === 'RETENUE') {
+          <p class="resultat retenue"><i class="pi pi-check-circle" aria-hidden="true"></i>
+            L’école a retenu votre candidature pour ce stage. Retrouvez ses dates dans <a routerLink="/stages/mes-stages">Mes stages</a>.</p>
+        } @else if (c.resultat === 'NON_RETENUE') {
+          <p class="resultat"><i class="pi pi-info-circle" aria-hidden="true"></i>
+            La liste définitive est publiée : votre candidature n’a pas été retenue.</p>
+        } @else if (c.statut === 'ENVOYEE') {
           <p><i class="pi pi-check-circle" aria-hidden="true"></i>
             Candidature envoyée le {{ c.envoyeeLe | date: 'd MMMM y' }}. L’école publiera la liste des étudiants retenus après la date limite.</p>
         } @else {
@@ -20,12 +26,14 @@
         @if (c.statut === 'ENVOYEE' && c.lettreMotivation) {
           <details><summary>Ma lettre de motivation</summary><p class="lettre">{{ c.lettreMotivation }}</p></details>
         }
+      } @else if (offre().statut === 'LISTE_PUBLIEE') {
+        <p>L’école a publié la liste des étudiants retenus : cette offre ne reçoit plus de candidatures.</p>
       } @else if (!offre().candidaturesOuvertes) {
         <p>La date limite est passée : cette offre ne reçoit plus de candidatures.</p>
       }
     </div>
 
-    @if (candidature()?.statut === 'ENVOYEE') {
+    @if (candidature()?.statut === 'ENVOYEE' && offre().statut !== 'LISTE_PUBLIEE') {
       @if (confirmationRetrait()) {
         <div class="confirmation" role="group" aria-label="Retirer ma candidature">
           <p>Retirer votre candidature ? L’organisme ne la verra plus.</p>

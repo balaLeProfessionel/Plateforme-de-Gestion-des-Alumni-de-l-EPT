@@ -96,6 +96,10 @@ public class OffreStage {
     @Column(name = "publiee_le")
     private Instant publieeLe;
 
+    /** Publication de la liste définitive (STA-04). */
+    @Column(name = "liste_publiee_le")
+    private Instant listePublieeLe;
+
     /** Illustration 16:9 facultative, servie sous /api/offre-images/. */
     @Column(name = "url_image", length = 200)
     private String urlImage;
@@ -117,6 +121,11 @@ public class OffreStage {
         statut = StatutOffre.PUBLIEE;
         publieeLe = Instant.now();
         motifDecision = null;
+    }
+
+    public void publierListe() {
+        statut = StatutOffre.LISTE_PUBLIEE;
+        listePublieeLe = Instant.now();
     }
 
     public boolean candidaturesOuvertes(LocalDate aujourdhui) {

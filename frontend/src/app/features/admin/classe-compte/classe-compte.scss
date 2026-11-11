@@ -1,0 +1,9 @@
+// Même grille que les autres lignes « Parcours à l’EPT » de la fiche.
+:host { display: block; margin-top: 0.45rem; }
+dl { display: grid; grid-template-columns: minmax(6.5rem, auto) minmax(0, 1fr); gap: 0.45rem 0.85rem; margin: 0; font-size: 0.88rem; }
+dt { color: var(--ept-text-secondary); }
+dd { margin: 0; color: var(--ept-primary-dark); overflow-wrap: break-word; &.vide { color: var(--ept-text-secondary); font-style: italic; } }
+.lien-action { margin-left: 0.5rem; padding: 0; border: 0; background: none; color: var(--ept-primary); font: inherit; font-style: normal; font-weight: 600;
+  text-decoration: underline; cursor: pointer; &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+.zone { display: grid; gap: 0.5rem; margin-top: 0.6rem; padding: 0.75rem; border: 1px solid var(--ept-primary); border-radius: 8px; background: var(--ept-primary-light);
+  .boutons { margin-top: 0; } }

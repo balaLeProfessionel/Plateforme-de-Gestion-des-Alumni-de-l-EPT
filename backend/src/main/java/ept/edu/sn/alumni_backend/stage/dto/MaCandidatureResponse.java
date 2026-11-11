@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
-/** Candidature vue par l'étudiant qui l'a envoyée : jamais l'avis de l'organisme. */
+/** Candidature vue par l'étudiant qui l'a envoyée : jamais l'avis de l'organisme, seulement le résultat publié. */
 public record MaCandidatureResponse(
     UUID id,
     UUID offreId,
@@ -16,6 +16,8 @@ public record MaCandidatureResponse(
     String lettreMotivation,
     String nomCv,
     Instant envoyeeLe,
-    Instant retireeLe
+    Instant retireeLe,
+    /** RETENUE ou NON_RETENUE une fois la liste définitive publiée ; null avant. */
+    String resultat
 ) {
 }

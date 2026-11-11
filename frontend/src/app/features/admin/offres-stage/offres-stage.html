@@ -30,7 +30,7 @@
             <p class="details">{{ offre.organisme.nom }} · {{ types[offre.typeStage] }} · {{ offre.dureeMois }} mois
               · jusqu’au {{ offre.dateLimiteCandidature | date: 'd MMMM y' }}</p>
             <p class="details">Déposée le {{ offre.creeeLe | date: 'd MMMM y' }}
-              @if (offre.statut === 'PUBLIEE') {
+              @if (offre.statut === 'PUBLIEE' || offre.statut === 'LISTE_PUBLIEE') {
                 · <a [routerLink]="['/admin/stages/offres', offre.id, 'candidatures']">{{ offre.nombreCandidatures ?? 0 }} candidature{{ (offre.nombreCandidatures ?? 0) > 1 ? 's' : '' }}</a>
               }
             </p>
@@ -54,6 +54,10 @@
                 @if (offre.statut === 'SOUMISE') {
                   <button type="button" class="bouton principal petit" [disabled]="enCours()" (click)="publier(offre)">Publier</button>
                   <button type="button" class="bouton petit" (click)="ouvrir(offre, 'refuser')">Refuser…</button>
+                }
+                @if (offre.statut === 'PUBLIEE' || offre.statut === 'LISTE_PUBLIEE') {
+                  <a class="bouton petit" [class.principal]="offre.statut === 'PUBLIEE'" [routerLink]="['/admin/stages/offres', offre.id, 'liste']">
+                    {{ offre.statut === 'PUBLIEE' ? 'Préparer la liste définitive' : 'Liste définitive' }}</a>
                 }
                 @if (offre.statut === 'PUBLIEE') {
                   <button type="button" class="bouton petit" (click)="ouvrir(offre, 'retirer')">Retirer…</button>

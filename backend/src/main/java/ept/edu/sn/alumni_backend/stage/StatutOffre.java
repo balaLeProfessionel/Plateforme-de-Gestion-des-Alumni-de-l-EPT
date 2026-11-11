@@ -8,6 +8,8 @@ public enum StatutOffre {
     /** Déposée par un organisme non validé : en attente de l'administrateur Stages. */
     SOUMISE,
     PUBLIEE,
+    /** Liste définitive publiée par l'administrateur Stages (STA-04) : candidatures closes, avis figés. */
+    LISTE_PUBLIEE,
     /** Refusée par l'administrateur Stages, avec un motif. */
     REFUSEE,
     /** Retirée par l'organisme, ou par l'administrateur Stages avec un motif. */

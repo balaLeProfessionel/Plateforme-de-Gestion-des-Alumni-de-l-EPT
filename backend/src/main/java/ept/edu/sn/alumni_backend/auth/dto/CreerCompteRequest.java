@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.auth.dto;
 
+import ept.edu.sn.alumni_backend.enums.Classe;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
@@ -15,10 +16,12 @@ public record CreerCompteRequest(
     @NotNull(message = "Le rôle est obligatoire") TypeRole role,
     @Min(value = 1975, message = "Année d'entrée invalide") @Max(value = 2200, message = "Année d'entrée invalide") Integer anneeEntree,
     @Size(max = 120) String filiere,
-    @Min(value = 1975, message = "Année de sortie invalide") @Max(value = 2200, message = "Année de sortie invalide") Integer anneeSortie
+    @Min(value = 1975, message = "Année de sortie invalide") @Max(value = 2200, message = "Année de sortie invalide") Integer anneeSortie,
+    /** Facultative ; seulement pour un compte étudiant. */
+    Classe classe
 ) {
-    /** Compte d'étudiant ou d'un autre membre sans année de sortie connue. */
+    /** Compte d'étudiant ou d'un autre membre sans année de sortie ni classe connues. */
     public CreerCompteRequest(String nom, String prenom, String email, TypeRole role, Integer anneeEntree, String filiere) {
-        this(nom, prenom, email, role, anneeEntree, filiere, null);
+        this(nom, prenom, email, role, anneeEntree, filiere, null, null);
     }
 }

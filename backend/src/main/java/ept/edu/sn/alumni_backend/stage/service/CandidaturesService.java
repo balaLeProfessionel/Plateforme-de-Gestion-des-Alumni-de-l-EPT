@@ -3,6 +3,7 @@ package ept.edu.sn.alumni_backend.stage.service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import ept.edu.sn.alumni_backend.stage.exception.ConflitStageException;
 import ept.edu.sn.alumni_backend.stage.exception.OffreStageIntrouvableException;
 import ept.edu.sn.alumni_backend.stage.repository.CandidatureRepository;
 import ept.edu.sn.alumni_backend.stage.repository.OffreStageRepository;
+import ept.edu.sn.alumni_backend.stage.repository.StageRepository;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,7 @@ import lombok.RequiredArgsConstructor;
  *   offre. Il peut la retirer, puis la renvoyer avant la date limite (même ligne).
  * - L'organisme voit les candidatures envoyées à ses offres et donne un avis, jamais montré à l'étudiant.
  * - L'administrateur Stages voit toutes les candidatures, retirées comprises, et l'avis de l'organisme.
+ * - Une fois la liste définitive publiée (STA-04), l'étudiant voit « retenue » ou « non retenue » et ne retire plus.
  */
 @Service
 @RequiredArgsConstructor
@@ -44,16 +47,21 @@ public class CandidaturesService {
     private final UtilisateurRepository utilisateurRepository;
     private final OffresStageService offresService;
     private final StockageFichiersCandidature stockage;
+    private final StageRepository stageRepository;
 
     @Transactional(readOnly = true)
     public Optional<MaCandidatureResponse> maCandidature(UUID offreId, UtilisateurPrincipal principal) {
-        return candidatureRepository.findByOffre_IdAndEtudiant_Id(offreId, principal.getUtilisateur().getId()).map(this::versMaCandidature);
+        UUID etudiantId = principal.getUtilisateur().getId();
+        Set<UUID> confirmees = Set.copyOf(stageRepository.offresConfirmees(etudiantId));
+        return candidatureRepository.findByOffre_IdAndEtudiant_Id(offreId, etudiantId).map(c -> versMaCandidature(c, confirmees));
     }
 
     @Transactional(readOnly = true)
     public List<MaCandidatureResponse> mesCandidatures(UtilisateurPrincipal principal) {
-        return candidatureRepository.findByEtudiant_IdOrderByEnvoyeeLeDesc(principal.getUtilisateur().getId()).stream()
-            .map(this::versMaCandidature).toList();
+        UUID etudiantId = principal.getUtilisateur().getId();
+        Set<UUID> confirmees = Set.copyOf(stageRepository.offresConfirmees(etudiantId));
+        return candidatureRepository.findByEtudiant_IdOrderByEnvoyeeLeDesc(etudiantId).stream()
+            .map(c -> versMaCandidature(c, confirmees)).toList();
     }
 
     @Transactional
@@ -90,7 +98,7 @@ public class CandidaturesService {
             candidature.setNomCv(FichiersOffreService.nomAffiche(cv.getOriginalFilename()));
         }
         candidature.envoyer(lettrePropre);
-        return versMaCandidature(candidatureRepository.save(candidature));
+        return versMaCandidature(candidatureRepository.save(candidature), Set.of());
     }
 
     @Transactional
@@ -100,8 +108,11 @@ public class CandidaturesService {
         if (candidature.getStatut() != StatutCandidature.ENVOYEE) {
             throw new ConflitStageException("Cette candidature est déjà retirée.");
         }
+        if (candidature.getOffre().getStatut() == StatutOffre.LISTE_PUBLIEE) {
+            throw new ConflitStageException("La liste définitive de cette offre est publiée : la candidature ne peut plus être retirée.");
+        }
         candidature.retirer();
-        return versMaCandidature(candidature);
+        return versMaCandidature(candidature, Set.of());
     }
 
     /** Candidatures reçues par une offre : son organisme (envoyées seulement) ou l'administrateur Stages (toutes). */
@@ -158,17 +169,20 @@ public class CandidaturesService {
             && utilisateur.getOrganisme().getId().equals(offre.getOrganisme().getId());
     }
 
-    private MaCandidatureResponse versMaCandidature(Candidature c) {
+    private MaCandidatureResponse versMaCandidature(Candidature c, Set<UUID> offresConfirmees) {
         OffreStage offre = c.getOffre();
+        String resultat = ListeDefinitiveService.resultat(offre, offresConfirmees.contains(offre.getId()),
+            c.getStatut() == StatutCandidature.ENVOYEE).orElse(null);
         return new MaCandidatureResponse(c.getId(), offre.getId(), offre.getTitre(), offre.getOrganisme().getNom(),
             offre.getDateLimiteCandidature(), offre.candidaturesOuvertes(aujourdhui()), c.getStatut().name(),
-            c.getLettreMotivation(), c.getNomCv(), c.getEnvoyeeLe(), c.getRetireeLe());
+            c.getLettreMotivation(), c.getNomCv(), c.getEnvoyeeLe(), c.getRetireeLe(), resultat);
     }
 
     private static CandidatureRecueResponse versRecue(Candidature c, boolean ecole) {
         Utilisateur e = c.getEtudiant();
         return new CandidatureRecueResponse(c.getId(),
-            new CandidatureRecueResponse.Etudiant(e.getId(), e.getPrenom(), e.getNom(), e.getNomFiliere(), e.getAnneeEntree(), e.getUrlPhoto()),
+            new CandidatureRecueResponse.Etudiant(e.getId(), e.getPrenom(), e.getNom(), e.getNomFiliere(),
+                e.getClasse() == null ? null : e.getClasse().name(), e.getAnneeEntree(), e.getUrlPhoto()),
             ecole ? e.getEmail() : null, c.getStatut().name(), c.getAvisOrganisme().name(), c.getLettreMotivation(), c.getNomCv(),
             c.getEnvoyeeLe(), c.getAvisDonneLe());
     }

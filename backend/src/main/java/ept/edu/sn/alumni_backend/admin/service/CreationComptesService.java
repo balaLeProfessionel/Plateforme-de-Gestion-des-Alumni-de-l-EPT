@@ -22,6 +22,7 @@ import ept.edu.sn.alumni_backend.auth.AuthService;
 import ept.edu.sn.alumni_backend.auth.dto.CompteCreeResponse;
 import ept.edu.sn.alumni_backend.auth.dto.CreerCompteRequest;
 import ept.edu.sn.alumni_backend.auth.exception.EmailDejaUtiliseException;
+import ept.edu.sn.alumni_backend.enums.Classe;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
@@ -77,9 +78,16 @@ public class CreationComptesService {
             ImportComptesRequest.Ligne ligne = request.lignes().get(i);
             int numero = i + 1;
             String email = ligne.email() == null ? "" : ligne.email().trim().toLowerCase(Locale.ROOT);
+            Classe classe = null;
+            String erreur = null;
+            try {
+                classe = request.role() == TypeRole.ETUDIANT ? Classe.lire(ligne.classe()) : null;
+            } catch (IllegalArgumentException e) {
+                erreur = e.getMessage();
+            }
             CreerCompteRequest demande = new CreerCompteRequest(
-                vide(ligne.nom()), vide(ligne.prenom()), email, request.role(), ligne.anneeEntree(), ligne.filiere(), ligne.anneeSortie());
-            String erreur = premiereErreur(demande);
+                vide(ligne.nom()), vide(ligne.prenom()), email, request.role(), ligne.anneeEntree(), ligne.filiere(), ligne.anneeSortie(), classe);
+            if (erreur == null) erreur = premiereErreur(demande);
             if (erreur == null && !emailsVus.add(email)) {
                 erreur = "Cette adresse apparaît plusieurs fois dans le fichier.";
             }

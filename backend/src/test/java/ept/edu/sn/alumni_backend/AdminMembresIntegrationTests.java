@@ -243,6 +243,47 @@ class AdminMembresIntegrationTests {
             .andExpect(jsonPath("$.contenu[0].prenom").value("SansAnnee"));
     }
 
+    @Test
+    void m08_laClasseSeSaisitALaCreationEtALImportPuisSeModifieAuJournal() throws Exception {
+        String email = lot + ".classe@example.invalid";
+        String id = JsonPath.read(envoyer(post("/api/admin/comptes"), admin, """
+                {"prenom":"Awa","nom":"Diop","email":"%s","role":"ETUDIANT","classe":"DIC1"}
+                """.formatted(email)).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), "$.id");
+        mockMvc.perform(authentifie(get("/api/admin/comptes/{id}", id), admin)).andExpect(jsonPath("$.compte.classe").value("DIC1"));
+
+        // L'import accepte « dic 2 » ou « Master 1 », et signale une classe inconnue sur sa ligne.
+        envoyer(post("/api/admin/comptes/import"), admin, """
+                {"role":"ETUDIANT","lignes":[
+                  {"prenom":"Binta","nom":"Sow","email":"%1$s.i1@example.invalid","classe":"dic 2"},
+                  {"prenom":"Coumba","nom":"Fall","email":"%1$s.i2@example.invalid","classe":"Master 1"},
+                  {"prenom":"Dame","nom":"Ka","email":"%1$s.i3@example.invalid","classe":"CP3"}
+                ]}
+                """.formatted(lot))
+            .andExpect(jsonPath("$.crees").value(2))
+            .andExpect(jsonPath("$.lignes[2].message").value(org.hamcrest.Matchers.startsWith("Classe inconnue : « CP3 »")));
+        assertThat(utilisateurRepository.findByEmail(lot + ".i1@example.invalid")).get()
+            .extracting(Utilisateur::getClasse).isEqualTo(ept.edu.sn.alumni_backend.enums.Classe.DIC2);
+        assertThat(utilisateurRepository.findByEmail(lot + ".i2@example.invalid")).get()
+            .extracting(Utilisateur::getClasse).isEqualTo(ept.edu.sn.alumni_backend.enums.Classe.MASTER1);
+
+        envoyer(patch("/api/admin/comptes/{id}/classe", id), admin, "{\"classe\":\"DIC2\"}")
+            .andExpect(status().isOk()).andExpect(jsonPath("$.classe").value("DIC2"));
+        envoyer(patch("/api/admin/comptes/{id}/classe", id), admin, "{\"classe\":\"DIC2\"}").andExpect(status().isConflict());
+        envoyer(patch("/api/admin/comptes/{id}/classe", id), admin, "{}").andExpect(status().isBadRequest());
+        mockMvc.perform(authentifie(get("/api/admin/comptes/{id}/historique", id), admin))
+            .andExpect(jsonPath("$[0].type").value("MODIFICATION_CLASSE"))
+            .andExpect(jsonPath("$[0].details").value("DIC1 → DIC2"));
+
+        Utilisateur alumni = creerUtilisateur(TypeRole.ALUMNI, StatutCompte.ACTIF, "Coumba", 2020);
+        envoyer(patch("/api/admin/comptes/{id}/classe", alumni.getId()), admin, "{\"classe\":\"DIC2\"}")
+            .andExpect(status().isConflict()).andExpect(jsonPath("$.message").value("Seul un compte étudiant a une classe."));
+
+        // Diplômé, l'étudiant n'a plus de classe.
+        envoyer(post("/api/admin/comptes/diplomation"), admin, "{\"ids\":[\"%s\"],\"anneeSortie\":2026}".formatted(id))
+            .andExpect(jsonPath("$.diplomes").value(1));
+        assertThat(utilisateurRepository.findById(UUID.fromString(id))).get().extracting(Utilisateur::getClasse).isNull();
+    }
+
     private Utilisateur creerUtilisateur(TypeRole role, StatutCompte statut, String prenom, Integer anneeEntree) {
         Utilisateur utilisateur = new Utilisateur();
         utilisateur.setEmail(lot + "." + UUID.randomUUID() + "@example.invalid");

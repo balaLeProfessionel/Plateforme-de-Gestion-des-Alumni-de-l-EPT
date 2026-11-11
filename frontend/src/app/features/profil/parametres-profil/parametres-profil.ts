@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { InputText } from 'primeng/inputtext';
 
 import { AuthService } from '../../../core/services/auth/auth-service';
+import { libelleClasse } from '../../../core/services/models/classe.model';
 import { Profil, ProfilRequest } from '../../../core/services/models/profil.model';
 import { ProfilService } from '../../../core/services/profil/profil-service';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
@@ -31,6 +32,7 @@ export class ParametresProfil implements OnDestroy {
   private readonly profilService = inject(ProfilService);
   private readonly authService = inject(AuthService);
 
+  protected readonly libelleClasse = libelleClasse;
   protected readonly profil = signal<Profil | null>(null);
   protected readonly enChargement = signal(true);
   protected readonly erreurChargement = signal<string | null>(null);

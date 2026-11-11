@@ -18,6 +18,6 @@ public record CandidatureRecueResponse(
     Instant envoyeeLe,
     Instant avisDonneLe
 ) {
-    public record Etudiant(UUID id, String prenom, String nom, String filiere, Integer anneeEntree, String urlPhoto) {
+    public record Etudiant(UUID id, String prenom, String nom, String filiere, String classe, Integer anneeEntree, String urlPhoto) {
     }
 }

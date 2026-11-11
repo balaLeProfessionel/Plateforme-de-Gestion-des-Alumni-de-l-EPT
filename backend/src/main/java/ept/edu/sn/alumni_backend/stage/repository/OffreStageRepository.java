@@ -36,10 +36,10 @@ public interface OffreStageRepository extends JpaRepository<OffreStage, UUID>, J
     /** Organismes qui ont au moins une offre publiée visible : choix du filtre « Organisme ». */
     @Query("""
         select distinct o.organisme.id as id, o.organisme.nom as nom from OffreStage o
-        where o.statut = :statut and o.organisme.statutValidation <> :suspendu
+        where o.statut in :statuts and o.organisme.statutValidation <> :suspendu
         order by o.organisme.nom
         """)
-    List<OrganismeOffresProjection> organismesAvecOffres(@Param("statut") StatutOffre statut, @Param("suspendu") StatutCompte suspendu);
+    List<OrganismeOffresProjection> organismesAvecOffres(@Param("statuts") java.util.Collection<StatutOffre> statuts, @Param("suspendu") StatutCompte suspendu);
 
     interface OrganismeOffresProjection {
         UUID getId();

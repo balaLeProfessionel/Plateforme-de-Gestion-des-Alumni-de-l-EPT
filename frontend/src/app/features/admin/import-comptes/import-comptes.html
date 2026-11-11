@@ -37,7 +37,7 @@
   } @else {
     <section class="carte" aria-labelledby="titre-fichier">
       <h2 id="titre-fichier">1. Le fichier</h2>
-      <p class="aide">Colonnes reconnues : prénom, nom, e-mail (obligatoires), filière, année d’entrée, année de sortie.
+      <p class="aide">Colonnes reconnues : prénom, nom, e-mail (obligatoires), filière, classe (TC1… DIC3, Master 1, Doctorat 1…, pour les étudiants), année d’entrée, année de sortie.
         Séparateur point-virgule ou virgule. 300 comptes au plus.
         <button type="button" class="lien-aide" (click)="telechargerModele()">Télécharger un modèle</button></p>
       <div class="grille-champs">
@@ -53,7 +53,7 @@
         </div>
         <div class="champ large">
           <label for="import-texte">Ou collez le contenu du fichier</label>
-          <textarea #champTexte id="import-texte" rows="5" placeholder="prenom;nom;email;filiere;annee_entree"
+          <textarea #champTexte id="import-texte" rows="5" placeholder="prenom;nom;email;filiere;classe;annee_entree"
             (input)="lire(champTexte.value)"></textarea>
         </div>
       </div>
@@ -72,12 +72,12 @@
           <div class="tableau" tabindex="0" role="region" aria-label="Aperçu des comptes à créer, défilable">
             <table>
               <caption class="sr-only">Aperçu des comptes à créer</caption>
-              <thead><tr><th scope="col">Ligne</th><th scope="col">Prénom</th><th scope="col">Nom</th><th scope="col">E-mail</th><th scope="col">Filière</th><th scope="col">Entrée</th><th scope="col">État</th></tr></thead>
+              <thead><tr><th scope="col">Ligne</th><th scope="col">Prénom</th><th scope="col">Nom</th><th scope="col">E-mail</th><th scope="col">Filière</th><th scope="col">Classe</th><th scope="col">Entrée</th><th scope="col">État</th></tr></thead>
               <tbody>
                 @for (ligne of l.lignes; track ligne.numero) {
                   <tr [class.echec]="ligne.probleme">
                     <td>{{ ligne.numero }}</td><td>{{ ligne.prenom }}</td><td>{{ ligne.nom }}</td><td>{{ ligne.email }}</td>
-                    <td>{{ ligne.filiere }}</td><td>{{ ligne.anneeEntree }}</td><td>{{ ligne.probleme ?? 'Prêt' }}</td>
+                    <td>{{ ligne.filiere }}</td><td>{{ ligne.classe }}</td><td>{{ ligne.anneeEntree }}</td><td>{{ ligne.probleme ?? 'Prêt' }}</td>
                   </tr>
                 }
               </tbody>

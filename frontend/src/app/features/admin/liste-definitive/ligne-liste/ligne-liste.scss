@@ -1,0 +1,21 @@
+@use 'responsive' as *;
+
+:host { display: grid; gap: 0.5rem; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: white; }
+:host(.annulee) { background: var(--ept-bg); }
+.identite { display: flex; align-items: flex-start; gap: 0.75rem; min-width: 0; }
+.texte { flex: 1; min-width: 0; }
+h3 { margin: 0; font-size: 1rem; overflow-wrap: anywhere;
+  a { color: var(--ept-primary-dark); &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } } }
+.details { margin: 0.2rem 0 0; color: var(--ept-text-secondary); font-size: 0.85rem; overflow-wrap: anywhere; strong { color: var(--ept-primary-dark); } }
+.statut {
+  flex: none; padding: 0.15rem 0.6rem; border-radius: 999px; background: var(--ept-gold-light); color: var(--ept-gold-dark); font-size: 0.75rem; font-weight: 700;
+  &[data-statut='CONFIRME'] { background: var(--ept-success-light); color: var(--ept-success-dark); }
+  &[data-statut='ANNULE'] { background: var(--ept-error-light); color: var(--ept-error-dark); }
+}
+.periode { display: flex; align-items: center; gap: 0.4rem; margin: 0; color: var(--ept-primary-dark); font-size: 0.88rem; }
+.manque { color: var(--ept-gold-dark); font-weight: 600; }
+.zone { display: grid; gap: 0.5rem; padding: 0.75rem; border: 1px solid var(--ept-primary); border-radius: 8px; background: var(--ept-primary-light); }
+.dates { display: grid; gap: 0.5rem; @include a-partir-de(tablette) { grid-template-columns: repeat(2, minmax(0, 12rem)); } }
+.boutons { gap: 0.4rem; margin-top: 0; }
+.bouton.petit { min-height: 2.25rem; padding: 0.3rem 0.75rem; font-size: 0.82rem; }
+.erreur { margin: 0; color: var(--ept-error-dark); font-weight: 600; }

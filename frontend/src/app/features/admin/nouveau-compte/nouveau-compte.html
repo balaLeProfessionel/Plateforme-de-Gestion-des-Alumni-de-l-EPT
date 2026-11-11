@@ -81,6 +81,19 @@
             }
           </div>
         }
+        @if (avecClasse()) {
+          <div class="champ">
+            <label for="compte-classe">Classe (facultative)</label>
+            <select id="compte-classe" [formField]="formulaire.classe">
+              <option value="">Non renseignée</option>
+              @for (groupe of classesParCycle; track groupe.cycle) {
+                <optgroup [label]="groupe.cycle">
+                  @for (classe of groupe.classes; track classe) { <option [value]="classe">{{ libellesClasse[classe] }}</option> }
+                </optgroup>
+              }
+            </select>
+          </div>
+        }
         <div class="champ">
           <label for="compte-entree">Année d’entrée (facultative)</label>
           <input id="compte-entree" type="text" inputmode="numeric" autocomplete="off" placeholder="2024" [formField]="formulaire.anneeEntree"

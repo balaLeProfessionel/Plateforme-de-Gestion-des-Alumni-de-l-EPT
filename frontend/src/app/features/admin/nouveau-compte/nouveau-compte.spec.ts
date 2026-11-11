@@ -67,7 +67,7 @@ describe('NouveauCompte', () => {
 
     const requete = http.expectOne({ method: 'POST', url: '/api/admin/comptes' });
     expect(requete.request.body).toEqual({
-      prenom: 'Awa', nom: 'Diop', email: 'awa.diop@ept.sn', role: 'ALUMNI', filiere: null, anneeEntree: 2016, anneeSortie: 2019,
+      prenom: 'Awa', nom: 'Diop', email: 'awa.diop@ept.sn', role: 'ALUMNI', filiere: null, anneeEntree: 2016, anneeSortie: 2019, classe: null,
     });
     requete.flush({ id: 'c1', email: 'awa.diop@ept.sn', nom: 'Diop', prenom: 'Awa', role: 'ALUMNI', motDePasseTemporaire: 'Xy7kP2mQ9rTs' });
     await fixture.whenStable();

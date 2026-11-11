@@ -1,8 +1,10 @@
+import { Classe } from './classe.model';
+
 export type StatutCompte = 'EN_ATTENTE' | 'ACTIF' | 'SUSPENDU';
 export type RoleCompte = 'ETUDIANT' | 'ALUMNI' | 'PERSONNEL' | 'ORGANISME' | 'ADMIN' | 'VISITEUR';
 export type TypeActionAdmin = 'VALIDATION_INSCRIPTION' | 'REFUS_INSCRIPTION' | 'SUSPENSION' | 'REACTIVATION'
   | 'CREATION_COMPTE' | 'CHANGEMENT_ROLE' | 'DIPLOMATION' | 'MODIFICATION_IDENTITE' | 'MODIFICATION_RESPONSABILITES'
-  | 'DESIGNATION_CHEF_DEPARTEMENT' | 'RETRAIT_CHEF_DEPARTEMENT';
+  | 'DESIGNATION_CHEF_DEPARTEMENT' | 'RETRAIT_CHEF_DEPARTEMENT' | 'MODIFICATION_CLASSE';
 
 /** Miroir de CompteAdminResponse : un compte vu par l’administration, coordonnées comprises. */
 export interface CompteAdmin {
@@ -14,6 +16,8 @@ export interface CompteAdmin {
   role: RoleCompte;
   statutCompte: StatutCompte;
   filiere: string | null;
+  /** Code de la classe (DIC1, MASTER2…), pour un étudiant. */
+  classe: Classe | null;
   anneeEntree: number | null;
   anneeSortie: number | null;
   nomOrganisme: string | null;
@@ -64,6 +68,8 @@ export interface CreationCompte {
   filiere: string | null;
   anneeEntree: number | null;
   anneeSortie: number | null;
+  /** Pour un étudiant seulement. */
+  classe: Classe | null;
 }
 
 export interface CompteCree {
@@ -82,6 +88,8 @@ export interface LigneImport {
   filiere: string | null;
   anneeEntree: number | null;
   anneeSortie: number | null;
+  /** Texte du fichier (« DIC1 », « Master 2 »…), interprété par le serveur. */
+  classe: string | null;
 }
 
 export interface ResultatImport {
@@ -220,6 +228,7 @@ export const LIBELLES_ACTION_ADMIN: Record<TypeActionAdmin, string> = {
   MODIFICATION_RESPONSABILITES: 'Responsabilités modifiées',
   DESIGNATION_CHEF_DEPARTEMENT: 'Désigné chef de département',
   RETRAIT_CHEF_DEPARTEMENT: 'N’est plus chef de département',
+  MODIFICATION_CLASSE: 'Classe modifiée',
 };
 
 /** Détails lisibles : rôles et responsabilités techniques (« ALUMNI → ADMIN », « GERER_STAGES ») deviennent leurs libellés. */

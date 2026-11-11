@@ -271,6 +271,7 @@ public class GestionComptesService {
         return new CompteAdminResponse(
             compte.getId(), compte.getPrenom(), compte.getNom(), compte.getEmail(), compte.getTelephone(),
             compte.getRole().name(), compte.getStatutCompte().name(), compte.getNomFiliere(),
+            compte.getClasse() == null ? null : compte.getClasse().name(),
             compte.getAnneeEntree(), compte.getAnneeSortie(),
             compte.getOrganisme() == null ? null : compte.getOrganisme().getNom(),
             compte.getOrganisme() == null ? null : compte.getOrganisme().getId(),

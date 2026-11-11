@@ -18,7 +18,7 @@ export function authAdmin(permissions: readonly PermissionAdmin[] = TOUTES_LES_P
 export function compte(changement: Partial<CompteAdmin> = {}): CompteAdmin {
   return {
     id: 'c1', prenom: 'Awa', nom: 'Diop', email: 'awa.diop@example.invalid', telephone: null, role: 'ALUMNI',
-    statutCompte: 'ACTIF', filiere: 'Génie informatique', anneeEntree: 2016, anneeSortie: 2019, nomOrganisme: null,
+    statutCompte: 'ACTIF', filiere: 'Génie informatique', classe: null, anneeEntree: 2016, anneeSortie: 2019, nomOrganisme: null,
     organismeId: null, urlPhoto: null, dateCreation: '2026-10-01T09:00:00', motifSuspension: null, nombreDecisions: 0,
     ...changement,
   };

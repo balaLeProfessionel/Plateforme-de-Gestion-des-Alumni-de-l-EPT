@@ -12,6 +12,7 @@ import org.hibernate.annotations.BatchSize;
 
 import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import ept.edu.sn.alumni_backend.admin.entity.PermissionAdminConverter;
+import ept.edu.sn.alumni_backend.enums.Classe;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeDiplome;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
@@ -82,6 +83,11 @@ public class Utilisateur {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "filiere_id", foreignKey = @ForeignKey(name = "fk_utilisateur_filiere"))
     private Filiere filiere;
+
+    /** Classe de l'année en cours, pour un étudiant seulement (TC1… DIC3, Master, Doctorat). */
+    @Enumerated(EnumType.STRING)
+    @Column(length = 12)
+    private Classe classe;
     
     private LocalDateTime dateCreation;
 

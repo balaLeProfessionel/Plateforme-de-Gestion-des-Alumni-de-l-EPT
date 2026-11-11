@@ -1,0 +1,43 @@
+<div class="page-stages">
+  <app-fil-ariane [etapes]="etapes" />
+  <header class="entete">
+    <div class="titre">
+      <h1>Mes stages</h1>
+      <a class="bouton" routerLink="/stages/mes-candidatures"><i class="pi pi-send" aria-hidden="true"></i>Mes candidatures</a>
+    </div>
+    <p class="introduction">Les stages dont l’école a publié la liste définitive avec votre nom.</p>
+  </header>
+
+  @if (erreur()) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Vos stages n’ont pas pu être chargés</h2>
+      <button type="button" class="bouton" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (stages(); as liste) {
+    @if (liste.length === 0) {
+      <div class="etat">
+        <i class="pi pi-briefcase" aria-hidden="true"></i>
+        <h2>Aucun stage confirmé pour l’instant</h2>
+        <p>Un stage apparaît ici dès que l’école publie la liste définitive d’une offre où vous figurez.</p>
+        <a class="bouton principal" routerLink="/stages">Voir les offres</a>
+      </div>
+    } @else {
+      <ul class="liste">
+        @for (s of liste; track s.id) {
+          <li class="stage" [class.carte-cliquable]="s.offreId">
+            <span class="type">{{ types[s.typeStage] }}</span>
+            <h2>
+              @if (s.offreId) { <a class="lien-etire" [routerLink]="['/stages/offres', s.offreId]">{{ s.sujet }}</a> } @else { {{ s.sujet }} }
+            </h2>
+            <p class="organisme">{{ s.organisme }}@if (s.lieu) { · {{ s.lieu }} }</p>
+            <p class="periode"><i class="pi pi-calendar" aria-hidden="true"></i>Du {{ s.dateDebut | date: 'd MMMM y' }} au {{ s.dateFin | date: 'd MMMM y' }}</p>
+            <p class="details">Confirmé le {{ s.confirmeLe | date: 'd MMMM y' }}</p>
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement de vos stages"></div>
+  }
+</div>

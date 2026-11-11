@@ -11,12 +11,12 @@ import { OffresStageService } from '../../../core/services/stages/offres-stage';
 import { PageAdmin } from '../page-admin/page-admin';
 import { PaginationAdmin } from '../pagination-admin/pagination-admin';
 
-type Onglet = 'SOUMISE' | 'PUBLIEE' | '';
+type Onglet = 'SOUMISE' | 'PUBLIEE' | 'LISTE_PUBLIEE' | '';
 type Decision = { offreId: string; action: 'refuser' | 'retirer' };
 
-/** « ?statut=PUBLIEE » ou « ?statut=toutes » ; sans paramètre, la file à vérifier. */
+/** « ?statut=PUBLIEE », « ?statut=LISTE_PUBLIEE » ou « ?statut=toutes » ; sans paramètre, la file à vérifier. */
 function ongletDepuis(statut: string | null): Onglet {
-  if (statut === 'PUBLIEE') return 'PUBLIEE';
+  if (statut === 'PUBLIEE' || statut === 'LISTE_PUBLIEE') return statut;
   return statut === 'toutes' ? '' : 'SOUMISE';
 }
 
@@ -39,7 +39,8 @@ export class OffresStage {
 
   protected readonly parents = [{ libelle: 'Stages', lien: '/stages' }];
   protected readonly onglets: readonly { valeur: Onglet; libelle: string }[] = [
-    { valeur: 'SOUMISE', libelle: 'À vérifier' }, { valeur: 'PUBLIEE', libelle: 'Publiées' }, { valeur: '', libelle: 'Toutes' },
+    { valeur: 'SOUMISE', libelle: 'À vérifier' }, { valeur: 'PUBLIEE', libelle: 'Publiées' },
+    { valeur: 'LISTE_PUBLIEE', libelle: 'Listes publiées' }, { valeur: '', libelle: 'Toutes' },
   ];
   protected readonly types = LIBELLES_TYPE_STAGE;
   protected readonly statuts = LIBELLES_STATUT_OFFRE;

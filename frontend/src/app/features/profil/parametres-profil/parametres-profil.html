@@ -66,6 +66,7 @@
       <div class="champs-lecture-seule" aria-label="Informations non modifiables">
         <div><span>Email</span><strong>{{ membre.email }}</strong></div>
         <div><span>Type de membre</span><strong>{{ typeMembre() }}</strong></div>
+        @if (libelleClasse(membre.classe); as classe) { <div><span>Classe</span><strong>{{ classe }}</strong></div> }
         @if (membre.filiere) { <div><span>Filière</span><strong>{{ membre.filiere }}</strong></div> }
         @if (membre.anneeSortie) { <div><span>Promotion</span><strong>{{ membre.anneeSortie }}</strong></div> }
       </div>

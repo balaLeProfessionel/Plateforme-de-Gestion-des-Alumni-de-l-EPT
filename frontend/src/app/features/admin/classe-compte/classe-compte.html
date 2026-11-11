@@ -1,0 +1,28 @@
+<dl>
+  <dt>Classe</dt>
+  <dd [class.vide]="!libelle()">{{ libelle() ?? 'Non renseignée' }}
+    @if (!ouvert() && compte().statutCompte !== 'SUSPENDU') {
+      <button type="button" class="lien-action" (click)="ouvrir()">Modifier<span class="sr-only"> la classe</span></button>
+    }
+  </dd>
+</dl>
+@if (ouvert()) {
+  <div class="zone" role="group" aria-label="Modifier la classe">
+    <div class="champ">
+      <label for="classe-compte">Nouvelle classe</label>
+      <select id="classe-compte" (change)="choisir($event)">
+        <option value="" [selected]="!choix()">Choisissez…</option>
+        @for (groupe of classesParCycle; track groupe.cycle) {
+          <optgroup [label]="groupe.cycle">
+            @for (classe of groupe.classes; track classe) { <option [value]="classe" [selected]="classe === choix()">{{ libelles[classe] }}</option> }
+          </optgroup>
+        }
+      </select>
+    </div>
+    @if (erreur(); as message) { <p class="erreur-champ" role="alert">{{ message }}</p> }
+    <div class="boutons">
+      <button type="button" class="bouton principal" [disabled]="enCours()" (click)="enregistrer()">Enregistrer</button>
+      <button type="button" class="bouton" (click)="ouvert.set(false)">Annuler</button>
+    </div>
+  </div>
+}

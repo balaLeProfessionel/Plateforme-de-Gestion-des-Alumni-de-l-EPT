@@ -30,3 +30,6 @@ textarea { resize: vertical; line-height: 1.5; }
 }
 .suivi { justify-self: start; color: var(--ept-primary); font-size: 0.85rem; font-weight: 600;
   &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+.resultat { padding: 0.5rem 0.7rem; border-radius: 8px; background: white; font-weight: 600;
+  &.retenue { background: var(--ept-success-light); color: var(--ept-success-dark); i { color: var(--ept-success-dark); } }
+  a { color: inherit; } }

@@ -19,6 +19,7 @@ public record ProfilPublicResponse(
     String lienPortfolio,
     String urlPhoto,
     String filiere,
+    String classe,
     Integer anneeSortie,
     List<ExperienceResponse> experiences,
     List<FormationResponse> formations

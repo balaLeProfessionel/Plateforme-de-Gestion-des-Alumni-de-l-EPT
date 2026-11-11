@@ -23,6 +23,9 @@ public class SuppressionContraintesEnum implements ApplicationRunner {
         "offre_stage.offre_stage_type_stage_check",
         "candidature.candidature_statut_check",
         "candidature.candidature_avis_organisme_check",
+        "stage.stage_statut_check",
+        "stage.stage_type_stage_check",
+        "utilisateur.utilisateur_classe_check",
         "utilisateur_permission_admin.utilisateur_permission_admin_permission_check");
 
     private final JdbcTemplate jdbcTemplate;

@@ -6,6 +6,7 @@ import {
   ActionAdmin, CompteAdmin, CompteCree, CreationCompte, CriteresComptes, EntreeJournal, FicheCompte, LigneImport,
   PermissionAdmin, PromotionEtudiante, ResultatDiplomation, ResultatImport, ResumeComptes, RoleAttribuable, TableauDeBordAdmin, TypeActionAdmin,
 } from '../models/admin.model';
+import { Classe } from '../models/classe.model';
 import { Page } from '../models/mentorat.model';
 
 const API = '/api/admin/comptes';
@@ -35,6 +36,11 @@ export class AdminComptesService {
 
   importer(role: RoleAttribuable, lignes: readonly LigneImport[]) {
     return this.http.post<ResultatImport>(`${API}/import`, { role, lignes });
+  }
+
+  /** Classe d’un étudiant (passage en classe supérieure, correction), consignée au journal. */
+  changerClasse(id: string, classe: Classe) {
+    return this.http.patch<CompteAdmin>(`${API}/${encodeURIComponent(id)}/classe`, { classe });
   }
 
   changerRole(id: string, role: RoleAttribuable, motif: string) {

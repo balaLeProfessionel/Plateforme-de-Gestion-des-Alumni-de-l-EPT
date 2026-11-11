@@ -1,0 +1,26 @@
+@use 'responsive' as *;
+
+h2 a { color: var(--ept-primary-dark); &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+.resume h2 { margin-bottom: 0.25rem; overflow-wrap: anywhere; }
+.details { margin: 0; color: var(--ept-text-secondary); font-size: 0.88rem; overflow-wrap: anywhere; }
+.bandeau { display: flex; align-items: flex-start; gap: 0.5rem; margin: 0.75rem 0 0; padding: 0.6rem 0.8rem; border-radius: 8px;
+  background: var(--ept-gold-light); color: var(--ept-gold-dark); font-size: 0.88rem; line-height: 1.45;
+  i { margin-top: 0.15rem; }
+  &.publie { background: var(--ept-success-light); color: var(--ept-success-dark); } }
+.bloc { display: grid; gap: 0.75rem; margin-bottom: 1.5rem;
+  > h2 { display: flex; align-items: center; gap: 0.5rem; margin: 0; color: var(--ept-primary-dark); font-size: 1.1rem; } }
+.compte { min-width: 1.6rem; padding: 0.05rem 0.45rem; border-radius: 999px; background: var(--ept-primary-light); color: var(--ept-primary); font-size: 0.8rem; text-align: center; }
+.vide { margin: 0; color: var(--ept-text-secondary); }
+.lignes, .candidats { display: grid; gap: 0.6rem; margin: 0; padding: 0; list-style: none; }
+.candidats li { display: flex; align-items: center; gap: 0.6rem; min-width: 0; padding: 0.55rem 0.7rem; border: 1px solid var(--ept-border); border-radius: 8px; background: white; }
+.nom { display: grid; flex: 1; min-width: 0; color: var(--ept-primary-dark); font-weight: 600; overflow-wrap: anywhere;
+  small { color: var(--ept-text-secondary); font-weight: 400; }
+  [data-avis='RETENUE'] { color: var(--ept-success-dark); font-weight: 700; } }
+.publication { display: grid; gap: 0.5rem; justify-items: start; .aide { margin: 0; } }
+.zone { display: grid; gap: 0.5rem; padding: 0.75rem; border: 1px solid var(--ept-primary); border-radius: 8px; background: var(--ept-primary-light);
+  p { margin: 0; color: var(--ept-primary-dark); line-height: 1.45; }
+  .boutons { margin-top: 0; } }
+.lien { justify-self: start; color: var(--ept-primary); font-size: 0.88rem; font-weight: 600;
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+.bouton.petit { flex: none; min-height: 2.25rem; padding: 0.3rem 0.75rem; font-size: 0.82rem; }
+.squelette { min-height: 14rem; }

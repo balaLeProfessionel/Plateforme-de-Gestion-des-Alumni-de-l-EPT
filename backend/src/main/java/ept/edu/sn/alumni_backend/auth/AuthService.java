@@ -282,6 +282,7 @@ public class AuthService {
         utilisateur.setAnneeEntree(request.anneeEntree());
         utilisateur.setAnneeSortie(request.anneeSortie());
         utilisateur.setFiliere(filiereService.trouverOuCreer(request.filiere(), auteur));
+        utilisateur.setClasse(request.role() == TypeRole.ETUDIANT ? request.classe() : null);
 
         utilisateur = utilisateurRepository.save(utilisateur);
 

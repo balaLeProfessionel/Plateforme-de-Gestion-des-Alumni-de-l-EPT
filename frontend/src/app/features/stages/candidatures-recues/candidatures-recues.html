@@ -8,6 +8,25 @@
     }
   </header>
 
+  @if (stagiaires(); as liste) {
+    <section class="stagiaires" aria-labelledby="titre-stagiaires">
+      <h2 id="titre-stagiaires">Liste définitive de l’école</h2>
+      @if (liste.length === 0) {
+        <p class="details">L’école n’a retenu aucun étudiant pour cette offre.</p>
+      } @else {
+        <ul>
+          @for (s of liste; track s.id) {
+            <li>
+              <app-avatar-membre [urlPhoto]="s.etudiant.urlPhoto" [prenom]="s.etudiant.prenom" [nom]="s.etudiant.nom" roleMembre="ETUDIANT" [taille]="2" />
+              <span><a [routerLink]="['/profil', s.etudiant.id]">{{ s.etudiant.prenom }} {{ s.etudiant.nom }}</a>
+                <small>Du {{ s.dateDebut | date: 'd MMMM y' }} au {{ s.dateFin | date: 'd MMMM y' }}</small></span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+
   @if (erreurChargement(); as message) {
     <div class="etat" role="alert"><i class="pi pi-exclamation-circle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ message }}</p></div>
   } @else if (candidatures(); as liste) {
@@ -29,7 +48,7 @@
               <div>
                 <h2><a [routerLink]="['/profil', c.etudiant.id]">{{ c.etudiant.prenom }} {{ c.etudiant.nom }}</a></h2>
                 <p class="details">
-                  {{ c.etudiant.filiere ?? 'Filière non renseignée' }}@if (c.etudiant.anneeEntree) { · entrée en {{ c.etudiant.anneeEntree }} }
+                  @if (libelleClasse(c.etudiant.classe); as classe) { {{ classe }} · }{{ c.etudiant.filiere ?? 'Filière non renseignée' }}
                   · envoyée le {{ c.envoyeeLe | date: 'd MMMM y' }}
                 </p>
                 @if (c.email) { <p class="details"><a [href]="'mailto:' + c.email">{{ c.email }}</a></p> }
@@ -44,8 +63,8 @@
               <details><summary>Lettre de motivation</summary><p class="lettre">{{ c.lettreMotivation }}</p></details>
             }
 
-            @if (administration) {
-              <p class="avis-lu">Avis de l’organisme : <strong>{{ libellesAvis[c.avisOrganisme] }}</strong>
+            @if (administration || avisFiges()) {
+              <p class="avis-lu">@if (!administration) { Votre avis : } @else { Avis de l’organisme : }<strong>{{ libellesAvis[c.avisOrganisme] }}</strong>
                 @if (c.avisDonneLe) { <span>(le {{ c.avisDonneLe | date: 'd MMMM y' }})</span> }</p>
             } @else {
               <div class="avis" role="group" [attr.aria-label]="'Votre avis sur la candidature de ' + c.etudiant.prenom + ' ' + c.etudiant.nom">

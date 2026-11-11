@@ -18,6 +18,7 @@ import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
 import { OffreMentoratProfil } from '../../mentorat/offre-mentorat-profil/offre-mentorat-profil';
 import { FenetreParcours, ParcoursOuvert } from './fenetre-parcours/fenetre-parcours';
+import { libelleClasse } from '../../../core/services/models/classe.model';
 import { ElementParcours, FriseParcours, parametresEtape } from './frise-parcours/frise-parcours';
 
 interface Tuile {
@@ -72,6 +73,8 @@ export class ConsultationProfil {
     if (!profil) return [];
     const tuiles: Tuile[] = [];
     if (profil.anneeSortie) tuiles.push({ libelle: 'Promotion', valeur: String(profil.anneeSortie), icone: 'pi-graduation-cap' });
+    const classe = libelleClasse(profil.classe);
+    if (classe) tuiles.push({ libelle: 'Classe', valeur: classe, icone: 'pi-users' });
     if (profil.filiere) tuiles.push({ libelle: 'Filière', valeur: profil.filiere, icone: 'pi-building-columns' });
     if (profil.villeResidence) tuiles.push({ libelle: 'Ville', valeur: profil.villeResidence, icone: 'pi-map-marker' });
     return tuiles;

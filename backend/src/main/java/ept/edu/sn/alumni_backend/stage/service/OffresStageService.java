@@ -25,6 +25,7 @@ import ept.edu.sn.alumni_backend.organisme.repository.OrganismeRepository;
 import ept.edu.sn.alumni_backend.organisme.service.OrganismeService;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.stage.StatutOffre;
+import ept.edu.sn.alumni_backend.stage.StatutStage;
 import ept.edu.sn.alumni_backend.stage.TypeStage;
 import ept.edu.sn.alumni_backend.stage.dto.OffreStageRequest;
 import ept.edu.sn.alumni_backend.stage.dto.OffreStageResponse;
@@ -34,6 +35,7 @@ import ept.edu.sn.alumni_backend.stage.exception.ConflitStageException;
 import ept.edu.sn.alumni_backend.stage.exception.OffreStageIntrouvableException;
 import ept.edu.sn.alumni_backend.stage.repository.CandidatureRepository;
 import ept.edu.sn.alumni_backend.stage.repository.OffreStageRepository;
+import ept.edu.sn.alumni_backend.stage.repository.StageRepository;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +58,7 @@ public class OffresStageService {
     private final OrganismeRepository organismeRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final CandidatureRepository candidatureRepository;
+    private final StageRepository stageRepository;
     private final ApplicationEventPublisher evenements;
 
     @Transactional
@@ -119,6 +122,7 @@ public class OffresStageService {
         exigerStatut(offre, StatutOffre.PUBLIEE, "Seule une offre publiée peut être retirée.");
         offre.setStatut(StatutOffre.RETIREE);
         offre.setMotifDecision(motif.trim());
+        stageRepository.supprimerParOffreEtStatut(offre.getId(), StatutStage.EN_PREPARATION);
         prevenirOrganisme(offre, "Votre offre de stage a été retirée",
             "L'école a retiré votre offre « " + offre.getTitre() + " », qui n'est plus visible des étudiants. Motif : " + motif.trim());
         return versReponse(offre, true);
@@ -136,6 +140,7 @@ public class OffresStageService {
         }
         offre.setStatut(StatutOffre.RETIREE);
         offre.setMotifDecision(null);
+        stageRepository.supprimerParOffreEtStatut(offre.getId(), StatutStage.EN_PREPARATION);
         return versReponse(offre, true);
     }
 
@@ -155,8 +160,10 @@ public class OffresStageService {
         }
         if (ouvertesSeulement) {
             LocalDate aujourdhui = aujourdhui();
-            specification = specification.and((racine, requete, cb) ->
-                cb.greaterThanOrEqualTo(racine.get("dateLimiteCandidature"), aujourdhui));
+            // Une liste publiée clôt les candidatures, même avant la date limite.
+            specification = specification.and((racine, requete, cb) -> cb.and(
+                cb.equal(racine.get("statut"), StatutOffre.PUBLIEE),
+                cb.greaterThanOrEqualTo(racine.get("dateLimiteCandidature"), aujourdhui)));
         }
         // Les offres qui ferment bientôt d'abord ; à date égale, la plus récente.
         Sort tri = ouvertesSeulement
@@ -168,7 +175,7 @@ public class OffresStageService {
 
     @Transactional(readOnly = true)
     public List<OrganismeOffresResponse> organismesAvecOffres() {
-        return offreRepository.organismesAvecOffres(StatutOffre.PUBLIEE, StatutCompte.SUSPENDU).stream()
+        return offreRepository.organismesAvecOffres(List.of(StatutOffre.PUBLIEE, StatutOffre.LISTE_PUBLIEE), StatutCompte.SUSPENDU).stream()
             .map(ligne -> new OrganismeOffresResponse(ligne.getId(), ligne.getNom())).toList();
     }
 
@@ -186,7 +193,7 @@ public class OffresStageService {
     @Transactional(readOnly = true)
     public OffreStage chargerVisible(UUID id, Utilisateur lecteur) {
         OffreStage offre = offreRepository.findWithOrganismeById(id).orElseThrow(OffreStageIntrouvableException::new);
-        boolean visible = offre.getStatut() == StatutOffre.PUBLIEE
+        boolean visible = (offre.getStatut() == StatutOffre.PUBLIEE || offre.getStatut() == StatutOffre.LISTE_PUBLIEE)
             && offre.getOrganisme().getStatutValidation() != StatutCompte.SUSPENDU;
         if (!visible && !peutGerer(offre, lecteur)) {
             throw new OffreStageIntrouvableException();
@@ -296,7 +303,7 @@ public class OffresStageService {
 
     private static Specification<OffreStage> visiblesDesMembres() {
         return (racine, requete, cb) -> cb.and(
-            cb.equal(racine.get("statut"), StatutOffre.PUBLIEE),
+            racine.get("statut").in(StatutOffre.PUBLIEE, StatutOffre.LISTE_PUBLIEE),
             cb.notEqual(racine.get("organisme").get("statutValidation"), StatutCompte.SUSPENDU));
     }
 

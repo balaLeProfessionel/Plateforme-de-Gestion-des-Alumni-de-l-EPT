@@ -25,7 +25,7 @@ describe('MesCandidatures', () => {
     const racine = afficher([{
       id: 'c1', offreId: 'o1', titreOffre: 'Développeur web', organisme: 'Kër Data', dateLimiteCandidature: '2026-12-15',
       candidaturesOuvertes: true, statut: 'RETIREE', lettreMotivation: null, nomCv: 'cv.pdf',
-      envoyeeLe: '2026-11-10T10:00:00Z', retireeLe: '2026-11-11T10:00:00Z',
+      envoyeeLe: '2026-11-10T10:00:00Z', retireeLe: '2026-11-11T10:00:00Z', resultat: null,
     }]);
     expect(racine.querySelector('.ligne a')?.getAttribute('href')).toBe('/stages/offres/o1');
     expect(racine.querySelector('.statut')?.textContent).toBe('Retirée');
@@ -34,5 +34,15 @@ describe('MesCandidatures', () => {
 
   it('invite à parcourir les offres', () => {
     expect(afficher([]).querySelector('.etat a')?.getAttribute('href')).toBe('/stages');
+  });
+
+  it('remplace l’état par le résultat une fois la liste définitive publiée', () => {
+    const racine = afficher([{
+      id: 'c1', offreId: 'o1', titreOffre: 'Développeur web', organisme: 'Kër Data', dateLimiteCandidature: '2026-12-15',
+      candidaturesOuvertes: false, statut: 'ENVOYEE', lettreMotivation: null, nomCv: 'cv.pdf',
+      envoyeeLe: '2026-11-10T10:00:00Z', retireeLe: null, resultat: 'NON_RETENUE',
+    }]);
+    expect(racine.querySelector('.statut')?.textContent).toBe('Non retenue');
+    expect(racine.querySelector('a[href="/stages/mes-stages"]')).not.toBeNull();
   });
 });

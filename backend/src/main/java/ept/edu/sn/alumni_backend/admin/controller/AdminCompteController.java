@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ept.edu.sn.alumni_backend.admin.dto.ActionAdminResponse;
 import ept.edu.sn.alumni_backend.admin.dto.ChangementRoleRequest;
+import ept.edu.sn.alumni_backend.admin.dto.ClasseRequest;
 import ept.edu.sn.alumni_backend.admin.dto.CompteAdminResponse;
 import ept.edu.sn.alumni_backend.admin.dto.DiplomationRequest;
 import ept.edu.sn.alumni_backend.admin.dto.ImportComptesRequest;
@@ -83,6 +84,14 @@ public class AdminCompteController {
             @Valid @RequestBody ChangementRoleRequest request,
             @AuthenticationPrincipal UtilisateurPrincipal principal) {
         return ResponseEntity.ok(evolutionComptesService.changerRole(id, request.role(), request.motif().trim(), principal));
+    }
+
+    @PatchMapping("/{id}/classe")
+    public ResponseEntity<CompteAdminResponse> changerClasse(
+            @PathVariable UUID id,
+            @Valid @RequestBody ClasseRequest request,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(evolutionComptesService.changerClasse(id, request.classe(), principal));
     }
 
     /** Réservé au super administrateur (TRA-13) : la liste remplace les responsabilités du compte. */
