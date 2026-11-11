@@ -1,7 +1,9 @@
 package ept.edu.sn.alumni_backend.stage.service;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -24,6 +26,7 @@ import ept.edu.sn.alumni_backend.stage.dto.TuteurRequest;
 import ept.edu.sn.alumni_backend.stage.entity.Stage;
 import ept.edu.sn.alumni_backend.stage.exception.ConflitStageException;
 import ept.edu.sn.alumni_backend.stage.exception.OffreStageIntrouvableException;
+import ept.edu.sn.alumni_backend.stage.repository.ConventionStageRepository;
 import ept.edu.sn.alumni_backend.stage.repository.StageRepository;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
@@ -43,6 +46,7 @@ public class SuiviStagesService {
     private final StageRepository stageRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final ApplicationEventPublisher evenements;
+    private final ConventionStageRepository conventionRepository;
 
     @Transactional(readOnly = true)
     public PageResponse<SuiviStageResponse> lister(UUID filiereId, boolean sansEncadrant, String texte, int page, int taille) {
@@ -64,8 +68,9 @@ public class SuiviStagesService {
                     cb.like(cb.lower(racine.join("organisme", JoinType.LEFT).get("nom")), motif, '\\'));
             });
         }
-        return PageResponse.depuis(stageRepository.findAll(criteres, PageRequest.of(page, taille, Sort.by(Sort.Order.desc("dateDebut"))))
-            .map(s -> versReponse(s, true)));
+        var stages = stageRepository.findAll(criteres, PageRequest.of(page, taille, Sort.by(Sort.Order.desc("dateDebut"))));
+        Map<UUID, String> conventions = etatsConventions(stages.getContent());
+        return PageResponse.depuis(stages.map(s -> versReponse(s, true, conventions.get(s.getId()))));
     }
 
     @Transactional
@@ -73,7 +78,7 @@ public class SuiviStagesService {
         Stage stage = chargerConfirme(stageId);
         if (encadrantId == null) {
             stage.setEncadrantInterne(null);
-            return versReponse(stage, true);
+            return versReponse(stage);
         }
         Utilisateur encadrant = utilisateurRepository.findById(encadrantId)
             .filter(u -> u.getRole() == TypeRole.PERSONNEL && u.getStatutCompte() == StatutCompte.ACTIF)
@@ -88,7 +93,7 @@ public class SuiviStagesService {
             + ListeDefinitiveService.periode(stage) + ". Retrouvez-le dans Stages › Suivi des stages.");
         prevenir(etudiant, "Votre encadrant de stage", "Bonjour, " + encadrant.getPrenom() + " " + encadrant.getNom()
             + " encadre votre stage « " + stage.getSujet() + " » pour l'école.");
-        return versReponse(stage, true);
+        return versReponse(stage);
     }
 
     @Transactional
@@ -98,7 +103,7 @@ public class SuiviStagesService {
         stage.setTuteurFonction(texte(request.fonction()));
         stage.setTuteurEmail(texte(request.email()));
         stage.setTuteurTelephone(texte(request.telephone()));
-        return versReponse(stage, true);
+        return versReponse(stage);
     }
 
     /** Membres du personnel actifs dont le nom contient le texte saisi (2 caractères au moins). */
@@ -122,15 +127,13 @@ public class SuiviStagesService {
     public MesSuivis mesSuivis(UtilisateurPrincipal principal) {
         Utilisateur moi = principal.getUtilisateur();
         if (moi.getRole() == TypeRole.ORGANISME && moi.getOrganisme() != null) {
-            return new MesSuivis(List.of(), List.of(),
-                stageRepository.findByOrganisme_IdAndStatutOrderByDateDebutDesc(moi.getOrganisme().getId(), StatutStage.CONFIRME).stream()
-                    .map(s -> versReponse(s, false)).toList());
+            return new MesSuivis(List.of(), List.of(), reponses(
+                stageRepository.findByOrganisme_IdAndStatutOrderByDateDebutDesc(moi.getOrganisme().getId(), StatutStage.CONFIRME), false));
         }
         if (moi.getRole() == TypeRole.PERSONNEL) {
             return new MesSuivis(
-                stageRepository.findByEncadrantInterne_IdAndStatutOrderByDateDebutDesc(moi.getId(), StatutStage.CONFIRME).stream()
-                    .map(s -> versReponse(s, true)).toList(),
-                stageRepository.duDepartementDe(moi.getId()).stream().map(s -> versReponse(s, true)).toList(),
+                reponses(stageRepository.findByEncadrantInterne_IdAndStatutOrderByDateDebutDesc(moi.getId(), StatutStage.CONFIRME), true),
+                reponses(stageRepository.duDepartementDe(moi.getId()), true),
                 List.of());
         }
         return new MesSuivis(List.of(), List.of(), List.of());
@@ -156,14 +159,33 @@ public class SuiviStagesService {
         return aujourdhui.isAfter(s.getDateFin()) ? "TERMINE" : "EN_COURS";
     }
 
-    private static SuiviStageResponse versReponse(Stage s, boolean avecEmail) {
+    private List<SuiviStageResponse> reponses(List<Stage> stages, boolean avecEmail) {
+        Map<UUID, String> conventions = etatsConventions(stages);
+        return stages.stream().map(s -> versReponse(s, avecEmail, conventions.get(s.getId()))).toList();
+    }
+
+    /** État de la convention de chaque stage, en une requête ; absent de la table = AUCUNE. */
+    private Map<UUID, String> etatsConventions(List<Stage> stages) {
+        if (stages.isEmpty()) return Map.of();
+        Map<UUID, String> etats = new HashMap<>();
+        conventionRepository.findByStage_IdIn(stages.stream().map(Stage::getId).toList())
+            .forEach(c -> etats.put(c.getStage().getId(), ConventionsStageService.etat(c)));
+        return etats;
+    }
+
+    private SuiviStageResponse versReponse(Stage stage) {
+        return versReponse(stage, true, ConventionsStageService.etat(conventionRepository.findByStage_Id(stage.getId()).orElse(null)));
+    }
+
+    static SuiviStageResponse versReponse(Stage s, boolean avecEmail, String convention) {
         Utilisateur e = s.getEncadrantInterne();
         return new SuiviStageResponse(s.getId(), s.getOffre() == null ? null : s.getOffre().getId(), ListeDefinitiveService.etudiant(s.getEtudiant()),
             avecEmail ? s.getEtudiant().getEmail() : null, s.getOrganisme() == null ? null : s.getOrganisme().getId(), s.nomOrganisme(),
             s.getTypeStage().name(), s.getSujet(), s.getLieu(), s.getDateDebut(), s.getDateFin(),
             deroulement(s, LocalDate.now(OffresStageService.FUSEAU)),
             e == null ? null : new SuiviStageResponse.Encadrant(e.getId(), e.getPrenom(), e.getNom(), e.getEmail()),
-            s.getTuteurNom(), s.getTuteurFonction(), s.getTuteurEmail(), s.getTuteurTelephone(), s.getOffre() == null);
+            s.getTuteurNom(), s.getTuteurFonction(), s.getTuteurEmail(), s.getTuteurTelephone(), s.getOffre() == null,
+            convention == null ? ConventionsStageService.AUCUNE : convention);
     }
 
     private static String texte(String valeur) {

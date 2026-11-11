@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { libelleClasse } from '../../../core/services/models/classe.model';
-import { LIBELLES_DEROULEMENT, LIBELLES_TYPE_STAGE, SuiviStage } from '../../../core/services/models/stage.model';
+import { LIBELLES_CONVENTION, LIBELLES_DEROULEMENT, LIBELLES_TYPE_STAGE, SuiviStage } from '../../../core/services/models/stage.model';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
 
 /**
@@ -20,5 +20,6 @@ export class FicheSuivi {
 
   protected readonly types = LIBELLES_TYPE_STAGE;
   protected readonly deroulements = LIBELLES_DEROULEMENT;
+  protected readonly conventions = LIBELLES_CONVENTION;
   protected readonly libelleClasse = libelleClasse;
 }

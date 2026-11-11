@@ -1,7 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { Page } from '../models/mentorat.model';
-import { MesSuivis, PersonnelSuggestion, SuiviStage, Tuteur } from '../models/stage.model';
+import {
+  ClausesConvention, Convention, MesSuivis, PartieConvention, PersonnelSuggestion, SuiviStage, Tuteur,
+} from '../models/stage.model';
 
 const API_ADMIN = '/api/admin/stages';
 
@@ -33,5 +35,28 @@ export class SuiviStagesService {
 
   mesSuivis() {
     return this.http.get<MesSuivis>('/api/stages/suivi');
+  }
+
+  convention(stageId: string) {
+    return this.http.get<Convention>(`${API_ADMIN}/suivi/${stageId}/convention`);
+  }
+
+  enregistrerClauses(stageId: string, clauses: ClausesConvention) {
+    return this.http.put<Convention>(`${API_ADMIN}/suivi/${stageId}/convention`, clauses);
+  }
+
+  /** date null retire la signature (saisie erronée). */
+  signer(stageId: string, partie: PartieConvention, date: string | null) {
+    return this.http.patch<Convention>(`${API_ADMIN}/suivi/${stageId}/convention/signature`, { partie, date });
+  }
+
+  deposerScan(stageId: string, fichier: File) {
+    const corps = new FormData();
+    corps.append('fichier', fichier);
+    return this.http.post<Convention>(`${API_ADMIN}/suivi/${stageId}/convention/scan`, corps);
+  }
+
+  telechargerScan(stageId: string) {
+    return this.http.get(`${API_ADMIN}/suivi/${stageId}/convention/scan`, { responseType: 'blob' });
   }
 }

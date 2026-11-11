@@ -270,7 +270,34 @@ export interface SuiviStage {
   tuteurEmail: string | null;
   tuteurTelephone: string | null;
   declare: boolean;
+  convention: EtatConvention;
 }
+
+/** État de la convention tripartite (STA-05) : complète quand les trois signatures et le scan sont enregistrés. */
+export type EtatConvention = 'AUCUNE' | 'EN_COURS' | 'COMPLETE';
+
+export const LIBELLES_CONVENTION: Record<EtatConvention, string> = {
+  AUCUNE: 'Pas commencée',
+  EN_COURS: 'En cours',
+  COMPLETE: 'Complète',
+};
+
+export type PartieConvention = 'ETUDIANT' | 'ORGANISME' | 'ECOLE';
+
+export interface ClausesConvention { assurance: string | null; indemnite: string | null; logement: string | null; clauseConfidentialite: boolean }
+
+export interface Convention extends ClausesConvention {
+  stage: SuiviStage;
+  existe: boolean;
+  signeeEtudiantLe: string | null;
+  signeeOrganismeLe: string | null;
+  signeeEcoleLe: string | null;
+  scanNom: string | null;
+  etat: EtatConvention;
+  modifieLe: string | null;
+}
+
+export const LONGUEUR_CLAUSE = 500;
 
 /** Ce que suit le membre connecté : stages encadrés et de son département (personnel), accueillis (organisme). */
 export interface MesSuivis {

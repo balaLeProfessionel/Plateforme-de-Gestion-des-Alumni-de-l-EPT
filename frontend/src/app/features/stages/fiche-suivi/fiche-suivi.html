@@ -24,5 +24,6 @@
       @if (s.tuteurTelephone) { · {{ s.tuteurTelephone }} }
     } @else { Non renseigné }
   </dd>
+  <dt>Convention</dt><dd [class.vide]="s.convention === 'AUCUNE'">{{ conventions[s.convention] }}</dd>
 </dl>
 <ng-content />

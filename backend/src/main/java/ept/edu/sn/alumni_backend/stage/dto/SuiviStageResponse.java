@@ -26,7 +26,9 @@ public record SuiviStageResponse(
     String tuteurFonction,
     String tuteurEmail,
     String tuteurTelephone,
-    boolean declare
+    boolean declare,
+    /** AUCUNE, EN_COURS ou COMPLETE (STA-05). */
+    String convention
 ) {
     public record Encadrant(UUID id, String prenom, String nom, String email) {
     }

@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, of, Subject, switchMap } from 'rxjs';
 import { PersonnelSuggestion, SuiviStage } from '../../../../core/services/models/stage.model';
 import { SuiviStagesService } from '../../../../core/services/stages/suivi-stages';
@@ -11,6 +12,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /** Actions de l’administrateur Stages sur un stage suivi : désigner l’encadrant interne, corriger le maître de stage. */
 @Component({
   selector: 'app-actions-suivi',
+  imports: [RouterLink],
   templateUrl: './actions-suivi.html',
   styleUrls: ['../../formulaire-admin.scss', './actions-suivi.scss'],
 })
