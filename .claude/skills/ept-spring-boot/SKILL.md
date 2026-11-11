@@ -88,9 +88,14 @@ Conséquences à respecter :
 
 `common/image/FormatImage` impose le format quelle que soit l'image reçue : vérifie la taille minimale
 (`verifierTailleMinimale`, 400 sinon), recadre au centre au rapport voulu, redimensionne exactement
-(`appliquer`) et écrit un JPEG de qualité maîtrisée (`ecrireJpeg`). Formats : `EVENEMENT` 1600×900,
+(`appliquer`) et encode un JPEG de qualité maîtrisée (`encoderJpeg`). Formats : `EVENEMENT` 1600×900,
 `PHOTO_PROFIL` 600×600. Un nouveau type d'image = une nouvelle constante, aligné sur le frontend
 (`shared/images/recadrage.ts`).
+
+Fichiers envoyés (images, PDF) : ne jamais écrire sur le disque directement. Passer par
+`common/stockage` : `StockageImages` ou `StockageDocuments` (validation), construits avec le bean
+`DepotFichiers` et un sous-dossier (`"documents/cv"`…). `DepotFichiers` est le seul point qui sait où
+sont rangés les fichiers (disque aujourd'hui, S3 plus tard).
 
 ## Concurrence
 

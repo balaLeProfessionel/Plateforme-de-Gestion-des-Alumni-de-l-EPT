@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.UUID;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -30,6 +32,7 @@ import ept.edu.sn.alumni_backend.stage.dto.OrganismeOffresResponse;
 import ept.edu.sn.alumni_backend.stage.entity.OffreStage;
 import ept.edu.sn.alumni_backend.stage.exception.ConflitStageException;
 import ept.edu.sn.alumni_backend.stage.exception.OffreStageIntrouvableException;
+import ept.edu.sn.alumni_backend.stage.repository.CandidatureRepository;
 import ept.edu.sn.alumni_backend.stage.repository.OffreStageRepository;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
@@ -52,6 +55,7 @@ public class OffresStageService {
     private final OrganismeService organismeService;
     private final OrganismeRepository organismeRepository;
     private final UtilisateurRepository utilisateurRepository;
+    private final CandidatureRepository candidatureRepository;
     private final ApplicationEventPublisher evenements;
 
     @Transactional
@@ -223,8 +227,8 @@ public class OffresStageService {
         }
         UUID organismeId = organisme.getId();
         Specification<OffreStage> deLOrganisme = (racine, requete, cb) -> cb.equal(racine.get("organisme").get("id"), organismeId);
-        return offreRepository.findAll(deLOrganisme, PageRequest.of(0, 200, Sort.by(Sort.Order.desc("creeeLe"))))
-            .map(offre -> versReponse(offre, true, true)).getContent();
+        return avecNombres(offreRepository.findAll(deLOrganisme, PageRequest.of(0, 200, Sort.by(Sort.Order.desc("creeeLe"))))
+            .map(offre -> versReponse(offre, true, true)).getContent());
     }
 
     @Transactional(readOnly = true)
@@ -235,8 +239,17 @@ public class OffresStageService {
         }
         // La file de vérification se traite dans l'ordre d'arrivée ; les autres listes montrent le plus récent d'abord.
         Sort tri = statut == StatutOffre.SOUMISE ? Sort.by(Sort.Order.asc("creeeLe")) : Sort.by(Sort.Order.desc("creeeLe"));
-        return PageResponse.depuis(offreRepository.findAll(specification, PageRequest.of(page, taille, tri))
+        PageResponse<OffreStageResponse> resultat = PageResponse.depuis(offreRepository.findAll(specification, PageRequest.of(page, taille, tri))
             .map(offre -> versReponse(offre, true, false)));
+        return new PageResponse<>(avecNombres(resultat.contenu()), resultat.page(), resultat.taille(), resultat.totalElements(), resultat.totalPages());
+    }
+
+    /** Nombre de candidatures envoyées à chaque offre de la liste, en une requête. */
+    private List<OffreStageResponse> avecNombres(List<OffreStageResponse> offres) {
+        if (offres.isEmpty()) return offres;
+        Map<UUID, Long> nombres = candidatureRepository.compterEnvoyees(offres.stream().map(OffreStageResponse::id).toList()).stream()
+            .collect(Collectors.toMap(CandidatureRepository.NombreParOffre::getOffreId, CandidatureRepository.NombreParOffre::getNombre));
+        return offres.stream().map(offre -> offre.avecNombreCandidatures(nombres.getOrDefault(offre.id(), 0L))).toList();
     }
 
     @Transactional(readOnly = true)
@@ -324,6 +337,6 @@ public class OffresStageService {
             avecMotif ? offre.getMotifDecision() : null, offre.getPublieeLe(), offre.getCreeeLe(),
             new OffreStageResponse.Organisme(organisme.getId(), organisme.getNom(), organisme.getLogoUrl()),
             offre.getUrlImage(), pieces,
-            avecMotif && (offre.getStatut() == StatutOffre.PUBLIEE || offre.getStatut() == StatutOffre.SOUMISE));
+            avecMotif && (offre.getStatut() == StatutOffre.PUBLIEE || offre.getStatut() == StatutOffre.SOUMISE), null);
     }
 }

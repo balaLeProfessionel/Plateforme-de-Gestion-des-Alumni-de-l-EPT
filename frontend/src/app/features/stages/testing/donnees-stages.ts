@@ -9,7 +9,7 @@ export function uneOffre(changement: Partial<OffreStage> = {}): OffreStage {
     dureeMois: 4, typeStage: 'PFE', lieu: 'Dakar', dateDebutPrevue: null, nombrePlaces: 2, dateLimiteCandidature: '2026-12-15',
     candidaturesOuvertes: true, statut: 'PUBLIEE', motifDecision: null, publieeLe: '2026-11-01T10:00:00Z', creeeLe: '2026-11-01T10:00:00Z',
     organisme: { id: 'org1', nom: 'Kër Data', logoUrl: null },
-    urlImage: null, piecesJointes: [], modifiable: false,
+    urlImage: null, piecesJointes: [], modifiable: false, nombreCandidatures: null,
     ...changement,
   };
 }

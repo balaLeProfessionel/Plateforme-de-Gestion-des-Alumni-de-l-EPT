@@ -21,6 +21,8 @@ public class SuppressionContraintesEnum implements ApplicationRunner {
     static final List<String> CONTRAINTES = List.of(
         "offre_stage.offre_stage_statut_check",
         "offre_stage.offre_stage_type_stage_check",
+        "candidature.candidature_statut_check",
+        "candidature.candidature_avis_organisme_check",
         "utilisateur_permission_admin.utilisateur_permission_admin_permission_check");
 
     private final JdbcTemplate jdbcTemplate;

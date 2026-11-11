@@ -31,6 +31,7 @@ export class ListeOffres {
   protected readonly types = TYPES_STAGE;
   protected readonly libellesType = LIBELLES_TYPE_STAGE;
   protected readonly estOrganisme = computed(() => this.authService.utilisateur()?.role === 'ORGANISME');
+  protected readonly estEtudiant = computed(() => this.authService.utilisateur()?.role === 'ETUDIANT');
   protected readonly gereLesOffres = computed(() => this.authService.aPermission('GERER_STAGES'));
   protected readonly organismes = toSignal(this.service.organismes().pipe(catchError(() => of([]))), { initialValue: [] });
 

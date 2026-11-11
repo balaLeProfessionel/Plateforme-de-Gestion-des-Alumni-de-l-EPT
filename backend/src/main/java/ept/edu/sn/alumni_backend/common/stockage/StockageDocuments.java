@@ -1,13 +1,10 @@
 package ept.edu.sn.alumni_backend.common.stockage;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Locale;
 import java.util.UUID;
 
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -19,11 +16,13 @@ public class StockageDocuments {
     private static final String MOTIF_NOM = "[0-9a-fA-F-]{36}\\.pdf";
     private static final byte[] SIGNATURE_PDF = {'%', 'P', 'D', 'F', '-'};
 
-    private final Path repertoire;
+    private final DepotFichiers depot;
+    private final String dossier;
     private final long tailleMaximale;
 
-    public StockageDocuments(Path repertoire, long tailleMaximale) {
-        this.repertoire = repertoire.toAbsolutePath().normalize();
+    public StockageDocuments(DepotFichiers depot, String dossier, long tailleMaximale) {
+        this.depot = depot;
+        this.dossier = dossier;
         this.tailleMaximale = tailleMaximale;
     }
 
@@ -45,14 +44,7 @@ public class StockageDocuments {
                 throw new IllegalArgumentException("Le contenu du fichier n’est pas un PDF valide.");
             }
             String nom = UUID.randomUUID() + ".pdf";
-            Files.createDirectories(repertoire);
-            Path temporaire = Files.createTempFile(repertoire, "document-", ".tmp");
-            try {
-                Files.write(temporaire, contenu);
-                StockageImages.deplacer(temporaire, chemin(nom));
-            } finally {
-                Files.deleteIfExists(temporaire);
-            }
+            depot.ecrire(DepotFichiers.cle(dossier, nom), contenu);
             return nom;
         } catch (IOException e) {
             throw new StockageFichierException("Impossible d’enregistrer le fichier.", e);
@@ -60,34 +52,20 @@ public class StockageDocuments {
     }
 
     public Resource lire(String nom) {
-        try {
-            Resource resource = new UrlResource(cheminValide(nom).toUri());
-            if (!resource.exists() || !resource.isReadable()) {
-                throw new FichierIntrouvableException();
-            }
-            return resource;
-        } catch (IOException e) {
-            throw new FichierIntrouvableException();
-        }
+        return depot.lire(cleValide(nom)).orElseThrow(FichierIntrouvableException::new);
     }
 
     public void supprimer(String nom) {
         try {
-            Files.deleteIfExists(cheminValide(nom));
+            depot.supprimer(cleValide(nom));
         } catch (IOException e) {
             throw new StockageFichierException("Impossible de supprimer le fichier.", e);
         }
     }
 
-    private Path cheminValide(String nom) throws IOException {
+    private String cleValide(String nom) {
         if (nom == null || !nom.matches(MOTIF_NOM)) throw new FichierIntrouvableException();
-        return chemin(nom);
-    }
-
-    private Path chemin(String nom) throws IOException {
-        Path chemin = repertoire.resolve(nom).normalize();
-        if (!chemin.startsWith(repertoire)) throw new IOException("Chemin de stockage invalide.");
-        return chemin;
+        return DepotFichiers.cle(dossier, nom);
     }
 
     private static boolean commencePar(byte[] contenu, byte[] prefixe) {

@@ -44,15 +44,21 @@
 
       <app-fichiers-offre [offre]="o" (modifiee)="offre.set($event)" />
 
-      <aside class="candidature" aria-label="Candidature">
-        @if (!o.candidaturesOuvertes) {
-          <p>La date limite est passée : cette offre ne reçoit plus de candidatures.</p>
-        } @else if (estEtudiant()) {
-          <p>La candidature en ligne, avec dépôt du CV, sera bientôt disponible sur la plateforme.</p>
-        } @else {
-          <p>Seuls les étudiants de l’EPT peuvent postuler à une offre de stage.</p>
-        }
-      </aside>
+      @if (estEtudiant() && o.statut === 'PUBLIEE') {
+        <app-candidature-offre [offre]="o" />
+      } @else if (o.modifiable) {
+        <a class="bouton" [routerLink]="lienCandidatures()">
+          <i class="pi pi-users" aria-hidden="true"></i>Voir les candidatures reçues
+        </a>
+      } @else {
+        <aside class="candidature" aria-label="Candidature">
+          @if (!o.candidaturesOuvertes) {
+            <p>La date limite est passée : cette offre ne reçoit plus de candidatures.</p>
+          } @else {
+            <p>Seuls les étudiants de l’EPT peuvent postuler à une offre de stage.</p>
+          }
+        </aside>
+      }
     </article>
   } @else {
     <div class="squelette" aria-busy="true" aria-label="Chargement de l’offre"></div>

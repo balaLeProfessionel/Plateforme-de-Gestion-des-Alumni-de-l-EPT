@@ -3,10 +3,6 @@ package ept.edu.sn.alumni_backend.common.stockage;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.AtomicMoveNotSupportedException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.UUID;
@@ -16,27 +12,28 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.web.multipart.MultipartFile;
 
 import ept.edu.sn.alumni_backend.common.image.FormatImage;
 
 /**
- * Images envoyées par les membres, stockées dans un répertoire et servies sous un préfixe d'URL : JPEG ou PNG vérifié
- * par sa signature, décodé, puis réécrit en JPEG au format imposé (FormatImage). Même traitement que les images
- * d'événement, réutilisable par chaque domaine.
+ * Images envoyées par les membres, rangées dans le dépôt de fichiers et servies sous un préfixe d’URL : JPEG ou PNG
+ * vérifié par sa signature, décodé, puis réécrit en JPEG au format imposé (FormatImage). Même traitement que les
+ * images d'événement, réutilisable par chaque domaine.
  */
 public class StockageImages {
     private static final long PIXELS_SOURCE_MAXIMAUX = 20_000_000;
     private static final String MOTIF_NOM = "[0-9a-fA-F-]{36}\\.jpg";
 
-    private final Path repertoire;
+    private final DepotFichiers depot;
+    private final String dossier;
     private final String prefixePublic;
     private final FormatImage format;
     private final long tailleMaximale;
 
-    public StockageImages(Path repertoire, String prefixePublic, FormatImage format, long tailleMaximale) {
-        this.repertoire = repertoire.toAbsolutePath().normalize();
+    public StockageImages(DepotFichiers depot, String dossier, String prefixePublic, FormatImage format, long tailleMaximale) {
+        this.depot = depot;
+        this.dossier = dossier;
         this.prefixePublic = prefixePublic;
         this.format = format;
         this.tailleMaximale = tailleMaximale;
@@ -63,14 +60,7 @@ public class StockageImages {
             BufferedImage source = decoder(contenu);
             format.verifierTailleMinimale(source);
             String nom = UUID.randomUUID() + ".jpg";
-            Files.createDirectories(repertoire);
-            Path temporaire = Files.createTempFile(repertoire, "image-", ".tmp");
-            try {
-                FormatImage.ecrireJpeg(format.appliquer(source), temporaire);
-                deplacer(temporaire, chemin(nom));
-            } finally {
-                Files.deleteIfExists(temporaire);
-            }
+            depot.ecrire(DepotFichiers.cle(dossier, nom), FormatImage.encoderJpeg(format.appliquer(source)));
             return prefixePublic + nom;
         } catch (IOException e) {
             throw new StockageFichierException("Impossible d’enregistrer l’image.", e);
@@ -81,15 +71,7 @@ public class StockageImages {
         if (!nom.matches(MOTIF_NOM)) {
             throw new FichierIntrouvableException();
         }
-        try {
-            Resource resource = new UrlResource(chemin(nom).toUri());
-            if (!resource.exists() || !resource.isReadable()) {
-                throw new FichierIntrouvableException();
-            }
-            return resource;
-        } catch (IOException e) {
-            throw new FichierIntrouvableException();
-        }
+        return depot.lire(DepotFichiers.cle(dossier, nom)).orElseThrow(FichierIntrouvableException::new);
     }
 
     /** Supprime l'image si l'URL désigne une image de ce stockage ; ignore toute autre URL. */
@@ -98,7 +80,7 @@ public class StockageImages {
         String nom = url.substring(prefixePublic.length());
         if (!nom.matches(MOTIF_NOM)) return;
         try {
-            Files.deleteIfExists(chemin(nom));
+            depot.supprimer(DepotFichiers.cle(dossier, nom));
         } catch (IOException e) {
             throw new StockageFichierException("Impossible de supprimer une ancienne image.", e);
         }
@@ -131,20 +113,6 @@ public class StockageImages {
         boolean signatureJpeg = contenu.length >= 3 && (contenu[0] & 0xff) == 0xff && (contenu[1] & 0xff) == 0xd8 && (contenu[2] & 0xff) == 0xff;
         if (png ? !signaturePng : !signatureJpeg) {
             throw new IllegalArgumentException("Le contenu du fichier ne correspond pas à son format.");
-        }
-    }
-
-    private Path chemin(String nom) throws IOException {
-        Path chemin = repertoire.resolve(nom).normalize();
-        if (!chemin.startsWith(repertoire)) throw new IOException("Chemin de stockage invalide.");
-        return chemin;
-    }
-
-    static void deplacer(Path source, Path destination) throws IOException {
-        try {
-            Files.move(source, destination, StandardCopyOption.ATOMIC_MOVE);
-        } catch (AtomicMoveNotSupportedException e) {
-            Files.move(source, destination, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 }

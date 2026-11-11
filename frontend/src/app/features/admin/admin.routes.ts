@@ -61,6 +61,13 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./offres-stage/offres-stage').then((m) => m.OffresStage),
   },
   {
+    path: 'stages/offres/:id/candidatures',
+    title: 'Candidatures reçues | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_STAGES', administration: true },
+    loadComponent: () => import('../stages/candidatures-recues/candidatures-recues').then((m) => m.CandidaturesRecues),
+  },
+  {
     path: 'stages/offres/saisir',
     title: 'Saisir une offre de stage | EPT Alumni',
     canActivate: [permissionGuard],

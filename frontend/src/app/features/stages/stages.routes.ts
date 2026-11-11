@@ -22,6 +22,20 @@ export const STAGES_ROUTES: Routes = [
     loadComponent: () => import('./mes-offres/mes-offres').then((m) => m.MesOffres),
   },
   {
+    path: 'mes-offres/:id/candidatures',
+    title: 'Candidatures reçues | EPT Alumni',
+    canActivate: [roleGuard],
+    data: { roles: ['ORGANISME'] },
+    loadComponent: () => import('./candidatures-recues/candidatures-recues').then((m) => m.CandidaturesRecues),
+  },
+  {
+    path: 'mes-candidatures',
+    title: 'Mes candidatures | EPT Alumni',
+    canActivate: [roleGuard],
+    data: { roles: ['ETUDIANT'] },
+    loadComponent: () => import('./mes-candidatures/mes-candidatures').then((m) => m.MesCandidatures),
+  },
+  {
     path: 'publier',
     title: 'Publier une offre de stage | EPT Alumni',
     canActivate: [roleGuard],

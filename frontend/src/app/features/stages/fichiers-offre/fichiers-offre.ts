@@ -7,6 +7,7 @@ import { OffresStageService } from '../../../core/services/stages/offres-stage';
 import { chargerImagePourRecadrage } from '../../../shared/images/charger-image';
 import { FORMAT_OFFRE_STAGE } from '../../../shared/images/recadrage';
 import { RecadreurImage } from '../../../shared/images/recadreur-image';
+import { enregistrerFichier } from '../../../shared/telecharger';
 import { TaillePipe } from '../taille-fichier';
 
 /**
@@ -41,14 +42,7 @@ export class FichiersOffre implements OnDestroy {
   protected telecharger(piece: PieceJointeOffre): void {
     this.erreur.set(null);
     this.service.telechargerPiece(this.offre().id, piece.id).subscribe({
-      next: (contenu) => {
-        const url = URL.createObjectURL(contenu);
-        const lien = this.document.createElement('a');
-        lien.href = url;
-        lien.download = piece.nom;
-        lien.click();
-        setTimeout(() => URL.revokeObjectURL(url), 0);
-      },
+      next: (contenu) => enregistrerFichier(this.document, contenu, piece.nom),
       error: () => this.erreur.set(`« ${piece.nom} » n’a pas pu être téléchargé. Réessayez.`),
     });
   }

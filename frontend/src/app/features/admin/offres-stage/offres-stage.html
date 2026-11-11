@@ -29,7 +29,11 @@
             </div>
             <p class="details">{{ offre.organisme.nom }} · {{ types[offre.typeStage] }} · {{ offre.dureeMois }} mois
               · jusqu’au {{ offre.dateLimiteCandidature | date: 'd MMMM y' }}</p>
-            <p class="details">Déposée le {{ offre.creeeLe | date: 'd MMMM y' }}</p>
+            <p class="details">Déposée le {{ offre.creeeLe | date: 'd MMMM y' }}
+              @if (offre.statut === 'PUBLIEE') {
+                · <a [routerLink]="['/admin/stages/offres', offre.id, 'candidatures']">{{ offre.nombreCandidatures ?? 0 }} candidature{{ (offre.nombreCandidatures ?? 0) > 1 ? 's' : '' }}</a>
+              }
+            </p>
             @if (offre.motifDecision) { <p class="motif"><strong>Motif :</strong> {{ offre.motifDecision }}</p> }
 
             @if (decision()?.offreId === offre.id) {

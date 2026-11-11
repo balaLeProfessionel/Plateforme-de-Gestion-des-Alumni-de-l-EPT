@@ -23,3 +23,4 @@
 .bouton.petit { min-height: 2.25rem; padding: 0.3rem 0.75rem; font-size: 0.82rem; }
 .decision { display: grid; gap: 0.5rem; margin-top: 0.75rem; padding: 0.75rem; border: 1px solid var(--ept-primary); border-radius: 8px; background: var(--ept-primary-light);
   .boutons { margin-top: 0; } }
+.details a { color: var(--ept-primary); font-weight: 600; &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }

@@ -40,11 +40,13 @@ describe('DetailOffre', () => {
     expect(racine.querySelector('.candidature')?.textContent).toContain('Seuls les étudiants de l’EPT peuvent postuler');
   });
 
-  it('annonce à un étudiant la candidature en ligne, et la fin des candidatures après la date limite', () => {
-    expect(afficher('ETUDIANT', uneOffre()).querySelector('.candidature')?.textContent).toContain('sera bientôt disponible');
+  it('donne à un étudiant le bloc de candidature, et à l’organisme le lien vers les candidatures reçues', () => {
+    const racine = afficher('ETUDIANT', uneOffre());
+    expect(racine.querySelector('app-candidature-offre')).not.toBeNull();
+    http.expectOne('/api/stages/offres/o1/ma-candidature').flush(null, { status: 204, statusText: 'No Content' });
     TestBed.resetTestingModule();
-    expect(afficher('ETUDIANT', uneOffre({ candidaturesOuvertes: false })).querySelector('.candidature')?.textContent)
-      .toContain('ne reçoit plus de candidatures');
+    const organisme = afficher('ORGANISME', uneOffre({ modifiable: true }));
+    expect(organisme.querySelector('a[href="/stages/mes-offres/o1/candidatures"]')?.textContent).toContain('Voir les candidatures reçues');
   });
 
   it('montre à l’organisme le statut et le motif de l’école', () => {

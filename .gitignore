@@ -44,3 +44,6 @@ Thumbs.db
 
 # Conventions locales de stages
 /docs/conventions-d'stage/
+
+# Sauvegardes locales (scripts/sauvegarde)
+/sauvegardes/

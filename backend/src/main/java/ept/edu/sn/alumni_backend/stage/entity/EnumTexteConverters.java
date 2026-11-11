@@ -1,5 +1,7 @@
 package ept.edu.sn.alumni_backend.stage.entity;
 
+import ept.edu.sn.alumni_backend.stage.AvisOrganisme;
+import ept.edu.sn.alumni_backend.stage.StatutCandidature;
 import ept.edu.sn.alumni_backend.stage.StatutOffre;
 import ept.edu.sn.alumni_backend.stage.TypeStage;
 import jakarta.persistence.AttributeConverter;
@@ -23,6 +25,32 @@ public final class EnumTexteConverters {
         @Override
         public StatutOffre convertToEntityAttribute(String valeur) {
             return valeur == null ? null : StatutOffre.valueOf(valeur);
+        }
+    }
+
+    @Converter
+    public static class StatutCandidatureConverter implements AttributeConverter<StatutCandidature, String> {
+        @Override
+        public String convertToDatabaseColumn(StatutCandidature statut) {
+            return statut == null ? null : statut.name();
+        }
+
+        @Override
+        public StatutCandidature convertToEntityAttribute(String valeur) {
+            return valeur == null ? null : StatutCandidature.valueOf(valeur);
+        }
+    }
+
+    @Converter
+    public static class AvisOrganismeConverter implements AttributeConverter<AvisOrganisme, String> {
+        @Override
+        public String convertToDatabaseColumn(AvisOrganisme avis) {
+            return avis == null ? null : avis.name();
+        }
+
+        @Override
+        public AvisOrganisme convertToEntityAttribute(String valeur) {
+            return valeur == null ? null : AvisOrganisme.valueOf(valeur);
         }
     }
 

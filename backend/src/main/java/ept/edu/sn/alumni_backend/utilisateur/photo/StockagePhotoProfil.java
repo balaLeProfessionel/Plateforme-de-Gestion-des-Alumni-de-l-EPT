@@ -3,9 +3,6 @@ package ept.edu.sn.alumni_backend.utilisateur.photo;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
@@ -14,12 +11,12 @@ import javax.imageio.ImageIO;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
 
 import ept.edu.sn.alumni_backend.common.image.FormatImage;
+import ept.edu.sn.alumni_backend.common.stockage.DepotFichiers;
 
 @Service
 public class StockagePhotoProfil {
@@ -27,13 +24,14 @@ public class StockagePhotoProfil {
     private static final int DIMENSION_SOURCE_MAXIMALE = 10_000;
     private static final String PREFIXE_PUBLIC = "/api/photos/";
 
-    private final Path repertoire;
+    private final DepotFichiers depot;
     private final long tailleMaximale;
 
+    /** Les photos de profil sont à la racine du dépôt (emplacement historique, gardé pour les photos existantes). */
     public StockagePhotoProfil(
-            @Value("${app.storage.photos.dir:./data/photos}") String repertoire,
+            DepotFichiers depot,
             @Value("${app.storage.photos.max-size:5MB}") DataSize tailleMaximale) {
-        this.repertoire = Path.of(repertoire).toAbsolutePath().normalize();
+        this.depot = depot;
         this.tailleMaximale = tailleMaximale.toBytes();
     }
 
@@ -68,16 +66,8 @@ public class StockagePhotoProfil {
 
             FormatImage.PHOTO_PROFIL.verifierTailleMinimale(source);
             String nom = UUID.randomUUID() + ".jpg";
-            Files.createDirectories(repertoire);
-            Path destination = cheminSecurise(nom);
-            Path temporaire = Files.createTempFile(repertoire, "photo-", ".tmp");
-            try {
-                // Format imposé : carré de 600 × 600, recadré au centre si besoin.
-                FormatImage.ecrireJpeg(FormatImage.PHOTO_PROFIL.appliquer(source), temporaire);
-                Files.move(temporaire, destination, StandardCopyOption.ATOMIC_MOVE);
-            } finally {
-                Files.deleteIfExists(temporaire);
-            }
+            // Format imposé : carré de 600 × 600, recadré au centre si besoin.
+            depot.ecrire(nom, FormatImage.encoderJpeg(FormatImage.PHOTO_PROFIL.appliquer(source)));
             return PREFIXE_PUBLIC + nom;
         } catch (IllegalArgumentException e) {
             throw e;
@@ -90,15 +80,7 @@ public class StockagePhotoProfil {
         if (!nom.matches("[0-9a-fA-F-]{36}\\.(jpg|png)")) {
             throw new IllegalArgumentException("Photo invalide.");
         }
-        try {
-            Resource resource = new UrlResource(cheminSecurise(nom).toUri());
-            if (!resource.exists() || !resource.isReadable()) {
-                throw new PhotoIntrouvableException();
-            }
-            return resource;
-        } catch (IOException e) {
-            throw new PhotoIntrouvableException();
-        }
+        return depot.lire(nom).orElseThrow(PhotoIntrouvableException::new);
     }
 
     public void supprimerSiGeree(String url) {
@@ -106,20 +88,11 @@ public class StockagePhotoProfil {
         String nom = url.substring(PREFIXE_PUBLIC.length());
         if (!nom.matches("[0-9a-fA-F-]{36}\\.(jpg|png)")) return;
         try {
-            Files.deleteIfExists(cheminSecurise(nom));
+            depot.supprimer(nom);
         } catch (IOException e) {
             throw new StockagePhotoException("Impossible de supprimer l’ancienne photo.", e);
         }
     }
-
-    private Path cheminSecurise(String nom) throws IOException {
-        Path chemin = repertoire.resolve(nom).normalize();
-        if (!chemin.startsWith(repertoire)) {
-            throw new IOException("Chemin de stockage invalide");
-        }
-        return chemin;
-    }
-
     private void verifierSignature(byte[] contenu, String type) {
         boolean jpeg = contenu.length >= 3
             && (contenu[0] & 0xff) == 0xff && (contenu[1] & 0xff) == 0xd8 && (contenu[2] & 0xff) == 0xff;

@@ -30,8 +30,16 @@ public record OffreStageResponse(
     /** Pièces jointes PDF ; vide dans les listes, où elles ne sont pas affichées. */
     List<PieceJointe> piecesJointes,
     /** Le lecteur peut changer l'image et les pièces jointes : organisme de l'offre ou administrateur Stages, offre en attente ou publiée. */
-    boolean modifiable
+    boolean modifiable,
+    /** Candidatures envoyées : rempli dans les listes de l'organisme et de l'école, sinon null. */
+    Long nombreCandidatures
 ) {
+    public OffreStageResponse avecNombreCandidatures(long nombre) {
+        return new OffreStageResponse(id, titre, description, competences, dureeMois, typeStage, lieu, dateDebutPrevue, nombrePlaces,
+            dateLimiteCandidature, candidaturesOuvertes, statut, motifDecision, publieeLe, creeeLe, organisme, urlImage, piecesJointes,
+            modifiable, nombre);
+    }
+
     public record PieceJointe(UUID id, String nom, long taille) {
     }
 

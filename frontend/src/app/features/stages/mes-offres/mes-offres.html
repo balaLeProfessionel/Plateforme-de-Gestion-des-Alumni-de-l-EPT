@@ -30,6 +30,11 @@
               <h2><a [routerLink]="['/stages/offres', offre.id]">{{ offre.titre }}</a></h2>
               <p class="details">{{ types[offre.typeStage] }} · {{ offre.dureeMois }} mois · candidatures jusqu’au {{ offre.dateLimiteCandidature | date: 'd MMMM y' }}</p>
               @if (offre.motifDecision) { <p class="motif"><strong>Motif de l’école :</strong> {{ offre.motifDecision }}</p> }
+              @if (offre.statut === 'PUBLIEE') {
+                <a class="lien-candidatures" [routerLink]="['/stages/mes-offres', offre.id, 'candidatures']">
+                  <i class="pi pi-users" aria-hidden="true"></i>{{ offre.nombreCandidatures ?? 0 }} candidature{{ (offre.nombreCandidatures ?? 0) > 1 ? 's' : '' }}
+                </a>
+              }
             </div>
             <span class="statut" [attr.data-statut]="offre.statut">{{ statuts[offre.statut] }}</span>
             @if (offre.statut === 'PUBLIEE' || offre.statut === 'SOUMISE') {

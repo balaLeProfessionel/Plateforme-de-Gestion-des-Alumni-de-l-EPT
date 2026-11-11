@@ -42,7 +42,50 @@ export interface OffreStage {
   piecesJointes: PieceJointeOffre[];
   /** Le lecteur peut changer l’image et les pièces jointes (organisme de l’offre ou administrateur Stages). */
   modifiable: boolean;
+  /** Candidatures envoyées : dans les listes de l’organisme et de l’école, sinon null. */
+  nombreCandidatures: number | null;
 }
+
+/** Miroir de StatutCandidature. « Retenue » et « non retenue » viendront de la liste définitive (STA-04). */
+export type StatutCandidature = 'ENVOYEE' | 'RETIREE';
+export const LIBELLES_STATUT_CANDIDATURE: Record<StatutCandidature, string> = { ENVOYEE: 'Envoyée', RETIREE: 'Retirée' };
+
+/** Miroir de AvisOrganisme : jamais montré à l’étudiant. */
+export type AvisOrganisme = 'EN_ATTENTE' | 'RETENUE' | 'NON_RETENUE';
+export const LIBELLES_AVIS_ORGANISME: Record<AvisOrganisme, string> = {
+  EN_ATTENTE: 'Sans avis', RETENUE: 'Retenue', NON_RETENUE: 'Non retenue',
+};
+
+/** Miroir de MaCandidatureResponse : la candidature vue par l’étudiant. */
+export interface MaCandidature {
+  id: string;
+  offreId: string;
+  titreOffre: string;
+  organisme: string;
+  dateLimiteCandidature: string;
+  candidaturesOuvertes: boolean;
+  statut: StatutCandidature;
+  lettreMotivation: string | null;
+  nomCv: string;
+  envoyeeLe: string;
+  retireeLe: string | null;
+}
+
+/** Miroir de CandidatureRecueResponse : vue par l’organisme de l’offre ou l’école (e-mail pour l’école seulement). */
+export interface CandidatureRecue {
+  id: string;
+  etudiant: { id: string; prenom: string; nom: string; filiere: string | null; anneeEntree: number | null; urlPhoto: string | null };
+  email: string | null;
+  statut: StatutCandidature;
+  avisOrganisme: AvisOrganisme;
+  lettreMotivation: string | null;
+  nomCv: string;
+  envoyeeLe: string;
+  avisDonneLe: string | null;
+}
+
+/** Lettre de motivation : 3000 caractères au plus (règle du serveur). */
+export const LONGUEUR_LETTRE = 3000;
 
 export interface PieceJointeOffre {
   id: string;
