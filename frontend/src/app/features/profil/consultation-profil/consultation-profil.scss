@@ -3,7 +3,7 @@
 .page-profil { width: min(100% - 3rem, 1180px); margin: 0 auto; padding: 1.5rem 0 5rem; color: var(--ept-primary-dark); }
 
 /* Carte de visite : bandeau aux couleurs du rôle, avatar qui le chevauche, actions, chiffres clés. */
-.carte { --bandeau: var(--ept-sky); margin-top: 1rem; overflow: hidden; border: 1px solid var(--ept-border); border-radius: 14px; background: var(--ept-surface); }
+.carte { --bandeau: var(--ept-sky); margin-top: 1rem; overflow: hidden; border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: var(--ept-surface); }
 .carte[data-role='ETUDIANT'] { --bandeau: var(--ept-gold); }
 .carte[data-role='PERSONNEL'] { --bandeau: var(--ept-primary); }
 .carte[data-role='VISITEUR'] { --bandeau: var(--ept-border); }
@@ -27,7 +27,7 @@
   min-height: 2.6rem;
   padding: 0.5rem 0.9rem;
   border: 1px solid var(--ept-border);
-  border-radius: 8px;
+  border-radius: var(--ept-radius-sm);
   background: white;
   color: var(--ept-primary);
   font: inherit;
@@ -55,7 +55,7 @@
 .colonne-principale { grid-column: 1; grid-row: 1; }
 .colonne-laterale { grid-column: 2; grid-row: 1; }
 .colonne-principale, .colonne-laterale { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; min-width: 0; }
-.section-profil { padding: 1.5rem; border: 1px solid var(--ept-border); border-radius: 14px; background: white; }
+.section-profil { padding: 1.5rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: white; }
 .section-profil h2 { margin: 0; font-size: 1.25rem; }
 .bio { margin: 1rem 0 0; overflow-wrap: anywhere; color: var(--ept-text-secondary); line-height: 1.7; white-space: pre-line; }
 .titre-section { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; }
@@ -63,7 +63,7 @@
 .liens-gestion a { color: var(--ept-primary); font-size: 0.9rem; font-weight: 700; }
 a:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
 
-.etat-vide { margin: 1rem 0 0; color: var(--ept-text-secondary); font-style: italic; }
+app-parcours-vide { margin-top: 1rem; }
 .etat-vide-public { display: grid; justify-items: center; gap: 0.75rem; padding: 3rem 1rem; color: var(--ept-text-secondary); text-align: center; }
 .etat-vide-public i { font-size: 2rem; }
 .etat-vide-public p { margin: 0; }
@@ -76,11 +76,11 @@ a:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
 .prive dt { color: var(--ept-text-secondary); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; }
 .prive dd { margin: 0; overflow-wrap: anywhere; font-weight: 600; }
 
-.squelette { border-radius: 14px; background: #edf1f3; animation: pulsation 1.4s ease-in-out infinite alternate; }
+.squelette { border-radius: var(--ept-radius); background: #edf1f3; animation: pulsation 1.4s ease-in-out infinite alternate; }
 .entete-squelette { min-height: 230px; margin-top: 1rem; }
 .contenu-squelette { min-height: 440px; }
 .lateral-squelette { min-height: 300px; }
-.etat-centre { display: grid; justify-items: center; gap: 0.75rem; padding: 5rem 1rem; border: 1px dashed var(--ept-border); text-align: center; }
+.etat-centre { border-radius: var(--ept-radius); display: grid; justify-items: center; gap: 0.75rem; padding: 5rem 1rem; border: 1px dashed var(--ept-border); text-align: center; }
 .etat-centre i { font-size: 2rem; }
 .etat-centre h1, .etat-centre p { margin: 0; }
 

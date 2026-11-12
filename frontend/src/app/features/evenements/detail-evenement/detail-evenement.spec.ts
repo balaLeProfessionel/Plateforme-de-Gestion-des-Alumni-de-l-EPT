@@ -72,7 +72,7 @@ describe('DetailEvenement', () => {
     expect(fixture.nativeElement.textContent).toContain('École Polytechnique de Thiès');
     expect(fixture.nativeElement.textContent).toContain('Complet');
     expect(fixture.nativeElement.textContent).toContain('vous participez');
-    expect(listerParticipants).toHaveBeenCalledWith('event-1', 0);
+    expect(listerParticipants).toHaveBeenCalledWith('event-1', 0, 5);
     expect(fixture.nativeElement.textContent).toContain('Participants inscrits');
     expect(fixture.nativeElement.querySelector('.actions-gestion')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.visuel-detail .affiche .officiel')?.textContent).toContain('Officiel EPT');
@@ -190,15 +190,41 @@ describe('DetailEvenement', () => {
     expect(fixture.nativeElement.textContent).toContain('Rencontre des diplômés');
   });
 
-  it('ne charge jamais les noms de participants pour un membre qui ne gère pas l’événement', async () => {
+  it('montre les inscrits à un membre qui ne gère pas l’événement, sans la gestion', async () => {
+    utilisateur.set({ id: 'autre-membre', role: 'ALUMNI' });
+    parametres.next(convertToParamMap({ id: 'event-1' }));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const apercu = fixture.nativeElement.querySelector('.apercu-participants') as HTMLElement;
+    expect(apercu.querySelector('.phrase')?.textContent).toContain('Awa, Moussa et 5 autres participent');
+    expect(apercu.querySelector('.reste')?.textContent).toContain('+4');
+
+    // « Voir la liste » charge la liste complète, page par page.
+    listerParticipants.mockClear();
+    (apercu.querySelector('.voir') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    expect(listerParticipants).toHaveBeenCalledWith('event-1', 0, 12, '');
+    expect(fixture.nativeElement.querySelector('.gestion-evenement')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.note-masquee')).toBeNull();
+  });
+
+  it('ne charge pas les inscrits masqués par l’organisateur, qui garde la liste avec un rappel', async () => {
+    obtenir.mockReturnValue(of(evenement({ participantsVisibles: false })));
     listerParticipants.mockClear();
     utilisateur.set({ id: 'autre-membre', role: 'ALUMNI' });
     parametres.next(convertToParamMap({ id: 'event-1' }));
     await fixture.whenStable();
+    fixture.detectChanges();
 
     expect(listerParticipants).not.toHaveBeenCalled();
-    expect(fixture.nativeElement.querySelector('.liste-participants')).toBeNull();
-    expect(fixture.nativeElement.querySelector('.gestion-evenement')).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-apercu-participants')).toBeNull();
+
+    utilisateur.set({ id: 'organisateur-1', role: 'ALUMNI' });
+    parametres.next(convertToParamMap({ id: 'event-1' }));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.note-masquee')?.textContent).toContain('masquée aux membres');
   });
 
   it('laisse l’administrateur gérer un événement, sans bascule du caractère officiel', async () => {
@@ -206,7 +232,7 @@ describe('DetailEvenement', () => {
     parametres.next(convertToParamMap({ id: 'event-1' }));
     await fixture.whenStable();
 
-    expect(listerParticipants).toHaveBeenCalledWith('event-1', 0);
+    expect(listerParticipants).toHaveBeenCalledWith('event-1', 0, 5);
     // Officiel = publié par l'administration : rien à basculer à la main.
     expect(fixture.nativeElement.textContent).not.toContain('statut officiel');
     expect(fixture.nativeElement.textContent).not.toContain('Marquer officiel');
@@ -220,11 +246,15 @@ describe('DetailEvenement', () => {
       dateDebut: '2026-10-15T09:00:00Z', dateFin: '2026-10-15T12:00:00Z',
       audience: 'TOUS', nombrePlaces: null, officielEpt: true, statut: 'PUBLIE',
       organisateurId: 'organisateur-1', organisateurNom: 'Diop', organisateurPrenom: 'Awa',
-      nombreParticipants: 8, maReponse: null, ...modifications
+      nombreParticipants: 8, maReponse: null, participantsVisibles: true, ...modifications
     };
   }
 
   function pageParticipants(): PageParticipants {
-    return { contenu: [], page: 0, taille: 12, totalElements: 0, totalPages: 0 };
+    const participant = (id: string, prenom: string) => ({ id, prenom, nom: 'Diop', role: 'ALUMNI', urlPhoto: null });
+    return {
+      contenu: [participant('p1', 'Awa'), participant('p2', 'Moussa'), participant('p3', 'Fatou')],
+      page: 0, taille: 5, totalElements: 7, totalPages: 2,
+    };
   }
 });

@@ -6,7 +6,7 @@ import { RouterLink } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
 import { ProgrammeService } from '../../../../core/services/mentorat/programmes';
 import { LIBELLES_STATUT_PROGRAMME, Programme } from '../../../../core/services/models/mentorat.model';
-import { FilAriane } from '../../../../shared/fil-ariane/fil-ariane';
+import { BoutonRetour } from '../../../../shared/bouton-retour/bouton-retour';
 
 interface EtatListe {
   programmes: Programme[] | null;
@@ -16,7 +16,7 @@ interface EtatListe {
 /** Tous les programmes, gérés par l’administration. */
 @Component({
   selector: 'app-programmes-geres',
-  imports: [DatePipe, RouterLink, FilAriane],
+  imports: [DatePipe, RouterLink, BoutonRetour],
   templateUrl: './programmes-geres.html',
   styleUrl: './programmes-geres.scss',
 })

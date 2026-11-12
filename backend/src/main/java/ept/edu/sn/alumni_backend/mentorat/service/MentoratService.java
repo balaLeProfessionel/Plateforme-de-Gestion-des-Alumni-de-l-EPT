@@ -88,7 +88,8 @@ public class MentoratService {
         mentoratRepository.save(mentorat);
         notifier(profil.getUtilisateur(), "Nouvelle demande de mentorat",
             nomComplet(demandeur) + " souhaite être accompagné(e) en « " + domaine.getLibelle() + " »"
-                + (programme != null ? " dans le cadre du programme « " + programme.getTitre() + " »." : "."));
+                + (programme != null ? " dans le cadre du programme « " + programme.getTitre() + " »." : "."),
+            "/mentorat/mentores");
         return mapper.versResponse(mentorat, demandeur.getId());
     }
 
@@ -130,7 +131,8 @@ public class MentoratService {
         mentorat.setStatut(StatutMentorat.ACCEPTEE);
         mentorat.setReponduLe(Instant.now());
         notifier(mentorat.getMentore(), "Demande de mentorat acceptée",
-            nomComplet(profil.getUtilisateur()) + " a accepté de vous accompagner.");
+            nomComplet(profil.getUtilisateur()) + " a accepté de vous accompagner.",
+            NotificationMentorat.lienSuivi(mentorat.getId()));
         return mapper.versResponse(mentorat, principal.getUtilisateur().getId());
     }
 
@@ -143,7 +145,8 @@ public class MentoratService {
         mentorat.setMotifRefus(motif == null || motif.isBlank() ? null : motif.trim());
         mentorat.setReponduLe(Instant.now());
         notifier(mentorat.getMentore(), "Demande de mentorat refusée",
-            mentorat.getMotifRefus() != null ? "Motif : " + mentorat.getMotifRefus() : "Aucun motif précisé.");
+            mentorat.getMotifRefus() != null ? "Motif : " + mentorat.getMotifRefus() : "Aucun motif précisé.",
+            "/mentorat/mentorats");
         return mapper.versResponse(mentorat, principal.getUtilisateur().getId());
     }
 
@@ -155,7 +158,8 @@ public class MentoratService {
         mentorat.setStatut(StatutMentorat.ANNULEE);
         mentorat.setClotureLe(Instant.now());
         notifier(mentorat.getProfilMentor().getUtilisateur(), "Demande de mentorat annulée",
-            nomComplet(mentorat.getMentore()) + " a annulé sa demande.");
+            nomComplet(mentorat.getMentore()) + " a annulé sa demande.",
+            "/mentorat/mentores");
         return mapper.versResponse(mentorat, principal.getUtilisateur().getId());
     }
 
@@ -166,7 +170,8 @@ public class MentoratService {
         mentorat.setStatut(StatutMentorat.TERMINEE);
         mentorat.setClotureLe(Instant.now());
         notifier(acces.autreParticipant(mentorat, principal), "Mentorat terminé",
-            "Le mentorat est clôturé. Vous pouvez maintenant l'évaluer.");
+            "Le mentorat est clôturé. Vous pouvez maintenant l'évaluer.",
+            NotificationMentorat.lienSuivi(mentorat.getId()));
         return mapper.versResponse(mentorat, principal.getUtilisateur().getId());
     }
 
@@ -205,8 +210,8 @@ public class MentoratService {
             - mentoratRepository.countByProfilMentor_IdAndStatut(profil.getId(), StatutMentorat.ACCEPTEE);
     }
 
-    private void notifier(Utilisateur destinataire, String sujet, String message) {
-        evenements.publishEvent(new NotificationMentorat(destinataire.getEmail(), sujet, message));
+    private void notifier(Utilisateur destinataire, String sujet, String message, String lien) {
+        evenements.publishEvent(NotificationMentorat.pour(destinataire, sujet, message, lien));
     }
 
     private static String nomComplet(Utilisateur utilisateur) {

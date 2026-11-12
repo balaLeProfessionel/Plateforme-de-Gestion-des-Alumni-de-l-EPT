@@ -161,6 +161,55 @@ export const routes: Routes = [
           import('./features/accueil/accueil').then((m) => m.Accueil)
       },
       {
+        path: 'publications/nouvelle',
+        title: 'Nouvelle publication | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/publications/creation-publication/creation-publication').then((m) => m.CreationPublication)
+      },
+      {
+        path: 'publications/:id',
+        title: 'Publication | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/publications/detail-publication/detail-publication').then((m) => m.DetailPublication)
+      },
+      {
+        path: 'articles',
+        title: 'Articles | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/articles/bibliotheque-articles/bibliotheque-articles').then((m) => m.BibliothequeArticles)
+      },
+      {
+        path: 'articles/nouveau',
+        title: 'Nouvel article | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/articles/edition-article/edition-article').then((m) => m.EditionArticle)
+      },
+      {
+        path: 'articles/:id/modifier',
+        title: 'Modifier un article | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/articles/edition-article/edition-article').then((m) => m.EditionArticle)
+      },
+      {
+        path: 'articles/:id',
+        title: 'Article | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/articles/lecture-article/lecture-article').then((m) => m.LectureArticle)
+      },
+      {
+        path: 'notifications',
+        title: 'Notifications | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadComponent: () =>
+          import('./features/notifications/page-notifications/page-notifications').then((m) => m.PageNotifications)
+      },
+      {
         path: 'annuaire',
         title: 'Annuaire | EPT Alumni',
         canActivate: [authGuard, changementInitialRequisGuard],
@@ -178,7 +227,7 @@ export const routes: Routes = [
       },
       {
         path: 'evenements/creer',
-        title: 'Créer un événement | EPT Alumni',
+        title: 'Nouvel événement | EPT Alumni',
         canActivate: [authGuard, changementInitialRequisGuard],
         loadComponent: () =>
           import('./features/evenements/formulaire-evenement/formulaire-evenement').then(

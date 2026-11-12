@@ -10,9 +10,27 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Écran d’attente : affiché tant qu’Angular n’a pas démarré, puis remplacé par l’application. -->
+  <style>
+    .demarrage { position: fixed; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1.25rem;
+      background: #f8f9fa; color: #014365; font-family: Inter, system-ui, sans-serif; }
+    .demarrage img { width: 4.5rem; height: 4.5rem; }
+    .demarrage p { margin: 0; font-size: .95rem; font-weight: 600; }
+    .demarrage .barre { width: 9rem; height: .25rem; overflow: hidden; border-radius: 999px; background: #dbe7ee; }
+    .demarrage .barre span { display: block; width: 40%; height: 100%; border-radius: inherit; background: #014365;
+      animation: demarrage-glisse 1.1s ease-in-out infinite; }
+    @keyframes demarrage-glisse { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+    @media (prefers-reduced-motion: reduce) { .demarrage .barre span { width: 100%; animation: none; opacity: .6; } }
+  </style>
 </head>
 <body>
-  <app-root></app-root>
+  <app-root>
+    <div class="demarrage" role="status">
+      <img src="images/logo-ept.png" alt="" width="400" height="400">
+      <p>Chargement d’EPT Alumni…</p>
+      <div class="barre" aria-hidden="true"><span></span></div>
+    </div>
+  </app-root>
   <noscript>EPT Alumni a besoin de JavaScript pour s’afficher. Activez-le dans votre navigateur, puis rechargez la page.</noscript>
 </body>
 </html>

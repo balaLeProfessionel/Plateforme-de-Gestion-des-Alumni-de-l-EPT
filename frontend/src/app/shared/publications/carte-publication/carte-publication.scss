@@ -1,0 +1,94 @@
+:host { display: block; min-width: 0; --marge: 1.15rem; }
+p { margin: 0; }
+button { font: inherit; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--ept-sky); outline-offset: 1px; }
+
+.carte { overflow: hidden; min-width: 0; border: 1px solid var(--ept-border); border-radius: var(--ept-radius);
+  background: var(--ept-surface); }
+.carte.officielle { border-color: rgb(1 67 101 / 35%); }
+// Dans le fil, toute la carte mène à la publication complète.
+.carte.dans-le-fil { cursor: pointer; transition: border-color .15s; }
+.carte.dans-le-fil:hover { border-color: #b7cdd8; }
+a { color: inherit; }
+a:focus-visible { outline: 3px solid var(--ept-sky); outline-offset: 2px; border-radius: .2rem; }
+
+// La parole de l’école se reconnaît avant même d’être lue : un bandeau marine, rien d’autre de coloré.
+.bandeau { display: flex; align-items: center; gap: .5rem; padding: .5rem var(--marge); background: var(--ept-primary);
+  color: white; font-family: var(--ept-font-heading); font-size: .85rem; font-weight: 600; letter-spacing: .01em; }
+.bandeau i { color: var(--ept-sky); }
+
+.entete { display: flex; align-items: flex-start; gap: .75rem; padding: var(--marge) var(--marge) 0; }
+.identite { flex: 1 1 auto; min-width: 0; padding-top: .1rem; }
+.nom { display: flex; flex-wrap: wrap; align-items: center; gap: .2rem .5rem; }
+.nom strong { color: var(--ept-primary-dark); font-family: var(--ept-font-heading); font-size: 1rem; font-weight: 600;
+  overflow-wrap: anywhere; }
+.role { padding: .1rem .5rem; border-radius: 999px; background: var(--ept-primary-light); color: var(--ept-primary);
+  font-size: .72rem; font-weight: 600; }
+.role.ecole { background: var(--ept-primary); color: white; }
+.meta { display: flex; flex-wrap: wrap; gap: .15rem .75rem; margin-top: .2rem; color: var(--ept-text-secondary); font-size: .8rem; }
+.date { text-decoration: none; }
+.date:hover { color: var(--ept-primary); text-decoration: underline; }
+.audience { display: inline-flex; align-items: center; gap: .3rem; }
+.audience i { font-size: .75rem; }
+.menu { flex: 0 0 auto; margin: -.35rem -.5rem 0 0; }
+
+.corps { padding: .85rem var(--marge) 0; }
+h3 { margin: 0 0 .4rem; color: var(--ept-primary-dark); font-family: var(--ept-font-heading); font-size: 1.2rem;
+  font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+.contenu { max-width: 68ch; color: #1d3a4b; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.contenu.tronque { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 5; line-clamp: 5; }
+.voir-plus { display: inline-block; margin-top: .25rem; padding: .2rem 0; color: var(--ept-primary); font-weight: 600;
+  text-decoration: none; }
+.voir-plus:hover { text-decoration: underline; }
+
+// Appel à projet : la date limite en tuile de calendrier, lisible d’un coup d’œil dans le fil.
+.appel-titre { display: flex; align-items: flex-start; gap: .9rem; margin-bottom: .75rem; }
+.appel-titre > div { min-width: 0; }
+.tuile { display: grid; flex: 0 0 auto; width: 3.6rem; overflow: hidden; border: 1px solid #bfe9f4; border-radius: var(--ept-radius-sm);
+  background: #effbfe; text-align: center; }
+.mois { padding: .18rem 0; background: var(--ept-primary); color: white; font-size: .72rem; font-weight: 600; text-transform: uppercase; }
+.jour { padding: .2rem 0 .3rem; color: var(--ept-primary); font-family: var(--ept-font-heading); font-size: 1.45rem;
+  font-weight: 700; line-height: 1.1; }
+.tuile.close { border-color: var(--ept-border); background: var(--ept-bg); }
+.tuile.close .mois { background: var(--ept-text-secondary); }
+.tuile.close .jour { color: var(--ept-text-secondary); }
+.etiquette { display: inline-flex; align-items: center; gap: .3rem; margin-bottom: .3rem; padding: .12rem .55rem;
+  border-radius: 999px; font-size: .72rem; font-weight: 700; }
+.etiquette.appel { background: var(--ept-gold-light); color: var(--ept-gold-dark); }
+.etiquette i { font-size: .72rem; }
+.echeance { color: var(--ept-primary); font-size: .88rem; font-weight: 600; }
+.echeance.close { color: var(--ept-text-secondary); font-weight: 500; }
+
+// L’image occupe toute la largeur de la carte ; un fond neutre encadre les formats étroits.
+.media { display: flex; justify-content: center; margin: .85rem var(--marge) 0; overflow: hidden;
+  border-radius: var(--ept-radius-sm); background: var(--ept-bg); }
+.media app-image-publication { width: min(100%, 30rem, 52vh); aspect-ratio: 4 / 5; border-radius: 0; }
+// Dans le fil, une affiche haute ne dépasse pas la moitié de l’écran ; la page de la publication la montre en grand.
+.dans-le-fil .media app-image-publication { width: min(100%, 30rem, 36vh); }
+
+.actions { display: flex; flex-wrap: wrap; gap: .5rem; margin: .4rem calc(var(--marge) - .6rem) .3rem; }
+.action { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.75rem;
+  padding: .4rem .6rem; border: 0; border-radius: var(--ept-radius-sm); background: transparent; color: var(--ept-text-secondary);
+  font-weight: 600; }
+.action:hover { background: var(--ept-bg); color: var(--ept-primary); }
+.action i { font-size: 1.05rem; }
+.compte { font-weight: 500; }
+.discussion { padding: 0 var(--marge); }
+.apercu { display: grid; gap: .45rem; padding: .85rem var(--marge) 1rem; border-top: 1px solid var(--ept-border); }
+.tous { justify-self: start; color: var(--ept-primary); font-size: .88rem; font-weight: 600;
+  text-decoration: none; }
+.tous:hover { text-decoration: underline; }
+.discussion.ouverte { border-top: 1px solid var(--ept-border); padding-bottom: .9rem; }
+
+.visuellement-cache { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+@media (prefers-reduced-motion: reduce) { .carte.dans-le-fil { transition: none; } }
+@media (max-width: 560px) {
+  :host { --marge: 1rem; }
+  // Sur mobile, le fil est plat : la publication occupe toute la largeur, séparée par une bande grise.
+  .carte { border: 0; border-radius: 0; }
+  .media app-image-publication { width: min(100%, 52vh); }
+  .dans-le-fil .media app-image-publication { width: min(100%, 36vh); }
+  h3 { font-size: 1.1rem; }
+}

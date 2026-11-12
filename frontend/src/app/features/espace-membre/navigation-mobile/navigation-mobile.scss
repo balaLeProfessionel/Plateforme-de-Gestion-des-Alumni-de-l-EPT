@@ -12,7 +12,7 @@
     max-width: 28rem;
     margin-inline: auto;
     padding: 0.25rem;
-    border-radius: 0.45rem;
+    border-radius: var(--ept-radius-sm);
     background: var(--ept-primary);
     box-shadow: 0 5px 18px rgba(1, 67, 101, 0.18);
   }

@@ -25,7 +25,7 @@ public class TraceCompte {
     }
 
     public void notifier(Utilisateur compte, String sujet, String message) {
-        evenements.publishEvent(new NotificationCompte(compte.getEmail(), sujet, message));
+        evenements.publishEvent(new NotificationCompte(compte.getId(), compte.getEmail(), sujet, message));
     }
 
     /** Mot de passe provisoire d'un compte créé : un message à part, jamais écrit dans les journaux. */

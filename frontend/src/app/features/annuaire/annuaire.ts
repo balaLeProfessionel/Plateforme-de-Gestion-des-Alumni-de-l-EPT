@@ -3,6 +3,7 @@ import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { form, FormField, maxLength, pattern } from '@angular/forms/signals';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { ButtonDirective, ButtonIcon } from 'primeng/button';
 import {
   catchError, combineLatest, debounceTime, distinctUntilChanged, filter, map, of, startWith, Subject, switchMap, tap
 } from 'rxjs';
@@ -14,7 +15,6 @@ import {
   TypeMembreAnnuaire,
   TriAnnuaire
 } from '../../core/services/models/annuaire.model';
-import { FilAriane } from '../../shared/fil-ariane/fil-ariane';
 import { CarteMembre } from './carte-membre/carte-membre';
 import { CarteMembreSquelette } from './carte-membre/carte-membre-squelette';
 
@@ -31,7 +31,7 @@ const LIBELLES_TYPES: Record<TypeMembreAnnuaire, string> = {
 
 @Component({
   selector: 'app-annuaire',
-  imports: [FormField, FilAriane, CarteMembre, CarteMembreSquelette],
+  imports: [FormField, ButtonDirective, ButtonIcon, CarteMembre, CarteMembreSquelette],
   templateUrl: './annuaire.html',
   styleUrl: './annuaire.scss',
 })
@@ -49,7 +49,7 @@ export class Annuaire {
     filiere: '',
     promotion: '',
     ville: '',
-    tri: 'ALPHABETIQUE'
+    tri: 'PROFILS_COMPLETS'
   });
   protected readonly formulaire = form(this.modele, (champ) => {
     maxLength(champ.promotion, 4);
@@ -211,7 +211,7 @@ export class Annuaire {
       filiere: params.get('filiere') ?? '',
       promotion: params.get('promotion') ?? '',
       ville: params.get('ville') ?? '',
-      tri: tri === 'PROMOTION_DESC' ? tri : 'ALPHABETIQUE',
+      tri: tri === 'PROMOTION_DESC' || tri === 'ALPHABETIQUE' ? tri : 'PROFILS_COMPLETS',
       page: this.entierPositif(params.get('page'), 0),
       taille: 12
     };
@@ -242,7 +242,7 @@ export class Annuaire {
   }): Record<string, string | number> {
     const params: Record<string, string | number> = {};
     for (const [cle, valeur] of Object.entries(valeurs)) {
-      if (valeur !== '' && valeur !== 'ALPHABETIQUE' && !(cle === 'page' && valeur === 0)) {
+      if (valeur !== '' && valeur !== 'PROFILS_COMPLETS' && !(cle === 'page' && valeur === 0)) {
         params[cle] = typeof valeur === 'string' ? valeur.trim() : valeur;
       }
     }

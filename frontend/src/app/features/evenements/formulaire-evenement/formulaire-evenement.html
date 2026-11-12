@@ -1,16 +1,11 @@
+<app-barre-creation [titre]="modeEdition() ? 'Modifier l’événement' : 'Nouvel événement'"
+  libelleFermer="Annuler et revenir aux événements" formulaire="formulaire-evenement"
+  [libelleAction]="modeEdition() ? 'Enregistrer' : 'Publier'" libelleEnCours="Enregistrement…"
+  [enCours]="envoiEnCours()" [desactivee]="enChargement() || (modeEdition() && !chargementReussi())"
+  (fermer)="retourner()" />
+
 <div class="formulaire-evenement-page">
-  <app-bouton-retour [secours]="urlSecours" />
-
-  <header class="entete-formulaire">
-    <p class="sur-titre">La vie du réseau</p>
-    <h1>{{ modeEdition() ? 'Modifier l’événement' : 'Créer un événement' }}</h1>
-    <p>Partagez une rencontre avec les membres concernés de la communauté EPT.</p>
-    @if (publieParAdministration()) {
-      <p class="note-officielle"><i class="pi pi-verified" aria-hidden="true"></i>
-        Publié par l’administration, cet événement est présenté comme un événement officiel de l’EPT.</p>
-    }
-  </header>
-
+  <div class="colonne-formulaire">
   @if (enChargement()) {
     <div class="etat-formulaire" aria-busy="true" aria-label="Chargement de l’événement">
       <span class="indicateur-chargement" aria-hidden="true"></span>Chargement…
@@ -21,7 +16,11 @@
       <button type="button" (click)="reessayerChargement()">Réessayer</button>
     </section>
   } @else {
-    <form class="carte-formulaire" (submit)="soumettre($event)" novalidate>
+    <form id="formulaire-evenement" class="carte-formulaire" (submit)="soumettre($event)" novalidate>
+      @if (publieParAdministration()) {
+        <p class="note-officielle"><i class="pi pi-verified" aria-hidden="true"></i>
+          Publié par l’administration, cet événement est présenté comme un événement officiel de l’EPT.</p>
+      }
       @if (messageErreur()) {
         <p class="message-erreur-api" role="alert">{{ messageErreur() }}</p>
       }
@@ -59,14 +58,9 @@
           <label id="titre-image-evenement" for="evenement-image">Image de l’événement <span class="optionnel">Facultatif</span></label>
           <input #champImage id="evenement-image" type="file" accept="image/jpeg,image/png"
             aria-describedby="aide-image erreur-image" (change)="selectionnerImage($event)" />
-          <small id="aide-image">JPEG ou PNG, 5 Mo maximum, idéalement 800 × 450 pixels ou plus. Vous la recadrez au
-            format 16:9 ; sans image, une affiche datée est générée.</small>
+          <small id="aide-image">JPEG ou PNG, 5 Mo max.</small>
           @if (erreurImage(); as erreur) {
             <span class="erreur-champ" id="erreur-image" role="alert">{{ erreur }}</span>
-          } @else if (avertissementImage(); as avertissement) {
-            <span class="avertissement-image" role="status">
-              <i class="pi pi-info-circle" aria-hidden="true"></i>{{ avertissement }}
-            </span>
           }
           <div class="actions-image">
             @if (fichierImage()) {
@@ -136,14 +130,16 @@
         }
       </div>
 
-      <p class="note-obligatoire"><span aria-hidden="true">*</span> Champ obligatoire</p>
-      <div class="actions-formulaire">
-        <button class="action-secondaire" type="button" (click)="retourner()">Annuler</button>
-        <button class="action-principale" type="submit" [disabled]="envoiEnCours()">
-          @if (envoiEnCours()) { Enregistrement… }
-          @else { {{ modeEdition() ? 'Enregistrer les modifications' : 'Publier l’événement' }} }
-        </button>
+      <div class="champ-case">
+        <input id="evenement-participants-visibles" type="checkbox" [formField]="formulaire.participantsVisibles"
+          aria-describedby="aide-participants-visibles" />
+        <label for="evenement-participants-visibles">Montrer la liste des inscrits aux membres</label>
+        <small id="aide-participants-visibles">Décochée, vous seul voyez qui participe ; les membres ne voient que le nombre.</small>
       </div>
+
+      <p class="note-obligatoire"><span aria-hidden="true">*</span> Champ obligatoire</p>
     </form>
   }
+  </div>
+  <app-conseils-creation titre="Pour un événement réussi" [conseils]="conseils" />
 </div>

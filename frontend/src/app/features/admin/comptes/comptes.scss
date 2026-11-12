@@ -13,7 +13,7 @@
 }
 
 input, select {
-  min-height: 2.75rem; padding: 0.5rem 0.75rem; border: 1px solid var(--ept-border); border-radius: 8px;
+  min-height: 2.75rem; padding: 0.5rem 0.75rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm);
   background: white; color: var(--ept-primary-dark); font: inherit;
   &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
 }
@@ -35,7 +35,7 @@ input, select {
 .actions-page { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .action-page {
   display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.5rem; padding: 0.4rem 0.85rem;
-  border: 1px solid var(--ept-primary); border-radius: 8px; color: var(--ept-primary); font-size: 0.88rem; font-weight: 700; text-decoration: none;
+  border: 1px solid var(--ept-primary); border-radius: var(--ept-radius-sm); color: var(--ept-primary); font-size: 0.88rem; font-weight: 700; text-decoration: none;
   &.principale { background: var(--ept-primary); color: white; }
   &:hover { background: var(--ept-primary-light); }
   &.principale:hover { background: var(--ept-primary-dark); }

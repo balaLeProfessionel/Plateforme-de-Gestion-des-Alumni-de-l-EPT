@@ -9,9 +9,10 @@ import { AuthService } from '../../../core/services/auth/auth-service';
 import { EvenementService } from '../../../core/services/evenements/evenement';
 import { AudienceEvenement, Evenement, EvenementRequest } from '../../../core/services/models/evenement';
 import { RetourNavigation } from '../../../core/navigation/retour-navigation';
-import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
+import { BarreCreation } from '../../../shared/creation/barre-creation';
+import { Conseil, ConseilsCreation } from '../../../shared/creation/conseils-creation';
 import { chargerImagePourRecadrage } from '../../../shared/images/charger-image';
-import { estPetite, FORMAT_EVENEMENT } from '../../../shared/images/recadrage';
+import { FORMAT_EVENEMENT } from '../../../shared/images/recadrage';
 import { RecadreurImage } from '../../../shared/images/recadreur-image';
 import { VisuelEvenement } from '../../../shared/images/visuel-evenement';
 import { etatNavigationEvenement, urlRetourInterne } from '../navigation-evenements';
@@ -24,11 +25,19 @@ interface ModeleFormulaireEvenement {
   dateFin: string;
   audience: AudienceEvenement;
   nombrePlaces: string;
+  participantsVisibles: boolean;
 }
+
+const CONSEILS: readonly Conseil[] = [
+  { titre: 'Un titre qui dit tout.', texte: 'La nature de la rencontre et son sujet : « Conférence : construire sa carrière dans l’énergie ».' },
+  { titre: 'Une date et un lieu précis.', texte: 'Ils s’affichent sur la carte de l’événement dans le fil et dans la liste.' },
+  { titre: 'Ajoutez une image.', texte: 'Recadrée au format 16:9 ; sans image, une affiche aux couleurs de l’EPT est créée.' },
+  { titre: 'Choisissez le public.', texte: 'Tous les membres, seulement les alumni ou seulement les étudiants.' },
+];
 
 @Component({
   selector: 'app-formulaire-evenement',
-  imports: [FormField, BoutonRetour, RecadreurImage, VisuelEvenement],
+  imports: [FormField, BarreCreation, ConseilsCreation, RecadreurImage, VisuelEvenement],
   templateUrl: './formulaire-evenement.html',
   styleUrl: './formulaire-evenement.scss',
 })
@@ -50,6 +59,7 @@ export class FormulaireEvenement {
   protected readonly enChargement = signal(false);
   protected readonly chargementReussi = signal(true);
   protected readonly envoiEnCours = signal(false);
+  protected readonly conseils = CONSEILS;
   protected readonly messageErreur = signal<string | null>(null);
   protected readonly imageActuelle = signal<string | null>(null);
   protected readonly fichierImage = signal<File | null>(null);
@@ -57,14 +67,13 @@ export class FormulaireEvenement {
   protected readonly suppressionImage = signal(false);
   protected readonly erreurImage = signal<string | null>(null);
   /** Image acceptée mais sous la taille conseillée : on prévient qu’elle sera un peu floue. */
-  protected readonly avertissementImage = signal<string | null>(null);
   /** Image en cours de recadrage, avant d'être acceptée comme illustration. */
   protected readonly imageARecadrer = signal<HTMLImageElement | null>(null);
   protected readonly formatEvenement = FORMAT_EVENEMENT;
   private urlApercuTemporaire: string | null = null;
   protected readonly modele = signal<ModeleFormulaireEvenement>({
     titre: '', description: '', lieu: '', dateDebut: '', dateFin: '',
-    audience: 'TOUS', nombrePlaces: '',
+    audience: 'TOUS', nombrePlaces: '', participantsVisibles: true,
   });
   protected readonly formulaire = form(this.modele, (chemin) => {
     required(chemin.titre, { message: 'Le titre est obligatoire.' });
@@ -111,7 +120,7 @@ export class FormulaireEvenement {
       else {
         this.modele.set({
           titre: '', description: '', lieu: '', dateDebut: '', dateFin: '',
-          audience: 'TOUS', nombrePlaces: '',
+          audience: 'TOUS', nombrePlaces: '', participantsVisibles: true,
         });
         this.imageActuelle.set(null);
         this.fichierImage.set(null);
@@ -137,6 +146,7 @@ export class FormulaireEvenement {
           dateFin: valeurs.dateFin ? new Date(valeurs.dateFin).toISOString() : null,
           audience: valeurs.audience,
           nombrePlaces: valeurs.nombrePlaces === '' ? null : Number(valeurs.nombrePlaces),
+          participantsVisibles: valeurs.participantsVisibles,
         };
         const id = this.identifiantEvenement();
         let evenement = id
@@ -206,14 +216,10 @@ export class FormulaireEvenement {
     const fichier = input.files?.item(0) ?? null;
     input.value = '';
     this.erreurImage.set(null);
-    this.avertissementImage.set(null);
     if (!fichier) return;
     try {
       this.fermerRecadrage();
       const image = await chargerImagePourRecadrage(fichier, FORMAT_EVENEMENT);
-      this.avertissementImage.set(estPetite({ largeur: image.naturalWidth, hauteur: image.naturalHeight }, FORMAT_EVENEMENT)
-        ? `Image de petite taille (${image.naturalWidth} × ${image.naturalHeight} pixels) : elle sera agrandie et pourra paraître un peu floue.`
-        : null);
       this.imageARecadrer.set(image);
     } catch (erreur) {
       this.erreurImage.set(erreur instanceof Error ? erreur.message : 'Cette image ne peut pas être utilisée.');
@@ -229,7 +235,6 @@ export class FormulaireEvenement {
 
   protected annulerRecadrage(): void {
     this.fermerRecadrage();
-    this.avertissementImage.set(null);
   }
 
   protected fermerRecadrage(): void {
@@ -243,7 +248,6 @@ export class FormulaireEvenement {
     this.libererApercu();
     this.apercuImage.set(this.suppressionImage() ? null : this.imageActuelle());
     this.erreurImage.set(null);
-    this.avertissementImage.set(null);
     if (input) input.value = '';
   }
 
@@ -251,7 +255,6 @@ export class FormulaireEvenement {
     this.suppressionImage.update((supprimer) => !supprimer);
     this.apercuImage.set(this.suppressionImage() ? null : this.imageActuelle());
     this.erreurImage.set(null);
-    this.avertissementImage.set(null);
   }
 
   private definirApercu(fichier: File): void {
@@ -269,7 +272,6 @@ export class FormulaireEvenement {
     this.fichierImage.set(null);
     this.suppressionImage.set(false);
     this.erreurImage.set(null);
-    this.avertissementImage.set(null);
     this.libererApercu();
     this.apercuImage.set(this.imageActuelle());
   }
@@ -304,6 +306,7 @@ export class FormulaireEvenement {
         dateFin: evenement.dateFin ? this.versDateLocale(evenement.dateFin) : '',
         audience: evenement.audience,
         nombrePlaces: evenement.nombrePlaces?.toString() ?? '',
+        participantsVisibles: evenement.participantsVisibles,
       });
       this.imageActuelle.set(evenement.urlImage);
       this.fichierImage.set(null);

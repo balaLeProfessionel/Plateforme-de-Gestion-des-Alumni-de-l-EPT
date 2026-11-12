@@ -16,7 +16,7 @@
 }
 
 .journal {
-  margin: 0; padding: 0; list-style: none; border: 1px solid var(--ept-border); border-radius: 12px; background: white;
+  margin: 0; padding: 0; list-style: none; border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: white;
 
   li { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: 1rem; padding: 0.85rem 1.1rem; border-top: 1px solid var(--ept-border); }
   li:first-child { border-top: 0; }

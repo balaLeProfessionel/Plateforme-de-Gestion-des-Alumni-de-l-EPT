@@ -11,12 +11,15 @@ import { SidebarModule } from 'primeng/sidebar';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurInscriptions } from '../../core/services/admin/compteur-inscriptions';
+import { CompteurSignalements } from '../../core/services/publications/moderation';
 import { PermissionAdmin, TOUTES_LES_PERMISSIONS } from '../../core/services/models/admin.model';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
 import { participeAuMentorat } from '../../core/services/models/mentorat.model';
 import { AvatarMembre } from '../../shared/images/avatar-membre';
 import { MenuMobile, RubriqueAVenir, RubriqueMenu } from './menu-mobile/menu-mobile';
 import { NavigationMobile } from './navigation-mobile/navigation-mobile';
+import { ClocheNotifications } from './cloche-notifications/cloche-notifications';
+import { NotificationService } from '../../core/services/notifications/notifications';
 
 interface LienNavigation extends RubriqueMenu {
   exact: boolean;
@@ -31,7 +34,7 @@ interface GroupeNavigation {
   selector: 'app-espace-membre',
   imports: [
     AvatarMembre, RouterLink, RouterLinkActive, RouterOutlet, SidebarModule, MenuModule, TooltipModule, ButtonModule,
-    IconeSidebar, MenuMobile, NavigationMobile,
+    IconeSidebar, MenuMobile, NavigationMobile, ClocheNotifications,
   ],
   templateUrl: './espace-membre.html',
   styleUrl: './espace-membre.scss',
@@ -43,11 +46,14 @@ export class EspaceMembre implements OnDestroy {
   private readonly formatNavigation = this.document.defaultView?.matchMedia?.('(max-width: 1023px)');
   private readonly changementFormatNavigation = (evenement: MediaQueryListEvent) =>
     this.sidebarOuverte.set(!evenement.matches);
-  /** Partagé par le bouton du compte, la barre du bas et le dialog « Mon espace ». */
+  /** Partagé par le bouton « Menu » de la barre du bas et le dialog « Mon espace ». */
   protected readonly menuOuvert = signal(false);
   protected readonly sidebarOuverte = signal(!this.formatNavigation?.matches);
   protected readonly compteurMentorat = inject(CompteurDemandesMentorat);
+  private readonly mentorat = computed(() => participeAuMentorat(this.authService.utilisateur()?.role));
   private readonly compteurInscriptions = inject(CompteurInscriptions);
+  private readonly compteurSignalements = inject(CompteurSignalements);
+  private readonly notificationService = inject(NotificationService);
   /** Un compte d’administration navigue par domaine ; un membre garde les rubriques de la communauté. */
   private readonly administration = computed(() =>
     TOUTES_LES_PERMISSIONS.some((permission) => this.authService.aPermission(permission)));
@@ -57,10 +63,12 @@ export class EspaceMembre implements OnDestroy {
         { libelle: 'Accueil', icone: 'pi-home', route: '/accueil', exact: true },
         { libelle: 'Annuaire', icone: 'pi-users', route: '/annuaire', exact: false },
         { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
-        {
+        { libelle: 'Articles', icone: 'pi-book', route: '/articles', exact: false },
+        // Un compte organisme publie, écrit et organise, mais ne prend pas part au mentorat.
+        ...(this.mentorat() ? [{
           libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', exact: false,
           compteur: this.compteurMentorat.nombre(), libelleCompteur: 'demandes en attente',
-        },
+        }] : []),
       ] }];
     }
     const peut = (permission: PermissionAdmin) => this.authService.aPermission(permission);
@@ -76,6 +84,12 @@ export class EspaceMembre implements OnDestroy {
         { libelle: 'Diplômés', icone: 'pi-graduation-cap', route: '/admin/diplomes', exact: false },
       ] : [] },
       { titre: 'Contenus', liens: [
+        ...(peut('PUBLIER_ANNONCES')
+          ? [{ libelle: 'Annonces et appels', icone: 'pi-megaphone', route: '/admin/publications', exact: false }] : []),
+        ...(peut('MODERER_PUBLICATIONS') ? [{
+          libelle: 'Signalements', icone: 'pi-flag', route: '/admin/signalements', exact: false,
+          compteur: this.compteurSignalements.nombre(), libelleCompteur: 'signalements à examiner',
+        }] : []),
         { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
         { libelle: 'Programmes de mentorat', icone: 'pi-sitemap', route: '/mentorat/gestion-programmes', exact: false },
       ] },
@@ -87,13 +101,11 @@ export class EspaceMembre implements OnDestroy {
   });
   protected readonly rubriquesAVenir = computed<readonly RubriqueAVenir[]>(() => this.administration() ? [
     { libelle: 'Statistiques', icone: 'pi-chart-bar' },
-    { libelle: 'Modération', icone: 'pi-flag' },
-    { libelle: 'Annonces', icone: 'pi-megaphone' },
     { libelle: 'Enquêtes', icone: 'pi-clipboard' },
     { libelle: 'Rôles et accès', icone: 'pi-key' },
   ] : [
+    // Les actualités vivent dans le fil de l’accueil : plus de rubrique à part.
     { libelle: 'Offres d’emploi', icone: 'pi-briefcase' },
-    { libelle: 'Actualités', icone: 'pi-megaphone' },
   ]);
   /**
    * La barre du bas garde quatre entrées (Accueil, Annuaire, Événements, Menu) : le reste passe par le panneau
@@ -103,7 +115,11 @@ export class EspaceMembre implements OnDestroy {
     ? this.groupesNavigation()
       .flatMap((groupe) => groupe.liens)
       .filter((lien) => !['/annuaire', '/evenements'].includes(lien.route))
-    : [{ libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() }]);
+    : [
+      { libelle: 'Articles', icone: 'pi-book', route: '/articles' },
+      ...(this.mentorat()
+        ? [{ libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() }] : []),
+    ]);
 
   private readonly urlCourante = toSignal(this.router.events.pipe(
     filter((evenement): evenement is NavigationEnd => evenement instanceof NavigationEnd),
@@ -154,14 +170,13 @@ export class EspaceMembre implements OnDestroy {
     this.authService.resynchroniser();
     if (participeAuMentorat(this.authService.utilisateur()?.role)) this.compteurMentorat.actualiser();
     if (this.authService.aPermission('GERER_COMPTES')) this.compteurInscriptions.actualiser();
+    if (this.authService.aPermission('MODERER_PUBLICATIONS')) this.compteurSignalements.actualiser();
+    this.notificationService.demarrer();
   }
 
   ngOnDestroy(): void {
     this.formatNavigation?.removeEventListener('change', this.changementFormatNavigation);
-  }
-
-  protected basculerMenu(): void {
-    this.menuOuvert.update((ouvert) => !ouvert);
+    this.notificationService.arreter();
   }
 
   protected seDeconnecter(): void {

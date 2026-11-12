@@ -19,7 +19,7 @@ import { RetourNavigation } from '../../core/navigation/retour-navigation';
       margin-left: -0.6rem;
       padding: 0.45rem 0.75rem;
       border: 0;
-      border-radius: 8px;
+      border-radius: var(--ept-radius-sm);
       background: transparent;
       color: var(--ept-primary);
       font: inherit;

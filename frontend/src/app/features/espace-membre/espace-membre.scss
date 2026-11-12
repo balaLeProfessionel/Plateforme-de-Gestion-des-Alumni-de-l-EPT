@@ -39,6 +39,7 @@
   background: var(--ept-surface);
 
   button { color: var(--ept-primary); }
+  .cloche { margin-left: auto; }
 }
 
 .barre-laterale .p-sidebar-group-label {
@@ -133,7 +134,7 @@
   height: 2rem;
   overflow: hidden;
   border: 1px solid var(--ept-border);
-  border-radius: 0.35rem;
+  border-radius: var(--ept-radius-sm);
   background: white;
 }
 
@@ -215,8 +216,6 @@ a:focus-visible, button:focus-visible {
   .entete-mobile .marque { display: flex; align-items: center; gap: 0.7rem; color: var(--ept-primary-dark); text-decoration: none; }
   .entete-mobile .symbole-marque { width: 2.5rem; height: 2.5rem; flex-basis: 2.5rem; }
   .entete-mobile .texte-marque strong { font-size: clamp(1rem, 4.5vw, 1.2rem); }
-  .bouton-compte { display: flex; align-items: center; gap: 0.45rem; min-height: 2.75rem; padding: 0; border: 0; background: transparent; color: var(--ept-primary); cursor: pointer; }
-  .bouton-compte > i { font-size: 0.85rem; }
 }
 
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

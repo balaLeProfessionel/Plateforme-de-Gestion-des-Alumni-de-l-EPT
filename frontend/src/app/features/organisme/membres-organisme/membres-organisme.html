@@ -1,0 +1,54 @@
+<section class="section-membres" aria-labelledby="titre-membres">
+  <h2 id="titre-membres" tabindex="-1">Ils travaillent ou ont travaillé ici</h2>
+
+  @if (!charge() && chargement()) {
+    <ul class="vignettes" aria-hidden="true">
+      @for (item of [1, 2, 3, 4]; track item) {
+        <li class="squelette"></li>
+      }
+    </ul>
+  } @else if (erreur() && !charge()) {
+    <div class="etat" role="alert">
+      <p>{{ erreur() }}</p>
+      <button type="button" class="bouton-secondaire" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (total() === 0) {
+    <p class="etat vide">Aucun membre de la communauté n’a encore indiqué cet organisme dans son parcours.</p>
+  } @else {
+    @if (onglets().length > 1) {
+      <div class="onglets" role="group" aria-label="Afficher les membres">
+        @for (choix of onglets(); track choix.valeur) {
+          <button type="button" [attr.aria-pressed]="onglet() === choix.valeur" (click)="choisirOnglet(choix.valeur)">
+            {{ choix.libelle }} <span class="nombre">{{ choix.nombre }}</span>
+          </button>
+        }
+      </div>
+    }
+
+    @if (erreur()) {
+      <p class="erreur" role="alert">{{ erreur() }}</p>
+    }
+    <ul class="vignettes" aria-live="polite" [attr.aria-busy]="chargement()" [class.attenuee]="chargement()">
+      @for (membre of apercu(); track membre.id) {
+        <li>
+          <a class="vignette" [routerLink]="['/profil', membre.id]">
+            <app-avatar-membre [urlPhoto]="membre.urlPhoto" [prenom]="membre.prenom" [nom]="membre.nom"
+              [roleMembre]="membre.role" [taille]="4.5" />
+            <span class="nom">{{ membre.prenom }} {{ membre.nom }}</span>
+            @if (membre.poste) { <span class="poste">{{ membre.poste }}</span> }
+            <span class="periode">{{ periode(membre) }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+
+    @if (total() > apercu().length) {
+      <button type="button" class="bouton-secondaire tout-voir" (click)="dialogueOuverte.set(true)">
+        <i class="pi pi-users" aria-hidden="true"></i>{{ libelleTout() }}
+      </button>
+    }
+  }
+
+  <app-dialogue-membres-organisme [organismeId]="organismeId()" [nomOrganisme]="nomOrganisme()"
+    [ouverte]="dialogueOuverte()" [presenceInitiale]="onglet()" (fermee)="dialogueOuverte.set(false)" />
+</section>

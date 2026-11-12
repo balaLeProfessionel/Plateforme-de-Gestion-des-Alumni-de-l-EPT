@@ -5,7 +5,9 @@ import { vi } from 'vitest';
 
 import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurInscriptions } from '../../core/services/admin/compteur-inscriptions';
+import { CompteurSignalements } from '../../core/services/publications/moderation';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
+import { NotificationService } from '../../core/services/notifications/notifications';
 import { EspaceMembre } from './espace-membre';
 
 // Le premier rendu de la barre latérale PrimeNG charge tout le module : seul, il prend
@@ -20,6 +22,9 @@ describe('Navigation de l’espace membre', () => {
   const resynchroniser = vi.fn();
   const inscriptionsEnAttente = signal(0);
   const actualiserInscriptions = vi.fn();
+  const signalementsEnAttente = signal(0);
+  const actualiserSignalements = vi.fn();
+  const notifications = { nonLues: signal(0), demarrer: vi.fn(), arreter: vi.fn() };
 
   beforeEach(() => {
     utilisateur.set({ role: 'ALUMNI', nom: 'Diop', prenom: 'Awa' });
@@ -29,6 +34,11 @@ describe('Navigation de l’espace membre', () => {
     resynchroniser.mockClear();
     inscriptionsEnAttente.set(0);
     actualiserInscriptions.mockClear();
+    signalementsEnAttente.set(0);
+    actualiserSignalements.mockClear();
+    notifications.nonLues.set(0);
+    notifications.demarrer.mockClear();
+    notifications.arreter.mockClear();
     TestBed.configureTestingModule({
       imports: [EspaceMembre],
       providers: [
@@ -41,7 +51,9 @@ describe('Navigation de l’espace membre', () => {
           },
         },
         { provide: CompteurDemandesMentorat, useValue: { nombre: demandesEnAttente, actualiser: actualiserCompteur } },
-        { provide: CompteurInscriptions, useValue: { nombre: inscriptionsEnAttente, actualiser: actualiserInscriptions } }
+        { provide: CompteurInscriptions, useValue: { nombre: inscriptionsEnAttente, actualiser: actualiserInscriptions } },
+        { provide: CompteurSignalements, useValue: { nombre: signalementsEnAttente, actualiser: actualiserSignalements } },
+        { provide: NotificationService, useValue: notifications }
       ]
     });
   });
@@ -53,20 +65,21 @@ describe('Navigation de l’espace membre', () => {
     const liens = [...racine.querySelectorAll('.barre-laterale nav a')]
       .map((lien) => lien.getAttribute('href'));
 
-    expect(liens).toEqual(['/accueil', '/annuaire', '/evenements', '/mentorat']);
+    expect(liens).toEqual(['/accueil', '/annuaire', '/evenements', '/articles', '/mentorat']);
     expect(racine.querySelector('.barre-laterale .marque')?.getAttribute('href')).toBe('/accueil');
     expect([...racine.querySelectorAll('.barre-laterale nav button[aria-disabled="true"]')]
       .map((lien) => lien.getAttribute('aria-label')))
-      .toEqual(['Offres d’emploi, à venir', 'Actualités, à venir']);
+      .toEqual(['Offres d’emploi, à venir']);
     expect(racine.querySelector('.barre-laterale nav button[aria-disabled="true"] a')).toBeNull();
-    expect(racine.querySelector('.entete-mobile .bouton-compte')?.getAttribute('aria-haspopup')).toBe('dialog');
+    // En-tête mobile : la marque et la cloche seulement, le compte passe par « Menu » en bas.
+    expect(racine.querySelector('.entete-mobile button:not(.bouton-cloche)')).toBeNull();
   });
 
   it('synchronise la fermeture native du menu avec les boutons d’ouverture', () => {
     const fixture = TestBed.createComponent(EspaceMembre);
     fixture.detectChanges();
     const racine = fixture.nativeElement as HTMLElement;
-    const compte = racine.querySelector('.bouton-compte') as HTMLButtonElement;
+    const compte = racine.querySelector('.navigation-mobile button') as HTMLButtonElement;
     const dialogue = racine.querySelector('#menu-mobile') as HTMLDialogElement;
     simulerDialogueNatif(dialogue);
     const defilementInitial = document.documentElement.style.overflow;
@@ -79,7 +92,6 @@ describe('Navigation de l’espace membre', () => {
 
     expect(dialogue.open).toBe(false);
     expect(compte.getAttribute('aria-expanded')).toBe('false');
-    expect(racine.querySelector('.navigation-mobile button')?.getAttribute('aria-expanded')).toBe('false');
     expect(document.documentElement.style.overflow).toBe(defilementInitial);
   });
 
@@ -107,7 +119,7 @@ describe('Navigation de l’espace membre', () => {
     const racine = fixture.nativeElement as HTMLElement;
     const photos = [...racine.querySelectorAll<HTMLImageElement>('app-avatar-membre img')];
 
-    expect(photos.map((photo) => photo.getAttribute('src'))).toEqual(['/api/photos/awa.png', '/api/photos/awa.png']);
+    expect(photos.map((photo) => photo.getAttribute('src'))).toEqual(['/api/photos/awa.png']);
 
     photos[0].dispatchEvent(new Event('error'));
     fixture.detectChanges();
@@ -147,6 +159,10 @@ describe('Navigation de l’espace membre', () => {
     expect(racine.querySelector('.menu-mobile a')?.getAttribute('href'))
       .toBe('/organisme/parametres');
     expect(racine.querySelector('.menu-mobile a[aria-label="Paramètres du profil"]')).toBeNull();
+    // Un organisme publie, écrit et organise ; le mentorat ne le concerne pas.
+    expect(racine.querySelector('a[href="/mentorat"]')).toBeNull();
+    expect(racine.querySelector('a[href="/evenements"]')).not.toBeNull();
+    expect(racine.querySelector('a[href="/articles"]')).not.toBeNull();
     (racine.querySelector('.bouton-compte-lateral') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect([...document.querySelectorAll('#menu-compte [role="menuitem"]')].map((entree) => entree.textContent?.trim()))
@@ -201,26 +217,48 @@ describe('Navigation de l’espace membre', () => {
   it('range la navigation de l’administration par domaine, sans lien de profil indisponible', () => {
     utilisateur.set({ role: 'ADMIN', nom: 'EPT', prenom: 'Admin' });
     inscriptionsEnAttente.set(4);
+    signalementsEnAttente.set(2);
     const fixture = TestBed.createComponent(EspaceMembre);
     fixture.detectChanges();
     const racine = fixture.nativeElement as HTMLElement;
 
     expect(actualiserInscriptions).toHaveBeenCalledOnce();
+    expect(actualiserSignalements).toHaveBeenCalledOnce();
     expect(actualiserCompteur).not.toHaveBeenCalled();
     expect([...racine.querySelectorAll('.barre-laterale p-sidebar-group-label')].map((titre) => titre.textContent?.trim()))
       .toEqual(['Pilotage', 'Membres', 'Contenus', 'Système', 'Plateforme', 'À découvrir bientôt']);
     expect([...racine.querySelectorAll('.barre-laterale nav a')].map((lien) => lien.getAttribute('href'))).toEqual([
-      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/evenements', '/mentorat/gestion-programmes',
-      '/admin/journal', '/annuaire',
+      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/admin/publications', '/admin/signalements',
+      '/evenements', '/mentorat/gestion-programmes', '/admin/journal', '/annuaire',
     ]);
+    expect(racine.querySelector('.barre-laterale a[href="/admin/signalements"]')?.textContent).toContain('2 signalements à examiner');
     expect(racine.querySelector('.barre-laterale a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
     // Le panneau mobile reprend les rubriques d'administration ; Annuaire et Événements sont dans la barre du bas.
     expect([...racine.querySelectorAll('.menu-mobile a')].map((lien) => lien.getAttribute('href'))).toEqual([
-      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/mentorat/gestion-programmes', '/admin/journal',
+      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/admin/publications', '/admin/signalements',
+      '/mentorat/gestion-programmes', '/admin/journal',
     ]);
     expect(racine.querySelector('.menu-mobile a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
     expect(racine.querySelectorAll('.navigation-mobile a')).toHaveLength(3);
     expect(racine.querySelector('.deconnexion-menu')).not.toBeNull();
+  });
+
+  it('relève les notifications tant que l’espace est affiché et montre la pastille', () => {
+    notifications.nonLues.set(3);
+    const fixture = TestBed.createComponent(EspaceMembre);
+    fixture.detectChanges();
+    const racine = fixture.nativeElement as HTMLElement;
+
+    expect(notifications.demarrer).toHaveBeenCalledTimes(1);
+    // Bureau : un bouton qui ouvre l’aperçu ; mobile : un lien vers la page des notifications.
+    const bureau = racine.querySelector('.barre-outils .bouton-cloche');
+    const mobile = racine.querySelector('.entete-mobile .bouton-cloche');
+    expect(bureau?.tagName).toBe('BUTTON');
+    expect(bureau?.getAttribute('aria-label')).toBe('Notifications, 3 non lues');
+    expect(mobile?.getAttribute('href')).toBe('/notifications');
+
+    fixture.destroy();
+    expect(notifications.arreter).toHaveBeenCalledTimes(1);
   });
 });
 

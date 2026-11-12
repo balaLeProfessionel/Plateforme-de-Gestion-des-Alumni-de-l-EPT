@@ -1,0 +1,66 @@
+<div class="notifications-page">
+  <header class="entete">
+    <div>
+      <h1>Notifications</h1>
+      <p>{{ resume() }}</p>
+    </div>
+    @if (nonLues() > 0) {
+      <button type="button" class="tout-lire" (click)="toutMarquerLu()">
+        <i class="pi pi-check" aria-hidden="true"></i>Tout marquer comme lu
+      </button>
+    }
+  </header>
+  @if (erreurAction()) {
+    <p class="erreur-action" role="alert">{{ erreurAction() }}</p>
+  }
+
+  <div class="filtres" role="group" aria-label="Filtrer les notifications">
+    <button type="button" [attr.aria-pressed]="filtre() === 'toutes'" (click)="choisirFiltre('toutes')">Toutes</button>
+    <button type="button" [attr.aria-pressed]="filtre() === 'non-lues'" (click)="choisirFiltre('non-lues')">
+      Non lues
+      @if (nonLues() > 0) { <span class="nombre">{{ nonLues() > 99 ? '99+' : nonLues() }}</span> }
+    </button>
+  </div>
+
+  <div class="contenu" aria-live="polite" [attr.aria-busy]="chargement()">
+    @if (erreur()) {
+      <div class="etat" role="alert">
+        <p>{{ erreur() }}</p>
+        <button type="button" class="lien-action" (click)="charger(0)">Réessayer</button>
+      </div>
+    } @else if (chargement() && notifications().length === 0) {
+      <ul class="carte squelettes" aria-label="Chargement des notifications">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <li><span class="rond"></span><span class="barres"><span></span><span></span></span></li>
+        }
+      </ul>
+    } @else if (charge() && notifications().length === 0) {
+      <div class="etat vide">
+        <i class="pi pi-bell" aria-hidden="true"></i>
+        @if (filtre() === 'non-lues') {
+          <p>Aucune notification non lue.</p>
+          <button type="button" class="lien-action" (click)="choisirFiltre('toutes')">Voir toutes les notifications</button>
+        } @else {
+          <p>Aucune notification pour l’instant. Les réponses à vos demandes de mentorat et les changements
+            sur les événements auxquels vous participez apparaîtront ici.</p>
+        }
+      </div>
+    } @else {
+      @for (groupe of groupes(); track groupe.libelle) {
+        <section class="groupe" [attr.aria-labelledby]="'groupe-' + $index">
+          <h2 [id]="'groupe-' + $index">{{ groupe.libelle }}</h2>
+          <ul class="carte">
+            @for (notification of groupe.notifications; track notification.id) {
+              <li><app-ligne-notification [notification]="notification" (ouverte)="ouvrir($event)" /></li>
+            }
+          </ul>
+        </section>
+      }
+      @if (page() + 1 < totalPages()) {
+        <button type="button" class="plus" (click)="charger(page() + 1)" [disabled]="chargement()">
+          {{ chargement() ? 'Chargement…' : 'Afficher plus' }}
+        </button>
+      }
+    }
+  </div>
+</div>

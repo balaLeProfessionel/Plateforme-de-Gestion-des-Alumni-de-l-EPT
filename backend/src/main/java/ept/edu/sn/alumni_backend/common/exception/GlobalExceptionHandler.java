@@ -28,6 +28,12 @@ import ept.edu.sn.alumni_backend.evenement.exception.LimiteCreationEvenementAtte
 import ept.edu.sn.alumni_backend.mentorat.exception.ConflitMentoratException;
 import ept.edu.sn.alumni_backend.mentorat.exception.MentoratIntrouvableException;
 import ept.edu.sn.alumni_backend.organisme.exception.OrganismeIntrouvableException;
+import ept.edu.sn.alumni_backend.article.exception.ArticleIntrouvableException;
+import ept.edu.sn.alumni_backend.article.exception.ConflitArticleException;
+import ept.edu.sn.alumni_backend.publication.exception.PublicationIntrouvableException;
+import ept.edu.sn.alumni_backend.publication.exception.ConflitPublicationException;
+import ept.edu.sn.alumni_backend.publication.exception.SignalementIntrouvableException;
+import ept.edu.sn.alumni_backend.publication.exception.LimiteCreationPublicationAtteinteException;
 import ept.edu.sn.alumni_backend.utilisateur.exception.ProfilIntrouvableException;
 import ept.edu.sn.alumni_backend.utilisateur.photo.PhotoIntrouvableException;
 import ept.edu.sn.alumni_backend.utilisateur.photo.StockagePhotoException;
@@ -35,6 +41,37 @@ import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(LimiteCreationPublicationAtteinteException.class)
+    public ResponseEntity<Map<String, String>> handleLimiteCreationPublication(
+            LimiteCreationPublicationAtteinteException e) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(PublicationIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> handlePublicationIntrouvable(PublicationIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ArticleIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> handleArticleIntrouvable(ArticleIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ConflitArticleException.class)
+    public ResponseEntity<Map<String, String>> handleConflitArticle(ConflitArticleException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(SignalementIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> handleSignalementIntrouvable(SignalementIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ConflitPublicationException.class)
+    public ResponseEntity<Map<String, String>> handleConflitPublication(ConflitPublicationException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+    }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Map<String, String>> handleBadCredentials() {

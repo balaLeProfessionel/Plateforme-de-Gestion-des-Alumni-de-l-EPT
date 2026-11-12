@@ -166,21 +166,16 @@ describe('ListeEvenements', () => {
     await fixture.whenStable();
 
     expect(listerMesEvenements).toHaveBeenLastCalledWith('PASSES', 2, AUCUN_FILTRE);
-    expect(fixture.nativeElement.querySelector('button[aria-pressed="true"]')?.textContent)
+    expect(fixture.nativeElement.querySelector('app-onglets a[aria-current="page"]')?.textContent)
       .toContain('Mes événements');
   });
 
-  it('change le filtre vers ses événements sans perdre la période et remet la page à zéro', () => {
-    const navigation = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-    parametres.next(convertToParamMap({ periode: 'PASSES', page: '3' }));
-
-    fixture.componentInstance['changerVue'](true);
-
-    expect(navigation).toHaveBeenCalledWith([], {
-      relativeTo: TestBed.inject(ActivatedRoute),
-      queryParams: { vue: 'mes', page: 0 },
-      queryParamsHandling: 'merge'
-    });
+  it('propose ses événements sans perdre la période et remet la page à zéro', () => {
+    expect(fixture.componentInstance['vues']()[1]).toEqual(expect.objectContaining({
+      lien: '/evenements', parametres: { vue: 'mes', page: 0 }, actif: false,
+    }));
+    const lien = fixture.nativeElement.querySelectorAll('app-onglets a')[1] as HTMLAnchorElement;
+    expect(lien.textContent).toContain('Mes événements');
   });
 
   it('affiche les actions de gestion uniquement dans le filtre personnel et annule après confirmation', async () => {
@@ -276,7 +271,7 @@ describe('ListeEvenements', () => {
       dateDebut: '2026-10-15T09:00:00Z', dateFin: '2026-10-15T12:00:00Z',
       audience: 'TOUS', nombrePlaces: null, officielEpt: true, statut: 'PUBLIE',
       organisateurId: 'organisateur-1', organisateurNom: 'Diop', organisateurPrenom: 'Awa',
-      nombreParticipants: 8, maReponse: null, ...modifications
+      nombreParticipants: 8, maReponse: null, participantsVisibles: true, ...modifications
     };
   }
 

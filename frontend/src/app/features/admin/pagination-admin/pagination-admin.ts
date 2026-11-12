@@ -18,7 +18,7 @@ import { Component, input, output } from '@angular/core';
       margin-top: 1.25rem; color: var(--ept-text-secondary); font-size: 0.85rem;
     }
     button {
-      min-height: 2.5rem; padding: 0.45rem 0.9rem; border: 1px solid var(--ept-border); border-radius: 8px;
+      min-height: 2.5rem; padding: 0.45rem 0.9rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm);
       background: white; color: var(--ept-primary); font: inherit; font-weight: 600; cursor: pointer;
       &:disabled { opacity: 0.45; cursor: default; }
       &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }

@@ -118,8 +118,10 @@ export function lienFicheCompte(compte: CompteAdmin): string[] | null {
 }
 
 /** Miroir de PermissionAdmin : chaque rubrique de l’administration exige l’une d’elles. */
-export type PermissionAdmin = 'CONSULTER_TABLEAU_DE_BORD' | 'GERER_COMPTES' | 'CONSULTER_JOURNAL';
-export const TOUTES_LES_PERMISSIONS: readonly PermissionAdmin[] = ['CONSULTER_TABLEAU_DE_BORD', 'GERER_COMPTES', 'CONSULTER_JOURNAL'];
+export type PermissionAdmin = 'CONSULTER_TABLEAU_DE_BORD' | 'GERER_COMPTES' | 'CONSULTER_JOURNAL'
+  | 'PUBLIER_ANNONCES' | 'MODERER_PUBLICATIONS';
+export const TOUTES_LES_PERMISSIONS: readonly PermissionAdmin[] = ['CONSULTER_TABLEAU_DE_BORD', 'GERER_COMPTES', 'CONSULTER_JOURNAL',
+  'PUBLIER_ANNONCES', 'MODERER_PUBLICATIONS'];
 
 export interface FicheCompte {
   compte: CompteAdmin;

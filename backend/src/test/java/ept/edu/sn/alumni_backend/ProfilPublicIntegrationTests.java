@@ -28,6 +28,7 @@ import ept.edu.sn.alumni_backend.parcours.entity.Formation;
 import ept.edu.sn.alumni_backend.parcours.repository.ExperienceRepository;
 import ept.edu.sn.alumni_backend.parcours.repository.FormationRepository;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
+import ept.edu.sn.alumni_backend.notification.NotificationRepository;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 
 @SpringBootTest
@@ -39,6 +40,11 @@ class ProfilPublicIntegrationTests {
 
     @Autowired
     private UtilisateurRepository utilisateurRepository;
+
+
+    @Autowired
+
+    private NotificationRepository notificationRepository;
 
     @Autowired
     private OrganismeRepository organismeRepository;
@@ -61,8 +67,11 @@ class ProfilPublicIntegrationTests {
         evenementRepository.deleteAll();
         experienceRepository.deleteAll();
         formationRepository.deleteAll();
-        organismeRepository.deleteAll();
+        notificationRepository.deleteAll();
+        // Les comptes avant les organismes : un compte organisme laissé par une autre classe
+        // de tests référence encore son organisme (échec selon l'ordre d'exécution, vu sur la CI).
         utilisateurRepository.deleteAll();
+        organismeRepository.deleteAll();
     }
 
     @Test

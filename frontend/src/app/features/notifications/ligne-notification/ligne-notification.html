@@ -1,0 +1,24 @@
+@let n = notification();
+@if (n.lien) {
+  <a class="element" [class.compacte]="compacte()" [routerLink]="n.lien" (click)="ouverte.emit(n)">
+    <ng-container *ngTemplateOutlet="contenu" />
+  </a>
+} @else {
+  <button type="button" class="element" [class.compacte]="compacte()" (click)="ouverte.emit(n)">
+    <ng-container *ngTemplateOutlet="contenu" />
+  </button>
+}
+
+<ng-template #contenu>
+  <span [class]="'icone ' + typeCss()" aria-hidden="true"><i [class]="icone()"></i></span>
+  <span class="texte">
+    <span class="ligne-titre">
+      <strong>{{ n.titre }}</strong>
+      <time [attr.datetime]="n.creeLe">{{ quand() }}</time>
+    </span>
+    <span class="message">{{ n.message }}</span>
+  </span>
+  @if (!n.lue) {
+    <span class="point" aria-hidden="true"></span><span class="sr-only">, non lue</span>
+  }
+</ng-template>

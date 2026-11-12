@@ -24,15 +24,34 @@
 </section>
 
 @if (programmesOuverts().length) {
-  <aside class="programmes" aria-label="Programmes ouverts">
-    <i class="pi pi-flag" aria-hidden="true"></i>
-    <p>
-      {{ programmesOuverts().length > 1 ? 'Programmes ouverts' : 'Programme ouvert' }} :
-      @for (programme of programmesOuverts(); track programme.id; let dernier = $last) {
-        <a [routerLink]="['/mentorat/programmes', programme.id]">{{ programme.titre }}</a>{{ dernier ? '' : ', ' }}
+  <section class="programmes" aria-labelledby="titre-programmes">
+    <header class="entete-programmes">
+      <div class="intro-programmes">
+        <span class="icone-programmes" aria-hidden="true"><i class="pi pi-flag"></i></span>
+        <div>
+          <p class="surtitre-programmes">Mentorat</p>
+          <h2 id="titre-programmes">Programmes ouverts</h2>
+          <p class="aide-programmes">Découvrez les parcours et les opportunités du réseau EPT.</p>
+        </div>
+      </div>
+      <span class="compte-programmes" aria-label="{{ programmesOuverts().length }} programmes ouverts">
+        {{ programmesOuverts().length }} {{ programmesOuverts().length > 1 ? 'programmes' : 'programme' }}
+      </span>
+    </header>
+
+    <ul class="grille-programmes">
+      @for (programme of programmesOuverts(); track programme.id) {
+        <li>
+          <a class="carte-programme" [routerLink]="['/mentorat/programmes', programme.id]">
+            <span class="etiquette-programme"><i class="pi pi-bookmark" aria-hidden="true"></i> Parcours ouvert</span>
+            <span class="titre-programme">{{ programme.titre }}</span>
+            @if (programme.description) { <span class="description-programme">{{ programme.description }}</span> }
+            <span class="action-programme">Découvrir le programme <i class="pi pi-arrow-right" aria-hidden="true"></i></span>
+          </a>
+        </li>
       }
-    </p>
-  </aside>
+    </ul>
+  </section>
 }
 
 @if (compteur.limiteAtteinte()) {

@@ -11,13 +11,13 @@
 
   p {
     display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0 0 1rem; padding: 0.6rem 0.9rem;
-    border-radius: 8px; background: var(--ept-success-light); color: var(--ept-success-dark);
+    border-radius: var(--ept-radius-sm); background: var(--ept-success-light); color: var(--ept-success-dark);
     box-shadow: var(--ept-shadow); font-size: 0.9rem; font-weight: 600;
   }
   p.erreur { background: var(--ept-error-light); color: var(--ept-error-dark); }
   button {
     margin-left: auto; min-height: 2.25rem; padding: 0.3rem 0.85rem; border: 1px solid var(--ept-success-dark);
-    border-radius: 8px; background: white; color: var(--ept-success-dark); font: inherit; font-weight: 700; cursor: pointer;
+    border-radius: var(--ept-radius-sm); background: white; color: var(--ept-success-dark); font: inherit; font-weight: 700; cursor: pointer;
     &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
   }
 }

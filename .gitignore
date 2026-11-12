@@ -41,3 +41,6 @@ Thumbs.db
 
 # Impeccable (archives de critique et fichiers locaux)
 .impeccable/
+
+# Cache des photos libres de droits des données de démonstration
+/scripts/donnees-demo/.cache-photos/

@@ -54,6 +54,20 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./fiche-compte/fiche-compte').then((m) => m.FicheComptePage),
   },
   {
+    path: 'publications',
+    title: 'Annonces et appels à projets | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'PUBLIER_ANNONCES' },
+    loadComponent: () => import('./publications-officielles/publications-officielles').then((m) => m.PublicationsOfficielles),
+  },
+  {
+    path: 'signalements',
+    title: 'Signalements | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'MODERER_PUBLICATIONS' },
+    loadComponent: () => import('./signalements/signalements').then((m) => m.Signalements),
+  },
+  {
     path: 'journal',
     title: 'Journal des décisions | EPT Alumni',
     canActivate: [permissionGuard],

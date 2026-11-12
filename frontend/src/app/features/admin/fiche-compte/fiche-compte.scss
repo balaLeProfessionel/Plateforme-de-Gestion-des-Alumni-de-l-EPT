@@ -1,5 +1,5 @@
 .carte {
-  margin-bottom: 0.85rem; padding: 1rem 1.1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: white;
+  margin-bottom: 0.85rem; padding: 1rem 1.1rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: white;
   h2 { margin: 0 0 0.65rem; color: var(--ept-primary-dark); font-size: 1rem; }
 }
 
@@ -35,13 +35,13 @@ dl {
 
 .lien-public {
   display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.5rem; padding: 0.4rem 0.85rem;
-  border: 1px solid var(--ept-primary); border-radius: 8px; color: var(--ept-primary); font-size: 0.88rem; font-weight: 700; text-decoration: none;
+  border: 1px solid var(--ept-primary); border-radius: var(--ept-radius-sm); color: var(--ept-primary); font-size: 0.88rem; font-weight: 700; text-decoration: none;
   &:hover { background: var(--ept-primary-light); }
   &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
 }
 
 .annonce p {
-  margin: 0 0 0.85rem; padding: 0.6rem 0.9rem; border-radius: 8px;
+  margin: 0 0 0.85rem; padding: 0.6rem 0.9rem; border-radius: var(--ept-radius-sm);
   background: var(--ept-success-light); color: var(--ept-success-dark); font-size: 0.9rem; font-weight: 600;
   &.erreur { background: var(--ept-error-light); color: var(--ept-error-dark); }
 }

@@ -21,6 +21,7 @@ import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.evenement.repository.EvenementRepository;
 import ept.edu.sn.alumni_backend.evenement.repository.ParticipationEvenementRepository;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
+import ept.edu.sn.alumni_backend.notification.NotificationRepository;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 
 @SpringBootTest
@@ -31,6 +32,11 @@ class AnnuairePublicIntegrationTests {
 
     @Autowired
     private UtilisateurRepository utilisateurRepository;
+
+
+    @Autowired
+
+    private NotificationRepository notificationRepository;
 
     @Autowired
     private EvenementRepository evenementRepository;
@@ -45,6 +51,7 @@ class AnnuairePublicIntegrationTests {
     void preparer() {
         participationEvenementRepository.deleteAll();
         evenementRepository.deleteAll();
+        notificationRepository.deleteAll();
         utilisateurRepository.deleteAll();
     }
 

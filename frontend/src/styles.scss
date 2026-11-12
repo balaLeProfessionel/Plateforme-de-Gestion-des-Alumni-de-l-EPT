@@ -1,4 +1,5 @@
 @use './styles/pages-mobile';
+@use './styles/champ-fichier' as *;
 
 @import 'primeicons/primeicons.css';
 
@@ -45,9 +46,13 @@
   --ept-text-on-dark: #FFFFFF;
   --ept-border: #E0E5E9;
 
-  // Rayons et ombres
-  --ept-radius: 12px;
+  // Rayons : une seule échelle, arrondie, pour toute la plateforme.
+  // sm : champs, boutons, messages · base : cartes, panneaux, menus · lg : fenêtres de dialogue.
+  // Les pastilles gardent 999px et les avatars 50%.
   --ept-radius-sm: 10px;
+  --ept-radius: 14px;
+  --ept-radius-lg: 18px;
+  // Ombres
   --ept-shadow: 0 2px 8px rgba(1, 67, 101, 0.08);
 }
 
@@ -172,3 +177,6 @@ app-consultation-profil .indicateur-detail {
 .carte-cliquable .lien-etire:focus-visible { outline: none; }
 .carte-cliquable:has(.lien-etire:focus-visible) { outline: 3px solid var(--ept-sky); outline-offset: 3px; }
 .carte-cliquable :is(button, a:not(.lien-etire), input, select, textarea, label, summary) { position: relative; z-index: 2; }
+
+/* Tout nouveau champ fichier prend l'habillage commun ; un champ caché derrière un bouton (.fichier-cache) n'est pas concerné. */
+input[type='file']:not(.fichier-cache) { @include champ-fichier; }

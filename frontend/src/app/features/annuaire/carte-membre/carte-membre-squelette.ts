@@ -24,7 +24,7 @@ import { SkeletonModule } from 'primeng/skeleton';
       min-height: 15.5rem;
       overflow: hidden;
       border: 1px solid var(--ept-border);
-      border-radius: 12px;
+      border-radius: var(--ept-radius);
       background: var(--ept-surface);
     }
     .avatar { align-self: center; margin-top: -2.5rem; border: 3px solid var(--ept-surface); border-radius: 50%; }
