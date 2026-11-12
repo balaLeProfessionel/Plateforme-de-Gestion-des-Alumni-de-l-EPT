@@ -410,3 +410,15 @@ export interface Sollicitation {
 
 export const LONGUEUR_OBJET_SOLLICITATION = 200;
 export const LONGUEUR_MESSAGE_SOLLICITATION = 5000;
+
+/** Indicateurs d’un organisme avec l’école (STA-13). */
+export interface IndicateursOrganisme {
+  offresPubliees: number;
+  candidaturesRecues: number;
+  etudiantsAccueillis: number;
+  parAnnee: { annee: number; offres: number; candidatures: number }[];
+  /** cle : code du type de stage. */
+  accueillisParType: { cle: string; nombre: number }[];
+  /** cle : nom de la filière. */
+  accueillisParFiliere: { cle: string; nombre: number }[];
+}

@@ -15,6 +15,8 @@ import ept.edu.sn.alumni_backend.stage.dto.MonStageResponse;
 import ept.edu.sn.alumni_backend.stage.dto.StagiaireResponse;
 import ept.edu.sn.alumni_backend.stage.service.ListeDefinitiveService;
 import ept.edu.sn.alumni_backend.stage.service.SuiviStagesService;
+import ept.edu.sn.alumni_backend.stage.service.IndicateursOrganismeService;
+import ept.edu.sn.alumni_backend.stage.dto.IndicateursOrganismeResponse;
 import lombok.RequiredArgsConstructor;
 
 /** Stages confirmés : ceux de l'étudiant connecté, et les stagiaires d'une offre pour son organisme (STA-04). */
@@ -24,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class StageController {
     private final ListeDefinitiveService service;
     private final SuiviStagesService suiviService;
+    private final IndicateursOrganismeService indicateursService;
 
     @GetMapping("/mes-stages")
     public ResponseEntity<List<MonStageResponse>> mesStages(@AuthenticationPrincipal UtilisateurPrincipal principal) {
@@ -34,6 +37,12 @@ public class StageController {
     @GetMapping("/suivi")
     public ResponseEntity<SuiviStagesService.MesSuivis> suivi(@AuthenticationPrincipal UtilisateurPrincipal principal) {
         return ResponseEntity.ok(suiviService.mesSuivis(principal));
+    }
+
+    /** Indicateurs de l'organisme connecté avec l'école (STA-13). */
+    @GetMapping("/mes-indicateurs")
+    public ResponseEntity<IndicateursOrganismeResponse> indicateurs(@AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(indicateursService.pour(principal));
     }
 
     @GetMapping("/offres/{id}/stagiaires")

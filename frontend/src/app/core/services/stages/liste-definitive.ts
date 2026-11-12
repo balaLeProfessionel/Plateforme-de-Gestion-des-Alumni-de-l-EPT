@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
-import { CritereEtudiants, EtudiantSuggestion, ListeDefinitive, MonStage, Stagiaire } from '../models/stage.model';
+import { CritereEtudiants, EtudiantSuggestion, ListeDefinitive, IndicateursOrganisme, MonStage, Stagiaire } from '../models/stage.model';
 
 const API = '/api/stages';
 const API_ADMIN = '/api/admin/stages';
@@ -47,5 +47,10 @@ export class ListeDefinitiveService {
 
   mesStages() {
     return this.http.get<MonStage[]>(`${API}/mes-stages`);
+  }
+
+  /** Indicateurs de l’organisme connecté avec l’école (STA-13). */
+  mesIndicateurs() {
+    return this.http.get<IndicateursOrganisme>(`${API}/mes-indicateurs`);
   }
 }
