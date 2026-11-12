@@ -32,7 +32,8 @@ public record SuiviStageResponse(
     /** AUCUNE, BROUILLON ou SOUMISE (STA-06). */
     String evaluation,
     /** Validation finale par l'administrateur Stages ; vide tant qu'il n'a pas décidé. */
-    Boolean stageValide
+    Boolean stageValide,
+    RapportResponse rapport
 ) {
     public record Encadrant(UUID id, String prenom, String nom, String email) {
     }

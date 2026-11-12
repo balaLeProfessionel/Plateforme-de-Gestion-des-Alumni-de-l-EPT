@@ -35,6 +35,7 @@ export function unSuivi(changement: Partial<import('../../../core/services/model
     email: 'awa@ept.sn', organismeId: 'org1', organisme: 'Kër Data', typeStage: 'PFE', sujet: 'Portail client', lieu: 'Dakar',
     dateDebut: '2027-02-01', dateFin: '2027-06-30', deroulement: 'A_VENIR', encadrant: null,
     tuteurNom: 'Moussa Ndiaye', tuteurFonction: 'CTO', tuteurEmail: null, tuteurTelephone: null, declare: false,
-    convention: 'AUCUNE', evaluation: 'AUCUNE', stageValide: null, ...changement,
+    convention: 'AUCUNE', evaluation: 'AUCUNE', stageValide: null,
+    rapport: { dateLimite: null, nomFichier: null, deposeLe: null, etat: 'SANS_DATE', depotOuvert: false }, ...changement,
   };
 }

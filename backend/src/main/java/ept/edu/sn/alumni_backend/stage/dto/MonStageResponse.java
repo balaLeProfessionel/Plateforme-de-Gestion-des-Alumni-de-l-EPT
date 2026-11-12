@@ -20,6 +20,8 @@ public record MonStageResponse(
     /** Motif d'un refus de déclaration. */
     String motif,
     /** Vrai pour un stage trouvé par l'étudiant (STA-10). */
-    boolean declare
+    boolean declare,
+    /** Rapport de stage (STA-07), pour un stage confirmé ; vide sinon. */
+    RapportResponse rapport
 ) {
 }

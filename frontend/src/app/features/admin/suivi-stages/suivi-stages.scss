@@ -7,3 +7,9 @@
   input:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
 .liste { display: grid; gap: 0.75rem; margin: 0; padding: 0; list-style: none; }
 .aide { margin: 0 0 0.5rem; }
+
+.date-limite { display: grid; gap: 0.5rem; margin-bottom: 1rem; padding: 0.9rem; border: 1px solid var(--ept-border); border-radius: 8px; background: white;
+  h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1rem; }
+  .aide { margin: 0; }
+  .ligne { display: flex; flex-wrap: wrap; align-items: end; gap: 0.6rem; }
+  .message { margin: 0; } }

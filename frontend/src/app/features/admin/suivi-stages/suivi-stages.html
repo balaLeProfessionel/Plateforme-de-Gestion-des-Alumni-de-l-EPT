@@ -28,9 +28,20 @@
       </div>
     } @else {
       <p class="aide" aria-live="polite">{{ p.totalElements }} stage{{ p.totalElements > 1 ? 's' : '' }}</p>
+      <section class="date-limite" aria-labelledby="titre-date-limite">
+        <h2 id="titre-date-limite">Date limite des rapports</h2>
+        <p class="aide">S’applique aux {{ p.contenu.length }} stage{{ p.contenu.length > 1 ? 's' : '' }} affiché{{ p.contenu.length > 1 ? 's' : '' }} sur cette page :
+          filtrez d’abord par filière ou par recherche. Chaque étudiant concerné est prévenu par e-mail.</p>
+        <div class="ligne">
+          <div class="champ"><label for="date-limite">Date limite (incluse)</label>
+            <input id="date-limite" type="date" [value]="dateLimite()" (input)="saisirDateLimite($event)" /></div>
+          <button type="button" class="bouton principal" [disabled]="enCours()" (click)="appliquerDateLimite(p.contenu)">Appliquer aux stages affichés</button>
+        </div>
+        @if (erreurDateLimite(); as texte) { <p class="message erreur" role="alert">{{ texte }}</p> }
+      </section>
       <ul class="liste">
         @for (stage of p.contenu; track stage.id) {
-          <li><app-fiche-suivi [stage]="stage"><app-actions-suivi [stage]="stage" (modifie)="apresModification($event)" /></app-fiche-suivi></li>
+          <li><app-fiche-suivi [stage]="stage" [ecole]="true"><app-actions-suivi [stage]="stage" (modifie)="apresModification($event)" /></app-fiche-suivi></li>
         }
       </ul>
       <app-pagination-admin [page]="p.page" [totalPages]="p.totalPages" libelle="Pagination des stages" (changer)="changerPage($event)" />

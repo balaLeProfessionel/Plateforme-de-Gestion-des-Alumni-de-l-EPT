@@ -31,11 +31,13 @@ import ept.edu.sn.alumni_backend.stage.dto.MonStageResponse;
 import ept.edu.sn.alumni_backend.stage.dto.StagiaireResponse;
 import ept.edu.sn.alumni_backend.stage.entity.Candidature;
 import ept.edu.sn.alumni_backend.stage.entity.OffreStage;
+import ept.edu.sn.alumni_backend.stage.entity.RapportStage;
 import ept.edu.sn.alumni_backend.stage.entity.Stage;
 import ept.edu.sn.alumni_backend.stage.exception.ConflitStageException;
 import ept.edu.sn.alumni_backend.stage.exception.OffreStageIntrouvableException;
 import ept.edu.sn.alumni_backend.stage.repository.CandidatureRepository;
 import ept.edu.sn.alumni_backend.stage.repository.OffreStageRepository;
+import ept.edu.sn.alumni_backend.stage.repository.RapportStageRepository;
 import ept.edu.sn.alumni_backend.stage.repository.StageRepository;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
@@ -59,6 +61,7 @@ public class ListeDefinitiveService {
     private final CandidatureRepository candidatureRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final ApplicationEventPublisher evenements;
+    private final RapportStageRepository rapportRepository;
 
     @Transactional(readOnly = true)
     public ListeDefinitiveResponse liste(UUID offreId) {
@@ -221,11 +224,17 @@ public class ListeDefinitiveService {
     /** Stages confirmés de l'étudiant, et ses déclarations en attente ou refusées (STA-10). */
     @Transactional(readOnly = true)
     public List<MonStageResponse> mesStages(UtilisateurPrincipal principal) {
-        return stageRepository.findByEtudiant_IdAndStatutInOrderByDateDebutDesc(principal.getUtilisateur().getId(),
-                List.of(StatutStage.CONFIRME, StatutStage.DECLARE, StatutStage.REFUSE)).stream()
+        List<Stage> stages = stageRepository.findByEtudiant_IdAndStatutInOrderByDateDebutDesc(principal.getUtilisateur().getId(),
+                List.of(StatutStage.CONFIRME, StatutStage.DECLARE, StatutStage.REFUSE));
+        java.util.Map<UUID, RapportStage> rapports = new java.util.HashMap<>();
+        if (!stages.isEmpty()) {
+            rapportRepository.findByStage_IdIn(stages.stream().map(Stage::getId).toList()).forEach(r -> rapports.put(r.getStage().getId(), r));
+        }
+        return stages.stream()
             .map(s -> new MonStageResponse(s.getId(), s.getOffre() == null ? null : s.getOffre().getId(), s.getSujet(),
                 s.nomOrganisme(), s.getTypeStage().name(), s.getLieu(), s.getDateDebut(), s.getDateFin(), s.getConfirmeLe(),
-                s.getStatut().name(), s.getStatut() == StatutStage.REFUSE ? s.getMotif() : null, s.getOffre() == null))
+                s.getStatut().name(), s.getStatut() == StatutStage.REFUSE ? s.getMotif() : null, s.getOffre() == null,
+                s.getStatut() == StatutStage.CONFIRME ? RapportsStageService.versReponse(rapports.get(s.getId())) : null))
             .toList();
     }
 

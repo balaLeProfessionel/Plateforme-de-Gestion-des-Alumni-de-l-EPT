@@ -200,6 +200,8 @@ export interface MonStage {
   motif: string | null;
   /** Vrai pour un stage trouvé par l’étudiant hors offre (STA-10). */
   declare: boolean;
+  /** Rapport de stage (STA-07), pour un stage confirmé. */
+  rapport: Rapport | null;
 }
 
 /** Miroir de DeclarationResponse : stage déclaré, vu par l’étudiant ou l’administrateur Stages (e-mail pour l’école). */
@@ -273,6 +275,19 @@ export interface SuiviStage {
   convention: EtatConvention;
   evaluation: EtatEvaluation;
   stageValide: boolean | null;
+  rapport: Rapport;
+}
+
+/** Rapport de stage (STA-07). EN_RETARD : date limite dépassée sans dépôt. */
+export type EtatRapport = 'SANS_DATE' | 'ATTENDU' | 'DEPOSE' | 'EN_RETARD';
+
+export interface Rapport {
+  dateLimite: string | null;
+  nomFichier: string | null;
+  deposeLe: string | null;
+  etat: EtatRapport;
+  /** La date limite n’est pas dépassée. */
+  depotOuvert: boolean;
 }
 
 /** Évaluation du stagiaire (STA-06). */

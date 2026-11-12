@@ -29,6 +29,9 @@ export class SuiviStagesPage {
   protected readonly page = signal<Page<SuiviStage> | null>(null);
   protected readonly erreurChargement = signal<string | null>(null);
   protected readonly message = signal<string | null>(null);
+  protected readonly dateLimite = signal('');
+  protected readonly erreurDateLimite = signal<string | null>(null);
+  protected readonly enCours = signal(false);
   private readonly immediat = new Subject<void>();
   private readonly differe = new Subject<void>();
 
@@ -65,6 +68,31 @@ export class SuiviStagesPage {
   protected changerPage(page: number): void {
     this.criteres.update((c) => ({ ...c, page }));
     this.immediat.next();
+  }
+
+  protected saisirDateLimite(evenement: Event): void {
+    this.dateLimite.set((evenement.target as HTMLInputElement).value);
+  }
+
+  protected appliquerDateLimite(stages: readonly SuiviStage[]): void {
+    const date = this.dateLimite();
+    if (!date) {
+      this.erreurDateLimite.set('Choisissez la date limite.');
+      return;
+    }
+    this.enCours.set(true);
+    this.erreurDateLimite.set(null);
+    this.service.fixerDateLimiteRapports(stages.map((s) => s.id), date).subscribe({
+      next: ({ misAJour }) => {
+        this.enCours.set(false);
+        this.message.set(`Date limite des rapports fixée pour ${misAJour} stage${misAJour > 1 ? 's' : ''}.`);
+        this.immediat.next();
+      },
+      error: (erreur: HttpErrorResponse) => {
+        this.enCours.set(false);
+        this.erreurDateLimite.set(erreur.error?.message ?? 'La date limite n’a pas pu être fixée. Réessayez.');
+      },
+    });
   }
 
   protected apresModification({ stage, message }: { stage: SuiviStage; message: string }): void {

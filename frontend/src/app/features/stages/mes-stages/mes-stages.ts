@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { LIBELLES_STATUT_STAGE, LIBELLES_TYPE_STAGE, MonStage } from '../../../core/services/models/stage.model';
 import { DeclarationsStageService } from '../../../core/services/stages/declarations';
 import { ListeDefinitiveService } from '../../../core/services/stages/liste-definitive';
+import { RapportStage } from './rapport-stage/rapport-stage';
 import { FilAriane } from '../../../shared/fil-ariane/fil-ariane';
 
 /**
@@ -13,7 +14,7 @@ import { FilAriane } from '../../../shared/fil-ariane/fil-ariane';
  */
 @Component({
   selector: 'app-mes-stages',
-  imports: [DatePipe, RouterLink, FilAriane],
+  imports: [DatePipe, RouterLink, FilAriane, RapportStage],
   templateUrl: './mes-stages.html',
   styleUrl: './mes-stages.scss',
 })

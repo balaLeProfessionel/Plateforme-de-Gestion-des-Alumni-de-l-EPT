@@ -1,0 +1,26 @@
+@let s = stage();
+@if (rapport(); as r) {
+  <section class="rapport" [attr.aria-label]="'Rapport du stage ' + s.sujet">
+    <h3>Rapport de stage</h3>
+    @switch (r.etat) {
+      @case ('SANS_DATE') { <p class="aide">L’école n’a pas encore fixé la date limite de dépôt.</p> }
+      @case ('EN_RETARD') { <p class="ferme">Dépôt fermé depuis le {{ r.dateLimite | date: 'd MMMM y' }} : aucun rapport déposé. Contactez l’école.</p> }
+      @default {
+        @if (r.nomFichier; as nom) {
+          <p>Déposé le {{ r.deposeLe | date: 'd MMMM y' }} :
+            <button type="button" class="lien" (click)="telecharger(nom)">{{ nom }}</button></p>
+        }
+        @if (r.depotOuvert) {
+          <p class="aide">À déposer au plus tard le {{ r.dateLimite | date: 'd MMMM y' }} inclus, en PDF de 5 Mo au plus.
+            @if (r.nomFichier) { Jusque-là, vous pouvez le remplacer. }</p>
+          <div class="champ">
+            <label [for]="'rapport-' + s.id">{{ r.nomFichier ? 'Remplacer le rapport' : 'Déposer le rapport' }}</label>
+            <input [id]="'rapport-' + s.id" type="file" accept="application/pdf,.pdf" [disabled]="enCours()" (change)="deposer($event)" />
+          </div>
+        } @else { <p class="aide">Dépôt fermé depuis le {{ r.dateLimite | date: 'd MMMM y' }}.</p> }
+      }
+    }
+    <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
+    @if (erreur(); as texte) { <p class="erreur" role="alert">{{ texte }}</p> }
+  </section>
+}

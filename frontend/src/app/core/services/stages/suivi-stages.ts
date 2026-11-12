@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { Page } from '../models/mentorat.model';
 import {
-  ClausesConvention, Convention, Evaluation, SaisieEvaluation, MesSuivis, PartieConvention, PersonnelSuggestion, SuiviStage, Tuteur,
+  ClausesConvention, Convention, Evaluation, Rapport, SaisieEvaluation, MesSuivis, PartieConvention, PersonnelSuggestion, SuiviStage, Tuteur,
 } from '../models/stage.model';
 
 const API_ADMIN = '/api/admin/stages';
@@ -58,6 +58,21 @@ export class SuiviStagesService {
 
   telechargerScan(stageId: string) {
     return this.http.get(`${API_ADMIN}/suivi/${stageId}/convention/scan`, { responseType: 'blob' });
+  }
+
+  /** Date limite de dépôt du rapport, pour un ou plusieurs stages. */
+  fixerDateLimiteRapports(stageIds: string[], dateLimite: string) {
+    return this.http.patch<{ misAJour: number }>(`${API_ADMIN}/rapports/date-limite`, { stageIds, dateLimite });
+  }
+
+  deposerRapport(stageId: string, fichier: File) {
+    const corps = new FormData();
+    corps.append('fichier', fichier);
+    return this.http.post<Rapport>(`/api/stages/suivi/${stageId}/rapport`, corps);
+  }
+
+  telechargerRapport(stageId: string, ecole: boolean) {
+    return this.http.get(`${ecole ? API_ADMIN : '/api/stages'}/suivi/${stageId}/rapport/fichier`, { responseType: 'blob' });
   }
 
   /** ecole : l’administrateur Stages ; sinon l’organisme, l’encadrant ou le chef de département. */

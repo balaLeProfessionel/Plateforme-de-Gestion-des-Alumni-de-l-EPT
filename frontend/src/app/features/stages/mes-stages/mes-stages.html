@@ -43,6 +43,7 @@
             <p class="periode"><i class="pi pi-calendar" aria-hidden="true"></i>Du {{ s.dateDebut | date: 'd MMMM y' }} au {{ s.dateFin | date: 'd MMMM y' }}</p>
             @if (s.statut === 'CONFIRME') {
               <p class="details">Confirmé le {{ s.confirmeLe | date: 'd MMMM y' }}</p>
+              <app-rapport-stage [stage]="s" />
             } @else if (s.statut === 'REFUSE') {
               <p class="motif"><strong>Motif de l’école :</strong> {{ s.motif }}</p>
             } @else {

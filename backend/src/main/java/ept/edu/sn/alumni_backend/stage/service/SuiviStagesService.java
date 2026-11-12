@@ -24,11 +24,13 @@ import ept.edu.sn.alumni_backend.stage.dto.PersonnelSuggestionResponse;
 import ept.edu.sn.alumni_backend.stage.dto.SuiviStageResponse;
 import ept.edu.sn.alumni_backend.stage.dto.TuteurRequest;
 import ept.edu.sn.alumni_backend.stage.entity.EvaluationStage;
+import ept.edu.sn.alumni_backend.stage.entity.RapportStage;
 import ept.edu.sn.alumni_backend.stage.entity.Stage;
 import ept.edu.sn.alumni_backend.stage.exception.ConflitStageException;
 import ept.edu.sn.alumni_backend.stage.exception.OffreStageIntrouvableException;
 import ept.edu.sn.alumni_backend.stage.repository.ConventionStageRepository;
 import ept.edu.sn.alumni_backend.stage.repository.EvaluationStageRepository;
+import ept.edu.sn.alumni_backend.stage.repository.RapportStageRepository;
 import ept.edu.sn.alumni_backend.stage.repository.StageRepository;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
@@ -50,6 +52,7 @@ public class SuiviStagesService {
     private final ApplicationEventPublisher evenements;
     private final ConventionStageRepository conventionRepository;
     private final EvaluationStageRepository evaluationRepository;
+    private final RapportStageRepository rapportRepository;
 
     @Transactional(readOnly = true)
     public PageResponse<SuiviStageResponse> lister(UUID filiereId, boolean sansEncadrant, String texte, int page, int taille) {
@@ -169,27 +172,29 @@ public class SuiviStagesService {
 
     /** Convention et évaluation de chaque stage d'une liste, en deux requêtes. */
     private Etats etats(List<Stage> stages) {
-        if (stages.isEmpty()) return new Etats(Map.of(), Map.of());
+        if (stages.isEmpty()) return new Etats(Map.of(), Map.of(), Map.of());
         List<UUID> ids = stages.stream().map(Stage::getId).toList();
         Map<UUID, String> conventions = new HashMap<>();
         conventionRepository.findByStage_IdIn(ids).forEach(c -> conventions.put(c.getStage().getId(), ConventionsStageService.etat(c)));
         Map<UUID, EvaluationStage> evaluations = new HashMap<>();
         evaluationRepository.findByStage_IdIn(ids).forEach(e -> evaluations.put(e.getStage().getId(), e));
-        return new Etats(conventions, evaluations);
+        Map<UUID, RapportStage> rapports = new HashMap<>();
+        rapportRepository.findByStage_IdIn(ids).forEach(r -> rapports.put(r.getStage().getId(), r));
+        return new Etats(conventions, evaluations, rapports);
     }
 
-    private record Etats(Map<UUID, String> conventions, Map<UUID, EvaluationStage> evaluations) {
+    private record Etats(Map<UUID, String> conventions, Map<UUID, EvaluationStage> evaluations, Map<UUID, RapportStage> rapports) {
         SuiviStageResponse reponse(Stage s, boolean avecEmail) {
-            return versReponse(s, avecEmail, conventions.get(s.getId()), evaluations.get(s.getId()));
+            return versReponse(s, avecEmail, conventions.get(s.getId()), evaluations.get(s.getId()), rapports.get(s.getId()));
         }
     }
 
     private SuiviStageResponse versReponse(Stage stage) {
         return versReponse(stage, true, ConventionsStageService.etat(conventionRepository.findByStage_Id(stage.getId()).orElse(null)),
-            evaluationRepository.findByStage_Id(stage.getId()).orElse(null));
+            evaluationRepository.findByStage_Id(stage.getId()).orElse(null), rapportRepository.findByStage_Id(stage.getId()).orElse(null));
     }
 
-    static SuiviStageResponse versReponse(Stage s, boolean avecEmail, String convention, EvaluationStage evaluation) {
+    static SuiviStageResponse versReponse(Stage s, boolean avecEmail, String convention, EvaluationStage evaluation, RapportStage rapport) {
         Utilisateur e = s.getEncadrantInterne();
         return new SuiviStageResponse(s.getId(), s.getOffre() == null ? null : s.getOffre().getId(), ListeDefinitiveService.etudiant(s.getEtudiant()),
             avecEmail ? s.getEtudiant().getEmail() : null, s.getOrganisme() == null ? null : s.getOrganisme().getId(), s.nomOrganisme(),
@@ -198,7 +203,8 @@ public class SuiviStagesService {
             e == null ? null : new SuiviStageResponse.Encadrant(e.getId(), e.getPrenom(), e.getNom(), e.getEmail()),
             s.getTuteurNom(), s.getTuteurFonction(), s.getTuteurEmail(), s.getTuteurTelephone(), s.getOffre() == null,
             convention == null ? ConventionsStageService.AUCUNE : convention,
-            EvaluationsStageService.etat(evaluation), evaluation == null ? null : evaluation.getStageValide());
+            EvaluationsStageService.etat(evaluation), evaluation == null ? null : evaluation.getStageValide(),
+            RapportsStageService.versReponse(rapport));
     }
 
     private static String texte(String valeur) {

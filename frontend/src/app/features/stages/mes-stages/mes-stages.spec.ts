@@ -10,6 +10,7 @@ function unStage(changement: Partial<MonStage> = {}): MonStage {
   return {
     id: 's1', offreId: 'o1', sujet: 'Développeur web', organisme: 'Kër Data', typeStage: 'PFE', lieu: 'Dakar',
     dateDebut: '2027-02-01', dateFin: '2027-05-31', confirmeLe: '2026-12-20T10:00:00Z', statut: 'CONFIRME', motif: null, declare: false,
+    rapport: { dateLimite: null, nomFichier: null, deposeLe: null, etat: 'SANS_DATE', depotOuvert: false },
     ...changement,
   };
 }

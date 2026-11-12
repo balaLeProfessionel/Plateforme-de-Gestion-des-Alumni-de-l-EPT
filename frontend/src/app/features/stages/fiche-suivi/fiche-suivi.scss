@@ -15,3 +15,7 @@ dt { color: var(--ept-text-secondary); }
 dd { margin: 0 0 0.35rem; color: var(--ept-primary-dark); overflow-wrap: anywhere; a { color: var(--ept-primary); }
   &.vide { color: var(--ept-text-secondary); font-style: italic; }
   @include a-partir-de(tablette) { margin-bottom: 0; } }
+
+.lien { padding: 0; border: 0; background: none; color: var(--ept-primary); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; overflow-wrap: anywhere;
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+.erreur { display: block; color: var(--ept-error-dark); }

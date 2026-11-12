@@ -27,5 +27,18 @@
   <dt>Convention</dt><dd [class.vide]="s.convention === 'AUCUNE'">{{ conventions[s.convention] }}</dd>
   <dt>Évaluation</dt><dd [class.vide]="s.evaluation === 'AUCUNE'">{{ evaluations[s.evaluation] }}
     @if (s.stageValide !== null) { · stage {{ s.stageValide ? 'validé' : 'non validé' }} par l’école }</dd>
+  <dt>Rapport</dt>
+  <dd [class.vide]="s.rapport.etat === 'SANS_DATE'">
+    @switch (s.rapport.etat) {
+      @case ('SANS_DATE') { Date limite non fixée }
+      @case ('ATTENDU') { Attendu au plus tard le {{ s.rapport.dateLimite | date: 'd MMMM y' }} }
+      @case ('EN_RETARD') { Non déposé, date limite du {{ s.rapport.dateLimite | date: 'd MMMM y' }} dépassée }
+      @case ('DEPOSE') {
+        Déposé le {{ s.rapport.deposeLe | date: 'd MMMM y' }} ·
+        <button type="button" class="lien" (click)="telechargerRapport()">{{ s.rapport.nomFichier }}</button>
+        @if (erreurRapport()) { <span class="erreur" role="alert">Téléchargement impossible. Réessayez.</span> }
+      }
+    }
+  </dd>
 </dl>
 <ng-content />

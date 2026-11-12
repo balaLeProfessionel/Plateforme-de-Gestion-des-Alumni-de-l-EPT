@@ -25,6 +25,7 @@ import ept.edu.sn.alumni_backend.stage.exception.ConflitStageException;
 import ept.edu.sn.alumni_backend.stage.exception.OffreStageIntrouvableException;
 import ept.edu.sn.alumni_backend.stage.repository.ConventionStageRepository;
 import ept.edu.sn.alumni_backend.stage.repository.EvaluationStageRepository;
+import ept.edu.sn.alumni_backend.stage.repository.RapportStageRepository;
 import ept.edu.sn.alumni_backend.stage.repository.StageRepository;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,7 @@ public class EvaluationsStageService {
 
     private final StageRepository stageRepository;
     private final EvaluationStageRepository evaluationRepository;
+    private final RapportStageRepository rapportRepository;
     private final ConventionStageRepository conventionRepository;
     private final ChefDepartementRepository chefRepository;
     private final ApplicationEventPublisher evenements;
@@ -181,7 +183,8 @@ public class EvaluationsStageService {
 
     private EvaluationResponse versReponse(Stage stage, EvaluationStage e, Lecteur lecteur) {
         var convention = conventionRepository.findByStage_Id(stage.getId()).orElse(null);
-        var suivi = SuiviStagesService.versReponse(stage, lecteur != Lecteur.ORGANISME, ConventionsStageService.etat(convention), e);
+        var suivi = SuiviStagesService.versReponse(stage, lecteur != Lecteur.ORGANISME, ConventionsStageService.etat(convention), e,
+            rapportRepository.findByStage_Id(stage.getId()).orElse(null));
         boolean conventionComplete = convention != null && convention.complete();
         boolean modifiable = lecteur != Lecteur.ENCADREMENT && conventionComplete && (e == null || !e.soumise());
         // L'encadrement ne lit pas le brouillon de l'organisme : seulement la fiche soumise.
