@@ -386,3 +386,27 @@ export interface MesSuivis {
 export interface PersonnelSuggestion { id: string; prenom: string; nom: string; email: string; urlPhoto: string | null }
 
 export interface Tuteur { nom: string; fonction: string | null; email: string | null; telephone: string | null }
+
+/** Sollicitation des organismes (STA-11). */
+export type TypeSollicitation = 'SUJETS_PFE' | 'OFFRES_STAGE';
+
+export const LIBELLES_SOLLICITATION: Record<TypeSollicitation, string> = {
+  SUJETS_PFE: 'Sujets de PFE (octobre)',
+  OFFRES_STAGE: 'Offres de stage (mars)',
+};
+
+export interface DestinataireSollicitation { organismeId: string; nom: string; email: string }
+
+export interface Sollicitation {
+  id: string;
+  type: TypeSollicitation;
+  objet: string;
+  message: string;
+  nombreDestinataires: number;
+  destinataires: DestinataireSollicitation[];
+  envoyeePar: string;
+  envoyeeLe: string;
+}
+
+export const LONGUEUR_OBJET_SOLLICITATION = 200;
+export const LONGUEUR_MESSAGE_SOLLICITATION = 5000;
