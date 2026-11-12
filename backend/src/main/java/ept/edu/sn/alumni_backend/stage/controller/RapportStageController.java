@@ -20,26 +20,34 @@ import org.springframework.web.multipart.MultipartFile;
 
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.stage.dto.RapportResponse;
+import ept.edu.sn.alumni_backend.stage.service.ConventionsStageService;
 import ept.edu.sn.alumni_backend.stage.service.FichiersOffreService;
 import ept.edu.sn.alumni_backend.stage.service.RapportsStageService;
 import lombok.RequiredArgsConstructor;
 
-/** Rapport de stage côté membres (STA-07) : dépôt par l'étudiant, lecture par ceux qui suivent le stage. */
+/** Documents d'un stage côté membres : rapport (STA-07) et convention signée (STA-05) : dépôt par l'étudiant, lecture par ceux qui suivent le stage. */
 @RestController
-@RequestMapping("/api/stages/suivi/{id}/rapport")
+@RequestMapping("/api/stages/suivi/{id}")
 @RequiredArgsConstructor
 public class RapportStageController {
     private final RapportsStageService service;
+    private final ConventionsStageService conventions;
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(path = "/rapport", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<RapportResponse> deposer(@PathVariable UUID id, @RequestPart("fichier") MultipartFile fichier,
             @AuthenticationPrincipal UtilisateurPrincipal principal) {
         return ResponseEntity.ok(service.deposer(id, fichier, principal));
     }
 
-    @GetMapping("/fichier")
+    @GetMapping("/rapport/fichier")
     public ResponseEntity<Resource> fichier(@PathVariable UUID id, @AuthenticationPrincipal UtilisateurPrincipal principal) {
         return telecharger(service.fichier(id, principal, false));
+    }
+
+    /** Convention signée, une fois complète (STA-05). */
+    @GetMapping("/convention/scan")
+    public ResponseEntity<Resource> convention(@PathVariable UUID id, @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return telecharger(conventions.scanPourMembre(id, principal));
     }
 
     static ResponseEntity<Resource> telecharger(FichiersOffreService.Telechargement fichier) {

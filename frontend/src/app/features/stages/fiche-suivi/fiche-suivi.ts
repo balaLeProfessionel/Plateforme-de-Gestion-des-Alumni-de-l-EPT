@@ -25,6 +25,7 @@ export class FicheSuivi {
   private readonly service = inject(SuiviStagesService);
   private readonly document = inject(DOCUMENT);
   protected readonly erreurRapport = signal(false);
+  protected readonly erreurConvention = signal(false);
 
   protected readonly types = LIBELLES_TYPE_STAGE;
   protected readonly deroulements = LIBELLES_DEROULEMENT;
@@ -38,6 +39,15 @@ export class FicheSuivi {
     this.service.telechargerRapport(s.id, this.ecole()).subscribe({
       next: (contenu) => enregistrerFichier(this.document, contenu, s.rapport.nomFichier ?? 'rapport.pdf'),
       error: () => this.erreurRapport.set(true),
+    });
+  }
+
+  protected telechargerConvention(): void {
+    const s = this.stage();
+    this.erreurConvention.set(false);
+    this.service.telechargerConvention(s.id, this.ecole()).subscribe({
+      next: (contenu) => enregistrerFichier(this.document, contenu, `convention-${s.etudiant.nom}.pdf`),
+      error: () => this.erreurConvention.set(true),
     });
   }
 }

@@ -43,6 +43,15 @@
             <p class="periode"><i class="pi pi-calendar" aria-hidden="true"></i>Du {{ s.dateDebut | date: 'd MMMM y' }} au {{ s.dateFin | date: 'd MMMM y' }}</p>
             @if (s.statut === 'CONFIRME') {
               <p class="details">Confirmé le {{ s.confirmeLe | date: 'd MMMM y' }}</p>
+              <dl class="suivi">
+                <dt>Encadrant à l’EPT</dt>
+                <dd>@if (s.encadrant; as e) { {{ e.prenom }} {{ e.nom }} · <a [href]="'mailto:' + e.email">{{ e.email }}</a> } @else { Pas encore désigné }</dd>
+                <dt>Convention</dt>
+                <dd>{{ conventions[s.convention ?? 'AUCUNE'] }}
+                  @if (s.convention === 'COMPLETE') { · <button type="button" class="lien" (click)="telechargerConvention(s)">télécharger</button> }</dd>
+                @if (s.stageValide !== null) { <dt>Décision de l’école</dt><dd [class.non-valide]="!s.stageValide">Stage {{ s.stageValide ? 'validé' : 'non validé' }}</dd> }
+              </dl>
+              @if (erreurConvention() === s.id) { <p class="erreur" role="alert">La convention n’a pas pu être téléchargée. Réessayez.</p> }
               <app-rapport-stage [stage]="s" />
             } @else if (s.statut === 'REFUSE') {
               <p class="motif"><strong>Motif de l’école :</strong> {{ s.motif }}</p>

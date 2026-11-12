@@ -237,6 +237,7 @@ class CandidaturesIntegrationTests {
     private Utilisateur creerCompte(TypeRole role, PermissionAdmin... permissions) {
         Utilisateur compte = nouveauCompte(role);
         compte.getPermissionsAdmin().addAll(Set.of(permissions));
+        if (role == TypeRole.ETUDIANT) compte.setClasse(ept.edu.sn.alumni_backend.enums.Classe.DIC3);
         return utilisateurRepository.saveAndFlush(compte);
     }
 

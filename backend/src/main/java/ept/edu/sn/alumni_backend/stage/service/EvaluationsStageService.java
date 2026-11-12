@@ -183,7 +183,7 @@ public class EvaluationsStageService {
 
     private EvaluationResponse versReponse(Stage stage, EvaluationStage e, Lecteur lecteur) {
         var convention = conventionRepository.findByStage_Id(stage.getId()).orElse(null);
-        var suivi = SuiviStagesService.versReponse(stage, lecteur != Lecteur.ORGANISME, ConventionsStageService.etat(convention), e,
+        var suivi = SuiviStagesService.versReponse(stage, true, ConventionsStageService.etat(convention), e,
             rapportRepository.findByStage_Id(stage.getId()).orElse(null));
         boolean conventionComplete = convention != null && convention.complete();
         boolean modifiable = lecteur != Lecteur.ENCADREMENT && conventionComplete && (e == null || !e.soumise());

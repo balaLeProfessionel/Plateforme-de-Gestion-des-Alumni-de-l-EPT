@@ -15,8 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 import ept.edu.sn.alumni_backend.admin.evenement.NotificationCompte;
 import ept.edu.sn.alumni_backend.common.stockage.ApresTransaction;
 import ept.edu.sn.alumni_backend.common.stockage.FichierIntrouvableException;
-import ept.edu.sn.alumni_backend.enums.TypeRole;
-import ept.edu.sn.alumni_backend.filiere.repository.ChefDepartementRepository;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.stage.StatutStage;
 import ept.edu.sn.alumni_backend.stage.dto.RapportResponse;
@@ -43,7 +41,7 @@ public class RapportsStageService {
 
     private final StageRepository stageRepository;
     private final RapportStageRepository rapportRepository;
-    private final ChefDepartementRepository chefRepository;
+    private final AccesStage acces;
     private final StockageFichiersRapport stockage;
     private final ApplicationEventPublisher evenements;
 
@@ -98,7 +96,7 @@ public class RapportsStageService {
     public FichiersOffreService.Telechargement fichier(UUID stageId, UtilisateurPrincipal principal, boolean ecole) {
         Stage stage = stageRepository.findById(stageId).filter(s -> s.getStatut() == StatutStage.CONFIRME)
             .orElseThrow(OffreStageIntrouvableException::new);
-        if (!ecole && !peutLire(stage, principal.getUtilisateur())) throw new OffreStageIntrouvableException();
+        if (!ecole && !acces.peutLireDocuments(stage, principal.getUtilisateur())) throw new OffreStageIntrouvableException();
         RapportStage rapport = rapportRepository.findByStage_Id(stageId).filter(r -> r.getFichier() != null)
             .orElseThrow(FichierIntrouvableException::new);
         return new FichiersOffreService.Telechargement(rapport.getNomOriginal(), stockage.getRapports().lire(rapport.getFichier()));
@@ -112,17 +110,6 @@ public class RapportsStageService {
         String etat = r.getFichier() != null ? "DEPOSE" : r.depotOuvert(aujourdhui) ? "ATTENDU" : "EN_RETARD";
         return new RapportResponse(r.getDateLimite(), r.getFichier() == null ? null : r.getNomOriginal(), r.getDeposeLe(), etat,
             r.depotOuvert(aujourdhui));
-    }
-
-    private boolean peutLire(Stage stage, Utilisateur moi) {
-        if (stage.getEtudiant().getId().equals(moi.getId())) return true;
-        if (moi.getRole() == TypeRole.ORGANISME) {
-            return moi.getOrganisme() != null && stage.getOrganisme() != null && moi.getOrganisme().getId().equals(stage.getOrganisme().getId());
-        }
-        if (moi.getRole() != TypeRole.PERSONNEL) return false;
-        if (stage.getEncadrantInterne() != null && stage.getEncadrantInterne().getId().equals(moi.getId())) return true;
-        var filiere = stage.getEtudiant().getFiliere();
-        return filiere != null && chefRepository.existsByChef_IdAndFiliereId(moi.getId(), filiere.getId());
     }
 
     private void prevenir(Utilisateur destinataire, String sujet, String message) {

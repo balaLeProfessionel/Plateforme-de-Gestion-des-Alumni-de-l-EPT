@@ -41,6 +41,7 @@ public class ConventionsStageService {
     private final StageRepository stageRepository;
     private final ConventionStageRepository conventionRepository;
     private final StockageFichiersConvention stockage;
+    private final AccesStage acces;
     private final EvaluationStageRepository evaluationRepository;
     private final RapportStageRepository rapportRepository;
 
@@ -86,6 +87,17 @@ public class ConventionsStageService {
         convention.setScan(nom);
         convention.setScanNomOriginal(FichiersOffreService.nomAffiche(fichier.getOriginalFilename()));
         return enregistrer(convention, principal);
+    }
+
+    /** Scan signé pour un membre qui suit le stage (étudiant, organisme, encadrant, chef de département) ; 404 sinon. */
+    @Transactional(readOnly = true)
+    public FichiersOffreService.Telechargement scanPourMembre(UUID stageId, UtilisateurPrincipal principal) {
+        Stage stage = stageRepository.findById(stageId).filter(s -> s.getStatut() == StatutStage.CONFIRME)
+            .orElseThrow(OffreStageIntrouvableException::new);
+        if (!acces.peutLireDocuments(stage, principal.getUtilisateur())) throw new OffreStageIntrouvableException();
+        ConventionStage convention = conventionRepository.findByStage_Id(stageId).filter(ConventionStage::complete)
+            .orElseThrow(FichierIntrouvableException::new);
+        return new FichiersOffreService.Telechargement(convention.getScanNomOriginal(), stockage.getScans().lire(convention.getScan()));
     }
 
     @Transactional(readOnly = true)

@@ -5,7 +5,7 @@ import java.util.UUID;
 
 /**
  * Stage confirmé, vu dans le suivi (STA-08) : par l'administrateur Stages, l'encadrant interne, le chef de département
- * de la filière ou l'organisme d'accueil. L'e-mail de l'étudiant n'est donné qu'à l'école (pas à l'organisme).
+ * de la filière ou l'organisme d'accueil. L'e-mail de l'étudiant est donné à tous, organisme compris, pour le contacter.
  */
 public record SuiviStageResponse(
     UUID id,

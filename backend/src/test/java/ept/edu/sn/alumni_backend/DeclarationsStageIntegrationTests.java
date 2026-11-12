@@ -168,6 +168,37 @@ class DeclarationsStageIntegrationTests {
             .andExpect(status().isBadRequest());
     }
 
+    @Test
+    void d90_leTypeDeStageDependDeLaClasseEtDeLaFiliere() throws Exception {
+        String nom = organisme("Eligibilite " + lot);
+        // DIC2 : maîtrise oui, PFE et ouvrier non ; alternance seulement en informatique ; sans classe, rien.
+        envoyer(post("/api/stages/declarations"), etudiant, corps("PFE", nom)).andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("DIC3 et Master 2")));
+        envoyer(post("/api/stages/declarations"), etudiant, corps("OUVRIER", nom)).andExpect(status().isConflict());
+        envoyer(post("/api/stages/declarations"), etudiant, corps("ALTERNANCE", nom)).andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Informatique")));
+        envoyer(post("/api/stages/declarations"), etudiant, corps("RECHERCHE", nom)).andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("réservé aux doctorants")));
+        Utilisateur doctorant = creerCompte(TypeRole.ETUDIANT);
+        doctorant.setClasse(ept.edu.sn.alumni_backend.enums.Classe.DOCTORAT1);
+        utilisateurRepository.saveAndFlush(doctorant);
+        envoyer(post("/api/stages/declarations"), doctorant, corps("PFE", nom)).andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("stages de recherche")));
+        envoyer(post("/api/stages/declarations"), doctorant, corps("RECHERCHE", nom)).andExpect(status().is2xxSuccessful());
+        Utilisateur sansClasse = creerCompte(TypeRole.ETUDIANT);
+        sansClasse.setClasse(null);
+        utilisateurRepository.saveAndFlush(sansClasse);
+        envoyer(post("/api/stages/declarations"), sansClasse, corps("MAITRISE", nom)).andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("n'est pas renseignée")));
+    }
+
+    private static String corps(String type, String nomOrganisme) {
+        LocalDate debut = LocalDate.now().plusMonths(2);
+        return """
+            {"nomOrganisme":"%s","typeStage":"%s","sujet":"Sujet","dateDebut":"%s","dateFin":"%s","tuteurNom":"Moussa Ndiaye"}
+            """.formatted(nomOrganisme, type, debut, debut.plusMonths(2));
+    }
+
     private String organisme(String nom) {
         nomsOrganismes.add(nom);
         return nom;
@@ -197,6 +228,7 @@ class DeclarationsStageIntegrationTests {
         compte.setPrenom("Test");
         compte.setNom(role.name());
         compte.setRole(role);
+        if (role == TypeRole.ETUDIANT) compte.setClasse(ept.edu.sn.alumni_backend.enums.Classe.DIC2);
         compte.setStatutCompte(StatutCompte.ACTIF);
         compte.setEmailVerifie(true);
         compte.getPermissionsAdmin().addAll(Set.of(permissions));

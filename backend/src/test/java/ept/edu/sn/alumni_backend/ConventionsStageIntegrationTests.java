@@ -92,6 +92,14 @@ class ConventionsStageIntegrationTests {
         mockMvc.perform(authentifie(get("/api/admin/stages/suivi"), adminStages))
             .andExpect(jsonPath("$.contenu[?(@.id == '%s')].convention".formatted(stage.getId())).value("COMPLETE"));
 
+        // Les membres qui suivent le stage lisent la convention complète ; l'étudiant la voit dans Mes stages.
+        mockMvc.perform(authentifie(get("/api/stages/suivi/{id}/convention/scan", stage.getId()), stage.getEtudiant()))
+            .andExpect(status().isOk()).andExpect(content().bytes(pdf));
+        mockMvc.perform(authentifie(get("/api/stages/suivi/{id}/convention/scan", stage.getId()), compte(TypeRole.ETUDIANT)))
+            .andExpect(status().isNotFound());
+        mockMvc.perform(authentifie(get("/api/stages/mes-stages"), stage.getEtudiant()))
+            .andExpect(jsonPath("$[0].convention").value("COMPLETE")).andExpect(jsonPath("$[0].encadrant").doesNotExist());
+
         // Retirer une signature fait repasser la convention en cours.
         envoyer(patch(url() + "/signature"), "{\"partie\":\"ECOLE\",\"date\":null}")
             .andExpect(status().isOk()).andExpect(jsonPath("$.etat").value("EN_COURS"));

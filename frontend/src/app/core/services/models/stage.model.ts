@@ -1,11 +1,13 @@
 /** Types de stage du cursus (miroir de TypeStage). */
-export type TypeStage = 'INCLUSION' | 'MAITRISE' | 'PFE' | 'ALTERNANCE';
-export const TYPES_STAGE: readonly TypeStage[] = ['INCLUSION', 'MAITRISE', 'PFE', 'ALTERNANCE'];
+export type TypeStage = 'OUVRIER' | 'INCLUSION' | 'MAITRISE' | 'PFE' | 'ALTERNANCE' | 'RECHERCHE';
+export const TYPES_STAGE: readonly TypeStage[] = ['OUVRIER', 'INCLUSION', 'MAITRISE', 'PFE', 'ALTERNANCE', 'RECHERCHE'];
 export const LIBELLES_TYPE_STAGE: Record<TypeStage, string> = {
+  OUVRIER: 'Ouvrier',
   INCLUSION: 'Inclusion',
   MAITRISE: 'Maîtrise',
   PFE: 'Projet de fin d’études',
   ALTERNANCE: 'Alternance',
+  RECHERCHE: 'Recherche',
 };
 
 /**
@@ -180,7 +182,7 @@ export interface ListeDefinitive {
 export const LONGUEUR_MOTIF_STAGE = 500;
 
 /** Miroir de StagiaireResponse : vu par l’organisme une fois la liste publiée. */
-export interface Stagiaire { id: string; etudiant: EtudiantStage; dateDebut: string; dateFin: string }
+export interface Stagiaire { id: string; etudiant: EtudiantStage; email: string; dateDebut: string; dateFin: string }
 
 /** Miroir de MonStageResponse. */
 export interface MonStage {
@@ -202,6 +204,12 @@ export interface MonStage {
   declare: boolean;
   /** Rapport de stage (STA-07), pour un stage confirmé. */
   rapport: Rapport | null;
+  /** Encadrant interne désigné par l’école (STA-08). */
+  encadrant: { id: string; prenom: string; nom: string; email: string } | null;
+  /** État de la convention ; null si le stage n’est pas confirmé. */
+  convention: EtatConvention | null;
+  /** Validation finale par l’école ; l’évaluation reste cachée à l’étudiant. */
+  stageValide: boolean | null;
 }
 
 /** Miroir de DeclarationResponse : stage déclaré, vu par l’étudiant ou l’administrateur Stages (e-mail pour l’école). */

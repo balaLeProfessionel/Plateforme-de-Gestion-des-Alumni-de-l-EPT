@@ -80,6 +80,7 @@ public class CandidaturesService {
         if (!offre.candidaturesOuvertes(aujourdhui())) {
             throw new ConflitStageException("La date limite de candidature est passée.");
         }
+        EligibiliteStage.verifier(utilisateurRepository.findById(auteur.getId()).orElseThrow(), offre.getTypeStage(), true);
         Candidature candidature = candidatureRepository.findByOffre_IdAndEtudiant_Id(offreId, auteur.getId())
             .orElseGet(() -> new Candidature(offre, utilisateurRepository.getReferenceById(auteur.getId())));
         if (candidature.getStatut() == StatutCandidature.ENVOYEE) {

@@ -137,7 +137,7 @@ class EvaluationsStageIntegrationTests {
         envoyer(post(membre() + "/soumettre"), compteOrganisme, "{\"criteres\":{\"AUTONOMIE\":\"SATISFAISANT\"}}").andExpect(status().isBadRequest());
         envoyer(post(membre() + "/soumettre"), compteOrganisme, ficheComplete()).andExpect(status().isOk())
             .andExpect(jsonPath("$.etat").value("SOUMISE")).andExpect(jsonPath("$.modifiable").value(false))
-            .andExpect(jsonPath("$.stage.email").doesNotExist());
+            .andExpect(jsonPath("$.stage.email").value(stage.getEtudiant().getEmail()));
         assertThat(evenements.stream(NotificationCompte.class)).extracting(NotificationCompte::destinataire).containsExactly(encadrant.getEmail());
         envoyer(put(membre()), compteOrganisme, ficheComplete()).andExpect(status().isConflict());
 

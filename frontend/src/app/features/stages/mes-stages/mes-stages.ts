@@ -1,10 +1,12 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DOCUMENT } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { LIBELLES_STATUT_STAGE, LIBELLES_TYPE_STAGE, MonStage } from '../../../core/services/models/stage.model';
+import { LIBELLES_CONVENTION, LIBELLES_STATUT_STAGE, LIBELLES_TYPE_STAGE, MonStage } from '../../../core/services/models/stage.model';
 import { DeclarationsStageService } from '../../../core/services/stages/declarations';
 import { ListeDefinitiveService } from '../../../core/services/stages/liste-definitive';
+import { SuiviStagesService } from '../../../core/services/stages/suivi-stages';
+import { enregistrerFichier } from '../../../shared/telecharger';
 import { RapportStage } from './rapport-stage/rapport-stage';
 import { FilAriane } from '../../../shared/fil-ariane/fil-ariane';
 
@@ -30,6 +32,10 @@ export class MesStages implements OnInit {
   protected readonly aRetirer = signal<string | null>(null);
   protected readonly erreurRetrait = signal<string | null>(null);
   protected readonly message = signal<string | null>(null);
+  protected readonly conventions = LIBELLES_CONVENTION;
+  protected readonly erreurConvention = signal<string | null>(null);
+  private readonly suivi = inject(SuiviStagesService);
+  private readonly document = inject(DOCUMENT);
 
   ngOnInit(): void {
     this.charger();
@@ -52,6 +58,14 @@ export class MesStages implements OnInit {
         this.message.set(`Votre déclaration « ${stage.sujet} » est retirée.`);
       },
       error: (erreur: HttpErrorResponse) => this.erreurRetrait.set(erreur.error?.message ?? 'La déclaration n’a pas pu être retirée. Réessayez.'),
+    });
+  }
+
+  protected telechargerConvention(stage: MonStage): void {
+    this.erreurConvention.set(null);
+    this.suivi.telechargerConvention(stage.id, false).subscribe({
+      next: (contenu) => enregistrerFichier(this.document, contenu, 'convention-de-stage.pdf'),
+      error: () => this.erreurConvention.set(stage.id),
     });
   }
 }

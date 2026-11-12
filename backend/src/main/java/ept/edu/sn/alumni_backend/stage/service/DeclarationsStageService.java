@@ -64,6 +64,7 @@ public class DeclarationsStageService {
         } else {
             throw new IllegalArgumentException("Indiquez l'organisme qui vous accueille.");
         }
+        EligibiliteStage.verifier(etudiant, request.typeStage(), true);
         stage.setEtudiant(etudiant);
         stage.setTypeStage(request.typeStage());
         stage.setSujet(request.sujet().strip());

@@ -150,7 +150,7 @@ class ListeDefinitiveIntegrationTests {
             .andExpect(jsonPath("$[0].dateDebut").value(debut.toString()));
         mockMvc.perform(authentifie(get("/api/stages/offres/{id}/stagiaires", offre), organisme))
             .andExpect(jsonPath("$", hasSize(2)))
-            .andExpect(jsonPath("$[0].email").doesNotExist());
+            .andExpect(jsonPath("$[0].email").exists());
 
         // Liste publiée : candidatures closes, plus de retrait ni d'avis, l'offre reste consultable.
         postuler(offre, sansCandidature).andExpect(status().isConflict());
@@ -375,6 +375,7 @@ class ListeDefinitiveIntegrationTests {
     private Utilisateur creerCompte(TypeRole role, PermissionAdmin... permissions) {
         Utilisateur compte = nouveauCompte(role);
         compte.getPermissionsAdmin().addAll(Set.of(permissions));
+        if (role == TypeRole.ETUDIANT) compte.setClasse(ept.edu.sn.alumni_backend.enums.Classe.DIC3);
         return utilisateurRepository.saveAndFlush(compte);
     }
 

@@ -9,6 +9,7 @@ function unStage(rapport: Rapport): MonStage {
   return {
     id: 's1', offreId: null, sujet: 'Portail client', organisme: 'Kër Data', typeStage: 'PFE', lieu: null,
     dateDebut: '2026-02-01', dateFin: '2026-06-30', confirmeLe: '2026-01-10T10:00:00Z', statut: 'CONFIRME', motif: null, declare: false, rapport,
+    encadrant: null, convention: 'COMPLETE', stageValide: null,
   };
 }
 

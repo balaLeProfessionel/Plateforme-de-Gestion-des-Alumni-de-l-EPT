@@ -42,7 +42,7 @@ import lombok.RequiredArgsConstructor;
  * - L'administrateur Stages voit tous les stages, désigne l'encadrant interne (un compte du personnel actif) et tient à
  *   jour les coordonnées du maître de stage.
  * - L'encadrant voit les stages qu'il encadre ; le chef de département ceux des étudiants de sa filière ; l'organisme
- *   les stagiaires qu'il accueille, sans leur adresse e-mail.
+ *   les stagiaires qu'il accueille, avec leur adresse e-mail.
  */
 @Service
 @RequiredArgsConstructor
@@ -134,7 +134,7 @@ public class SuiviStagesService {
         Utilisateur moi = principal.getUtilisateur();
         if (moi.getRole() == TypeRole.ORGANISME && moi.getOrganisme() != null) {
             return new MesSuivis(List.of(), List.of(), reponses(
-                stageRepository.findByOrganisme_IdAndStatutOrderByDateDebutDesc(moi.getOrganisme().getId(), StatutStage.CONFIRME), false));
+                stageRepository.findByOrganisme_IdAndStatutOrderByDateDebutDesc(moi.getOrganisme().getId(), StatutStage.CONFIRME), true));
         }
         if (moi.getRole() == TypeRole.PERSONNEL) {
             return new MesSuivis(

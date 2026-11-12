@@ -129,13 +129,13 @@ class SuiviStagesIntegrationTests {
     }
 
     @Test
-    void s02_leChefVoitSaFiliereEtLOrganismeSesStagiairesSansEmail() throws Exception {
+    void s02_leChefVoitSaFiliereEtLOrganismeSesStagiairesAvecEmail() throws Exception {
         mockMvc.perform(authentifie(get("/api/stages/suivi"), chef))
             .andExpect(jsonPath("$.departement", hasSize(1)))
             .andExpect(jsonPath("$.departement[0].id").value(stage.getId().toString()));
         mockMvc.perform(authentifie(get("/api/stages/suivi"), compteOrganisme))
             .andExpect(jsonPath("$.accueillis", hasSize(1)))
-            .andExpect(jsonPath("$.accueillis[0].email").doesNotExist())
+            .andExpect(jsonPath("$.accueillis[0].email").value(stage.getEtudiant().getEmail()))
             .andExpect(jsonPath("$.accueillis[0].tuteurNom").value("Moussa Ndiaye"));
         mockMvc.perform(authentifie(get("/api/admin/stages/suivi").param("filiere", filiere.getId().toString()), adminStages))
             .andExpect(jsonPath("$.contenu", hasSize(1)));

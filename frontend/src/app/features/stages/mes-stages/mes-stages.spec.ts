@@ -11,6 +11,7 @@ function unStage(changement: Partial<MonStage> = {}): MonStage {
     id: 's1', offreId: 'o1', sujet: 'Développeur web', organisme: 'Kër Data', typeStage: 'PFE', lieu: 'Dakar',
     dateDebut: '2027-02-01', dateFin: '2027-05-31', confirmeLe: '2026-12-20T10:00:00Z', statut: 'CONFIRME', motif: null, declare: false,
     rapport: { dateLimite: null, nomFichier: null, deposeLe: null, etat: 'SANS_DATE', depotOuvert: false },
+    encadrant: null, convention: 'AUCUNE', stageValide: null,
     ...changement,
   };
 }
@@ -42,6 +43,17 @@ describe('MesStages', () => {
     expect(racine.querySelector('.type')?.textContent).toBe('Projet de fin d’études');
     expect(racine.querySelector('.statut')).toBeNull();
     expect(racine.querySelector('a[href="/stages/declarer"]')).not.toBeNull();
+  });
+
+  it('montre l’encadrant, la convention à télécharger et la décision de l’école, sans l’évaluation', () => {
+    const { racine } = afficher([unStage({
+      encadrant: { id: 'p1', prenom: 'Fatou', nom: 'Sarr', email: 'fatou@ept.sn' }, convention: 'COMPLETE', stageValide: true,
+    })]);
+    const suivi = racine.querySelector('.suivi')!;
+    expect(suivi.textContent).toContain('Fatou Sarr');
+    expect(suivi.textContent).toContain('Stage validé');
+    bouton(racine, 'télécharger').click();
+    http.expectOne('/api/stages/suivi/s1/convention/scan').flush(new Blob(['%PDF']));
   });
 
   it('montre une déclaration refusée avec le motif et retire une déclaration en attente', () => {

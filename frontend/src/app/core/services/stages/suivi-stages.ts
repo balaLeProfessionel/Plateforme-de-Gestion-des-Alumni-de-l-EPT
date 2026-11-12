@@ -65,6 +65,12 @@ export class SuiviStagesService {
     return this.http.patch<{ misAJour: number }>(`${API_ADMIN}/rapports/date-limite`, { stageIds, dateLimite });
   }
 
+  /** Convention signée ; ecole : route d’administration, sinon celle des membres qui suivent le stage. */
+  telechargerConvention(stageId: string, ecole: boolean) {
+    return this.http.get(ecole ? `${API_ADMIN}/suivi/${stageId}/convention/scan` : `/api/stages/suivi/${stageId}/convention/scan`,
+      { responseType: 'blob' });
+  }
+
   deposerRapport(stageId: string, fichier: File) {
     const corps = new FormData();
     corps.append('fichier', fichier);
