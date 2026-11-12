@@ -12,4 +12,6 @@ public interface ChefDepartementRepository extends JpaRepository<ChefDepartement
     @Override
     @EntityGraph(attributePaths = "chef")
     List<ChefDepartement> findAll();
+
+    boolean existsByChef_IdAndFiliereId(UUID chefId, UUID filiereId);
 }

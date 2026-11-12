@@ -53,6 +53,8 @@
       <button type="button" class="bouton petit" (click)="ouvrir('tuteur')">Maître de stage</button>
       <a class="bouton petit" [routerLink]="['/admin/stages/suivi', s.id, 'convention']"
         [attr.aria-label]="'Convention du stage de ' + s.etudiant.prenom + ' ' + s.etudiant.nom">Convention</a>
+      <a class="bouton petit" [routerLink]="['/admin/stages/suivi', s.id, 'evaluation']"
+        [attr.aria-label]="'Évaluation du stage de ' + s.etudiant.prenom + ' ' + s.etudiant.nom">Évaluation</a>
     </div>
   }
 }

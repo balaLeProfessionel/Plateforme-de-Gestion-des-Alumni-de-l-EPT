@@ -25,5 +25,7 @@
     } @else { Non renseigné }
   </dd>
   <dt>Convention</dt><dd [class.vide]="s.convention === 'AUCUNE'">{{ conventions[s.convention] }}</dd>
+  <dt>Évaluation</dt><dd [class.vide]="s.evaluation === 'AUCUNE'">{{ evaluations[s.evaluation] }}
+    @if (s.stageValide !== null) { · stage {{ s.stageValide ? 'validé' : 'non validé' }} par l’école }</dd>
 </dl>
 <ng-content />

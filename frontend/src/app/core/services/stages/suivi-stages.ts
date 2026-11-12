@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { Page } from '../models/mentorat.model';
 import {
-  ClausesConvention, Convention, MesSuivis, PartieConvention, PersonnelSuggestion, SuiviStage, Tuteur,
+  ClausesConvention, Convention, Evaluation, SaisieEvaluation, MesSuivis, PartieConvention, PersonnelSuggestion, SuiviStage, Tuteur,
 } from '../models/stage.model';
 
 const API_ADMIN = '/api/admin/stages';
@@ -59,4 +59,30 @@ export class SuiviStagesService {
   telechargerScan(stageId: string) {
     return this.http.get(`${API_ADMIN}/suivi/${stageId}/convention/scan`, { responseType: 'blob' });
   }
+
+  /** ecole : l’administrateur Stages ; sinon l’organisme, l’encadrant ou le chef de département. */
+  evaluation(stageId: string, ecole: boolean) {
+    return this.http.get<Evaluation>(urlEvaluation(stageId, ecole));
+  }
+
+  enregistrerEvaluation(stageId: string, ecole: boolean, saisie: SaisieEvaluation) {
+    return this.http.put<Evaluation>(urlEvaluation(stageId, ecole), saisie);
+  }
+
+  soumettreEvaluation(stageId: string, ecole: boolean, saisie: SaisieEvaluation) {
+    return this.http.post<Evaluation>(`${urlEvaluation(stageId, ecole)}/soumettre`, saisie);
+  }
+
+  rouvrirEvaluation(stageId: string) {
+    return this.http.post<Evaluation>(`${urlEvaluation(stageId, true)}/rouvrir`, null);
+  }
+
+  /** null annule la décision. */
+  deciderStage(stageId: string, valide: boolean | null) {
+    return this.http.patch<Evaluation>(`${urlEvaluation(stageId, true)}/decision`, { valide });
+  }
+}
+
+function urlEvaluation(stageId: string, ecole: boolean): string {
+  return `${ecole ? API_ADMIN : '/api/stages'}/suivi/${stageId}/evaluation`;
 }

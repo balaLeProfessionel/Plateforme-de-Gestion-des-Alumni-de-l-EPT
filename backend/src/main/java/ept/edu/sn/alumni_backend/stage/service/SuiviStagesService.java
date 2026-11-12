@@ -23,10 +23,12 @@ import ept.edu.sn.alumni_backend.stage.StatutStage;
 import ept.edu.sn.alumni_backend.stage.dto.PersonnelSuggestionResponse;
 import ept.edu.sn.alumni_backend.stage.dto.SuiviStageResponse;
 import ept.edu.sn.alumni_backend.stage.dto.TuteurRequest;
+import ept.edu.sn.alumni_backend.stage.entity.EvaluationStage;
 import ept.edu.sn.alumni_backend.stage.entity.Stage;
 import ept.edu.sn.alumni_backend.stage.exception.ConflitStageException;
 import ept.edu.sn.alumni_backend.stage.exception.OffreStageIntrouvableException;
 import ept.edu.sn.alumni_backend.stage.repository.ConventionStageRepository;
+import ept.edu.sn.alumni_backend.stage.repository.EvaluationStageRepository;
 import ept.edu.sn.alumni_backend.stage.repository.StageRepository;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
@@ -47,6 +49,7 @@ public class SuiviStagesService {
     private final UtilisateurRepository utilisateurRepository;
     private final ApplicationEventPublisher evenements;
     private final ConventionStageRepository conventionRepository;
+    private final EvaluationStageRepository evaluationRepository;
 
     @Transactional(readOnly = true)
     public PageResponse<SuiviStageResponse> lister(UUID filiereId, boolean sansEncadrant, String texte, int page, int taille) {
@@ -69,8 +72,8 @@ public class SuiviStagesService {
             });
         }
         var stages = stageRepository.findAll(criteres, PageRequest.of(page, taille, Sort.by(Sort.Order.desc("dateDebut"))));
-        Map<UUID, String> conventions = etatsConventions(stages.getContent());
-        return PageResponse.depuis(stages.map(s -> versReponse(s, true, conventions.get(s.getId()))));
+        Etats etats = etats(stages.getContent());
+        return PageResponse.depuis(stages.map(s -> etats.reponse(s, true)));
     }
 
     @Transactional
@@ -160,24 +163,33 @@ public class SuiviStagesService {
     }
 
     private List<SuiviStageResponse> reponses(List<Stage> stages, boolean avecEmail) {
-        Map<UUID, String> conventions = etatsConventions(stages);
-        return stages.stream().map(s -> versReponse(s, avecEmail, conventions.get(s.getId()))).toList();
+        Etats etats = etats(stages);
+        return stages.stream().map(s -> etats.reponse(s, avecEmail)).toList();
     }
 
-    /** État de la convention de chaque stage, en une requête ; absent de la table = AUCUNE. */
-    private Map<UUID, String> etatsConventions(List<Stage> stages) {
-        if (stages.isEmpty()) return Map.of();
-        Map<UUID, String> etats = new HashMap<>();
-        conventionRepository.findByStage_IdIn(stages.stream().map(Stage::getId).toList())
-            .forEach(c -> etats.put(c.getStage().getId(), ConventionsStageService.etat(c)));
-        return etats;
+    /** Convention et évaluation de chaque stage d'une liste, en deux requêtes. */
+    private Etats etats(List<Stage> stages) {
+        if (stages.isEmpty()) return new Etats(Map.of(), Map.of());
+        List<UUID> ids = stages.stream().map(Stage::getId).toList();
+        Map<UUID, String> conventions = new HashMap<>();
+        conventionRepository.findByStage_IdIn(ids).forEach(c -> conventions.put(c.getStage().getId(), ConventionsStageService.etat(c)));
+        Map<UUID, EvaluationStage> evaluations = new HashMap<>();
+        evaluationRepository.findByStage_IdIn(ids).forEach(e -> evaluations.put(e.getStage().getId(), e));
+        return new Etats(conventions, evaluations);
+    }
+
+    private record Etats(Map<UUID, String> conventions, Map<UUID, EvaluationStage> evaluations) {
+        SuiviStageResponse reponse(Stage s, boolean avecEmail) {
+            return versReponse(s, avecEmail, conventions.get(s.getId()), evaluations.get(s.getId()));
+        }
     }
 
     private SuiviStageResponse versReponse(Stage stage) {
-        return versReponse(stage, true, ConventionsStageService.etat(conventionRepository.findByStage_Id(stage.getId()).orElse(null)));
+        return versReponse(stage, true, ConventionsStageService.etat(conventionRepository.findByStage_Id(stage.getId()).orElse(null)),
+            evaluationRepository.findByStage_Id(stage.getId()).orElse(null));
     }
 
-    static SuiviStageResponse versReponse(Stage s, boolean avecEmail, String convention) {
+    static SuiviStageResponse versReponse(Stage s, boolean avecEmail, String convention, EvaluationStage evaluation) {
         Utilisateur e = s.getEncadrantInterne();
         return new SuiviStageResponse(s.getId(), s.getOffre() == null ? null : s.getOffre().getId(), ListeDefinitiveService.etudiant(s.getEtudiant()),
             avecEmail ? s.getEtudiant().getEmail() : null, s.getOrganisme() == null ? null : s.getOrganisme().getId(), s.nomOrganisme(),
@@ -185,7 +197,8 @@ public class SuiviStagesService {
             deroulement(s, LocalDate.now(OffresStageService.FUSEAU)),
             e == null ? null : new SuiviStageResponse.Encadrant(e.getId(), e.getPrenom(), e.getNom(), e.getEmail()),
             s.getTuteurNom(), s.getTuteurFonction(), s.getTuteurEmail(), s.getTuteurTelephone(), s.getOffre() == null,
-            convention == null ? ConventionsStageService.AUCUNE : convention);
+            convention == null ? ConventionsStageService.AUCUNE : convention,
+            EvaluationsStageService.etat(evaluation), evaluation == null ? null : evaluation.getStageValide());
     }
 
     private static String texte(String valeur) {

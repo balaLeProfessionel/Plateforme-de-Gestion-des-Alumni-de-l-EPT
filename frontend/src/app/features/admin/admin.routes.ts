@@ -96,6 +96,13 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./convention-stage/convention-stage').then((m) => m.ConventionStagePage),
   },
   {
+    path: 'stages/suivi/:id/evaluation',
+    title: 'Évaluation du stagiaire | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_STAGES', ecole: true },
+    loadComponent: () => import('../stages/evaluation-stage/evaluation-stage').then((m) => m.EvaluationStagePage),
+  },
+  {
     path: 'stages/declarations',
     title: 'Stages déclarés | EPT Alumni',
     canActivate: [permissionGuard],

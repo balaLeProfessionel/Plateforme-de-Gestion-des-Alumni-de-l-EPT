@@ -271,7 +271,61 @@ export interface SuiviStage {
   tuteurTelephone: string | null;
   declare: boolean;
   convention: EtatConvention;
+  evaluation: EtatEvaluation;
+  stageValide: boolean | null;
 }
+
+/** Évaluation du stagiaire (STA-06). */
+export type EtatEvaluation = 'AUCUNE' | 'BROUILLON' | 'SOUMISE';
+
+export const LIBELLES_EVALUATION: Record<EtatEvaluation, string> = {
+  AUCUNE: 'Pas commencée',
+  BROUILLON: 'En cours de saisie',
+  SOUMISE: 'Remise',
+};
+
+export type NiveauCritere = 'TRES_SATISFAISANT' | 'SATISFAISANT' | 'A_AMELIORER' | 'NON_APPLICABLE';
+
+export const LIBELLES_NIVEAU: Record<NiveauCritere, string> = {
+  TRES_SATISFAISANT: 'Très satisfaisant',
+  SATISFAISANT: 'Satisfaisant',
+  A_AMELIORER: 'À améliorer',
+  NON_APPLICABLE: 'Non applicable',
+};
+
+export type AppreciationGenerale = 'TRES_SATISFAISANT' | 'SATISFAISANT' | 'MOYENNEMENT_SATISFAISANT' | 'INSATISFAISANT';
+
+export const LIBELLES_APPRECIATION: Record<AppreciationGenerale, string> = {
+  TRES_SATISFAISANT: 'Très satisfaisant',
+  SATISFAISANT: 'Satisfaisant',
+  MOYENNEMENT_SATISFAISANT: 'Moyennement satisfaisant',
+  INSATISFAISANT: 'Insatisfaisant',
+};
+
+export interface CritereGrille { code: string; section: 'TECHNIQUE' | 'PERSONNELLE'; libelle: string }
+
+export interface SaisieEvaluation {
+  criteres: Record<string, NiveauCritere>;
+  dureeEffectiveMois: number | null;
+  pointsForts: string | null;
+  axesAmelioration: string | null;
+  observations: string | null;
+  appreciationGenerale: AppreciationGenerale | null;
+  avisTuteurValide: boolean | null;
+}
+
+export interface Evaluation extends SaisieEvaluation {
+  stage: SuiviStage;
+  grille: CritereGrille[];
+  etat: EtatEvaluation;
+  saisieParEcole: boolean;
+  soumiseLe: string | null;
+  stageValide: boolean | null;
+  decideLe: string | null;
+  modifiable: boolean;
+}
+
+export const LONGUEUR_TEXTE_EVALUATION = 2000;
 
 /** État de la convention tripartite (STA-05) : complète quand les trois signatures et le scan sont enregistrés. */
 export type EtatConvention = 'AUCUNE' | 'EN_COURS' | 'COMPLETE';

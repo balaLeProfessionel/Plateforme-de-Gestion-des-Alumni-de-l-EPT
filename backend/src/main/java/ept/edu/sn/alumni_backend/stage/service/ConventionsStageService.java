@@ -19,6 +19,7 @@ import ept.edu.sn.alumni_backend.stage.entity.Stage;
 import ept.edu.sn.alumni_backend.stage.exception.ConflitStageException;
 import ept.edu.sn.alumni_backend.stage.exception.OffreStageIntrouvableException;
 import ept.edu.sn.alumni_backend.stage.repository.ConventionStageRepository;
+import ept.edu.sn.alumni_backend.stage.repository.EvaluationStageRepository;
 import ept.edu.sn.alumni_backend.stage.repository.StageRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -39,6 +40,7 @@ public class ConventionsStageService {
     private final StageRepository stageRepository;
     private final ConventionStageRepository conventionRepository;
     private final StockageFichiersConvention stockage;
+    private final EvaluationStageRepository evaluationRepository;
 
     @Transactional(readOnly = true)
     public ConventionResponse lire(UUID stageId) {
@@ -110,8 +112,8 @@ public class ConventionsStageService {
         return versReponse(convention.getStage(), conventionRepository.saveAndFlush(convention));
     }
 
-    private static ConventionResponse versReponse(Stage stage, ConventionStage c) {
-        var suivi = SuiviStagesService.versReponse(stage, true, etat(c));
+    private ConventionResponse versReponse(Stage stage, ConventionStage c) {
+        var suivi = SuiviStagesService.versReponse(stage, true, etat(c), evaluationRepository.findByStage_Id(stage.getId()).orElse(null));
         if (c == null) {
             return new ConventionResponse(suivi, false, null, null, null, false, null, null, null, null, AUCUNE, null);
         }

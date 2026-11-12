@@ -50,6 +50,13 @@ export const STAGES_ROUTES: Routes = [
     loadComponent: () => import('./suivi-stages/suivi-stages').then((m) => m.SuiviStagesMembre),
   },
   {
+    path: 'suivi/:id/evaluation',
+    title: 'Évaluation du stagiaire | EPT Alumni',
+    canActivate: [roleGuard],
+    data: { roles: ['PERSONNEL', 'ORGANISME'] },
+    loadComponent: () => import('./evaluation-stage/evaluation-stage').then((m) => m.EvaluationStagePage),
+  },
+  {
     path: 'declarer',
     title: 'Déclarer un stage | EPT Alumni',
     canActivate: [roleGuard],

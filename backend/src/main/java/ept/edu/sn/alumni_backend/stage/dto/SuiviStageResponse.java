@@ -28,7 +28,11 @@ public record SuiviStageResponse(
     String tuteurTelephone,
     boolean declare,
     /** AUCUNE, EN_COURS ou COMPLETE (STA-05). */
-    String convention
+    String convention,
+    /** AUCUNE, BROUILLON ou SOUMISE (STA-06). */
+    String evaluation,
+    /** Validation finale par l'administrateur Stages ; vide tant qu'il n'a pas décidé. */
+    Boolean stageValide
 ) {
     public record Encadrant(UUID id, String prenom, String nom, String email) {
     }
