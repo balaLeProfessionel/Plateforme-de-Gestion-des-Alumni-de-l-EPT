@@ -67,9 +67,11 @@ class ProfilPublicIntegrationTests {
         evenementRepository.deleteAll();
         experienceRepository.deleteAll();
         formationRepository.deleteAll();
-        organismeRepository.deleteAll();
         notificationRepository.deleteAll();
+        // Les comptes avant les organismes : un compte organisme laissé par une autre classe
+        // de tests référence encore son organisme (échec selon l'ordre d'exécution, vu sur la CI).
         utilisateurRepository.deleteAll();
+        organismeRepository.deleteAll();
     }
 
     @Test
