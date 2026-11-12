@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 import ept.edu.sn.alumni_backend.auth.dto.AuthResponse;
 import ept.edu.sn.alumni_backend.auth.dto.ChangerMotDePasseInitialRequest;
 import ept.edu.sn.alumni_backend.auth.dto.ChangerMotDePasseRequest;
+import ept.edu.sn.alumni_backend.auth.dto.ConfigurationGoogleResponse;
+import ept.edu.sn.alumni_backend.auth.dto.ConnexionGoogleRequest;
+import ept.edu.sn.alumni_backend.auth.google.ConnexionGoogleService;
 import ept.edu.sn.alumni_backend.auth.dto.InscriptionResponse;
 import ept.edu.sn.alumni_backend.auth.dto.LoginRequest;
 import ept.edu.sn.alumni_backend.auth.dto.MessageResponse;
@@ -33,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 
     private final AuthService authService;
+    private final ConnexionGoogleService connexionGoogleService;
 
     @PostMapping("/register")
     public ResponseEntity<InscriptionResponse> register(@Valid @RequestBody RegisterRequest request) {
@@ -52,6 +56,19 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.connecter(request));
+    }
+
+    /** Connexion avec le jeton d'identité du bouton Google, pour un compte qui existe déjà. */
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> connexionGoogle(@Valid @RequestBody ConnexionGoogleRequest request) {
+        return ResponseEntity.ok(connexionGoogleService.connecter(request.credential()));
+    }
+
+    /** Identifiant client public du bouton Google ; absent quand la connexion Google n'est pas configurée. */
+    @GetMapping("/google/configuration")
+    public ConfigurationGoogleResponse configurationGoogle() {
+        String clientId = connexionGoogleService.clientId();
+        return new ConfigurationGoogleResponse(clientId.isEmpty() ? null : clientId);
     }
 
     @PostMapping("/mot-de-passe-oublie")

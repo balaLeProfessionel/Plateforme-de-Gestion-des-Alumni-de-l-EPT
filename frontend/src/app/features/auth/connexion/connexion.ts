@@ -8,10 +8,12 @@ import { email, form, required, FormField } from '@angular/forms/signals';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { MessageModule } from 'primeng/message';
+import { AuthResponse } from '../../../core/services/models/auth-response.model';
+import { BoutonGoogle } from '../bouton-google/bouton-google';
 
 @Component({
   selector: 'app-connexion',
-  imports: [DecimalPipe, NgOptimizedImage, FormField, InputTextModule, PasswordModule, MessageModule, RouterLink],
+  imports: [DecimalPipe, NgOptimizedImage, FormField, InputTextModule, PasswordModule, MessageModule, RouterLink, BoutonGoogle],
   templateUrl: './connexion.html',
   styleUrl: './connexion.scss',
 })
@@ -62,9 +64,7 @@ export class Connexion {
     this.authService.login(email, password).subscribe({
       next: (utilisateur) => {
         this.enChargement.set(false);
-        this.router.navigate([
-          utilisateur.doitChangerMotDePasse ? '/premiere-connexion' : '/accueil'
-        ]);
+        this.ouvrirEspace(utilisateur);
       },
       error: (err) => {
         this.enChargement.set(false);
@@ -72,5 +72,16 @@ export class Connexion {
         this.messageErreur.set(msg);
       }
     })
+  }
+
+  /** Après une connexion par mot de passe ou avec Google. */
+  protected ouvrirEspace(utilisateur: AuthResponse) {
+    this.messageErreur.set(null);
+    this.router.navigate([utilisateur.doitChangerMotDePasse ? '/premiere-connexion' : '/accueil']);
+  }
+
+  protected erreurGoogle(message: string) {
+    this.messageSucces.set(null);
+    this.messageErreur.set(message);
   }
 }

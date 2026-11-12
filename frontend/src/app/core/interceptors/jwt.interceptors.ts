@@ -15,6 +15,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   // On n'ajoute pas de token aux appels d'authentification eux-mêmes
   const estAppelAuth =
     req.url.includes('/api/auth/login') ||
+    req.url.includes('/api/auth/google') ||
     req.url.includes('/api/auth/mot-de-passe-oublie') ||
     req.url.includes('/api/auth/reinitialiser-mot-de-passe') ||
     req.url.includes('/api/auth/register') ||

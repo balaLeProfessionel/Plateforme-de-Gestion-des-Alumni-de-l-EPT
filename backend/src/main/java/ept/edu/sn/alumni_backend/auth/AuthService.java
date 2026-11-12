@@ -387,6 +387,13 @@ public class AuthService {
         return email == null ? null : email.toLowerCase().trim();
     }
 
+    /** Ouvre une session pour un compte déjà authentifié par un autre moyen (Google) : jetons d'accès et de rafraîchissement. */
+    public AuthResponse ouvrirSession(Utilisateur utilisateur) {
+        String accessToken = jwtService.genererToken(new UtilisateurPrincipal(utilisateur));
+        String refreshToken = refreshTokenService.creerRefreshToken(utilisateur);
+        return construireReponse(accessToken, refreshToken, utilisateur, null);
+    }
+
     private AuthResponse construireReponse(String accessToken, String refreshToken, Utilisateur u, String message) {
         return new AuthResponse(accessToken, refreshToken, u.getId(), u.getEmail(), u.getNom(), u.getPrenom(),
                 u.getRole().name(), u.getStatutCompte().name(), u.isDoitChangerMotDePasse(), u.getUrlPhoto(), message,

@@ -46,6 +46,15 @@ Seul le frontend est exposé sur la machine hôte. Il transmet les appels `/api`
 | `APP_STORAGE_PHOTOS_DIR` | Répertoire persistant des photos de profil dans le conteneur backend |
 | `APP_MAX_PHOTO_SIZE` | Taille maximale acceptée pour une photo de profil |
 | `PRIMENG_LICENSE` | Licence PrimeNG, injectée dans le frontend à la compilation. Sans elle, PrimeNG affiche une bannière |
+| `GOOGLE_CLIENT_ID` | Identifiant client OAuth Google du bouton « Continuer avec Google ». Vide : le bouton n'apparaît pas |
+
+### Connexion avec Google
+
+Le bouton « Continuer avec Google » de la page de connexion ouvre la session d'un compte **qui existe déjà** avec la même adresse ; il ne crée pas de compte (le rôle et la validation par l'administration passent par l'inscription). Les règles sont celles du mot de passe : compte suspendu ou adresse non vérifiée refusés.
+
+1. Dans la console Google Cloud, créer un identifiant OAuth de type « Application Web ».
+2. Ajouter dans « Origines JavaScript autorisées » chaque adresse du frontend, par exemple `http://localhost:4200` en développement et l'adresse publique en production. Aucune URI de redirection n'est nécessaire.
+3. Renseigner `GOOGLE_CLIENT_ID` dans `.env` puis relancer la pile. Aucun secret client n'est utilisé : le serveur vérifie la signature du jeton avec les clés publiques de Google, l'émetteur, l'audience (cet identifiant) et l'expiration.
 
 Le fichier `.env` reste local et ne doit pas être ajouté au dépôt. `.env.example` contient uniquement une configuration de développement.
 

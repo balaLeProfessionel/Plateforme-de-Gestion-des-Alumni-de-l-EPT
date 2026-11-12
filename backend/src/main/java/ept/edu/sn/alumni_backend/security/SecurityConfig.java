@@ -77,6 +77,8 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/auth/register",
                     "/api/auth/login",
+                    "/api/auth/google",
+                    "/api/auth/google/configuration",
                     "/api/auth/mot-de-passe-oublie",
                     "/api/auth/reinitialiser-mot-de-passe",
                     "/api/auth/logout",
