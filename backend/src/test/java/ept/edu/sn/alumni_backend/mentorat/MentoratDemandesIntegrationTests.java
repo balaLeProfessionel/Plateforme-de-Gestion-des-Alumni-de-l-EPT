@@ -77,8 +77,8 @@ class MentoratDemandesIntegrationTests extends MentoratTestsBase {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TypeRole.class, names = {"ETUDIANT", "ALUMNI", "PERSONNEL", "VISITEUR"})
-    void d11_toutMembrePeutEtreMentoreAupresDeToutMembre(TypeRole role) throws Exception {
+    @EnumSource(value = TypeRole.class, names = {"ETUDIANT", "ALUMNI"})
+    void d11_etudiantsEtAlumniPeuventEtreMentores(TypeRole role) throws Exception {
         // Ex. un lycéen (visiteur) auprès d'un étudiant, ou un jeune alumni auprès d'un ancien.
         UUID profilEtudiant = creerProfil(autreEtudiant, true, 2, data);
         envoyer(post("/api/mentorat/mentorats"), creerUtilisateur(role, "Membre"), demande(profilEtudiant, data))
