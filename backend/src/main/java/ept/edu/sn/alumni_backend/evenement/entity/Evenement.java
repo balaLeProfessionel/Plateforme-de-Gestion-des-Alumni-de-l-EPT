@@ -67,6 +67,10 @@ public class Evenement {
     @Column(nullable = false)
     private boolean officielEpt = false;
 
+    /** L'organisateur peut masquer la liste des inscrits aux autres membres ; elle reste visible pour lui. */
+    @Column(nullable = false, columnDefinition = "boolean not null default true")
+    private boolean participantsVisibles = true;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private StatutEvenement statut = StatutEvenement.PUBLIE;

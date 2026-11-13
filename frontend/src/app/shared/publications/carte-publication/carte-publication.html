@@ -1,0 +1,85 @@
+@let p = publication();
+<article class="carte" [class.officielle]="p.type === 'ANNONCE_OFFICIELLE'" [class.dans-le-fil]="!complete()"
+  (click)="ouvrirDepuisCarte($event)">
+  @if (p.type === 'ANNONCE_OFFICIELLE') {
+    <p class="bandeau"><i class="pi pi-verified" aria-hidden="true"></i> Annonce officielle de l’EPT</p>
+  }
+
+  <header class="entete">
+    <app-avatar-membre [urlPhoto]="p.auteurPhoto" [nom]="p.auteurNom" [prenom]="p.auteurPrenom"
+      [roleMembre]="p.auteurRole" [taille]="2.75" />
+    <div class="identite">
+      <p class="nom"><strong>{{ auteur() }}</strong>
+        @if (role()) { <span class="role" [class.ecole]="p.auteurRole === 'ADMIN' || p.auteurRole === 'PERSONNEL'">{{ role() }}</span> }
+      </p>
+      <p class="meta">
+        @if (complete()) {
+          <time [attr.datetime]="p.publieLe" [attr.title]="p.publieLe | date:'d MMMM y à HH:mm'">{{ p.publieLe | dateRelative }}</time>
+        } @else {
+          <a class="date" [routerLink]="lien()" [attr.aria-label]="'Publication de ' + auteur() + ', ' + (p.publieLe | date:'d MMMM y à HH:mm')">
+            <time [attr.datetime]="p.publieLe" [attr.title]="p.publieLe | date:'d MMMM y à HH:mm'">{{ p.publieLe | dateRelative }}</time></a>
+        }
+        @if (audience()) { <span class="audience"><i class="pi pi-users" aria-hidden="true"></i> {{ audience() }}</span> }
+      </p>
+    </div>
+    <app-menu-publication class="menu" [publicationId]="p.id" [peutSignaler]="!estAuteur()" />
+  </header>
+
+  @if (p.article) {
+    <app-apercu-article [article]="p.article" [titre]="p.titre ?? ''" [resume]="p.contenu" [couverture]="p.urlImage" />
+  } @else {
+  <div class="corps">
+    @if (p.type === 'APPEL_PROJET' && p.dateLimite) {
+      <div class="appel-titre">
+        <p class="tuile" [class.close]="appelClos()" aria-hidden="true">
+          <span class="mois">{{ p.dateLimite | moisCourt }}</span>
+          <span class="jour">{{ p.dateLimite | date:'d' }}</span>
+        </p>
+        <div>
+          <p class="etiquette appel"><i class="pi pi-megaphone" aria-hidden="true"></i> Appel à projet</p>
+          @if (p.titre) { <h3>{{ p.titre }}</h3> }
+          <p class="echeance" [class.close]="appelClos()">
+            @if (appelClos()) { Clôturé depuis le {{ p.dateLimite | date:'d MMMM y' }} }
+            @else { Réponses jusqu’au {{ p.dateLimite | date:'d MMMM y' }} inclus }
+          </p>
+        </div>
+      </div>
+    } @else if (p.titre) {
+      <h3>{{ p.titre }}</h3>
+    }
+    <p class="contenu" [class.tronque]="tronque()">{{ p.contenu }}</p>
+    @if (tronque()) {
+      <a class="voir-plus" [routerLink]="lien()">Voir plus<span class="visuellement-cache"> de la publication de {{ auteur() }}</span></a>
+    }
+  </div>
+
+  @if (p.lien && !lienEnSource()) { <app-lien-publication [lien]="p.lien" [contenu]="p.contenu" /> }
+
+  @if (p.urlImage) {
+    <div class="media"><app-image-publication [url]="p.urlImage"
+      [description]="p.texteAlternatif || 'Image partagée par ' + auteur()" /></div>
+  }
+  }
+
+  @if (p.lien && lienEnSource()) { <app-lien-publication [lien]="p.lien" [source]="true" /> }
+
+  <div class="actions">
+    <app-bouton-jaime [publicationId]="p.id" [(nombre)]="nombreJaime" [(jaime)]="jaime" />
+    <button type="button" class="action" (click)="commenter()">
+      <i class="pi pi-comment" aria-hidden="true"></i> Commenter
+      @if (nombreCommentaires()) { <span class="compte">{{ nombreCommentaires() }}<span class="visuellement-cache"> commentaire{{ nombreCommentaires() > 1 ? 's' : '' }}</span></span> }
+    </button>
+  </div>
+
+  @if (complete()) {
+    <app-commentaires-publication class="discussion ouverte" [publicationId]="p.id"
+      [(ouverte)]="discussionOuverte" [(nombre)]="nombreCommentaires" />
+  } @else if (p.apercuCommentaire) {
+    <div class="apercu">
+      <app-message-commentaire [commentaire]="p.apercuCommentaire" [repondable]="false" [apercu]="true" />
+      @if (nombreCommentaires() > 1) {
+        <a class="tous" [routerLink]="lien()">Voir les {{ nombreCommentaires() }} commentaires</a>
+      }
+    </div>
+  }
+</article>

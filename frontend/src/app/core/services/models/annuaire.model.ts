@@ -1,6 +1,6 @@
 export type RoleAnnuaire = 'ETUDIANT' | 'ALUMNI' | 'PERSONNEL' | 'VISITEUR' | 'ORGANISME';
 export type TypeMembreAnnuaire = RoleAnnuaire | 'TOUS';
-export type TriAnnuaire = 'ALPHABETIQUE' | 'PROMOTION_DESC';
+export type TriAnnuaire = 'PROFILS_COMPLETS' | 'ALPHABETIQUE' | 'PROMOTION_DESC';
 
 export interface AnnuaireMembre {
   id: string;

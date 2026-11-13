@@ -2,6 +2,9 @@ package ept.edu.sn.alumni_backend.evenement.service;
 
 import ept.edu.sn.alumni_backend.evenement.dto.FiltresEvenements;
 import jakarta.persistence.criteria.Predicate;
+import java.text.Normalizer;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.ArrayList;
 import java.time.Instant;
@@ -18,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -43,8 +47,12 @@ import ept.edu.sn.alumni_backend.evenement.exception.CapaciteEvenementAtteinteEx
 import ept.edu.sn.alumni_backend.evenement.dto.EvenementPublicResponse;
 import ept.edu.sn.alumni_backend.evenement.repository.EvenementRepository;
 import ept.edu.sn.alumni_backend.evenement.repository.ParticipationEvenementRepository;
+import ept.edu.sn.alumni_backend.enums.StatutCompte;
+import ept.edu.sn.alumni_backend.notification.NouvelleNotification;
+import ept.edu.sn.alumni_backend.notification.TypeNotification;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
+import ept.edu.sn.alumni_backend.utilisateur.MembreVisibilite;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
@@ -61,6 +69,7 @@ public class EvenementService {
     private final EvenementMapper evenementMapper;
     private final EvenementProperties evenementProperties;
     private final StockageImageEvenement stockageImageEvenement;
+    private final ApplicationEventPublisher evenements;
 
     @Transactional(readOnly = true)
     public PageEvenementsResponse lister(
@@ -181,7 +190,16 @@ public class EvenementService {
             throw new CapaciteEvenementAtteinteException(
                 "Le nombre de places ne peut pas être inférieur au nombre de participants déjà inscrits.");
         }
+        Instant ancienDebut = evenement.getDateDebut();
+        Instant ancienneFin = evenement.getDateFin();
+        String ancienLieu = evenement.getLieu();
         appliquer(evenement, request);
+        boolean pratiqueChangee = !ancienDebut.equals(evenement.getDateDebut())
+            || !ancienneFin.equals(evenement.getDateFin()) || !ancienLieu.equals(evenement.getLieu());
+        if (pratiqueChangee && evenement.getStatut() == StatutEvenement.PUBLIE) {
+            prevenirParticipants(evenement, principal, "Événement modifié : " + evenement.getTitre(),
+                "Le " + FORMAT_DATE_NOTIFICATION.format(evenement.getDateDebut()) + ", " + evenement.getLieu() + ".");
+        }
         return reponsePourUtilisateur(evenementRepository.save(evenement), principal);
     }
 
@@ -214,6 +232,10 @@ public class EvenementService {
     @Transactional
     public EvenementResponse annuler(UUID evenementId, UtilisateurPrincipal principal) {
         Evenement evenement = trouverPourGestion(evenementId, principal);
+        if (evenement.getStatut() != StatutEvenement.ANNULE) {
+            prevenirParticipants(evenement, principal, "Événement annulé : " + evenement.getTitre(),
+                "L’événement prévu le " + FORMAT_DATE_NOTIFICATION.format(evenement.getDateDebut()) + " n’aura pas lieu.");
+        }
         evenement.setStatut(StatutEvenement.ANNULE);
         return reponsePourUtilisateur(evenementRepository.save(evenement), principal);
     }
@@ -260,22 +282,33 @@ public class EvenementService {
     @Transactional(readOnly = true)
     public PageParticipantsResponse listerParticipants(
             UUID evenementId,
+            String recherche,
             int page,
             int taille,
             UtilisateurPrincipal principal) {
         Evenement evenement = evenementRepository.findById(evenementId)
             .orElseThrow(EvenementIntrouvableException::new);
-        Utilisateur utilisateurCourant = principal.getUtilisateur();
-        boolean estAdministrateur = utilisateurCourant.getRole() == TypeRole.ADMIN;
-        boolean estOrganisateur = evenement.getOrganisateur().getId().equals(utilisateurCourant.getId());
-        if (!estAdministrateur && !estOrganisateur) {
+        boolean gestionnaire = peutGerer(evenement, principal);
+        // Un membre voit les inscrits d'un événement qu'il peut consulter, sauf si l'organisateur les a masqués.
+        boolean membreAutorise = evenement.getStatut() == StatutEvenement.PUBLIE
+            && estVisiblePar(evenement, principal.getUtilisateur().getRole())
+            && evenement.isParticipantsVisibles();
+        if (!gestionnaire && !membreAutorise) {
             throw new EvenementIntrouvableException();
         }
 
-        Page<ParticipantEvenementResponse> participants = participationRepository.listerParticipants(
-                evenementId,
-                ReponseParticipation.PARTICIPERA,
-                PageRequest.of(page, taille))
+        PageRequest pagination = PageRequest.of(page, taille);
+        String motifNom = recherche == null || recherche.isBlank() ? "%" : motif(sansAccents(recherche.strip()));
+        Page<ParticipantEvenementResponse> participants = (gestionnaire
+                ? participationRepository.listerParticipants(evenementId, ReponseParticipation.PARTICIPERA, motifNom, pagination)
+                : participationRepository.listerParticipantsVisibles(
+                    evenementId,
+                    ReponseParticipation.PARTICIPERA,
+                    motifNom,
+                    List.of(StatutCompte.ACTIF, StatutCompte.EN_ATTENTE),
+                    MembreVisibilite.ROLES_ANNUAIRE,
+                    TypeRole.ORGANISME,
+                    pagination))
             .map(participant -> new ParticipantEvenementResponse(
                 participant.getId(),
                 participant.getNom(),
@@ -283,6 +316,21 @@ public class EvenementService {
                 participant.getRole(),
                 participant.getUrlPhoto()));
         return PageParticipantsResponse.depuis(participants);
+    }
+
+    /** Heure de Dakar, en toutes lettres : « mercredi 18 novembre 2026 à 18:00 ». */
+    private static final DateTimeFormatter FORMAT_DATE_NOTIFICATION = DateTimeFormatter
+        .ofPattern("EEEE d MMMM yyyy 'à' HH:mm", Locale.FRENCH).withZone(ZoneId.of("Africa/Dakar"));
+
+    /** Cloche des inscrits (« je participe »), sauf l'auteur du changement ; écrite après le commit. */
+    private void prevenirParticipants(Evenement evenement, UtilisateurPrincipal principal, String titre, String message) {
+        UUID auteur = principal.getUtilisateur().getId();
+        for (UUID participant : participationRepository.idsParticipants(evenement.getId(), ReponseParticipation.PARTICIPERA)) {
+            if (!participant.equals(auteur)) {
+                evenements.publishEvent(new NouvelleNotification(
+                    participant, TypeNotification.EVENEMENT, titre, message, "/evenements/" + evenement.getId()));
+            }
+        }
     }
 
     private Evenement trouverPourGestion(UUID evenementId, UtilisateurPrincipal principal) {
@@ -335,6 +383,7 @@ public class EvenementService {
         evenement.setDateFin(request.dateFin() != null ? request.dateFin() : request.dateDebut());
         evenement.setAudience(request.audience());
         evenement.setNombrePlaces(request.nombrePlaces());
+        evenement.setParticipantsVisibles(!Boolean.FALSE.equals(request.participantsVisibles()));
     }
 
     /** Filtres de recherche ; un critère absent ne restreint rien. */
@@ -353,11 +402,22 @@ public class EvenementService {
             if (filtres.officiel() != null) {
                 conditions.add(cb.equal(racine.get("officielEpt"), filtres.officiel()));
             }
+            if (filtres.organisme() != null) {
+                // Compte de l'organisme lui-même, pas ses employés : leurs événements restent les leurs.
+                var organisateur = racine.get("organisateur");
+                conditions.add(cb.equal(organisateur.get("role"), TypeRole.ORGANISME));
+                conditions.add(cb.equal(organisateur.get("organisme").get("id"), filtres.organisme()));
+            }
             return cb.and(conditions.toArray(Predicate[]::new));
         };
     }
 
     /** Motif LIKE insensible à la casse ; « % », « _ » et « \ » saisis sont cherchés tels quels. */
+    /** « Cissé » devient « Cisse » : la base compare les noms sans accents (voir ParticipationEvenementRepository). */
+    private static String sansAccents(String texte) {
+        return Normalizer.normalize(texte, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+    }
+
     private static String motif(String texte) {
         return "%" + texte.toLowerCase(Locale.ROOT).replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
     }

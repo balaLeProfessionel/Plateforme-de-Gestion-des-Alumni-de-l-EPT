@@ -1,0 +1,46 @@
+.onglets {
+  display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.25rem;
+  button {
+    display: inline-flex; align-items: center; gap: .4rem; min-height: 2.5rem; padding: .4rem .9rem;
+    border: 1px solid var(--ept-border); border-radius: 999px; background: white;
+    color: var(--ept-primary-dark); font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer;
+    &:hover { border-color: var(--ept-primary); }
+    &[aria-pressed='true'] { border-color: var(--ept-primary); background: var(--ept-primary); color: white; .nombre { background: white; } }
+  }
+  .nombre { padding: 0 .4rem; border-radius: 999px; background: var(--ept-gold-light); color: var(--ept-gold-dark); font-size: .72rem; }
+}
+button:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+.message { color: var(--ept-primary); font-weight: 600; }
+.squelette + .squelette { margin-top: .9rem; }
+.liste { display: grid; grid-template-columns: minmax(0, 1fr); gap: .9rem; margin: 0; padding: 0; list-style: none; }
+.signalement { min-width: 0; padding: 1rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: var(--ept-surface); }
+.entete { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .9rem; }
+.motif { display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .65rem; border-radius: 999px;
+  background: var(--ept-error-light); color: var(--ept-error-dark); font-size: .8rem; font-weight: 700; }
+.quand { color: var(--ept-text-secondary); font-size: .85rem; }
+.detail { margin: .6rem 0 0; overflow-wrap: anywhere; font-style: italic; }
+.publication { margin: .8rem 0 0; padding: .75rem; border-left: 3px solid var(--ept-border); background: var(--ept-bg); }
+figcaption { color: var(--ept-text-secondary); font-size: .85rem; }
+.masquee { margin-left: .4rem; padding: .1rem .45rem; border-radius: 999px; background: var(--ept-border); color: var(--ept-primary-dark); font-weight: 700; }
+.corps { display: flex; gap: .9rem; align-items: flex-start; margin-top: .4rem; }
+.texte { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.texte p { margin: .25rem 0 0; white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.vignette { flex: 0 0 5rem; width: 5rem; aspect-ratio: 4 / 5; }
+.actions, .confirmation { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .9rem; }
+.confirmation { position: relative; z-index: 2; padding: .75rem; border: 1px solid var(--ept-error-light); border-radius: var(--ept-radius-sm); background: var(--ept-surface); }
+.confirmation p { flex: 1 1 100%; margin: 0; }
+.danger, .secondaire { display: inline-flex; align-items: center; gap: .4rem; min-height: 2.5rem; padding: .5rem .9rem;
+  border-radius: var(--ept-radius-sm); font: inherit; font-weight: 600; cursor: pointer;
+  &:disabled { opacity: .6; cursor: wait; } }
+.danger { border: 1px solid var(--ept-error-dark); background: var(--ept-error-dark); color: white; }
+.secondaire { border: 1px solid var(--ept-border); background: var(--ept-surface); color: var(--ept-primary); }
+.suite { margin-top: 1rem; }
+.erreur { margin: .5rem 0 0; color: var(--ept-error-dark); }
+.decision { margin: .8rem 0 0; color: var(--ept-text-secondary); font-size: .9rem; font-weight: 600; }
+.decision.masquage { color: var(--ept-error-dark); }
+@media (max-width: 560px) {
+  .onglets { flex-wrap: nowrap; button { flex: 1 1 0; justify-content: center; } }
+  .signalement { padding: .85rem; }
+  .vignette { flex-basis: 3.5rem; width: 3.5rem; }
+  .actions button, .confirmation button { flex: 1 1 100%; justify-content: center; }
+}

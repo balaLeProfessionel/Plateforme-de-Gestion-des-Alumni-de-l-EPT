@@ -17,7 +17,9 @@ public record EvenementRequest(
     /** Facultative : sans fin, l'événement a lieu à la date de début (événement ponctuel). */
     Instant dateFin,
     @NotNull AudienceEvenement audience,
-    @Positive Integer nombrePlaces
+    @Positive Integer nombrePlaces,
+    /** Facultatif : sans valeur, la liste des inscrits est visible des membres. */
+    Boolean participantsVisibles
 ) {
     @AssertTrue(message = "La date de fin doit être postérieure à la date de début")
     public boolean isChronologieValide() {

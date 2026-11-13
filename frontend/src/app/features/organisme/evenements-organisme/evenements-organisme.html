@@ -1,0 +1,45 @@
+@if (erreur()) {
+  <section class="section-evenements" aria-labelledby="titre-evenements">
+    <h2 id="titre-evenements">Événements organisés</h2>
+    <div class="etat" role="alert">
+      <p>Les événements de l’organisme n’ont pas pu être chargés.</p>
+      <button type="button" class="bouton-secondaire" (click)="charger()">Réessayer</button>
+    </div>
+  </section>
+} @else if (selection(); as resultat) {
+  @if (resultat.total > 0) {
+    <section class="section-evenements" aria-labelledby="titre-evenements">
+      <h2 id="titre-evenements">Événements organisés</h2>
+      <p class="resume">
+        @if (resultat.periode === 'AVENIR') {
+          {{ resultat.total }} événement{{ resultat.total > 1 ? 's' : '' }} à venir.
+        } @else {
+          Aucun événement à venir. Les plus récents :
+        }
+      </p>
+      <ul class="liste">
+        @for (evenement of resultat.evenements; track evenement.id) {
+          <li class="evenement carte-cliquable">
+            <app-visuel-evenement class="vignette" [urlImage]="evenement.urlImage" [dateDebut]="evenement.dateDebut"
+              [officiel]="evenement.officielEpt" [chargementDiffere]="true" />
+            <div class="texte">
+              <h3><a class="lien-etire" [routerLink]="['/evenements', evenement.id]">{{ evenement.titre }}</a></h3>
+              <p><i class="pi pi-calendar" aria-hidden="true"></i>
+                <time [attr.datetime]="evenement.dateDebut">{{ evenement.dateDebut | date: 'd MMMM y, HH:mm' : 'UTC' }}</time>
+              </p>
+              <p><i class="pi pi-map-marker" aria-hidden="true"></i>{{ evenement.lieu }}</p>
+            </div>
+          </li>
+        }
+      </ul>
+    </section>
+  } @else if (estMaFiche()) {
+    <section class="section-evenements" aria-labelledby="titre-evenements">
+      <h2 id="titre-evenements">Événements organisés</h2>
+      <p class="resume">Vos événements apparaîtront ici, sur la fiche que consultent les membres.</p>
+      <a class="bouton-secondaire creer" routerLink="/evenements/creer">
+        <i class="pi pi-plus" aria-hidden="true"></i>Créer un événement
+      </a>
+    </section>
+  }
+}

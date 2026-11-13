@@ -1,6 +1,6 @@
 :host { display: block; height: 100%; }
 
-.carte-lien { display: block; height: 100%; border-radius: 12px; color: inherit; text-decoration: none; }
+.carte-lien { display: block; height: 100%; border-radius: var(--ept-radius); color: inherit; text-decoration: none; }
 .carte-lien:focus-visible { outline: 3px solid var(--ept-sky); outline-offset: 3px; }
 
 /* Chaque rôle définit la couleur du bandeau et celle de son libellé. */
@@ -14,7 +14,7 @@
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--ept-border);
-  border-radius: 12px;
+  border-radius: var(--ept-radius);
   background: var(--ept-surface);
   transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
@@ -133,7 +133,7 @@ h2 {
   margin-top: auto;
   padding: 0.45rem;
   border: 1px solid var(--ept-primary);
-  border-radius: 8px;
+  border-radius: var(--ept-radius-sm);
   color: var(--ept-primary);
   font-size: 0.8rem;
   font-weight: 600;

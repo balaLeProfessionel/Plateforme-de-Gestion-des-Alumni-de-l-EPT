@@ -1,0 +1,66 @@
+<dialog #dialogue aria-labelledby="titre-dialogue-membres" (close)="fermee.emit()">
+  <header>
+    <div class="titres">
+      <h2 id="titre-dialogue-membres">Membres de la communauté</h2>
+      @if (nomOrganisme()) { <p>Passés par {{ nomOrganisme() }}</p> }
+    </div>
+    <button type="button" class="fermer" (click)="fermer()" aria-label="Fermer la liste des membres">
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </header>
+
+  <div class="outils">
+    <div class="recherche" role="search">
+      <label for="recherche-membres-organisme" class="cache">Rechercher un membre</label>
+      <i class="pi pi-search" aria-hidden="true"></i>
+      <input id="recherche-membres-organisme" type="search" placeholder="Rechercher un membre" autocomplete="off"
+        [formField]="formulaire.recherche" (keydown.enter)="appliquerRecherche($event)" />
+    </div>
+    <div class="filtres" role="group" aria-label="Filtrer par présence">
+      @for (filtre of filtres(); track filtre.libelle) {
+        <button type="button" [attr.aria-pressed]="presence() === filtre.valeur" (click)="choisirPresence(filtre.valeur)">
+          {{ filtre.libelle }} <span class="nombre">{{ filtre.nombre }}</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="contenu" [attr.aria-busy]="chargement()">
+    <p class="cache" role="status">{{ annonce() }}</p>
+    @if (erreur()) {
+      <div class="etat" role="alert">
+        <p>{{ erreur() }}</p>
+        <button type="button" class="reessayer" (click)="charger(0)">Réessayer</button>
+      </div>
+    } @else if (premierChargement()) {
+      <p class="etat">Chargement des membres…</p>
+    } @else if (membres().length === 0) {
+      <p class="etat">
+        @if (rechercheAppliquee()) { Aucun membre ne correspond à « {{ rechercheAppliquee() }} ». }
+        @else { Aucun membre dans ce groupe. }
+      </p>
+    } @else {
+      <ul class="liste" [class.attenuee]="chargement() && page() === 0">
+        @for (membre of membres(); track membre.id) {
+          <li>
+            <a [routerLink]="['/profil', membre.id]" (click)="fermer()">
+              <app-avatar-membre [urlPhoto]="membre.urlPhoto" [prenom]="membre.prenom" [nom]="membre.nom"
+                [roleMembre]="membre.role" [taille]="2.5" />
+              <span class="identite">
+                <strong>{{ membre.prenom }} {{ membre.nom }}</strong>
+                @if (membre.poste) { <small>{{ membre.poste }}</small> }
+                <small>{{ periode(membre) }}</small>
+              </span>
+              @if (membre.actuel && presence() === null) { <span class="en-poste">En poste</span> }
+            </a>
+          </li>
+        }
+      </ul>
+      @if (restants() > 0) {
+        <button type="button" class="plus" [disabled]="chargement()" (click)="charger(page() + 1)">
+          {{ chargement() ? 'Chargement…' : 'Afficher plus (' + restants() + ')' }}
+        </button>
+      }
+    }
+  </div>
+</dialog>

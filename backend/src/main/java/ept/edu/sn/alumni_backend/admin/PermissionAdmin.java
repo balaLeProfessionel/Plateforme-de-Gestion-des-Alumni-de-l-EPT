@@ -14,7 +14,11 @@ import ept.edu.sn.alumni_backend.enums.TypeRole;
 public enum PermissionAdmin {
     CONSULTER_TABLEAU_DE_BORD,
     GERER_COMPTES,
-    CONSULTER_JOURNAL;
+    CONSULTER_JOURNAL,
+    /** Publier une annonce officielle ou un appel à projet. */
+    PUBLIER_ANNONCES,
+    /** Traiter les signalements et masquer une publication ; voit aussi les publications de toutes les audiences. */
+    MODERER_PUBLICATIONS;
 
     public static Set<PermissionAdmin> pour(TypeRole role) {
         return role == TypeRole.ADMIN ? EnumSet.allOf(PermissionAdmin.class) : EnumSet.noneOf(PermissionAdmin.class);

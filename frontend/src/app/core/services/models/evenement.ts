@@ -19,8 +19,12 @@ export interface Evenement {
   organisateurId: string;
   organisateurNom: string;
   organisateurPrenom: string | null;
+  /** Fiche de l’organisme organisateur, absente si ce n’est pas un compte organisme. */
+  organisateurOrganismeId?: string | null;
   nombreParticipants: number;
   maReponse: ReponseParticipation | null;
+  /** Liste des inscrits montrée aux membres ; l’organisateur peut la masquer. */
+  participantsVisibles: boolean;
 }
 
 export interface EvenementRequest {
@@ -31,6 +35,8 @@ export interface EvenementRequest {
   dateFin: string | null;
   audience: AudienceEvenement;
   nombrePlaces: number | null;
+  /** Facultatif côté serveur : sans valeur, la liste est visible. */
+  participantsVisibles?: boolean;
 }
 
 /** Critères de recherche de la liste des événements. */
@@ -38,6 +44,8 @@ export interface FiltresEvenements {
   recherche: string;
   lieu: string;
   officiel: 'oui' | 'non' | '';
+  /** Événements organisés par cet organisme (identifiant de l'organisme, pas du compte). */
+  organisme?: string;
 }
 
 export const AUCUN_FILTRE: FiltresEvenements = { recherche: '', lieu: '', officiel: '' };

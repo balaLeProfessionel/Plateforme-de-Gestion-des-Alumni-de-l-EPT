@@ -1,0 +1,82 @@
+<app-page-admin titre="Signalements"
+  introduction="Les membres signalent ici les publications qui posent problème. Masquer une publication la retire du fil pour tout le monde et clôt les autres signalements qui la visent ; rejeter un signalement laisse la publication visible.">
+
+  <div class="onglets" role="group" aria-label="Afficher les signalements">
+    <button type="button" [attr.aria-pressed]="!traites()" (click)="afficher(false)">
+      En attente @if (compteur.nombre()) { <span class="nombre">{{ compteur.nombre() }}</span> }
+    </button>
+    <button type="button" [attr.aria-pressed]="traites()" (click)="afficher(true)">Traités</button>
+  </div>
+
+  @if (message()) { <p class="message" role="status">{{ message() }}</p> }
+  <section aria-live="polite" [attr.aria-busy]="chargement()" aria-label="Liste des signalements">
+    @if (chargement() && !signalements().length) {
+      <div class="squelette" aria-hidden="true"></div><div class="squelette" aria-hidden="true"></div>
+    } @else if (erreur()) {
+      <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+        <h2>Impossible de charger les signalements</h2>
+        <button type="button" class="secondaire" (click)="charger(0)">Réessayer</button></div>
+    } @else if (!signalements().length) {
+      <div class="etat"><i class="pi pi-check-circle" aria-hidden="true"></i>
+        <h2>{{ traites() ? 'Aucun signalement traité' : 'Aucun signalement à examiner' }}</h2>
+        <p>{{ traites() ? 'Les décisions prises apparaîtront ici.' : 'Les nouveaux signalements des membres arriveront ici.' }}</p></div>
+    } @else {
+      <ul class="liste">
+        @for (s of signalements(); track s.id) {
+          <li class="signalement">
+            <div class="entete">
+              <span class="motif"><i class="pi pi-flag" aria-hidden="true"></i> {{ libelleMotif(s.motif) }}</span>
+              <span class="quand">Signalé par {{ s.signaleParPrenom }} {{ s.signaleParNom }}
+                le <time [attr.datetime]="s.creeLe">{{ s.creeLe | date:'d MMM y à HH:mm' }}</time></span>
+            </div>
+            @if (s.detail) { <p class="detail">« {{ s.detail }} »</p> }
+            <figure class="publication">
+              <figcaption>
+                Publication de {{ s.publication.auteurPrenom }} {{ s.publication.auteurNom }},
+                le {{ s.publication.publieLe | date:'d MMM y' }}
+                @if (s.publication.statut === 'MASQUE') { <span class="masquee">Masquée</span> }
+              </figcaption>
+              <div class="corps">
+                <div class="texte">
+                  @if (s.publication.titre) { <strong>{{ s.publication.titre }}</strong> }
+                  <p>{{ s.publication.contenu }}</p>
+                </div>
+                @if (s.publication.urlImage) {
+                  <app-image-publication class="vignette" [url]="s.publication.urlImage"
+                    [description]="'Image de la publication signalée'" />
+                }
+              </div>
+            </figure>
+            @if (s.statut === 'EN_ATTENTE') {
+              @if (confirmation() === s.id) {
+                <div class="confirmation" role="group" [attr.aria-label]="'Confirmer le masquage'">
+                  <p>Masquer cette publication pour tous les membres ? Les autres signalements qui la visent seront clos.</p>
+                  <button #boutonConfirmer type="button" class="danger" [disabled]="enCours()" (click)="masquer(s)">
+                    {{ enCours() === s.id ? 'Masquage…' : 'Oui, masquer' }}</button>
+                  <button type="button" class="secondaire" [disabled]="enCours()" (click)="confirmation.set('')">Annuler</button>
+                </div>
+              } @else {
+                <div class="actions">
+                  <button type="button" class="danger" [disabled]="enCours()" (click)="demanderMasquage(s.id)">
+                    <i class="pi pi-eye-slash" aria-hidden="true"></i> Masquer la publication</button>
+                  <button type="button" class="secondaire" [disabled]="enCours()" (click)="rejeter(s)">
+                    {{ enCours() === s.id ? 'Rejet…' : 'Rejeter le signalement' }}</button>
+                </div>
+              }
+              @if (erreurAction()[s.id]; as erreurLigne) { <p class="erreur" role="alert">{{ erreurLigne }}</p> }
+            } @else {
+              <p class="decision" [class.masquage]="s.statut === 'PUBLICATION_MASQUEE'">
+                {{ s.statut === 'PUBLICATION_MASQUEE' ? 'Publication masquée' : 'Signalement rejeté' }}
+                @if (s.traiteParNom) { par {{ s.traiteParPrenom }} {{ s.traiteParNom }} }
+                @if (s.traiteLe) { le {{ s.traiteLe | date:'d MMM y à HH:mm' }} }
+              </p>
+            }
+          </li>
+        }
+      </ul>
+      @if (page() + 1 < totalPages()) {
+        <button type="button" class="secondaire suite" [disabled]="chargement()" (click)="charger(page() + 1)">Afficher la suite</button>
+      }
+    }
+  </section>
+</app-page-admin>

@@ -15,68 +15,53 @@
       <button type="button" (click)="actualiser()">Réessayer</button>
     </section>
   } @else if (organisme(); as fiche) {
-    <header class="entete-organisme">
-      <app-avatar-membre class="logo" [urlPhoto]="fiche.logoUrl" [nom]="fiche.nom" roleMembre="ORGANISME" [taille]="8" />
-      <div class="identite">
-        <p class="sur-titre">{{ typeOrganisme() }}</p>
-        <div class="ligne-nom">
-          <h1>{{ fiche.nom }}</h1>
-          @if (fiche.statutCompte === 'EN_ATTENTE') {
-            <span class="badge-attente">En attente</span>
-          }
-        </div>
-        @if (fiche.secteurActivite || fiche.adresse || fiche.pays) {
-          <ul class="resume">
-            @if (fiche.secteurActivite) {
-              <li><i class="pi pi-briefcase" aria-hidden="true"></i>{{ fiche.secteurActivite }}</li>
-            }
-            @if (fiche.adresse) {
-              <li><i class="pi pi-map-marker" aria-hidden="true"></i>{{ fiche.adresse }}</li>
-            }
-            @if (fiche.pays) {
-              <li><i class="pi pi-globe" aria-hidden="true"></i>{{ fiche.pays }}</li>
-            }
-          </ul>
-        }
-      </div>
-    </header>
+    <app-entete-organisme [fiche]="fiche" [typeLibelle]="typeOrganisme()" [siteWeb]="siteWebValide()"
+      [estMaFiche]="estMaFiche()" [reseau]="reseau()" />
 
     <div class="grille-detail">
       <div class="colonne-principale">
-        <section class="section-detail">
-          <h2>À propos</h2>
+        <section class="section-detail" aria-labelledby="titre-a-propos">
+          <h2 id="titre-a-propos">À propos</h2>
           @if (fiche.description) {
             <p class="description">{{ fiche.description }}</p>
           } @else {
-            <p class="non-renseigne">Cet organisme n’a pas encore ajouté de présentation.</p>
+            <p class="non-renseigne">
+              {{ estMaFiche() ? 'Présentez votre organisme aux membres : activité, métiers, ce que vous proposez aux étudiants.' : 'Cet organisme n’a pas encore ajouté de présentation.' }}
+            </p>
           }
         </section>
+
+        <app-membres-organisme [organismeId]="fiche.id" [nomOrganisme]="fiche.nom" (resumeCharge)="reseau.set($event)" />
+        <app-evenements-organisme [organismeId]="fiche.id" [estMaFiche]="estMaFiche()" />
       </div>
 
       <aside class="colonne-laterale" aria-label="Informations sur l’organisme">
-        <section class="section-detail">
-          <h2>Informations</h2>
+        <section class="section-detail en-bref" aria-labelledby="titre-en-bref">
+          <h2 id="titre-en-bref">En bref</h2>
           <dl>
-            <div><dt>Type</dt><dd>{{ typeOrganisme() }}</dd></div>
-            @if (fiche.secteurActivite) { <div><dt>Secteur</dt><dd>{{ fiche.secteurActivite }}</dd></div> }
-            @if (fiche.adresse) { <div><dt>Adresse</dt><dd>{{ fiche.adresse }}</dd></div> }
-            @if (fiche.pays) { <div><dt>Pays</dt><dd>{{ fiche.pays }}</dd></div> }
-            @if (fiche.statutJuridique) { <div><dt>Statut juridique</dt><dd>{{ fiche.statutJuridique }}</dd></div> }
-            @if (fiche.trancheEffectif) { <div><dt>Effectif</dt><dd>{{ fiche.trancheEffectif }}</dd></div> }
+            <div><dt><i class="pi pi-building" aria-hidden="true"></i>Type</dt><dd>{{ typeOrganisme() }}</dd></div>
+            @if (fiche.secteurActivite) {
+              <div><dt><i class="pi pi-briefcase" aria-hidden="true"></i>Secteur</dt><dd>{{ fiche.secteurActivite }}</dd></div>
+            }
+            @if (fiche.trancheEffectif) {
+              <div><dt><i class="pi pi-users" aria-hidden="true"></i>Effectif</dt><dd>{{ fiche.trancheEffectif }}</dd></div>
+            }
             @if (fiche.dateCreation) {
-              <div><dt>Date de création</dt><dd>{{ fiche.dateCreation | date:'dd/MM/yyyy':'UTC' }}</dd></div>
+              <div><dt><i class="pi pi-calendar" aria-hidden="true"></i>Création</dt><dd>{{ fiche.dateCreation | date:'MMMM y':'UTC' }}</dd></div>
+            }
+            @if (fiche.statutJuridique) {
+              <div><dt><i class="pi pi-file" aria-hidden="true"></i>Statut juridique</dt><dd>{{ fiche.statutJuridique }}</dd></div>
+            }
+            @if (fiche.adresse || fiche.pays) {
+              <div><dt><i class="pi pi-map-marker" aria-hidden="true"></i>Adresse</dt>
+                <dd>{{ fiche.adresse }}@if (fiche.adresse && fiche.pays) {<br />}{{ fiche.pays }}</dd></div>
+            }
+            @if (siteWebValide(); as siteWeb) {
+              <div><dt><i class="pi pi-globe" aria-hidden="true"></i>Site web</dt>
+                <dd><a class="site-web" [href]="siteWeb" target="_blank" rel="noopener noreferrer">{{ siteWebAffiche() }}<span class="sr-only"> (nouvel onglet)</span></a></dd></div>
             }
           </dl>
         </section>
-
-        @if (siteWebValide(); as siteWeb) {
-          <section class="section-detail">
-            <h2>Site web</h2>
-            <a class="site-web" [href]="siteWeb" target="_blank" rel="noopener noreferrer">
-              <i class="pi pi-external-link" aria-hidden="true"></i>Visiter le site de l’organisme
-            </a>
-          </section>
-        }
       </aside>
     </div>
   }

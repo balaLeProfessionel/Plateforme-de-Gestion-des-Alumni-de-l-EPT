@@ -5,9 +5,14 @@ import org.springframework.web.bind.annotation.RestController;
 import ept.edu.sn.alumni_backend.organisme.dto.CompleterOrganismeRequest;
 import ept.edu.sn.alumni_backend.organisme.dto.OrganismeRechercheResponse;
 import ept.edu.sn.alumni_backend.organisme.dto.OrganismePublicResponse;
+import ept.edu.sn.alumni_backend.organisme.dto.PageMembresOrganismeResponse;
+import ept.edu.sn.alumni_backend.organisme.dto.PresenceMembre;
 import ept.edu.sn.alumni_backend.organisme.service.OrganismeService;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -45,6 +50,17 @@ public class OrganismeController {
     @GetMapping("/recherche")
     public ResponseEntity<List<OrganismeRechercheResponse>> rechercher(@RequestParam String q) {
         return ResponseEntity.ok(this.organismeService.rechercherParNom(q));
+    }
+
+    /** « Ils travaillent ou ont travaillé ici » sur la fiche de l'organisme. */
+    @GetMapping("/{id}/membres")
+    public ResponseEntity<PageMembresOrganismeResponse> listerMembres(
+            @PathVariable UUID id,
+            @RequestParam(required = false) PresenceMembre presence,
+            @RequestParam(required = false) @Size(max = 100) String recherche,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "12") @Min(1) @Max(48) int taille) {
+        return ResponseEntity.ok(organismeService.listerMembres(id, presence, recherche, page, taille));
     }
 
     @GetMapping("/{id}")

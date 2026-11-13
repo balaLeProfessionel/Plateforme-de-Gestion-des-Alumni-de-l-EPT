@@ -1,0 +1,152 @@
+<div class="redaction" [class.integree]="integree()">
+  @if (!ouverte()) {
+    <button type="button" class="ouvrir-redaction" (click)="ouvrir()">{{ libelleOuvrir() }}</button>
+  } @else {
+    <form [attr.id]="idFormulaire()" (submit)="publier($event)" novalidate>
+      @if (integree()) {
+        <!-- Le titre et « Publier » sont dans la barre de création de la page (app-barre-creation). -->
+        <div class="auteur">
+          <ng-content />
+          <span class="pastille-audience">
+            <i class="pi pi-users" aria-hidden="true"></i>
+            <label class="cache" for="publication-audience">Visible par</label>
+            <select id="publication-audience" [formField]="formulaire.audience">
+              <option value="TOUS">Tous les membres</option>
+              <option value="ALUMNI">Les alumni</option>
+              <option value="ETUDIANTS">Les étudiants</option>
+            </select>
+            <i class="pi pi-chevron-down" aria-hidden="true"></i>
+          </span>
+        </div>
+      } @else {
+        <h2>{{ titreFormulaire() }}</h2>
+      }
+      @if (types().length > 1) {
+        <div class="choix-type" role="group" aria-label="Type de publication">
+          @for (type of types(); track type) {
+            <button type="button" [attr.aria-pressed]="modele().type === type" (click)="choisirType(type)">
+              {{ libellesTypes[type] }}
+            </button>
+          }
+        </div>
+      }
+      @if (modele().type === 'APPEL_PROJET') {
+        <label class="etiquette-champ" for="publication-date-limite">Date limite de réponse <span>(incluse)</span></label>
+        <input id="publication-date-limite" class="champ-date" type="date" [formField]="formulaire.dateLimite"
+          [attr.aria-invalid]="formulaire.dateLimite().touched() && formulaire.dateLimite().invalid()"
+          aria-describedby="aide-date-limite" />
+        <small id="aide-date-limite" class="aide">Après cette date, l’appel reste visible avec la mention « Clôturé ».</small>
+      }
+
+      <!-- Le message d’abord ; titre, lien et image s’ajoutent dans le même cadre. -->
+      <div class="zone">
+        @if (titreObligatoire()) {
+          <label class="cache" for="publication-titre">Titre (obligatoire)</label>
+          <input id="publication-titre" class="titre" type="text" [formField]="formulaire.titre" placeholder="Titre"
+            [attr.aria-invalid]="formulaire.titre().touched() && formulaire.titre().invalid()" />
+        }
+        <label class="cache" for="publication-contenu">{{ modele().type === 'PUBLICATION' ? 'Votre message' : 'Texte' }} (obligatoire)</label>
+        <textarea #champContenu id="publication-contenu" class="message" [formField]="formulaire.contenu"
+          [rows]="integree() ? 7 : 4" (paste)="collerDansMessage($event)"
+          placeholder="Partagez une nouvelle, une offre, une réussite… ou collez un lien LinkedIn"></textarea>
+        @if (!integree() && modele().contenu.length > 4500) {
+          <p class="compteur" [class.limite]="modele().contenu.length > 5000">{{ modele().contenu.length }} / 5 000</p>
+        }
+
+        @if (lienOuvert()) {
+          <div class="panneau-lien" id="panneau-lien">
+            <label class="cache" for="publication-lien">Lien de votre publication LinkedIn ou d’un article</label>
+            <div class="saisie-lien">
+              <input #champLien id="publication-lien" type="url" inputmode="url" autocomplete="off" [formField]="formulaire.lien"
+                placeholder="Collez le lien de votre publication" [attr.aria-invalid]="!!erreurLien()"
+                (input)="lienModifie()" (keydown.enter)="importerLien($event)" />
+              <button type="button" class="importer" [disabled]="importEnCours()" (click)="importerLien()">
+                {{ importEnCours() ? 'Lecture…' : 'Importer' }}</button>
+            </div>
+            @if (erreurLien()) { <p class="erreur-lien" role="alert">{{ erreurLien() }}</p> }
+            @if (apercuLien(); as apercu) {
+              <app-apercu-lien-importe [apercu]="apercu" [imageProposee]="!apercuImage()"
+                [recuperationImage]="chargementImageLien()" [occupe]="chargementImageLien() || chargementImage()"
+                (utiliserImage)="utiliserImageLien()" (retirer)="retirerLien()" />
+            }
+          </div>
+        }
+
+        @if (chargementImage()) { <p class="chargement-image" role="status">Préparation de l’image…</p> }
+        @if (!imageARecadrer() && apercuImage() && integree()) {
+          <div class="apercu-publication grand">
+            <div class="cadre-image">
+              <img [src]="apercuImage()" alt="Aperçu de l’image recadrée" />
+              <div class="actions-image-publication">
+                <button #boutonRepositionner type="button" [disabled]="envoiEnCours()" (click)="repositionnerImage()">
+                  <i class="pi pi-pencil" aria-hidden="true"></i> Recadrer</button>
+                <button type="button" class="retirer-image" [disabled]="envoiEnCours()" (click)="retirerImageChoisie()">
+                  <i class="pi pi-times" aria-hidden="true"></i><span class="cache">Retirer l’image</span></button>
+              </div>
+            </div>
+          </div>
+        } @else if (!imageARecadrer() && apercuImage()) {
+          <div class="apercu-publication">
+            <img [src]="apercuImage()" alt="Aperçu de l’image recadrée" />
+            <div class="actions-image-publication">
+              <div><strong>Image prête</strong><span>Format vertical 4:5</span></div>
+              <button #boutonRepositionner type="button" [disabled]="envoiEnCours()" (click)="repositionnerImage()">Repositionner</button>
+              <button type="button" [disabled]="envoiEnCours()" (click)="retirerImageChoisie()">Retirer l’image</button>
+            </div>
+          </div>
+        }
+
+        <div class="outils" role="group" aria-label="Ajouter à la publication">
+          @if (!apercuImage()) {
+            <input #champImage id="publication-image" class="fichier" type="file" accept="image/jpeg,image/png"
+              aria-describedby="aide-image-publication" (change)="choisirImage($event)" />
+            <label class="outil" for="publication-image"><i class="pi pi-image" aria-hidden="true"></i> Image</label>
+          }
+          <button type="button" class="outil" [attr.aria-expanded]="lienOuvert()" [attr.aria-controls]="lienOuvert() ? 'panneau-lien' : null"
+            (click)="basculerLien()"><i class="pi pi-linkedin" aria-hidden="true"></i> {{ integree() ? 'LinkedIn' : 'Depuis LinkedIn' }}</button>
+          <small id="aide-image-publication" class="cache">Image JPEG ou PNG de 5 Mo au plus, recadrée au format vertical 4:5.</small>
+          @if (integree()) {
+            <p class="compteur-outils" [class.limite]="modele().contenu.length > 5000">
+              {{ modele().contenu.length }} / 5 000<span class="cache"> caractères</span></p>
+          }
+        </div>
+      </div>
+
+      @if (imageARecadrer(); as image) {
+        <dialog #dialogueRecadrage class="dialogue-recadrage" aria-labelledby="titre-recadrage-publication"
+          (cancel)="annulerRecadrage()">
+          <div class="entete-recadrage">
+            <h2 id="titre-recadrage-publication">Recadrer l’image</h2>
+            <button type="button" aria-label="Fermer le recadrage" (click)="annulerRecadrage()">×</button>
+          </div>
+          <app-recadreur-image [image]="image" [format]="formatPublication"
+            libelle="Recadrer l’image de la publication au format vertical 4:5"
+            (recadree)="appliquerRecadrage($event)" (annulee)="annulerRecadrage()" />
+        </dialog>
+      }
+
+      @if (modele().lien.trim()) {
+        <p class="mention-lien">En publiant, vous confirmez que ce contenu est le vôtre ou partagé avec l’accord de son auteur.</p>
+      }
+      @if (erreurPublication()) { <p class="erreur-publication" role="alert">{{ erreurPublication() }}</p> }
+
+      @if (!integree()) {
+      <div class="pied">
+        <div class="audience">
+          <label for="publication-audience"><i class="pi pi-users" aria-hidden="true"></i> Visible par</label>
+          <select id="publication-audience" [formField]="formulaire.audience">
+            <option value="TOUS">Tous les membres</option>
+            <option value="ALUMNI">Les alumni</option>
+            <option value="ETUDIANTS">Les étudiants</option>
+          </select>
+        </div>
+        <div class="actions-redaction">
+          <button type="button" class="annuler" [disabled]="envoiEnCours()" (click)="annulerRedaction()">Annuler</button>
+          <button type="submit" class="publier" [disabled]="envoiEnCours() || desactivee()">{{ envoiEnCours() ? 'Publication…' : 'Publier' }}</button>
+        </div>
+      </div>
+      }
+    </form>
+  }
+</div>
+@if (messagePublication() && !integree()) { <p class="succes-publication" role="status">{{ messagePublication() }}</p> }

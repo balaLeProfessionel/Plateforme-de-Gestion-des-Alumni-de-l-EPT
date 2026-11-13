@@ -1,6 +1,4 @@
 <div class="mentorat-page">
-  <app-fil-ariane [etapes]="[{ libelle: 'Accueil', lien: '/accueil' }, { libelle: 'Mentorat' }]" />
-
   <header class="entete-mentorat">
     <div class="titre-mentorat">
       <h1>Mentorat</h1>
@@ -16,23 +14,7 @@
   <app-guide-mentorat [ouvert]="!participe()" />
 
   @if (participe()) {
-    <nav class="onglets" aria-label="Rubriques du mentorat">
-      @for (groupe of groupes(); track groupe.id) {
-        <div class="groupe" role="group" [attr.aria-labelledby]="groupe.id">
-          <span class="titre-groupe" [id]="groupe.id">{{ groupe.titre }}</span>
-          <div class="liens">
-            @for (onglet of groupe.onglets; track onglet.lien) {
-              <a [routerLink]="onglet.lien" routerLinkActive="actif" ariaCurrentWhenActive="page">
-                <i class="pi" [class]="'pi ' + onglet.icone" aria-hidden="true"></i>{{ onglet.libelle }}
-                @if (onglet.compteur && compteur.nombre() > 0) {
-                  <span class="compteur">{{ compteur.nombre() }}<span class="sr-only"> en attente</span></span>
-                }
-              </a>
-            }
-          </div>
-        </div>
-      }
-    </nav>
+    <app-onglets class="onglets" libelle="Rubriques du mentorat" [groupes]="groupes()" />
     <router-outlet />
   } @else {
     <section class="etat-mentorat">

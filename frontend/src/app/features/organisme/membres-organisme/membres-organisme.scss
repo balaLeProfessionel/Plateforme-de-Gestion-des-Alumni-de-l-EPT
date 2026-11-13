@@ -1,0 +1,53 @@
+:host { display: block; min-width: 0; }
+.section-membres { border-radius: var(--ept-radius); min-width: 0; padding: 1.5rem; border: 1px solid var(--ept-border); background: white; }
+h2 { margin: 0; font-size: 1.25rem; scroll-margin-top: 5rem; }
+h2:focus { outline: none; }
+
+.onglets { display: flex; gap: 0.4rem; margin-top: 0.9rem; }
+.onglets button { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 2.5rem; padding: 0.4rem 0.95rem; border: 1px solid var(--ept-border);
+  border-radius: 999px; background: white; color: var(--ept-primary); font: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+.onglets button:hover:not([aria-pressed='true']) { background: #f1f7fa; }
+.onglets button[aria-pressed='true'] { border-color: var(--ept-primary); background: var(--ept-primary); color: white; }
+.nombre { padding: 0 0.45rem; border-radius: 999px; background: #e7f4f8; color: var(--ept-primary); font-size: 0.78rem; }
+[aria-pressed='true'] .nombre { background: rgb(255 255 255 / 20%); color: white; }
+
+.vignettes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr)); gap: 0.75rem;
+  margin: 1rem 0 0; padding: 0; list-style: none; transition: opacity 0.15s; }
+.vignettes.attenuee { opacity: 0.55; }
+.vignette { border-radius: var(--ept-radius); display: flex; flex-direction: column; align-items: center; gap: 0.2rem; min-width: 0; height: 100%;
+  box-sizing: border-box; padding: 1.1rem 0.75rem 1rem; border: 1px solid var(--ept-border); color: inherit; text-align: center; text-decoration: none;
+  transition: border-color 0.15s, background-color 0.15s, transform 0.15s; }
+.vignette:hover { border-color: var(--ept-primary-light); background: #f7fbfc; transform: translateY(-2px); }
+.vignette:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+.vignette app-avatar-membre { margin-bottom: 0.5rem; }
+.nom { max-width: 100%; overflow: hidden; color: var(--ept-primary-dark); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.poste { display: -webkit-box; overflow: hidden; color: var(--ept-text-secondary); font-size: 0.84rem; line-height: 1.35;
+  -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
+.periode { margin-top: auto; padding-top: 0.35rem; color: var(--ept-primary); font-size: 0.78rem; font-weight: 600; }
+.squelette { border-radius: var(--ept-radius); height: 11rem; background: #edf1f3; animation: pulsation 1.4s ease-in-out infinite alternate; }
+
+.etat { display: grid; justify-items: start; gap: 0.6rem; margin-top: 1rem; }
+.etat p, .vide { margin: 0; color: var(--ept-text-secondary); }
+.vide { margin-top: 1rem; font-style: italic; }
+.erreur { margin: 1rem 0 0; color: var(--ept-error); }
+.bouton-secondaire { border-radius: var(--ept-radius-sm); display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0.6rem 1rem;
+  border: 1px solid var(--ept-primary); background: white; color: var(--ept-primary); font: inherit; font-weight: 700; cursor: pointer; }
+.bouton-secondaire:hover { background: #f1f7fa; }
+.bouton-secondaire:focus-visible, .onglets button:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+.tout-voir { margin-top: 1rem; }
+@keyframes pulsation { to { opacity: 0.55; } }
+
+/* Mobile : une bande de vignettes qui défile horizontalement. */
+@media (max-width: 560px) {
+  .section-membres { padding: 1.2rem; }
+  .onglets button { flex: 1; justify-content: center; }
+  .vignettes { display: flex; overflow-x: auto; margin-inline: -1.2rem; padding: 0.25rem 1.2rem 0.5rem; scroll-snap-type: x mandatory;
+    scroll-padding-inline: 1.2rem; scrollbar-width: thin; }
+  .vignettes li { flex: 0 0 9.5rem; scroll-snap-align: start; }
+  .tout-voir { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .squelette { animation: none; }
+  .vignette, .vignettes { transition: none; }
+  .vignette:hover { transform: none; }
+}

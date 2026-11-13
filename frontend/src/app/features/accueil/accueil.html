@@ -1,13 +1,52 @@
 <div class="accueil">
-  <div class="entete">
-    <div>
-      <h1>Bienvenue {{ authService.utilisateur()?.prenom }} !</h1>
-      <p class="infos">
-        Type de membre : {{ typeMembre() }}
-        @if (authService.utilisateur()?.statutCompte === 'EN_ATTENTE') {
-          <span class="badge-attente">Profil en cours de vérification</span>
+  <section class="fil" aria-labelledby="titre-fil" [attr.aria-busy]="chargement()">
+    <h1 id="titre-fil">Fil d’actualité</h1>
+    <app-composeur-fil />
+    @if (confirmation()) {
+      <p class="confirmation" role="status"><i class="pi pi-check-circle" aria-hidden="true"></i> {{ confirmation() }}
+        <button type="button" (click)="confirmation.set('')" aria-label="Masquer ce message"><i class="pi pi-times" aria-hidden="true"></i></button></p>
+    }
+    @if (nouveautes()) {
+      <div class="nouveautes" role="status">
+        <button type="button" (click)="afficherNouveautes()"><i class="pi pi-arrow-up" aria-hidden="true"></i>
+          {{ nouveautes() > 1 ? nouveautes() + ' nouvelles publications' : 'Nouvelle publication' }}</button>
+      </div>
+    }
+    @if (chargement()) { <p class="visuellement-cache" role="status">Chargement des nouveautés…</p><app-squelette-fil /> }
+    @else {
+      @if (erreur()) {
+        <div class="erreur" role="alert"><p>Impossible de charger le fil d’actualité.</p>
+          <button type="button" (click)="charger()">Réessayer</button></div>
+      } @else if (!cartes().length) { <p class="etat-vide">Il n’y a rien à afficher pour le moment.</p> }
+      <ul class="cartes">
+        @for (carte of cartes(); track cle(carte)) {
+          <li>
+            @if (raisons().get(cle(carte)); as raison) {
+              <p class="raison"><i class="pi pi-star" aria-hidden="true"></i>
+                <span class="visuellement-cache">Suggéré pour vous : </span>{{ raison }}</p>
+            }
+            @switch (carte.type) {
+              @case ('PUBLICATION') { <app-carte-publication [publication]="carte.publication" /> }
+              @case ('EVENEMENT') { <app-carte-evenement-fil [evenement]="carte.evenement" /> }
+              @case ('PROGRAMME') { <app-carte-programme-fil [programme]="carte.programme" /> }
+            }
+          </li>
         }
-      </p>
-    </div>
-  </div>
+      </ul>
+      @if (!derniere()) {
+        <!-- Repère placé sous les cartes : la suite se charge avant qu’on l’atteigne. -->
+        <div #repereSuite class="suite">
+          @if (erreurSuite()) {
+            <p role="alert">Impossible de charger la suite du fil.</p>
+            <button type="button" (click)="chargerSuite()">Réessayer</button>
+          } @else if (suiteEnCours()) {
+            <p class="chargement-suite" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement d’autres actualités…</p>
+          }
+        </div>
+      }
+    }
+  </section>
+  @if (grandEcran()) {
+    <aside class="colonne" appColonneCollante aria-label="Pour vous"><app-colonne-fil /></aside>
+  }
 </div>

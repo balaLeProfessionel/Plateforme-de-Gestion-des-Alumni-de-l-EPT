@@ -7,7 +7,7 @@
   min-width: 0;
   padding: 1.25rem;
   border: 1px solid var(--ept-border);
-  border-radius: 12px;
+  border-radius: var(--ept-radius);
   background: var(--ept-surface);
 }
 
@@ -66,7 +66,7 @@ button {
   padding: 0.45rem 1rem;
   text-align: center;
   border: 1px solid var(--ept-primary);
-  border-radius: 8px;
+  border-radius: var(--ept-radius-sm);
   font: inherit;
   font-size: 0.88rem;
   font-weight: 700;
@@ -78,7 +78,7 @@ button {
   &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
 }
 
-.message { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; margin: 0; padding: 0.6rem 0.8rem; border-radius: 8px; background: var(--ept-success-light); color: var(--ept-success-dark); }
+.message { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; margin: 0; padding: 0.6rem 0.8rem; border-radius: var(--ept-radius-sm); background: var(--ept-success-light); color: var(--ept-success-dark); }
 .aide, .vide { margin: 0; color: var(--ept-text-secondary); font-size: 0.9rem; }
 
 .confirmation {
@@ -86,7 +86,7 @@ button {
   gap: 0.6rem;
   padding: 0.8rem 1rem;
   border: 1px solid var(--ept-gold);
-  border-radius: 10px;
+  border-radius: var(--ept-radius-sm);
   background: var(--ept-gold-light);
 
   p { margin: 0; color: var(--ept-primary-dark); }
@@ -109,7 +109,7 @@ button {
   p { margin: 0; color: var(--ept-text-secondary); }
 }
 
-.squelette { min-height: 18rem; border-radius: 12px; background: #edf1f3; }
+.squelette { min-height: 18rem; border-radius: var(--ept-radius); background: #edf1f3; }
 .squelette.grand { min-height: 24rem; }
 
 @media (max-width: 560px) {

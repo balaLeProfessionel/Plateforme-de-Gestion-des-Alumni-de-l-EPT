@@ -47,7 +47,7 @@
   min-height: 2.6rem;
   padding: 0.5rem 1rem;
   border: 1px solid var(--ept-primary);
-  border-radius: 8px;
+  border-radius: var(--ept-radius-sm);
   background: white;
   color: var(--ept-primary);
   font: inherit;

@@ -34,6 +34,7 @@ import ept.edu.sn.alumni_backend.organisme.repository.OrganismeRepository;
 import ept.edu.sn.alumni_backend.security.JwtService;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
+import ept.edu.sn.alumni_backend.notification.NotificationRepository;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 
 @SpringBootTest
@@ -47,6 +48,11 @@ class AnnuaireIntegrationTests {
 
     @Autowired
     private UtilisateurRepository utilisateurRepository;
+
+
+    @Autowired
+
+    private NotificationRepository notificationRepository;
 
     @Autowired
     private OrganismeRepository organismeRepository;
@@ -67,6 +73,7 @@ class AnnuaireIntegrationTests {
     void preparerUtilisateurs() {
         participationEvenementRepository.deleteAll();
         evenementRepository.deleteAll();
+        notificationRepository.deleteAll();
         utilisateurRepository.deleteAll();
         utilisateurRepository.saveAll(List.of(
             utilisateur("Awa", "Diop", TypeRole.ETUDIANT, StatutCompte.ACTIF, true, "Thiès", GIT, 2025),
@@ -135,6 +142,28 @@ class AnnuaireIntegrationTests {
         assertEquals(3, premierePage.totalPages());
         assertEquals(2012, secondePage.contenu().getFirst().anneeSortie());
         assertNull(secondePage.contenu().get(1).anneeSortie());
+    }
+
+    @Test
+    void metLesProfilsLesPlusCompletsEnPremierEtPagineCorrectement() {
+        Utilisateur sow = utilisateurRepository.findAll().stream().filter(u -> "Sow".equals(u.getNom())).findFirst().orElseThrow();
+        sow.setUrlPhoto("stockage:photo-sow");
+        sow.setPosteActuel("Ingénieur logiciel");
+        utilisateurRepository.save(sow);
+
+        PageResponse<AnnuaireMembreResponse> premierePage = rechercher(
+            null, null, null, null, null, 0, 2, AnnuaireTri.PROFILS_COMPLETS
+        );
+        PageResponse<AnnuaireMembreResponse> dernierePage = rechercher(
+            null, null, null, null, null, 2, 2, AnnuaireTri.PROFILS_COMPLETS
+        );
+
+        // Sow : 4 informations ; Diop et Fall : 2 (par nom) ; Ndiaye : 1 ; le contact d'organisme : 0.
+        assertEquals(List.of("Sow", "Diop"), premierePage.contenu().stream().map(AnnuaireMembreResponse::nom).toList());
+        assertEquals(5, premierePage.totalElements());
+        assertEquals(3, premierePage.totalPages());
+        assertEquals(List.of("Entreprise Démonstration"),
+            dernierePage.contenu().stream().map(AnnuaireMembreResponse::nom).toList());
     }
 
     @Test

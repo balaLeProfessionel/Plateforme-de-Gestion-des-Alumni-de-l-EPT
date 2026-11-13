@@ -129,15 +129,17 @@ class EvenementParticipationIntegrationTests {
     }
 
     @Test
-    void seulsOrganisateurEtAdminPeuventVoirLesParticipantsPositifs() throws Exception {
+    void lesMembresVoientLesInscritsVisiblesDansLAnnuaire() throws Exception {
         Evenement evenement = creerEvenement(AudienceEvenement.ALUMNI, StatutEvenement.PUBLIE, null, false);
         creerParticipation(evenement, alumni, ReponseParticipation.PARTICIPERA);
         creerParticipation(evenement, autreAlumni, ReponseParticipation.NE_PARTICIPERA_PAS);
+        Utilisateur nonVerifie = creerUtilisateur(TypeRole.ALUMNI, "Cache");
+        nonVerifie.setEmailVerifie(false);
+        utilisateurRepository.saveAndFlush(nonVerifie);
+        creerParticipation(evenement, nonVerifie, ReponseParticipation.PARTICIPERA);
 
-        mockMvc.perform(requeteAuthentifie(get("/api/evenements/{id}/participants", evenement.getId()), alumni))
-            .andExpect(status().isNotFound());
-
-        mockMvc.perform(requeteAuthentifie(get("/api/evenements/{id}/participants", evenement.getId()), organisateur))
+        // Un membre voit les inscrits, sans ceux que l'annuaire masque ni de coordonnées.
+        mockMvc.perform(requeteAuthentifie(get("/api/evenements/{id}/participants", evenement.getId()), autreAlumni))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(1))
             .andExpect(jsonPath("$.contenu[0].nom").value("Awa"))
@@ -145,7 +147,67 @@ class EvenementParticipationIntegrationTests {
             .andExpect(jsonPath("$.contenu[0].email").doesNotExist())
             .andExpect(jsonPath("$.contenu[0].telephone").doesNotExist());
 
+        // L'organisateur et l'administration voient toute la liste.
+        mockMvc.perform(requeteAuthentifie(get("/api/evenements/{id}/participants", evenement.getId()), organisateur))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(2));
         mockMvc.perform(requeteAuthentifie(get("/api/evenements/{id}/participants", evenement.getId()), admin))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(2));
+
+        // Hors du public visé, l'événement et ses inscrits restent introuvables.
+        Utilisateur etudiant = creerUtilisateur(TypeRole.ETUDIANT, "Étudiant");
+        mockMvc.perform(requeteAuthentifie(get("/api/evenements/{id}/participants", evenement.getId()), etudiant))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void rechercheLesInscritsParPrenomOuNom() throws Exception {
+        Evenement evenement = creerEvenement(AudienceEvenement.TOUS, StatutEvenement.PUBLIE, null, false);
+        creerParticipation(evenement, alumni, ReponseParticipation.PARTICIPERA);
+        creerParticipation(evenement, autreAlumni, ReponseParticipation.PARTICIPERA);
+        Utilisateur accentue = creerUtilisateur(TypeRole.ALUMNI, "Cissé");
+        accentue.setPrenom("Aïssatou");
+        utilisateurRepository.saveAndFlush(accentue);
+        creerParticipation(evenement, accentue, ReponseParticipation.PARTICIPERA);
+
+        // Sans accents dans un sens comme dans l'autre : « cisse » trouve « Cissé », « AÏSSATOU » aussi.
+        for (String recherche : new String[] { "cisse", "Cissé", "AÏSSATOU cisse" }) {
+            mockMvc.perform(requeteAuthentifie(get("/api/evenements/{id}/participants", evenement.getId())
+                    .param("recherche", recherche), autreAlumni))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.contenu[0].nom").value("Cissé"));
+        }
+
+        // Prénom et nom réunis, sans tenir compte de la casse ; « % » est cherché tel quel.
+        for (UtilisateurDeTest cas : new UtilisateurDeTest[] {
+                new UtilisateurDeTest(autreAlumni, "membre awa", 1), new UtilisateurDeTest(organisateur, "MOUSSA", 1),
+                new UtilisateurDeTest(autreAlumni, "membre", 2), new UtilisateurDeTest(organisateur, "%", 0) }) {
+            mockMvc.perform(requeteAuthentifie(get("/api/evenements/{id}/participants", evenement.getId())
+                    .param("recherche", cas.recherche()), cas.lecteur()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(cas.attendus()));
+        }
+    }
+
+    private record UtilisateurDeTest(Utilisateur lecteur, String recherche, int attendus) {
+    }
+
+    @Test
+    void lOrganisateurPeutMasquerLesInscritsAuxMembres() throws Exception {
+        Evenement evenement = creerEvenement(AudienceEvenement.TOUS, StatutEvenement.PUBLIE, null, false);
+        evenement.setParticipantsVisibles(false);
+        evenementRepository.saveAndFlush(evenement);
+        creerParticipation(evenement, alumni, ReponseParticipation.PARTICIPERA);
+
+        mockMvc.perform(requeteAuthentifie(get("/api/evenements/{id}", evenement.getId()), autreAlumni))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.participantsVisibles").value(false))
+            .andExpect(jsonPath("$.nombreParticipants").value(1));
+        mockMvc.perform(requeteAuthentifie(get("/api/evenements/{id}/participants", evenement.getId()), autreAlumni))
+            .andExpect(status().isNotFound());
+        mockMvc.perform(requeteAuthentifie(get("/api/evenements/{id}/participants", evenement.getId()), organisateur))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalElements").value(1));
     }

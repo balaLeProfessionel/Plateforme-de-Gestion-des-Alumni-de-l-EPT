@@ -206,28 +206,28 @@ class EvenementGestionIntegrationTests {
     void valideLesChampsObligatoiresLesDatesEtLaCapacite() throws Exception {
         EvenementRequest champsVides = new EvenementRequest(
             " ", "Description", "Thiès", Instant.now().plusSeconds(3600),
-            Instant.now().plusSeconds(7200), AudienceEvenement.TOUS, null);
+            Instant.now().plusSeconds(7200), AudienceEvenement.TOUS, null, null);
         EvenementRequest datesInvalides = new EvenementRequest(
             "Titre", "Description", "Thiès", Instant.now().plusSeconds(7200),
-            Instant.now().plusSeconds(3600), AudienceEvenement.TOUS, null);
+            Instant.now().plusSeconds(3600), AudienceEvenement.TOUS, null, null);
         EvenementRequest capaciteInvalide = new EvenementRequest(
             "Titre", "Description", "Thiès", Instant.now().plusSeconds(3600),
-            Instant.now().plusSeconds(7200), AudienceEvenement.TOUS, 0);
+            Instant.now().plusSeconds(7200), AudienceEvenement.TOUS, 0, null);
         EvenementRequest descriptionVide = new EvenementRequest(
             "Titre", " ", "Thiès", Instant.now().plusSeconds(3600),
-            Instant.now().plusSeconds(7200), AudienceEvenement.TOUS, null);
+            Instant.now().plusSeconds(7200), AudienceEvenement.TOUS, null, null);
         EvenementRequest lieuVide = new EvenementRequest(
             "Titre", "Description", " ", Instant.now().plusSeconds(3600),
-            Instant.now().plusSeconds(7200), AudienceEvenement.TOUS, null);
+            Instant.now().plusSeconds(7200), AudienceEvenement.TOUS, null, null);
         EvenementRequest titreTropLong = new EvenementRequest(
             "T".repeat(121), "Description", "Thiès", Instant.now().plusSeconds(3600),
-            Instant.now().plusSeconds(7200), AudienceEvenement.TOUS, null);
+            Instant.now().plusSeconds(7200), AudienceEvenement.TOUS, null, null);
         EvenementRequest descriptionTropLongue = new EvenementRequest(
             "Titre", "D".repeat(5001), "Thiès", Instant.now().plusSeconds(3600),
-            Instant.now().plusSeconds(7200), AudienceEvenement.TOUS, null);
+            Instant.now().plusSeconds(7200), AudienceEvenement.TOUS, null, null);
         EvenementRequest lieuTropLong = new EvenementRequest(
             "Titre", "Description", "L".repeat(201), Instant.now().plusSeconds(3600),
-            Instant.now().plusSeconds(7200), AudienceEvenement.TOUS, null);
+            Instant.now().plusSeconds(7200), AudienceEvenement.TOUS, null, null);
 
         mockMvc.perform(requeteAuthentifie(post("/api/evenements"), alumni)
                 .contentType(MediaType.APPLICATION_JSON).content("{}"))
@@ -253,7 +253,7 @@ class EvenementGestionIntegrationTests {
     void unEvenementSansDateDeFinALieuALaDateDeDebutEtPeutRecevoirUneFinPlusTard() throws Exception {
         Instant debut = Instant.now().plusSeconds(86_400).truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
         EvenementRequest ponctuel = new EvenementRequest(
-            "Conférence ponctuelle", "Description", "Thiès", debut, null, AudienceEvenement.TOUS, null);
+            "Conférence ponctuelle", "Description", "Thiès", debut, null, AudienceEvenement.TOUS, null, null);
 
         String reponse = mockMvc.perform(requeteAuthentifie(post("/api/evenements"), alumni)
                 .contentType(MediaType.APPLICATION_JSON).content(corps(ponctuel)))
@@ -270,12 +270,12 @@ class EvenementGestionIntegrationTests {
         mockMvc.perform(requeteAuthentifie(put("/api/evenements/{id}", id), alumni)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(corps(new EvenementRequest("Conférence ponctuelle", "Description", "Thiès", debut, fin,
-                    AudienceEvenement.TOUS, null))))
+                    AudienceEvenement.TOUS, null, null))))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.dateFin").value(fin.toString()));
 
         EvenementRequest finEgaleAuDebut = new EvenementRequest(
-            "Conférence", "Description", "Thiès", debut, debut, AudienceEvenement.TOUS, null);
+            "Conférence", "Description", "Thiès", debut, debut, AudienceEvenement.TOUS, null, null);
         mockMvc.perform(requeteAuthentifie(post("/api/evenements"), alumni)
                 .contentType(MediaType.APPLICATION_JSON).content(corps(finEgaleAuDebut)))
             .andExpect(status().isBadRequest());
@@ -477,7 +477,7 @@ class EvenementGestionIntegrationTests {
     private EvenementRequest requeteValide(String titre, AudienceEvenement audience) {
         Instant debut = Instant.now().plusSeconds(3600);
         return new EvenementRequest(titre, "Description de la rencontre", "Thiès", debut,
-            debut.plusSeconds(3600), audience, null);
+            debut.plusSeconds(3600), audience, null, null);
     }
 
     private String corps(EvenementRequest request) {

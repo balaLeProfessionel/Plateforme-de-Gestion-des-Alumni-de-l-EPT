@@ -62,10 +62,11 @@ public class SuiviMentoratService {
         appliquer(seance, request);
         seance.setProposeePar(utilisateurRepository.getReferenceById(principal.getUtilisateur().getId()));
         seanceRepository.save(seance);
-        evenements.publishEvent(new NotificationMentorat(
-            acces.autreParticipant(mentorat, principal).getEmail(),
+        evenements.publishEvent(NotificationMentorat.pour(
+            acces.autreParticipant(mentorat, principal),
             "Nouvelle séance de mentorat",
-            "Une séance est prévue le " + request.debut() + " (" + request.dureeMinutes() + " min)."));
+            "Une séance est prévue le " + NotificationMentorat.date(request.debut()) + " (" + request.dureeMinutes() + " min).",
+            NotificationMentorat.lienSuivi(mentorat.getId())));
         return mapper.versResponse(seance);
     }
 
@@ -80,10 +81,11 @@ public class SuiviMentoratService {
             throw new ConflitMentoratException("Seule une séance planifiée peut être modifiée.");
         }
         appliquer(seance, request);
-        evenements.publishEvent(new NotificationMentorat(
-            acces.autreParticipant(mentorat, principal).getEmail(),
+        evenements.publishEvent(NotificationMentorat.pour(
+            acces.autreParticipant(mentorat, principal),
             "Séance de mentorat modifiée",
-            "La séance a été déplacée au " + request.debut() + " (" + request.dureeMinutes() + " min)."));
+            "La séance a été déplacée au " + NotificationMentorat.date(request.debut()) + " (" + request.dureeMinutes() + " min).",
+            NotificationMentorat.lienSuivi(mentorat.getId())));
         return mapper.versResponse(seance);
     }
 

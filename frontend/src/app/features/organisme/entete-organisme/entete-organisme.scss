@@ -1,0 +1,53 @@
+:host { display: block; }
+.entete { overflow: hidden; border: 1px solid var(--ept-border); border-radius: var(--ept-radius-lg); background: white; }
+
+/* Bandeau bleu nuit : quadrillage léger façon plan d'ingénieur, halo ciel à droite. */
+.bandeau { height: 8.5rem;
+  background:
+    radial-gradient(circle at 88% 20%, rgb(115 219 242 / 35%), transparent 45%),
+    linear-gradient(rgb(255 255 255 / 6%) 1px, transparent 1px) 0 0 / 28px 28px,
+    linear-gradient(90deg, rgb(255 255 255 / 6%) 1px, transparent 1px) 0 0 / 28px 28px,
+    linear-gradient(120deg, var(--ept-primary-dark), var(--ept-primary)); }
+
+.corps { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: end; gap: 0 1.5rem; padding: 0 1.75rem 1.5rem; }
+.logo { align-self: start; margin-top: -3.75rem; border: 4px solid white; border-radius: 50%; background: white; box-shadow: 0 6px 18px rgb(1 46 69 / 18%); }
+.identite { min-width: 0; padding-top: 1rem; }
+.ligne-nom { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; }
+h1 { margin: 0; overflow-wrap: anywhere; color: var(--ept-primary-dark); font-size: clamp(1.9rem, 3.6vw, 2.6rem); line-height: 1.05; letter-spacing: -0.03em; }
+.pastille { padding: 0.25rem 0.7rem; border-radius: 999px; background: var(--ept-primary-light); color: var(--ept-primary); font-size: 0.8rem; font-weight: 700; }
+.pastille.attente { background: var(--ept-gold-light); color: var(--ept-gold-dark); }
+.resume { display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem; margin: 0.7rem 0 0; padding: 0; color: var(--ept-text-secondary); list-style: none; }
+.resume li { display: inline-flex; align-items: center; gap: 0.45rem; min-width: 0; overflow-wrap: anywhere; }
+
+.actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.6rem; }
+.bouton { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0.55rem 1rem; border: 1px solid var(--ept-primary);
+  border-radius: var(--ept-radius-sm); background: white; color: var(--ept-primary); font-weight: 700; text-decoration: none; white-space: nowrap; }
+.bouton:hover { background: #f1f7fa; }
+.bouton.principal { background: var(--ept-primary); color: white; }
+.bouton.principal:hover { background: var(--ept-primary-dark); }
+.bouton:focus-visible, .voir:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 3px; }
+
+/* Place dans le réseau EPT : visages empilés et une phrase. */
+.reseau { display: flex; align-items: center; gap: 1rem; padding: 0.9rem 1.75rem; border-top: 1px solid var(--ept-border); background: #f4f9fb; }
+.visages { display: inline-flex; flex: 0 0 auto; align-items: center; }
+.visages > * { margin-left: -0.6rem; border: 2px solid #f4f9fb; border-radius: 50%; }
+.visages > :first-child { margin-left: 0; }
+.autres { display: inline-grid; width: 2.4rem; height: 2.4rem; box-sizing: border-box; place-items: center; background: var(--ept-primary);
+  color: white; font-size: 0.75rem; font-weight: 700; }
+.reseau p { flex: 1; min-width: 0; margin: 0; color: var(--ept-primary-dark); font-weight: 600; }
+.voir { flex: 0 0 auto; color: var(--ept-primary); font-weight: 700; text-underline-offset: 3px; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@media (max-width: 760px) {
+  .corps { grid-template-columns: minmax(0, 1fr); padding: 0 1.25rem 1.25rem; }
+  .logo { --taille: 6rem !important; margin-top: -3rem; }
+  .actions { justify-content: flex-start; margin-top: 1rem; }
+}
+@media (max-width: 520px) {
+  .bandeau { height: 6.5rem; }
+  .actions .bouton { flex: 1; justify-content: center; }
+  .reseau { flex-wrap: wrap; padding: 0.9rem 1.25rem; }
+  .reseau p { flex-basis: 100%; order: 2; }
+  .voir { margin-left: auto; }
+}

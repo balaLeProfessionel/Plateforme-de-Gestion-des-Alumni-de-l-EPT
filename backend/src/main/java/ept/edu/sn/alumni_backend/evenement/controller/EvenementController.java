@@ -50,9 +50,10 @@ public class EvenementController {
             @RequestParam(defaultValue = "12") @Min(1) @Max(48) int taille,
             @RequestParam(required = false) @Size(max = 120) String recherche,
             @RequestParam(required = false) @Size(max = 120) String lieu,
-            @RequestParam(required = false) Boolean officiel) {
+            @RequestParam(required = false) Boolean officiel,
+            @RequestParam(required = false) UUID organisme) {
         return ResponseEntity.ok(evenementService.lister(
-            principal, periode, new FiltresEvenements(recherche, lieu, officiel), page, taille));
+            principal, periode, new FiltresEvenements(recherche, lieu, officiel, organisme), page, taille));
     }
 
     @GetMapping("/mes-evenements")
@@ -86,10 +87,11 @@ public class EvenementController {
     @GetMapping("/{id}/participants")
     public ResponseEntity<PageParticipantsResponse> listerParticipants(
             @PathVariable UUID id,
+            @RequestParam(required = false) @Size(max = 100) String recherche,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "12") @Min(1) @Max(48) int taille,
             @AuthenticationPrincipal UtilisateurPrincipal principal) {
-        return ResponseEntity.ok(evenementService.listerParticipants(id, page, taille, principal));
+        return ResponseEntity.ok(evenementService.listerParticipants(id, recherche, page, taille, principal));
     }
 
     @PostMapping

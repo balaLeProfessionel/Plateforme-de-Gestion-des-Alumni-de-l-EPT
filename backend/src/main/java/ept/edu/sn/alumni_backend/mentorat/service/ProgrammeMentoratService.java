@@ -167,7 +167,8 @@ public class ProgrammeMentoratService {
             demande.setStatut(StatutMentorat.ANNULEE);
             demande.setClotureLe(maintenant);
             demande.setMotifAnnulation(motif);
-            evenements.publishEvent(new NotificationMentorat(demande.getMentore().getEmail(), "Demande de mentorat annulée", motif));
+            evenements.publishEvent(NotificationMentorat.pour(demande.getMentore(), "Demande de mentorat annulée", motif,
+                "/mentorat/mentorats"));
         }
         return obtenir(programmeId, principal);
     }
