@@ -89,6 +89,13 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./suivi-stages/suivi-stages').then((m) => m.SuiviStagesPage),
   },
   {
+    path: 'stages/suivi/organisme',
+    title: 'Stagiaires de l’organisme | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_STAGES' },
+    loadComponent: () => import('./suivi-stages/suivi-organisme/suivi-organisme').then((m) => m.SuiviOrganismePage),
+  },
+  {
     path: 'stages/sollicitations',
     title: 'Solliciter les organismes | EPT Alumni',
     canActivate: [permissionGuard],

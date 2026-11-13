@@ -422,3 +422,18 @@ export interface IndicateursOrganisme {
   /** cle : nom de la filière. */
   accueillisParFiliere: { cle: string; nombre: number }[];
 }
+
+/** Organisme dans le suivi des stages de l’administration ; organismeId null : organisme proposé dans une déclaration. */
+export interface OrganismeSuivi {
+  organismeId: string | null;
+  nom: string;
+  logoUrl: string | null;
+  stagiaires: number;
+  sansEncadrant: number;
+  conventionsIncompletes: number;
+  evaluationsARemettre: number;
+  rapportsAttendus: number;
+}
+
+/** Filtres du suivi, partagés par la liste des organismes et celle des stagiaires d’un organisme. */
+export interface FiltresSuivi { texte: string; filiere: string; sansEncadrant: boolean }

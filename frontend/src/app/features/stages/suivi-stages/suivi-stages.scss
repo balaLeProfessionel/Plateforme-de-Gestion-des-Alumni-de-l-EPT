@@ -6,6 +6,7 @@ section { display: grid; gap: 0.75rem; margin-bottom: 1.5rem;
 .vide { margin: 0; color: var(--ept-text-secondary); a { color: var(--ept-primary); font-weight: 600; } }
 .squelette { min-height: 10rem; border-radius: 12px; background: #edf1f3; }
 
-.lien-evaluation { justify-self: start; color: var(--ept-primary); font-weight: 700; font-size: 0.88rem; }
+.lien-evaluation { display: inline-flex; align-items: center; gap: 0.4rem; justify-self: start; min-height: 2.4rem; padding: 0.45rem 1rem; border-radius: 8px; background: var(--ept-primary); color: white; font-size: 0.85rem; font-weight: 700; text-decoration: none;
+  &:hover { background: var(--ept-primary-dark); } }
 .lien-evaluation:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
 .attente { margin: 0; color: var(--ept-text-secondary); font-size: 0.85rem; }

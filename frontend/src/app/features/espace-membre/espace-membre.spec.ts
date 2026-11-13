@@ -152,6 +152,8 @@ describe('Navigation de l’espace membre', () => {
 
     expect(racine.querySelector('.menu-mobile a')?.getAttribute('href'))
       .toBe('/organisme/parametres');
+    expect(racine.querySelector('a[href="/mentorat"]')).toBeNull();
+    expect(racine.querySelector('a[href="/stages"]')).not.toBeNull();
     expect(racine.querySelector('.menu-mobile a[aria-label="Paramètres du profil"]')).toBeNull();
     (racine.querySelector('.bouton-compte-lateral') as HTMLButtonElement).click();
     fixture.detectChanges();

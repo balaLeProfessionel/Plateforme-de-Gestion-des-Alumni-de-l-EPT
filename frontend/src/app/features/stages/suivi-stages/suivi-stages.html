@@ -21,13 +21,12 @@
         @for (stage of s.accueillis; track stage.id) {
           <app-fiche-suivi [stage]="stage">
             @if (stage.convention === 'COMPLETE' || stage.evaluation !== 'AUCUNE') {
-              <a class="lien-evaluation" [routerLink]="['/stages/suivi', stage.id, 'evaluation']">
+              <a class="lien-evaluation" [routerLink]="['/stages/suivi', stage.id, 'evaluation']"><i class="pi pi-file-edit" aria-hidden="true"></i>
                 {{ stage.evaluation === 'SOUMISE' ? 'Voir l’évaluation' : 'Évaluer le stagiaire' }}</a>
             } @else { <p class="attente">L’évaluation s’ouvrira quand la convention sera complète.</p> }
           </app-fiche-suivi>
         }
-        @empty { <p class="vide">Aucun stage confirmé chez vous pour l’instant. Les stagiaires apparaissent ici quand l’école publie la liste d’une offre
-          ou valide un stage déclaré. <a routerLink="/stages/mes-offres">Voir mes offres</a></p> }
+        @empty { <p class="vide">Aucun stagiaire pour l’instant. <a routerLink="/stages/mes-offres">Voir mes offres</a></p> }
       </section>
     } @else {
       <section aria-labelledby="titre-encadres">
@@ -35,7 +34,7 @@
         @for (stage of s.encadres; track stage.id) {
           <app-fiche-suivi [stage]="stage">
             @if (stage.evaluation === 'SOUMISE') {
-              <a class="lien-evaluation" [routerLink]="['/stages/suivi', stage.id, 'evaluation']">Voir l’évaluation</a> }
+              <a class="lien-evaluation" [routerLink]="['/stages/suivi', stage.id, 'evaluation']"><i class="pi pi-eye" aria-hidden="true"></i>Voir l’évaluation</a> }
           </app-fiche-suivi>
         }
         @empty { <p class="vide">L’école ne vous a désigné encadrant d’aucun stage pour l’instant.</p> }
@@ -46,7 +45,7 @@
           @for (stage of s.departement; track stage.id) {
           <app-fiche-suivi [stage]="stage">
             @if (stage.evaluation === 'SOUMISE') {
-              <a class="lien-evaluation" [routerLink]="['/stages/suivi', stage.id, 'evaluation']">Voir l’évaluation</a> }
+              <a class="lien-evaluation" [routerLink]="['/stages/suivi', stage.id, 'evaluation']"><i class="pi pi-eye" aria-hidden="true"></i>Voir l’évaluation</a> }
           </app-fiche-suivi>
         }
         </section>

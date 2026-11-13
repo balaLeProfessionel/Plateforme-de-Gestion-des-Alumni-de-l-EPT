@@ -1,5 +1,5 @@
 <app-page-admin titre="Passage de classe" [parents]="[{ libelle: 'Comptes', lien: '/admin/comptes' }]"
-  introduction="Chaque année, faites passer une classe dans la suivante : choisissez la classe et la filière, décochez les redoublants, puis confirmez. Chaque passage est inscrit au journal.">
+  introduction="Chaque année, faites passer une classe dans la suivante : choisissez la classe et la filière, décochez les redoublants, puis confirmez.">
   @if (resultat(); as r) {
     <p #messageResultat class="message" role="status" tabindex="-1">
       {{ r.resultat.passes }} {{ r.resultat.passes > 1 ? 'étudiants sont passés' : 'étudiant est passé' }} en {{ libelles[r.arrivee] }}.

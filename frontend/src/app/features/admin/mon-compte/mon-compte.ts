@@ -68,7 +68,7 @@ export class MonCompte {
       next: () => {
         this.envoiIdentite.set(false);
         this.authService.resynchroniser();
-        this.messageIdentite.set({ texte: 'Nom enregistré. Il apparaît désormais comme auteur de vos décisions au journal.' });
+        this.messageIdentite.set({ texte: 'Nom enregistré.' });
       },
       error: (erreur: HttpErrorResponse) => {
         this.envoiIdentite.set(false);

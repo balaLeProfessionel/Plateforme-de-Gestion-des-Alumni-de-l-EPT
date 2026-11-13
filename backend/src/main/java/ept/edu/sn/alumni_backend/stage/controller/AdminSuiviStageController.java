@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
 import ept.edu.sn.alumni_backend.stage.dto.EncadrantRequest;
+import ept.edu.sn.alumni_backend.stage.dto.OrganismeSuiviResponse;
 import ept.edu.sn.alumni_backend.stage.dto.PersonnelSuggestionResponse;
 import ept.edu.sn.alumni_backend.stage.dto.SuiviStageResponse;
 import ept.edu.sn.alumni_backend.stage.dto.TuteurRequest;
@@ -38,9 +39,20 @@ public class AdminSuiviStageController {
             @RequestParam(required = false) UUID filiere,
             @RequestParam(defaultValue = "false") boolean sansEncadrant,
             @RequestParam(required = false) @Size(max = 100) String q,
+            @RequestParam(required = false) UUID organisme,
+            @RequestParam(required = false) @Size(max = 150) String organismePropose,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(48) int taille) {
-        return ResponseEntity.ok(service.lister(filiere, sansEncadrant, q, page, taille));
+        return ResponseEntity.ok(service.lister(new SuiviStagesService.Filtres(filiere, sansEncadrant, q, organisme, organismePropose), page, taille));
+    }
+
+    /** Organismes qui accueillent les stages filtrés, avec leurs compteurs : premier niveau du suivi. */
+    @GetMapping("/suivi/organismes")
+    public ResponseEntity<List<OrganismeSuiviResponse>> organismes(
+            @RequestParam(required = false) UUID filiere,
+            @RequestParam(defaultValue = "false") boolean sansEncadrant,
+            @RequestParam(required = false) @Size(max = 100) String q) {
+        return ResponseEntity.ok(service.organismes(new SuiviStagesService.Filtres(filiere, sansEncadrant, q, null, null)));
     }
 
     @PatchMapping("/suivi/{id}/encadrant")

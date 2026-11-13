@@ -55,16 +55,18 @@ export class EspaceMembre implements OnDestroy {
   /** Un compte d’administration navigue par domaine ; un membre garde les rubriques de la communauté. */
   private readonly administration = computed(() =>
     TOUTES_LES_PERMISSIONS.some((permission) => this.authService.aPermission(permission)));
+  /** Le mentorat ne concerne que les étudiants et les alumni. */
+  protected readonly voitMentorat = computed(() => participeAuMentorat(this.authService.utilisateur()?.role));
   protected readonly groupesNavigation = computed<readonly GroupeNavigation[]>(() => {
     if (!this.administration()) {
       return [{ titre: 'Navigation', liens: [
         { libelle: 'Accueil', icone: 'pi-home', route: '/accueil', exact: true },
         { libelle: 'Annuaire', icone: 'pi-users', route: '/annuaire', exact: false },
         { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
-        {
+        ...(this.voitMentorat() ? [{
           libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', exact: false,
           compteur: this.compteurMentorat.nombre(), libelleCompteur: 'demandes en attente',
-        },
+        }] : []),
         { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages', exact: false },
       ] }];
     }
@@ -120,7 +122,7 @@ export class EspaceMembre implements OnDestroy {
       .flatMap((groupe) => groupe.liens)
       .filter((lien) => !['/annuaire', '/evenements'].includes(lien.route))
     : [
-      { libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() },
+      ...(this.voitMentorat() ? [{ libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() }] : []),
       { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages' },
     ]);
 

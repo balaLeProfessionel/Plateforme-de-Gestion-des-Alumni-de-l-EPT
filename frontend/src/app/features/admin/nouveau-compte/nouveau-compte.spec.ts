@@ -85,7 +85,7 @@ describe('NouveauCompte', () => {
   it('n’affiche l’année de sortie que pour un alumni et prévient pour un compte admin', () => {
     expect(racine().querySelector('#compte-sortie')).toBeNull();
     saisir('compte-role', 'ADMIN', 'change');
-    expect(racine().querySelector('#aide-role')?.textContent).toContain('Vous choisirez ses responsabilités sur sa fiche');
+    expect(racine().querySelector('#aide-role')?.textContent).toContain('tableau de bord de l’administration');
   });
 
   it('propose les filières de l’école et une saisie libre pour une autre', async () => {

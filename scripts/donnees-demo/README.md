@@ -34,3 +34,14 @@ scripts/donnees-demo/charger.sh adresse.du.compte@modele
   `python generer-sql-etendu.py donnees-demo-etendues.sql visuels-etendus.json`.
 - Pour modifier les données, éditer `generer-sql.py` puis régénérer :
   `python generer-sql.py donnees-demo.sql`.
+- Module stages (`donnees-demo-stages.sql`, chargé en dernier, avec des PDF de démonstration pour les CV, les
+  conventions signées et les rapports) :
+  - `admin@demo.ept-alumni.invalid` devient super administrateur (responsabilité Stages comprise) ;
+  - tous les étudiants de démonstration reçoivent une classe ; Aminata Thiam est doctorante (stage de recherche) ;
+  - Ousmane Badji est chef du département Génie Électromécanique ; Abdoulaye Sow et Pierre Mendy encadrent des stages ;
+  - offres : PFE et maîtrise de Kër Data, alternance de Teranga Télécom, stage ouvrier de Cap-Vert Construction
+    (candidatures closes, liste définitive en préparation), maîtrise de Baobab Énergie (liste publiée), PFE de Sahel
+    AgriTech à vérifier ;
+  - stages à chaque étape : convention, évaluation et rapport complets (Coumba Diagne, Yacine Diouf l'an dernier),
+    évaluation en brouillon et rapport attendu (Alassane Diallo), PFE en cours avec convention à compléter (Elhadji
+    Kane), déclaration en attente (Khoudia Seck) ; une sollicitation dans l'historique.

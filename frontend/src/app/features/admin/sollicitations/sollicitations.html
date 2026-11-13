@@ -1,5 +1,5 @@
 <app-page-admin titre="Solliciter les organismes" [parents]="parents"
-  introduction="Demandez aux organismes partenaires des sujets de PFE (octobre) ou des offres de stage (mars). Le message part par e-mail à chaque organisme coché ; chaque envoi est gardé dans l’historique.">
+  introduction="Demandez aux organismes partenaires des sujets de PFE (octobre) ou des offres de stage (mars). Le message part par e-mail à chaque organisme coché.">
   @if (erreurChargement(); as texte) {
     <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ texte }}</p></div>
   } @else {

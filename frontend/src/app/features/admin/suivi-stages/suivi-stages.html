@@ -1,5 +1,5 @@
 <app-page-admin titre="Suivi des stages" [parents]="parents"
-  introduction="Stages confirmés, par la liste d’une offre ou la validation d’une déclaration. Désignez l’encadrant de chacun à l’EPT et tenez à jour son maître de stage.">
+  introduction="Stages confirmés, regroupés par organisme d’accueil. Ouvrez un organisme pour voir ses stagiaires, désigner leurs encadrants et suivre convention, évaluation et rapport.">
   <section class="filtres" aria-label="Filtrer les stages">
     <div class="champ">
       <label for="suivi-texte">Étudiant, sujet ou organisme</label>
@@ -15,38 +15,39 @@
     <label class="case"><input type="checkbox" [checked]="criteres().sansEncadrant" (change)="basculerSansEncadrant($event)" />Sans encadrant seulement</label>
   </section>
 
-  <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
-
   @if (erreurChargement(); as erreur) {
     <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ erreur }}</p></div>
-  } @else if (page(); as p) {
-    @if (p.contenu.length === 0) {
+  } @else if (organismes(); as liste) {
+    @if (liste.length === 0) {
       <div class="etat">
         <i class="pi pi-inbox" aria-hidden="true"></i>
         <h2>Aucun stage</h2>
         <p>Les stages apparaissent ici une fois confirmés, par la liste définitive d’une offre ou la validation d’une déclaration.</p>
       </div>
     } @else {
-      <p class="aide" aria-live="polite">{{ p.totalElements }} stage{{ p.totalElements > 1 ? 's' : '' }}</p>
-      <section class="date-limite" aria-labelledby="titre-date-limite">
-        <h2 id="titre-date-limite">Date limite des rapports</h2>
-        <p class="aide">S’applique aux {{ p.contenu.length }} stage{{ p.contenu.length > 1 ? 's' : '' }} affiché{{ p.contenu.length > 1 ? 's' : '' }} sur cette page :
-          filtrez d’abord par filière ou par recherche. Chaque étudiant concerné est prévenu par e-mail.</p>
-        <div class="ligne">
-          <div class="champ"><label for="date-limite">Date limite (incluse)</label>
-            <input id="date-limite" type="date" [value]="dateLimite()" (input)="saisirDateLimite($event)" /></div>
-          <button type="button" class="bouton principal" [disabled]="enCours()" (click)="appliquerDateLimite(p.contenu)">Appliquer aux stages affichés</button>
-        </div>
-        @if (erreurDateLimite(); as texte) { <p class="message erreur" role="alert">{{ texte }}</p> }
-      </section>
-      <ul class="liste">
-        @for (stage of p.contenu; track stage.id) {
-          <li><app-fiche-suivi [stage]="stage" [ecole]="true"><app-actions-suivi [stage]="stage" (modifie)="apresModification($event)" /></app-fiche-suivi></li>
+      <p class="aide" aria-live="polite">{{ liste.length }} organisme{{ liste.length > 1 ? 's' : '' }} · {{ totalStagiaires(liste) }} stagiaire{{ totalStagiaires(liste) > 1 ? 's' : '' }}</p>
+      <ul class="organismes">
+        @for (o of liste; track o.organismeId ?? o.nom) {
+          <li class="organisme carte-cliquable">
+            <app-avatar-membre [urlPhoto]="o.logoUrl" [prenom]="o.nom" nom="" roleMembre="ORGANISME" [taille]="2.75" />
+            <div class="texte">
+              <h2><a class="lien-etire" routerLink="/admin/stages/suivi/organisme" [queryParams]="lien(o)">{{ o.nom }}</a></h2>
+              <p class="compte">{{ o.stagiaires }} stagiaire{{ o.stagiaires > 1 ? 's' : '' }}@if (!o.organismeId) { · organisme proposé par l’étudiant }</p>
+              @if (o.sansEncadrant || o.conventionsIncompletes || o.evaluationsARemettre || o.rapportsAttendus) {
+                <ul class="pastilles" aria-label="À faire">
+                  @if (o.sansEncadrant) { <li>{{ o.sansEncadrant }} sans encadrant</li> }
+                  @if (o.conventionsIncompletes) { <li>{{ o.conventionsIncompletes }} convention{{ o.conventionsIncompletes > 1 ? 's' : '' }} incomplète{{ o.conventionsIncompletes > 1 ? 's' : '' }}</li> }
+                  @if (o.evaluationsARemettre) { <li>{{ o.evaluationsARemettre }} évaluation{{ o.evaluationsARemettre > 1 ? 's' : '' }} à remettre</li> }
+                  @if (o.rapportsAttendus) { <li>{{ o.rapportsAttendus }} rapport{{ o.rapportsAttendus > 1 ? 's' : '' }} attendu{{ o.rapportsAttendus > 1 ? 's' : '' }}</li> }
+                </ul>
+              } @else { <p class="a-jour">Tout est à jour</p> }
+            </div>
+            <i class="pi pi-chevron-right" aria-hidden="true"></i>
+          </li>
         }
       </ul>
-      <app-pagination-admin [page]="p.page" [totalPages]="p.totalPages" libelle="Pagination des stages" (changer)="changerPage($event)" />
     }
   } @else {
-    <div class="squelette" aria-busy="true" aria-label="Chargement des stages"></div>
+    <div class="squelette" aria-busy="true" aria-label="Chargement des organismes"></div>
   }
 </app-page-admin>

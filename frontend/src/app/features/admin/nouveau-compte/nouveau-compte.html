@@ -1,5 +1,5 @@
 <app-page-admin titre="Créer un compte" [parents]="parents"
-  introduction="Le compte est actif tout de suite. Son titulaire reçoit un mot de passe provisoire par e-mail et en choisit un à la première connexion.">
+  introduction="Le titulaire reçoit un mot de passe provisoire par e-mail.">
   <a actionsPage class="bouton" routerLink="/admin/comptes/import"><i class="pi pi-upload" aria-hidden="true"></i>Importer une promotion</a>
 
   @if (cree(); as compte) {
@@ -59,7 +59,7 @@
           </select>
           <p id="aide-role" class="aide" [class.alerte]="modele().role === 'ADMIN'" aria-live="polite">
             @if (modele().role === 'ADMIN') {
-              Ce compte accédera au tableau de bord de l’administration. Vous choisirez ses responsabilités sur sa fiche, après la création.
+              Ce compte accédera au tableau de bord de l’administration.
             } @else { Un organisme s’inscrit lui-même depuis la page d’inscription. }
           </p>
         </div>

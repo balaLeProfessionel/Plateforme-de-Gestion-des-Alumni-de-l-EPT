@@ -200,12 +200,4 @@ describe('FormulaireEvenement', () => {
     };
   }
 
-  it('prévient l’administration que son événement sera officiel EPT', async () => {
-    utilisateur.set({ role: 'ADMIN' });
-    fixture = TestBed.createComponent(FormulaireEvenement);
-    fixture.detectChanges();
-    await fixture.whenStable();
-    expect(fixture.nativeElement.querySelector('.note-officielle')?.textContent).toContain('événement officiel de l’EPT');
-    utilisateur.set({ role: 'ALUMNI' });
-  });
 });

@@ -185,3 +185,9 @@ app-consultation-profil .indicateur-detail {
     scroll-padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
   }
 }
+
+// Edge ajoute son propre bouton « afficher le mot de passe » : on garde seulement le nôtre.
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}

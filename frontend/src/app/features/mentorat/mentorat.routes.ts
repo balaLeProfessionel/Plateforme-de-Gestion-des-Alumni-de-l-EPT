@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { Routes } from '@angular/router';
+import { Router, Routes } from '@angular/router';
 import { AuthService } from '../../core/services/auth/auth-service';
 import { permissionGuard, roleGuard } from '../../core/guards/auth.guard';
 import {
@@ -56,6 +56,8 @@ export const MENTORAT_ROUTES: Routes = [
   {
     path: '',
     title: 'Mentorat | EPT Alumni',
+    // Le mentorat ne concerne que les étudiants et les alumni : les autres sont renvoyés vers l'accueil.
+    canActivate: [() => participeAuMentorat(inject(AuthService).utilisateur()?.role) || inject(Router).parseUrl('/accueil')],
     loadComponent: () => import('./mentorat').then((m) => m.MentoratPage),
     children: [
       {

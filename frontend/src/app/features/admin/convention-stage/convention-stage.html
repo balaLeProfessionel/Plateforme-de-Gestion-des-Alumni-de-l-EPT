@@ -1,5 +1,5 @@
 <app-page-admin [titre]="titre()" [parents]="parents"
-  introduction="Convention tripartite signée sur papier par l’étudiant, l’organisme et l’école. Elle est complète quand les trois signatures et le scan signé sont enregistrés. La génération du document attend le modèle officiel de l’école.">
+  introduction="Convention tripartite signée par l’étudiant, l’organisme et l’école.">
   @if (erreurChargement(); as message) {
     <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ message }}</p></div>
   } @else if (convention(); as c) {

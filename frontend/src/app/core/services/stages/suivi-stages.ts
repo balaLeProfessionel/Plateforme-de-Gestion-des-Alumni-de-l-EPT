@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { Page } from '../models/mentorat.model';
 import {
-  ClausesConvention, Convention, Evaluation, Rapport, SaisieEvaluation, MesSuivis, PartieConvention, PersonnelSuggestion, SuiviStage, Tuteur,
+  ClausesConvention, Convention, Evaluation, FiltresSuivi, OrganismeSuivi, Rapport, SaisieEvaluation, MesSuivis, PartieConvention, PersonnelSuggestion, SuiviStage, Tuteur,
 } from '../models/stage.model';
 
 const API_ADMIN = '/api/admin/stages';
@@ -12,12 +12,17 @@ const API_ADMIN = '/api/admin/stages';
 export class SuiviStagesService {
   private readonly http = inject(HttpClient);
 
-  lister(criteres: { texte: string; filiere: string; sansEncadrant: boolean }, page: number, taille = 20) {
-    let params = new HttpParams().set('page', page).set('taille', taille);
-    if (criteres.texte.trim()) params = params.set('q', criteres.texte.trim());
-    if (criteres.filiere) params = params.set('filiere', criteres.filiere);
-    if (criteres.sansEncadrant) params = params.set('sansEncadrant', true);
+  /** Stages d’un organisme (son identifiant, ou le nom proposé dans une déclaration). */
+  lister(criteres: FiltresSuivi, organisme: { id: string | null; nom: string | null }, page: number, taille = 20) {
+    let params = parametresFiltres(criteres).set('page', page).set('taille', taille);
+    if (organisme.id) params = params.set('organisme', organisme.id);
+    else if (organisme.nom) params = params.set('organismePropose', organisme.nom);
     return this.http.get<Page<SuiviStage>>(`${API_ADMIN}/suivi`, { params });
+  }
+
+  /** Organismes qui accueillent les stages filtrés, avec leurs compteurs. */
+  organismes(criteres: FiltresSuivi) {
+    return this.http.get<OrganismeSuivi[]>(`${API_ADMIN}/suivi/organismes`, { params: parametresFiltres(criteres) });
   }
 
   /** null retire l’encadrant. */
@@ -102,6 +107,14 @@ export class SuiviStagesService {
   deciderStage(stageId: string, valide: boolean | null) {
     return this.http.patch<Evaluation>(`${urlEvaluation(stageId, true)}/decision`, { valide });
   }
+}
+
+function parametresFiltres(criteres: FiltresSuivi): HttpParams {
+  let params = new HttpParams();
+  if (criteres.texte.trim()) params = params.set('q', criteres.texte.trim());
+  if (criteres.filiere) params = params.set('filiere', criteres.filiere);
+  if (criteres.sansEncadrant) params = params.set('sansEncadrant', true);
+  return params;
 }
 
 function urlEvaluation(stageId: string, ecole: boolean): string {

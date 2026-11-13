@@ -39,7 +39,7 @@ describe('MentoratPage', () => {
     onglets: [...groupe.querySelectorAll('a')].map((lien) => lien.textContent?.trim()),
   }));
 
-  it.each(['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'])('donne les deux casquettes à tout membre (%s)', (role) => {
+  it.each(['ETUDIANT', 'ALUMNI'])('donne les deux casquettes aux étudiants et aux alumni (%s)', (role) => {
     nombre.set(3);
     const racine = afficher(role);
     expect(groupes(racine)).toEqual([
@@ -76,8 +76,8 @@ describe('MentoratPage', () => {
   it.each([
     ['ETUDIANT', 'trouver'],
     ['ALUMNI', 'mentores'],
-    ['PERSONNEL', 'trouver'],
-    ['VISITEUR', 'trouver'],
+    ['PERSONNEL', 'presentation'],
+    ['VISITEUR', 'presentation'],
     ['ORGANISME', 'presentation'],
   ])('ouvre l’onglet adapté au rôle %s', (role, onglet) => {
     utilisateur.set({ role });

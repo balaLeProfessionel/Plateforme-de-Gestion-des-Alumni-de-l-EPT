@@ -1,7 +1,10 @@
 package ept.edu.sn.alumni_backend.stage.service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Locale;
@@ -20,6 +23,7 @@ import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.stage.StatutStage;
+import ept.edu.sn.alumni_backend.stage.dto.OrganismeSuiviResponse;
 import ept.edu.sn.alumni_backend.stage.dto.PersonnelSuggestionResponse;
 import ept.edu.sn.alumni_backend.stage.dto.SuiviStageResponse;
 import ept.edu.sn.alumni_backend.stage.dto.TuteurRequest;
@@ -54,16 +58,58 @@ public class SuiviStagesService {
     private final EvaluationStageRepository evaluationRepository;
     private final RapportStageRepository rapportRepository;
 
+    /** Filtres de la page de suivi : filière de l'étudiant, sans encadrant, texte, et organisme (l'un des deux au plus). */
+    public record Filtres(UUID filiereId, boolean sansEncadrant, String texte, UUID organismeId, String organismePropose) {
+    }
+
     @Transactional(readOnly = true)
-    public PageResponse<SuiviStageResponse> lister(UUID filiereId, boolean sansEncadrant, String texte, int page, int taille) {
+    public PageResponse<SuiviStageResponse> lister(Filtres filtres, int page, int taille) {
+        var stages = stageRepository.findAll(criteres(filtres), PageRequest.of(page, taille, Sort.by(Sort.Order.desc("dateDebut"))));
+        Etats etats = etats(stages.getContent());
+        return PageResponse.depuis(stages.map(s -> etats.reponse(s, true)));
+    }
+
+    /**
+     * Organismes qui accueillent les stages correspondant aux filtres, avec ce qui reste à faire chez chacun ; triés
+     * par nombre de stagiaires. Un organisme seulement proposé dans une déclaration est regroupé sous son nom.
+     */
+    @Transactional(readOnly = true)
+    public List<OrganismeSuiviResponse> organismes(Filtres filtres) {
+        List<Stage> stages = stageRepository.findAll(criteres(filtres));
+        Etats etats = etats(stages);
+        Map<String, List<SuiviStageResponse>> parOrganisme = new LinkedHashMap<>();
+        stages.forEach(s -> parOrganisme.computeIfAbsent(s.getOrganisme() != null ? "id:" + s.getOrganisme().getId() : "nom:" + s.nomOrganisme(),
+            k -> new ArrayList<>()).add(etats.reponse(s, true)));
+        Map<UUID, String> logos = new HashMap<>();
+        stages.stream().filter(s -> s.getOrganisme() != null).forEach(s -> logos.put(s.getOrganisme().getId(), s.getOrganisme().getLogoUrl()));
+        return parOrganisme.values().stream().map(liste -> {
+            SuiviStageResponse premier = liste.get(0);
+            return new OrganismeSuiviResponse(premier.organismeId(), premier.organisme(),
+                premier.organismeId() == null ? null : logos.get(premier.organismeId()), liste.size(),
+                liste.stream().filter(s -> s.encadrant() == null).count(),
+                liste.stream().filter(s -> !ConventionsStageService.COMPLETE.equals(s.convention())).count(),
+                liste.stream().filter(s -> ConventionsStageService.COMPLETE.equals(s.convention())
+                    && !EvaluationsStageService.SOUMISE.equals(s.evaluation())).count(),
+                liste.stream().filter(s -> "ATTENDU".equals(s.rapport().etat()) || "EN_RETARD".equals(s.rapport().etat())).count());
+        }).sorted(Comparator.comparingLong(OrganismeSuiviResponse::stagiaires).reversed()
+            .thenComparing(o -> o.nom() == null ? "" : o.nom().toLowerCase(Locale.ROOT))).toList();
+    }
+
+    private static Specification<Stage> criteres(Filtres f) {
         Specification<Stage> criteres = (racine, requete, cb) -> cb.equal(racine.get("statut"), StatutStage.CONFIRME);
-        if (filiereId != null) {
-            criteres = criteres.and((racine, requete, cb) -> cb.equal(racine.join("etudiant").join("filiere", JoinType.LEFT).get("id"), filiereId));
+        if (f.filiereId() != null) {
+            criteres = criteres.and((racine, requete, cb) -> cb.equal(racine.join("etudiant").join("filiere", JoinType.LEFT).get("id"), f.filiereId()));
         }
-        if (sansEncadrant) {
+        if (f.sansEncadrant()) {
             criteres = criteres.and((racine, requete, cb) -> cb.isNull(racine.get("encadrantInterne")));
         }
-        String recherche = texte == null ? "" : texte.strip().toLowerCase(Locale.ROOT);
+        if (f.organismeId() != null) {
+            criteres = criteres.and((racine, requete, cb) -> cb.equal(racine.get("organisme").get("id"), f.organismeId()));
+        } else if (f.organismePropose() != null && !f.organismePropose().isBlank()) {
+            criteres = criteres.and((racine, requete, cb) -> cb.and(cb.isNull(racine.get("organisme")),
+                cb.equal(racine.get("organismePropose"), f.organismePropose().strip())));
+        }
+        String recherche = f.texte() == null ? "" : f.texte().strip().toLowerCase(Locale.ROOT);
         if (!recherche.isEmpty()) {
             String motif = "%" + recherche.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
             criteres = criteres.and((racine, requete, cb) -> {
@@ -71,12 +117,11 @@ public class SuiviStagesService {
                 return cb.or(
                     cb.like(cb.lower(cb.concat(cb.concat(etudiant.get("prenom"), " "), etudiant.get("nom"))), motif, '\\'),
                     cb.like(cb.lower(racine.get("sujet")), motif, '\\'),
-                    cb.like(cb.lower(racine.join("organisme", JoinType.LEFT).get("nom")), motif, '\\'));
+                    cb.like(cb.lower(racine.join("organisme", JoinType.LEFT).get("nom")), motif, '\\'),
+                    cb.like(cb.lower(racine.get("organismePropose")), motif, '\\'));
             });
         }
-        var stages = stageRepository.findAll(criteres, PageRequest.of(page, taille, Sort.by(Sort.Order.desc("dateDebut"))));
-        Etats etats = etats(stages.getContent());
-        return PageResponse.depuis(stages.map(s -> etats.reponse(s, true)));
+        return criteres;
     }
 
     @Transactional

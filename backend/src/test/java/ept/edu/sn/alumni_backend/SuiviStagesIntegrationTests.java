@@ -160,6 +160,21 @@ class SuiviStagesIntegrationTests {
         assertThat(autreFiliere.getId()).isNotNull();
     }
 
+    @Test
+    void s04_leSuiviSeRegroupeParOrganisme() throws Exception {
+        mockMvc.perform(authentifie(get("/api/admin/stages/suivi/organismes").param("q", lot), adminStages))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(2)))
+            .andExpect(jsonPath("$[?(@.nom == 'Accueil %s')].stagiaires".formatted(lot)).value(1))
+            .andExpect(jsonPath("$[?(@.nom == 'Accueil %s')].sansEncadrant".formatted(lot)).value(1))
+            .andExpect(jsonPath("$[?(@.nom == 'Accueil %s')].conventionsIncompletes".formatted(lot)).value(1))
+            .andExpect(jsonPath("$[?(@.nom == 'Ailleurs %s')].organismeId".formatted(lot)).value(org.hamcrest.Matchers.contains((Object) null)));
+        mockMvc.perform(authentifie(get("/api/admin/stages/suivi").param("organisme", organisme.getId().toString()), adminStages))
+            .andExpect(jsonPath("$.contenu", hasSize(1))).andExpect(jsonPath("$.contenu[0].id").value(stage.getId().toString()));
+        mockMvc.perform(authentifie(get("/api/admin/stages/suivi").param("organismePropose", "Ailleurs " + lot), adminStages))
+            .andExpect(jsonPath("$.contenu", hasSize(1))).andExpect(jsonPath("$.contenu[0].id").value(autreFiliere.getId().toString()));
+    }
+
     private Stage stageConfirme(Filiere filiereEtudiant, Organisme accueil) {
         Utilisateur etudiant = compte(TypeRole.ETUDIANT);
         etudiant.setFiliere(filiereEtudiant);

@@ -4,9 +4,9 @@
     <h1>{{ administration ? 'Saisir une offre de stage' : 'Publier une offre de stage' }}</h1>
     <p class="introduction">
       @if (administration) {
-        L’offre est publiée directement au nom de l’organisme. S’il n’est pas encore connu de la plateforme, il est créé sans compte.
+        L’offre est publiée directement au nom de l’organisme.
       } @else {
-        Si votre organisme est validé par l’école, l’offre est publiée tout de suite. Sinon, l’école la vérifie avant de la publier.
+        L’école vérifie l’offre avant publication si besoin.
       }
     </p>
   </header>

@@ -95,7 +95,7 @@ describe('OffreMentoratProfil', () => {
     expect(racine.querySelector('.blocage')?.textContent).toContain(raison);
   });
 
-  it.each(['ALUMNI', 'PERSONNEL', 'VISITEUR'])('laisse tout membre demander un mentorat (%s)', async (role) => {
+  it.each(['ETUDIANT', 'ALUMNI'])('laisse les étudiants et les alumni demander un mentorat (%s)', async (role) => {
     utilisateur.set({ role });
     const racine = afficher('u1');
     http.expectOne('/api/mentorat/mentors/utilisateur/u1').flush(unMentor());
@@ -103,8 +103,8 @@ describe('OffreMentoratProfil', () => {
     expect(racine.querySelector('button.principale')?.textContent).toContain('Demander un mentorat');
   });
 
-  it('n’offre pas la demande aux comptes qui ne participent pas au mentorat', async () => {
-    utilisateur.set({ role: 'ORGANISME' });
+  it.each(['ORGANISME', 'PERSONNEL', 'VISITEUR'])('n’offre pas la demande aux comptes qui ne participent pas au mentorat (%s)', async (role) => {
+    utilisateur.set({ role });
     const racine = afficher('u1');
     http.expectOne('/api/mentorat/mentors/utilisateur/u1').flush(unMentor());
     await fixture.whenStable();

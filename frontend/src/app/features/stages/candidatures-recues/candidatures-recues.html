@@ -4,7 +4,7 @@
     <h1>Candidatures reçues</h1>
     @if (offre(); as o) { <p class="introduction">{{ o.titre }} · {{ o.organisme.nom }}</p> }
     @if (!administration) {
-      <p class="introduction">Votre avis aide l’école, qui arrête la liste définitive des stagiaires. Il n’est jamais montré aux étudiants.</p>
+      <p class="introduction">Votre avis n’est pas montré aux étudiants.</p>
     }
   </header>
 
@@ -20,7 +20,9 @@
               <app-avatar-membre [urlPhoto]="s.etudiant.urlPhoto" [prenom]="s.etudiant.prenom" [nom]="s.etudiant.nom" roleMembre="ETUDIANT" [taille]="2" />
               <span><a [routerLink]="['/profil', s.etudiant.id]">{{ s.etudiant.prenom }} {{ s.etudiant.nom }}</a>
                 <small><a [href]="'mailto:' + s.email">{{ s.email }}</a></small>
-                <small>Du {{ s.dateDebut | date: 'd MMMM y' }} au {{ s.dateFin | date: 'd MMMM y' }}</small></span>
+                <small>Du {{ s.dateDebut | date: 'd MMMM y' }} au {{ s.dateFin | date: 'd MMMM y' }}</small>
+                <a class="evaluation" [routerLink]="administration ? ['/admin/stages/suivi', s.id, 'evaluation'] : ['/stages/suivi', s.id, 'evaluation']"
+                  [attr.aria-label]="'Évaluation de ' + s.etudiant.prenom + ' ' + s.etudiant.nom">Évaluation du stagiaire</a></span>
             </li>
           }
         </ul>
