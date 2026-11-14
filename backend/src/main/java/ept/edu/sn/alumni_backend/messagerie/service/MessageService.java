@@ -1,0 +1,104 @@
+package ept.edu.sn.alumni_backend.messagerie.service;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Limit;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import ept.edu.sn.alumni_backend.messagerie.TypeConversation;
+import ept.edu.sn.alumni_backend.messagerie.dto.MessageResponse;
+import ept.edu.sn.alumni_backend.messagerie.dto.PageMessagesResponse;
+import ept.edu.sn.alumni_backend.messagerie.entity.Conversation;
+import ept.edu.sn.alumni_backend.messagerie.entity.Message;
+import ept.edu.sn.alumni_backend.messagerie.entity.Participant;
+import ept.edu.sn.alumni_backend.messagerie.exception.MessagerieIntrouvableException;
+import ept.edu.sn.alumni_backend.messagerie.repository.MessageRepository;
+import ept.edu.sn.alumni_backend.notification.NouvelleNotification;
+import ept.edu.sn.alumni_backend.notification.TypeNotification;
+import lombok.RequiredArgsConstructor;
+
+/** Messages d'une conversation : historique, envoi, suppression, lecture et non-lus. */
+@Service
+@RequiredArgsConstructor
+public class MessageService {
+    private final MessageRepository messages;
+    private final AccesConversation acces;
+    private final MessagerieMapper mapper;
+    private final ApplicationEventPublisher evenements;
+
+    /** Page de l'historique : les {@code taille} messages avant {@code avant} (ou les derniers), du plus ancien au plus récent. */
+    @Transactional(readOnly = true)
+    public PageMessagesResponse lister(UUID conversationId, UUID moi, Instant avant, int taille) {
+        acces.chargerParticipant(conversationId, moi);
+        Limit limite = Limit.of(taille + 1);
+        List<Message> lus = avant == null
+            ? messages.findByConversationIdOrderByEnvoyeLeDescIdDesc(conversationId, limite)
+            : messages.findByConversationIdAndEnvoyeLeBeforeOrderByEnvoyeLeDescIdDesc(conversationId, avant, limite);
+        boolean plusAnciens = lus.size() > taille;
+        List<Message> page = new ArrayList<>(lus.subList(0, Math.min(taille, lus.size())));
+        Collections.reverse(page);
+        return new PageMessagesResponse(page.stream().map(m -> mapper.versMessage(m, moi)).toList(), plusAnciens);
+    }
+
+    @Transactional
+    public MessageResponse envoyer(UUID conversationId, UUID moi, String contenu) {
+        Participant auteur = acces.chargerParticipant(conversationId, moi);
+        Conversation conversation = auteur.getConversation();
+
+        Message message = new Message();
+        message.setConversation(conversation);
+        message.setAuteur(auteur.getUtilisateur());
+        message.setContenu(contenu.trim());
+        messages.save(message);
+        conversation.setDernierMessageLe(message.getEnvoyeLe());
+        auteur.setDernierLuLe(message.getEnvoyeLe());
+        messages.flush();
+
+        notifierPremierNonLu(conversation, message);
+        return mapper.versMessage(message, moi);
+    }
+
+    /** Seul l'auteur supprime son message ; le texte est effacé, la ligne reste (« Message supprimé »). */
+    @Transactional
+    public void supprimer(UUID conversationId, UUID messageId, UUID moi) {
+        acces.chargerParticipant(conversationId, moi);
+        Message message = messages.findById(messageId)
+            .filter(m -> m.getConversation().getId().equals(conversationId))
+            .orElseThrow(() -> new MessagerieIntrouvableException("Ce message est introuvable."));
+        if (!message.getAuteur().getId().equals(moi)) {
+            throw new SecurityException("Vous ne pouvez supprimer que vos propres messages.");
+        }
+        if (message.estSupprime()) return;
+        message.setSupprimeLe(Instant.now());
+        message.setContenu("");
+    }
+
+    @Transactional
+    public void marquerLu(UUID conversationId, UUID moi) {
+        acces.chargerParticipant(conversationId, moi).setDernierLuLe(Instant.now());
+    }
+
+    @Transactional(readOnly = true)
+    public long compterNonLus(UUID moi) {
+        return messages.compterNonLus(moi);
+    }
+
+    /** Une notification par conversation tant qu'elle reste non lue : seulement pour qui n'a que ce message à lire. */
+    private void notifierPremierNonLu(Conversation conversation, Message message) {
+        UUID auteurId = message.getAuteur().getId();
+        String auteurNom = MessagerieMapper.nomAffiche(message.getAuteur());
+        String texte = conversation.getType() == TypeConversation.GROUPE
+            ? auteurNom + " a écrit dans « " + conversation.getNom() + " »."
+            : auteurNom + " vous a écrit.";
+        messages.compterNonLusParParticipant(conversation.getId()).stream()
+            .filter(nonLus -> !nonLus.getUtilisateurId().equals(auteurId) && nonLus.getNombre() == 1)
+            .forEach(nonLus -> evenements.publishEvent(new NouvelleNotification(nonLus.getUtilisateurId(),
+                TypeNotification.MESSAGE, "Nouveau message", texte, "/messagerie/" + conversation.getId())));
+    }
+}

@@ -27,6 +27,8 @@ import ept.edu.sn.alumni_backend.evenement.exception.CapaciteEvenementAtteinteEx
 import ept.edu.sn.alumni_backend.evenement.exception.LimiteCreationEvenementAtteinteException;
 import ept.edu.sn.alumni_backend.mentorat.exception.ConflitMentoratException;
 import ept.edu.sn.alumni_backend.mentorat.exception.MentoratIntrouvableException;
+import ept.edu.sn.alumni_backend.messagerie.exception.ConflitMessagerieException;
+import ept.edu.sn.alumni_backend.messagerie.exception.MessagerieIntrouvableException;
 import ept.edu.sn.alumni_backend.organisme.exception.OrganismeIntrouvableException;
 import ept.edu.sn.alumni_backend.article.exception.ArticleIntrouvableException;
 import ept.edu.sn.alumni_backend.article.exception.ConflitArticleException;
@@ -178,6 +180,16 @@ public class GlobalExceptionHandler {
             ? e.getMessage()
             : "Ces informations viennent d'être modifiées. Rechargez la page et réessayez.";
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", message));
+    }
+
+    @ExceptionHandler(MessagerieIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> handleMessagerieIntrouvable(MessagerieIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ConflitMessagerieException.class)
+    public ResponseEntity<Map<String, String>> handleConflitMessagerie(ConflitMessagerieException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
     }
 
     @ExceptionHandler(CompteIntrouvableException.class)
