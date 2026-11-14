@@ -1,0 +1,57 @@
+@use '../fenetre';
+
+h3 { margin: 0 0 0.4rem; color: var(--ept-primary-dark); font-family: var(--ept-font-heading); font-size: 1rem; }
+
+.nom-groupe { margin: 0; font-size: 1.05rem; font-weight: 600; }
+
+.champ-nom .ligne { display: flex; gap: 0.5rem; }
+.champ-nom .ligne input { min-width: 0; flex: 1; }
+
+.participants { display: grid; gap: 0.25rem; margin: 0; padding: 0; list-style: none; }
+
+.ligne-membre { display: flex; align-items: center; gap: 0.65rem; padding: 0.3rem 0; }
+
+.identite {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+
+  strong { overflow: hidden; font-size: 0.9rem; text-overflow: ellipsis; white-space: nowrap; }
+  small { color: var(--ept-text-secondary); font-size: 0.78rem; }
+}
+
+.lien-retirer {
+  min-height: 2.5rem;
+  padding: 0 0.6rem;
+  border: 0;
+  border-radius: var(--ept-radius-sm);
+  background: transparent;
+  color: var(--ept-error-dark);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { background: var(--ept-error-light); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+}
+
+.confirmer {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+
+  span { flex: 1 1 12rem; }
+}
+
+.ajout { display: grid; gap: 0.5rem; padding-top: 0.75rem; border-top: 1px solid var(--ept-border); }
+.ajout .principal { justify-self: start; }
+
+footer .danger { display: inline-flex; align-items: center; gap: 0.4rem; margin-right: auto; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

@@ -6,6 +6,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin, map, switchMap, tap } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth/auth-service';
+import { MessagerieService } from '../../../core/services/messagerie/messagerie';
 import { participeAuMentorat } from '../../../core/services/models/mentorat.model';
 import {
   Experience,
@@ -54,6 +55,9 @@ export class ConsultationProfil {
 
   protected readonly profil = signal<ProfilAffiche | null>(null);
   protected readonly estMonProfil = signal(false);
+  private readonly messagerie = inject(MessagerieService);
+  protected readonly ouvertureMessagerie = signal(false);
+  protected readonly erreurMessagerie = signal<string | null>(null);
   protected readonly participeAuMentorat = participeAuMentorat;
   protected readonly enChargement = signal(true);
   protected readonly messageErreur = signal<string | null>(null);
@@ -191,6 +195,19 @@ export class ConsultationProfil {
       formations: profil.formations.filter((formation) => formation.id !== supprime.item.id),
     }));
     this.fermerFenetre();
+  }
+
+  /** Ouvre la conversation directe avec ce membre (créée au besoin). */
+  protected ecrire(membreId: string): void {
+    this.ouvertureMessagerie.set(true);
+    this.erreurMessagerie.set(null);
+    this.messagerie.ouvrirDirecte(membreId).subscribe({
+      next: ({ id }) => void this.router.navigate(['/messagerie', id]),
+      error: (erreur: HttpErrorResponse) => {
+        this.ouvertureMessagerie.set(false);
+        this.erreurMessagerie.set(erreur.error?.message ?? 'La conversation n’a pas pu être ouverte. Réessayez.');
+      },
+    });
   }
 
   protected async copierLien(): Promise<void> {

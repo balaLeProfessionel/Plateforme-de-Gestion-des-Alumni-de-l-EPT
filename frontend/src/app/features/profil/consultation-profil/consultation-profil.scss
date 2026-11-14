@@ -39,7 +39,10 @@
   &:hover { border-color: var(--ept-primary); }
   &.principale { border-color: var(--ept-primary); background: var(--ept-primary); color: white; }
   &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+  &:disabled { cursor: wait; opacity: 0.7; }
 }
+
+.erreur-messagerie { flex-basis: 100%; margin: 0; color: var(--ept-error-dark); font-size: 0.85rem; text-align: right; }
 
 /* Séparateurs tracés par l’espace d’1px sur fond de bordure : ils suivent le retour à la ligne. */
 .tuiles { display: flex; flex-wrap: wrap; gap: 1px; margin: 0; border-top: 1px solid var(--ept-border); background: var(--ept-border); }

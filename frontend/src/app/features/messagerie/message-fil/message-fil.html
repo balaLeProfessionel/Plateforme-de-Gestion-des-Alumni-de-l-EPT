@@ -1,0 +1,38 @@
+@let m = message();
+@if (!m.deMoi) {
+  <span class="emplacement-avatar">
+    @if (!suite()) {
+      <app-avatar-membre [urlPhoto]="m.auteurPhoto" [nom]="m.auteurNom" [taille]="2" />
+    }
+  </span>
+}
+<div class="corps">
+  @if (groupe() && !m.deMoi && !suite()) {
+    <span class="auteur" aria-hidden="true">{{ m.auteurNom }}</span>
+  }
+  <div class="bulle" [class.supprimee]="m.supprime">
+    <span class="sr-only">{{ m.deMoi ? 'Vous' : m.auteurNom }}, {{ m.envoyeLe | date: 'HH:mm' }} :</span>
+    @if (m.supprime) {
+      <p><i class="pi pi-ban" aria-hidden="true"></i>Message supprimé</p>
+    } @else {
+      <p>{{ m.contenu }}</p>
+    }
+    <time [attr.datetime]="m.envoyeLe" aria-hidden="true">{{ m.envoyeLe | date: 'HH:mm' }}</time>
+  </div>
+
+  @if (m.deMoi && !m.supprime) {
+    @if (confirmation()) {
+      <div class="confirmation" role="group" aria-label="Confirmer la suppression">
+        <span>Supprimer ce message ?</span>
+        <button type="button" class="danger" [disabled]="enCours()" (click)="supprimer()">Supprimer</button>
+        <button type="button" [disabled]="enCours()" (click)="confirmation.set(false); erreur.set(null)">Annuler</button>
+      </div>
+      @if (erreur()) { <p class="erreur" role="alert">{{ erreur() }}</p> }
+    } @else {
+      <button type="button" class="ouvrir-suppression" aria-label="Supprimer ce message" title="Supprimer ce message"
+        (click)="confirmation.set(true)">
+        <i class="pi pi-trash" aria-hidden="true"></i>
+      </button>
+    }
+  }
+</div>

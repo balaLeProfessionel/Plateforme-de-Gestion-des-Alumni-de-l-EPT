@@ -1,0 +1,143 @@
+:host { display: flex; min-height: 0; flex: 1; flex-direction: column; }
+
+.fil { display: flex; min-height: 0; flex: 1; flex-direction: column; }
+
+.entete-fil {
+  display: flex;
+  min-height: 4rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--ept-border);
+  background: var(--ept-surface);
+}
+
+/* Le retour à la liste ne sert que quand la liste est cachée (petit écran). */
+.retour { display: none; }
+
+.retour, .action-entete {
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  border: 0;
+  border-radius: var(--ept-radius-sm);
+  background: transparent;
+  color: var(--ept-primary);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover { background: var(--ept-primary-light); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+}
+
+.action-entete { display: inline-flex; flex: 0 0 auto; margin-left: auto; padding: 0 0.75rem; border: 1px solid var(--ept-border); }
+
+.avatar-groupe {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ept-primary-light);
+  color: var(--ept-primary);
+}
+
+.titre {
+  min-width: 0;
+  flex: 1;
+
+  h2 {
+    margin: 0;
+    overflow: hidden;
+    color: var(--ept-primary-dark);
+    font-family: var(--ept-font-heading);
+    font-size: 1.1rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  p { margin: 0.1rem 0 0; color: var(--ept-text-secondary); font-size: 0.8rem; }
+}
+
+.squelette-entete { width: 12rem; height: 1.2rem; border-radius: 999px; background: var(--ept-primary-light); }
+
+.zone-messages {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 1rem 1rem;
+  overscroll-behavior: contain;
+
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: -2px; }
+}
+
+.messages { margin: 0; padding: 0; list-style: none; }
+
+/* Séparateur de jour : un titre centré sur un filet. */
+.jour {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0 0.25rem;
+  color: var(--ept-text-secondary);
+  font-family: var(--ept-font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &::before, &::after { height: 1px; flex: 1; background: var(--ept-border); content: ''; }
+  span::first-letter { text-transform: uppercase; }
+}
+
+.anciens { display: grid; justify-items: center; gap: 0.25rem; padding: 0.5rem 0; }
+
+.attente { margin: 2rem 0; color: var(--ept-text-secondary); font-size: 0.9rem; text-align: center; }
+
+.etat {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  margin: auto;
+  padding: 3rem 1rem;
+  color: var(--ept-text-secondary);
+  text-align: center;
+
+  p { max-width: 22rem; margin: 0; line-height: 1.5; }
+  > i { color: var(--ept-primary); font-size: 1.75rem; }
+}
+
+.lien-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0 0.75rem;
+  border: 0;
+  border-radius: var(--ept-radius-sm);
+  background: transparent;
+  color: var(--ept-primary);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: var(--ept-primary-light); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+  &:disabled { cursor: wait; opacity: 0.7; }
+}
+
+.erreur { margin: 0; color: var(--ept-error-dark); font-size: 0.85rem; }
+
+@media (max-width: 760px) {
+  .retour { display: inline-flex; margin-left: -0.5rem; }
+  .entete-fil { gap: 0.5rem; padding: 0.5rem 0.75rem; }
+  .action-entete .libelle { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .action-entete { padding: 0; }
+  .zone-messages { padding: 0.5rem 0.75rem 1rem; }
+}
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

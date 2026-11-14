@@ -1,0 +1,123 @@
+:host {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+:host(.suite) { margin-top: 0.2rem; }
+:host(.de-moi) { justify-content: flex-end; }
+
+.emplacement-avatar { width: 2rem; flex: 0 0 auto; }
+
+.corps {
+  display: flex;
+  max-width: min(36rem, 78%);
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+}
+
+:host(.de-moi) .corps { align-items: flex-end; }
+
+.auteur { padding-left: 0.75rem; color: var(--ept-text-secondary); font-size: 0.78rem; font-weight: 600; }
+
+.bulle {
+  display: flex;
+  max-width: 100%;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: flex-end;
+  column-gap: 0.6rem;
+  padding: 0.5rem 0.75rem 0.4rem;
+  border: 1px solid var(--ept-border);
+  border-radius: 1.1rem 1.1rem 1.1rem 0.35rem;
+  background: var(--ept-surface);
+  color: var(--ept-text);
+
+  p {
+    min-width: 0;
+    flex: 1 1 auto;
+    margin: 0;
+    font-size: 0.93rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+
+  time { flex: 0 0 auto; margin-left: auto; color: var(--ept-text-secondary); font-size: 0.7rem; }
+}
+
+/* Mes messages : fond marine, coin d’ancrage à droite. */
+:host(.de-moi) .bulle {
+  border-color: var(--ept-primary);
+  border-radius: 1.1rem 1.1rem 0.35rem 1.1rem;
+  background: var(--ept-primary);
+  color: var(--ept-text-on-dark);
+
+  time { color: #c9dbe5; }
+}
+
+:host(.suite) .bulle { border-radius: 1.1rem; }
+
+.bulle.supprimee,
+:host(.de-moi) .bulle.supprimee {
+  border-style: dashed;
+  border-color: var(--ept-border);
+  background: transparent;
+  color: var(--ept-text-secondary);
+
+  p { display: flex; align-items: center; gap: 0.35rem; font-style: italic; }
+  time { color: var(--ept-text-secondary); }
+}
+
+.ouvrir-suppression {
+  display: grid;
+  width: 2.5rem;
+  height: 2rem;
+  place-items: center;
+  border: 0;
+  border-radius: var(--ept-radius-sm);
+  background: transparent;
+  color: var(--ept-text-secondary);
+  cursor: pointer;
+  opacity: 0;
+
+  &:hover { background: var(--ept-primary-light); color: var(--ept-error-dark); }
+  &:focus-visible { opacity: 1; outline: 2px solid var(--ept-focus-clair); outline-offset: 1px; }
+}
+
+:host(:hover) .ouvrir-suppression { opacity: 1; }
+/* Sans survol (écran tactile), le bouton reste visible. */
+@media (hover: none) { .ouvrir-suppression { opacity: 1; } }
+
+.confirmation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+
+  button {
+    min-height: 2.5rem;
+    padding: 0 0.75rem;
+    border: 1px solid var(--ept-border);
+    border-radius: var(--ept-radius-sm);
+    background: var(--ept-surface);
+    color: var(--ept-primary);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+    &:disabled { cursor: wait; opacity: 0.6; }
+  }
+
+  .danger { border-color: var(--ept-error); background: var(--ept-error); color: #fff; }
+}
+
+.erreur { margin: 0; color: var(--ept-error-dark); font-size: 0.85rem; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

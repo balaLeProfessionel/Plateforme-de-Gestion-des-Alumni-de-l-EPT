@@ -1,0 +1,50 @@
+@if (choisis().length > 0) {
+  <ul class="choisis" [attr.aria-label]="'Membres choisis (' + choisis().length + ')'">
+    @for (membre of choisis(); track membre.id) {
+      <li>
+        <app-avatar-membre [urlPhoto]="membre.urlPhoto" [prenom]="membre.prenom" [nom]="membre.nom"
+          [roleMembre]="membre.role" [taille]="1.6" />
+        <span>{{ nomComplet(membre) }}</span>
+        <button type="button" [attr.aria-label]="'Retirer ' + nomComplet(membre)" (click)="retirer(membre.id)">
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      </li>
+    }
+  </ul>
+}
+
+<label [for]="identifiant() + '-recherche'" class="libelle">{{ libelle() }}</label>
+<div class="champ">
+  <i class="pi pi-search" aria-hidden="true"></i>
+  <input [id]="identifiant() + '-recherche'" type="search" autocomplete="off" placeholder="Nom, prénom…"
+    [formField]="formulaire.recherche" [attr.aria-describedby]="identifiant() + '-aide'"
+    (keydown.enter)="$event.preventDefault()" />
+</div>
+
+<div class="resultats" aria-live="polite" [attr.aria-busy]="chargement()">
+  @if (rechercheCourte()) {
+    <p [id]="identifiant() + '-aide'" class="aide">Tapez au moins deux lettres du nom.</p>
+  } @else if (erreur()) {
+    <p [id]="identifiant() + '-aide'" class="aide erreur" role="alert">{{ erreur() }}</p>
+  } @else if (!chargement() && propositions().length === 0) {
+    <p [id]="identifiant() + '-aide'" class="aide">Aucun membre ne correspond à « {{ modele().recherche.trim() }} ».</p>
+  } @else {
+    <p [id]="identifiant() + '-aide'" class="sr-only">{{ propositions().length }} membres proposés. Activez un nom pour le choisir.</p>
+    <ul class="propositions" [class.actualisation]="chargement()">
+      @for (proposition of propositions(); track proposition.membre.id) {
+        @let membre = proposition.membre;
+        <li>
+          <button type="button" [attr.aria-pressed]="proposition.choisi" (click)="basculer(membre)">
+            <app-avatar-membre [urlPhoto]="membre.urlPhoto" [prenom]="membre.prenom" [nom]="membre.nom"
+              [roleMembre]="membre.role" [taille]="2.25" />
+            <span class="identite">
+              <strong>{{ nomComplet(membre) }}</strong>
+              <small>{{ proposition.role }}@if (membre.anneeSortie) {, promotion {{ membre.anneeSortie }}}</small>
+            </span>
+            <i class="pi coche" [class.pi-check]="proposition.choisi" [class.pi-plus]="!proposition.choisi" aria-hidden="true"></i>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>

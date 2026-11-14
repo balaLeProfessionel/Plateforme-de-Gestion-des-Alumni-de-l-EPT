@@ -1,0 +1,19 @@
+<form (submit)="envoyer($event)" novalidate>
+  @if (erreur()) { <p class="erreur" role="alert">{{ erreur() }}</p> }
+  <div class="ligne">
+    <label for="saisie-message" class="sr-only">Votre message</label>
+    <textarea #champ id="saisie-message" rows="1" placeholder="Écrire un message…" [formField]="formulaire.contenu"
+      [attr.aria-invalid]="tropLong()" aria-describedby="aide-saisie"
+      (keydown.enter)="toucheEntree($event)"></textarea>
+    <button type="submit" class="envoyer" aria-label="Envoyer le message" title="Envoyer"
+      [disabled]="vide() || tropLong() || formulaire().submitting()">
+      <i class="pi pi-send" aria-hidden="true"></i>
+    </button>
+  </div>
+  <p id="aide-saisie" class="aide">
+    <span class="raccourci">Entrée pour envoyer, Maj + Entrée pour aller à la ligne.</span>
+    @if (afficherCompteur()) {
+      <span class="compteur" [class.depasse]="tropLong()">{{ longueur() }} / {{ maximum }} caractères</span>
+    }
+  </p>
+</form>

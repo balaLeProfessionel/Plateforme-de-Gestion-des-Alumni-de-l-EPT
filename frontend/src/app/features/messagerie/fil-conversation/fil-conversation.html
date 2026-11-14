@@ -1,0 +1,80 @@
+<section class="fil" aria-labelledby="titre-fil">
+  @if (erreur(); as erreur) {
+    <h2 id="titre-fil" class="sr-only">Conversation</h2>
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <p>{{ erreur }}</p>
+      <a class="lien-action" routerLink="/messagerie">Retour aux conversations</a>
+    </div>
+  } @else {
+    <header class="entete-fil">
+      <a class="retour" routerLink="/messagerie" aria-label="Retour aux conversations" title="Retour aux conversations">
+        <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      </a>
+      @if (detail(); as detail) {
+        @if (interlocuteur(); as autre) {
+          <app-avatar-membre [urlPhoto]="autre.urlPhoto" [prenom]="autre.prenom" [nom]="autre.nom"
+            [roleMembre]="autre.role" [taille]="2.5" />
+        } @else {
+          <span class="avatar-groupe" aria-hidden="true"><i class="pi pi-users"></i></span>
+        }
+        <div class="titre">
+          <h2 id="titre-fil">{{ detail.nom }}</h2>
+          <p>{{ sousTitre() }}</p>
+        </div>
+        @if (estGroupe()) {
+          <button type="button" class="action-entete" (click)="detailsOuverts.set(true)" aria-haspopup="dialog">
+            <i class="pi pi-users" aria-hidden="true"></i><span class="libelle">Détails du groupe</span>
+          </button>
+        } @else if (lienProfil(); as lien) {
+          <a class="action-entete" [routerLink]="lien">
+            <i class="pi pi-user" aria-hidden="true"></i><span class="libelle">Voir le profil</span>
+          </a>
+        }
+      } @else {
+        <span class="squelette-entete" aria-hidden="true"></span>
+        <h2 id="titre-fil" class="sr-only">Chargement de la conversation</h2>
+      }
+    </header>
+
+    <div #zone class="zone-messages" role="log" aria-labelledby="titre-fil" tabindex="0" [attr.aria-busy]="chargement()">
+      @if (chargement()) {
+        <p class="attente" role="status">Chargement des messages…</p>
+      } @else {
+        @if (plusAnciens()) {
+          <div class="anciens">
+            <button type="button" class="lien-action" [disabled]="chargementAnciens()" (click)="chargerAnciens()">
+              {{ chargementAnciens() ? 'Chargement…' : 'Messages plus anciens' }}
+            </button>
+            @if (erreurAnciens()) { <p class="erreur" role="alert">{{ erreurAnciens() }}</p> }
+          </div>
+        }
+        @if (lignes().length === 0) {
+          <div class="etat vide">
+            <i class="pi pi-comments" aria-hidden="true"></i>
+            <p>Aucun message pour l’instant. Écrivez le premier.</p>
+          </div>
+        } @else {
+          <ol class="messages">
+            @for (ligne of lignes(); track ligne.message.id) {
+              <li>
+                @if (ligne.jour) { <h3 class="jour"><span>{{ ligne.jour }}</span></h3> }
+                <app-message-fil [message]="ligne.message" [conversationId]="conversationId()" [groupe]="estGroupe()"
+                  [suite]="ligne.suite" (supprime)="messageSupprime($event)" />
+              </li>
+            }
+          </ol>
+        }
+      }
+    </div>
+
+    @if (!chargement()) {
+      <app-zone-saisie [conversationId]="conversationId()" (envoye)="messageEnvoye($event)" />
+    }
+  }
+</section>
+
+@if (estGroupe()) {
+  <app-details-groupe [detail]="detail()" [ouvert]="detailsOuverts()" (fermee)="detailsOuverts.set(false)"
+    (modifie)="groupeModifie($event)" (quitte)="groupeQuitte()" />
+}

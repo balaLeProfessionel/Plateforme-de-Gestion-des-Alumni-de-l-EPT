@@ -1,0 +1,17 @@
+<div class="messagerie-page" [class.fil-ouvert]="filOuvert()">
+  <section class="colonne-liste" aria-labelledby="titre-messagerie">
+    <header class="entete-liste">
+      <h1 id="titre-messagerie">Messagerie</h1>
+      <button type="button" class="bouton-nouvelle" (click)="nouvelleOuverte.set(true)">
+        <i class="pi pi-pen-to-square" aria-hidden="true"></i>Nouvelle conversation
+      </button>
+    </header>
+    <app-liste-conversations (nouvelle)="nouvelleOuverte.set(true)" />
+  </section>
+
+  <div class="colonne-fil">
+    <router-outlet />
+  </div>
+</div>
+
+<app-nouvelle-conversation [ouverte]="nouvelleOuverte()" (fermee)="nouvelleOuverte.set(false)" />

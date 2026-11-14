@@ -7,6 +7,7 @@ import {
   roleGuard,
   visiteurGuard
 } from './core/guards/auth.guard';
+import { AuthService } from './core/services/auth/auth-service';
 import { titreProfil } from './features/profil/consultation-profil/titre-profil';
 
 // Rubriques de l'en-tête public dont le module n'est pas encore livré (voir `RUBRIQUES_A_VENIR`).
@@ -48,6 +49,8 @@ export const routes: Routes = [
     path,
     title: `EPT Alumni | ${titre}`,
     data: { rubrique: path },
+    // La messagerie existe dans l’espace membre : connecté, on passe à la route suivante au lieu de l’accueil.
+    canMatch: path === 'messagerie' ? [() => !inject(AuthService).estConnecte()] : [],
     canActivate: [visiteurGuard],
     loadComponent: () => import('./features/vitrine/page-bientot/page-bientot').then((m) => m.PageBientot)
   })),
@@ -208,6 +211,11 @@ export const routes: Routes = [
         canActivate: [authGuard, changementInitialRequisGuard],
         loadComponent: () =>
           import('./features/notifications/page-notifications/page-notifications').then((m) => m.PageNotifications)
+      },
+      {
+        path: 'messagerie',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadChildren: () => import('./features/messagerie/messagerie.routes').then((m) => m.MESSAGERIE_ROUTES)
       },
       {
         path: 'annuaire',

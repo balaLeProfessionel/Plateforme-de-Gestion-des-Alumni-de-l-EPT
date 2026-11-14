@@ -1,0 +1,73 @@
+/* La messagerie occupe la hauteur de l’écran sous la barre d’outils : chaque colonne défile seule. */
+.messagerie-page {
+  display: grid;
+  grid-template-columns: minmax(17rem, 22rem) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  height: calc(100dvh - 3.5rem);
+  border-top: 1px solid var(--ept-border);
+  background: var(--ept-surface);
+}
+
+.colonne-liste {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  border-right: 1px solid var(--ept-border);
+}
+
+.colonne-fil {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  background: var(--ept-bg);
+}
+
+.entete-liste {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 1rem 1rem 0.75rem;
+
+  h1 {
+    margin: 0;
+    color: var(--ept-primary-dark);
+    font-family: var(--ept-font-heading);
+    font-size: 1.5rem;
+  }
+}
+
+.bouton-nouvelle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ept-primary);
+  color: var(--ept-text-on-dark);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { background: var(--ept-primary-dark); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+}
+
+@media (max-width: 760px) {
+  /* Sous l’en-tête mobile (4rem) et au-dessus de la barre du bas (6rem). */
+  .messagerie-page {
+    display: block;
+    height: calc(100dvh - 10rem - env(safe-area-inset-bottom));
+    border-top: 0;
+  }
+  .colonne-liste, .colonne-fil { height: 100%; border-right: 0; }
+  .colonne-fil { display: none; }
+  .fil-ouvert .colonne-liste { display: none; }
+  .fil-ouvert .colonne-fil { display: flex; }
+}

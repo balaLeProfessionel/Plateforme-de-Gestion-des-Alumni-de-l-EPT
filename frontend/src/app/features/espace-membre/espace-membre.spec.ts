@@ -8,6 +8,7 @@ import { CompteurInscriptions } from '../../core/services/admin/compteur-inscrip
 import { CompteurSignalements } from '../../core/services/publications/moderation';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
 import { NotificationService } from '../../core/services/notifications/notifications';
+import { CompteurMessages } from '../../core/services/messagerie/compteur-messages';
 import { EspaceMembre } from './espace-membre';
 
 // Le premier rendu de la barre latérale PrimeNG charge tout le module : seul, il prend
@@ -25,6 +26,8 @@ describe('Navigation de l’espace membre', () => {
   const signalementsEnAttente = signal(0);
   const actualiserSignalements = vi.fn();
   const notifications = { nonLues: signal(0), demarrer: vi.fn(), arreter: vi.fn() };
+  const messagesNonLus = signal(0);
+  const compteurMessages = { nombre: messagesNonLus, demarrer: vi.fn(), arreter: vi.fn(), actualiser: vi.fn() };
 
   beforeEach(() => {
     utilisateur.set({ role: 'ALUMNI', nom: 'Diop', prenom: 'Awa' });
@@ -37,6 +40,8 @@ describe('Navigation de l’espace membre', () => {
     signalementsEnAttente.set(0);
     actualiserSignalements.mockClear();
     notifications.nonLues.set(0);
+    messagesNonLus.set(0);
+    compteurMessages.demarrer.mockClear();
     notifications.demarrer.mockClear();
     notifications.arreter.mockClear();
     TestBed.configureTestingModule({
@@ -53,7 +58,8 @@ describe('Navigation de l’espace membre', () => {
         { provide: CompteurDemandesMentorat, useValue: { nombre: demandesEnAttente, actualiser: actualiserCompteur } },
         { provide: CompteurInscriptions, useValue: { nombre: inscriptionsEnAttente, actualiser: actualiserInscriptions } },
         { provide: CompteurSignalements, useValue: { nombre: signalementsEnAttente, actualiser: actualiserSignalements } },
-        { provide: NotificationService, useValue: notifications }
+        { provide: NotificationService, useValue: notifications },
+        { provide: CompteurMessages, useValue: compteurMessages }
       ]
     });
   });
@@ -65,7 +71,7 @@ describe('Navigation de l’espace membre', () => {
     const liens = [...racine.querySelectorAll('.barre-laterale nav a')]
       .map((lien) => lien.getAttribute('href'));
 
-    expect(liens).toEqual(['/accueil', '/annuaire', '/evenements', '/articles', '/mentorat']);
+    expect(liens).toEqual(['/accueil', '/annuaire', '/messagerie', '/evenements', '/articles', '/mentorat']);
     expect(racine.querySelector('.barre-laterale .marque')?.getAttribute('href')).toBe('/accueil');
     expect([...racine.querySelectorAll('.barre-laterale nav button[aria-disabled="true"]')]
       .map((lien) => lien.getAttribute('aria-label')))
@@ -182,6 +188,19 @@ describe('Navigation de l’espace membre', () => {
     expect(racine.querySelector('.barre-laterale a[href="/mentorat"]')?.textContent)
       .toContain('3 demandes en attente');
     expect(racine.querySelector('.menu-mobile a[href="/mentorat"] .compteur')?.textContent?.trim()).toBe('3');
+  });
+
+  it('relève les messages non lus et les affiche sur la messagerie', () => {
+    messagesNonLus.set(4);
+    const fixture = TestBed.createComponent(EspaceMembre);
+    fixture.detectChanges();
+    const racine = fixture.nativeElement as HTMLElement;
+
+    expect(compteurMessages.demarrer).toHaveBeenCalledOnce();
+    expect(racine.querySelector('.barre-laterale a[href="/messagerie"]')?.textContent).toContain('4 messages non lus');
+    expect(racine.querySelector('.menu-mobile a[href="/messagerie"] .compteur')?.textContent?.trim()).toBe('4');
+    fixture.destroy();
+    expect(compteurMessages.arreter).toHaveBeenCalled();
   });
 
   it('n’allume qu’une rubrique du panneau mobile : le tableau de bord ne reste pas actif sur ses sous-pages', async () => {

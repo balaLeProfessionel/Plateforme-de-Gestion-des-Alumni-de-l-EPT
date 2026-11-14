@@ -1,0 +1,50 @@
+<div class="zone" aria-live="polite" [attr.aria-busy]="etat.chargement()">
+  @if (etat.erreur(); as erreur) {
+    <div class="etat" role="alert">
+      <p>{{ erreur }}</p>
+      <button type="button" class="lien-action" (click)="etat.actualiser()">Réessayer</button>
+    </div>
+  } @else if (!etat.chargee()) {
+    <ul class="squelettes" aria-label="Chargement des conversations">
+      @for (i of [1, 2, 3, 4, 5]; track i) {
+        <li><span class="rond"></span><span class="barres"><span></span><span></span></span></li>
+      }
+    </ul>
+  } @else if (lignes().length === 0) {
+    <div class="etat vide">
+      <i class="pi pi-comments" aria-hidden="true"></i>
+      <p>Aucune conversation pour l’instant. Écrivez à un membre depuis son profil, ou commencez ici.</p>
+      <button type="button" class="lien-action" (click)="nouvelle.emit()">Écrire à un membre</button>
+    </div>
+  } @else {
+    <ul class="conversations">
+      @for (ligne of lignes(); track ligne.conversation.id) {
+        @let conversation = ligne.conversation;
+        <li>
+          <a [routerLink]="['/messagerie', conversation.id]" routerLinkActive="active" ariaCurrentWhenActive="page"
+            [class.non-lue]="conversation.nombreNonLus > 0">
+            @if (conversation.interlocuteur; as autre) {
+              <app-avatar-membre [urlPhoto]="autre.urlPhoto" [prenom]="autre.prenom" [nom]="autre.nom"
+                [roleMembre]="autre.role" [taille]="2.75" />
+            } @else {
+              <span class="avatar-groupe" aria-hidden="true"><i class="pi pi-users"></i></span>
+            }
+            <span class="texte">
+              <span class="ligne-haut">
+                <strong class="nom">{{ conversation.nom }}</strong>
+                <time [attr.datetime]="conversation.dernierMessageLe">{{ conversation.dernierMessageLe | dateRelative }}</time>
+              </span>
+              <span class="ligne-bas">
+                <span class="apercu" [class.supprime]="conversation.dernierMessage?.supprime">{{ ligne.apercu }}</span>
+                @if (conversation.nombreNonLus > 0) {
+                  <span class="pastille" aria-hidden="true">{{ ligne.nonLus }}</span>
+                  <span class="sr-only">, {{ conversation.nombreNonLus }} {{ conversation.nombreNonLus > 1 ? 'messages non lus' : 'message non lu' }}</span>
+                }
+              </span>
+            </span>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</div>
