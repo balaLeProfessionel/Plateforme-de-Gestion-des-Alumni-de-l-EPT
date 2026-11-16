@@ -14,6 +14,8 @@ import { FluxMessagerie } from '../../../core/services/messagerie/flux-messageri
 import { MessagerieService } from '../../../core/services/messagerie/messagerie';
 import { ConversationDetail, Message } from '../../../core/services/models/messagerie.model';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
+import { AvatarGroupe } from '../avatar-groupe';
+import { BandeauBlocage } from '../bandeau-blocage/bandeau-blocage';
 import { DetailsGroupe } from '../details-groupe/details-groupe';
 import { EtatConversations } from '../etat-conversations';
 import { MessageFil } from '../message-fil/message-fil';
@@ -28,7 +30,7 @@ const MARGE_BAS_PX = 120;
 /** Fil d’une conversation : en-tête, historique par pages, nouveaux messages et zone de saisie. */
 @Component({
   selector: 'app-fil-conversation',
-  imports: [RouterLink, AvatarMembre, MessageFil, ZoneSaisie, DetailsGroupe],
+  imports: [RouterLink, AvatarMembre, AvatarGroupe, BandeauBlocage, MessageFil, ZoneSaisie, DetailsGroupe],
   templateUrl: './fil-conversation.html',
   styleUrl: './fil-conversation.scss',
 })
@@ -54,9 +56,12 @@ export class FilConversation {
   protected readonly chargementAnciens = signal(false);
   protected readonly erreurAnciens = signal<string | null>(null);
   protected readonly detailsOuverts = signal(false);
+  /** Question « Bloquer … ? » ouverte au bas du fil. */
+  protected readonly confirmerBlocage = signal(false);
 
   protected readonly lignes = computed(() => lignesDuFil(this.messages(), new Date(), this.locale));
   protected readonly estGroupe = computed(() => this.detail()?.type === 'GROUPE');
+  protected readonly ecriture = computed(() => this.detail()?.ecriture ?? 'OUVERTE');
   /** L’autre personne d’une conversation directe. */
   protected readonly interlocuteur = computed(() => {
     const detail = this.detail();
@@ -171,6 +176,12 @@ export class FilConversation {
     this.etat.actualiser();
   }
 
+  /** Bloqué ou débloqué : la zone de saisie s’ouvre ou se ferme, la liste se met à jour. */
+  protected blocageModifie(): void {
+    this.messagerie.obtenir(this.conversationId()).pipe(catchError(() => EMPTY)).subscribe((detail) => this.detail.set(detail));
+    this.etat.actualiser();
+  }
+
   protected groupeQuitte(): void {
     this.detailsOuverts.set(false);
     this.etat.actualiser();
@@ -186,6 +197,7 @@ export class FilConversation {
     this.erreur.set(null);
     this.erreurAnciens.set(null);
     this.detailsOuverts.set(false);
+    this.confirmerBlocage.set(false);
   }
 
   /** Ajoute les messages relevés ; ceux des autres sont lus aussitôt puisque le fil est sous les yeux. */

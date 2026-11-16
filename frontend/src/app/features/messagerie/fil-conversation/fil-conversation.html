@@ -16,7 +16,7 @@
           <app-avatar-membre [urlPhoto]="autre.urlPhoto" [prenom]="autre.prenom" [nom]="autre.nom"
             [roleMembre]="autre.role" [taille]="2.5" />
         } @else {
-          <span class="avatar-groupe" aria-hidden="true"><i class="pi pi-users"></i></span>
+          <app-avatar-groupe [urlPhoto]="detail.urlPhoto" [taille]="2.5" />
         }
         <div class="titre">
           <h2 id="titre-fil">{{ detail.nom }}</h2>
@@ -26,10 +26,18 @@
           <button type="button" class="action-entete" (click)="detailsOuverts.set(true)" aria-haspopup="dialog">
             <i class="pi pi-users" aria-hidden="true"></i><span class="libelle">Détails du groupe</span>
           </button>
-        } @else if (lienProfil(); as lien) {
-          <a class="action-entete" [routerLink]="lien">
-            <i class="pi pi-user" aria-hidden="true"></i><span class="libelle">Voir le profil</span>
-          </a>
+        } @else {
+          @if (lienProfil(); as lien) {
+            <a class="action-entete" [routerLink]="lien">
+              <i class="pi pi-user" aria-hidden="true"></i><span class="libelle">Voir le profil</span>
+            </a>
+          }
+          @if (ecriture() !== 'J_AI_BLOQUE') {
+            <button type="button" class="action-entete" [attr.aria-expanded]="confirmerBlocage()"
+              (click)="confirmerBlocage.set(true)">
+              <i class="pi pi-ban" aria-hidden="true"></i><span class="libelle">Bloquer</span>
+            </button>
+          }
         }
       } @else {
         <span class="squelette-entete" aria-hidden="true"></span>
@@ -69,7 +77,12 @@
     </div>
 
     @if (!chargement()) {
-      <app-zone-saisie [conversationId]="conversationId()" (envoye)="messageEnvoye($event)" />
+      @if (ecriture() === 'OUVERTE' && !confirmerBlocage()) {
+        <app-zone-saisie [conversationId]="conversationId()" (envoye)="messageEnvoye($event)" />
+      } @else if (interlocuteur(); as autre) {
+        <app-bandeau-blocage [interlocuteur]="autre" [ecriture]="ecriture()" [(confirmer)]="confirmerBlocage"
+          (modifie)="blocageModifie()" />
+      }
     }
   }
 </section>

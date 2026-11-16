@@ -26,6 +26,8 @@
             @if (conversation.interlocuteur; as autre) {
               <app-avatar-membre [urlPhoto]="autre.urlPhoto" [prenom]="autre.prenom" [nom]="autre.nom"
                 [roleMembre]="autre.role" [taille]="2.75" />
+            } @else if (conversation.urlPhoto) {
+              <app-avatar-membre [urlPhoto]="conversation.urlPhoto" [taille]="2.75" />
             } @else {
               <span class="avatar-groupe" aria-hidden="true"><i class="pi pi-users"></i></span>
             }

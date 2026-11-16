@@ -4,6 +4,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.core.io.Resource;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,12 +35,15 @@ import ept.edu.sn.alumni_backend.messagerie.dto.AjoutParticipantsRequest;
 import ept.edu.sn.alumni_backend.messagerie.dto.ConversationDetailResponse;
 import ept.edu.sn.alumni_backend.messagerie.dto.ConversationResponse;
 import ept.edu.sn.alumni_backend.messagerie.dto.GroupeRequest;
+import ept.edu.sn.alumni_backend.messagerie.dto.MembreBloqueResponse;
 import ept.edu.sn.alumni_backend.messagerie.dto.MessageRequest;
 import ept.edu.sn.alumni_backend.messagerie.dto.MessageResponse;
+import ept.edu.sn.alumni_backend.messagerie.dto.ModificationGroupeRequest;
 import ept.edu.sn.alumni_backend.messagerie.dto.NombreNonLusResponse;
 import ept.edu.sn.alumni_backend.messagerie.dto.OuvertureDirecteRequest;
 import ept.edu.sn.alumni_backend.messagerie.dto.PageMessagesResponse;
-import ept.edu.sn.alumni_backend.messagerie.dto.RenommageGroupeRequest;
+import ept.edu.sn.alumni_backend.messagerie.dto.RoleParticipantRequest;
+import ept.edu.sn.alumni_backend.messagerie.service.BlocageService;
 import ept.edu.sn.alumni_backend.messagerie.service.ConversationService;
 import ept.edu.sn.alumni_backend.messagerie.service.MessageService;
 import ept.edu.sn.alumni_backend.messagerie.tempsreel.DiffuseurMessagerie;
@@ -56,6 +61,7 @@ import lombok.RequiredArgsConstructor;
 public class MessagerieController {
     private final ConversationService conversationService;
     private final MessageService messageService;
+    private final BlocageService blocageService;
     private final DiffuseurMessagerie diffuseur;
 
     /** Flux temps réel (Server-Sent Events) : de courts signaux « telle conversation a changé ». */
@@ -92,10 +98,56 @@ public class MessagerieController {
         return conversationService.obtenir(id, moi(principal));
     }
 
+    /** Nom et description d'un groupe (administrateur) ; un champ absent reste tel quel. */
     @PatchMapping("/conversations/{id}")
-    public ConversationDetailResponse renommer(@PathVariable UUID id, @Valid @RequestBody RenommageGroupeRequest requete,
+    public ConversationDetailResponse modifier(@PathVariable UUID id, @Valid @RequestBody ModificationGroupeRequest requete,
                                                @AuthenticationPrincipal UtilisateurPrincipal principal) {
-        return conversationService.renommer(id, moi(principal), requete.nom());
+        return conversationService.modifier(id, moi(principal), requete);
+    }
+
+    /** Supprime le groupe pour tous ses membres, avec ses messages (administrateur). */
+    @DeleteMapping("/conversations/{id}")
+    public ResponseEntity<Void> supprimerGroupe(@PathVariable UUID id, @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        conversationService.supprimerGroupe(id, moi(principal));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/conversations/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ConversationDetailResponse changerPhoto(@PathVariable UUID id, @RequestPart("photo") MultipartFile photo,
+                                                   @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return conversationService.changerPhoto(id, moi(principal), photo);
+    }
+
+    @DeleteMapping("/conversations/{id}/photo")
+    public ConversationDetailResponse retirerPhoto(@PathVariable UUID id, @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return conversationService.retirerPhoto(id, moi(principal));
+    }
+
+    /** Nommer un membre administrateur ou lui retirer ce rôle. */
+    @PatchMapping("/conversations/{id}/participants/{utilisateurId}")
+    public ConversationDetailResponse changerRole(@PathVariable UUID id, @PathVariable UUID utilisateurId,
+                                                  @Valid @RequestBody RoleParticipantRequest requete,
+                                                  @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return conversationService.changerRole(id, moi(principal), utilisateurId, requete.role());
+    }
+
+    /** Les membres que j'ai bloqués. */
+    @GetMapping("/blocages")
+    public List<MembreBloqueResponse> listerBlocages(@AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return blocageService.lister(moi(principal));
+    }
+
+    /** Bloquer un membre (idempotent) : plus aucun message entre nous dans notre conversation directe. */
+    @PutMapping("/blocages/{utilisateurId}")
+    public ResponseEntity<Void> bloquer(@PathVariable UUID utilisateurId, @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        blocageService.bloquer(moi(principal), utilisateurId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/blocages/{utilisateurId}")
+    public ResponseEntity<Void> debloquer(@PathVariable UUID utilisateurId, @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        blocageService.debloquer(moi(principal), utilisateurId);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/conversations/{id}/participants")

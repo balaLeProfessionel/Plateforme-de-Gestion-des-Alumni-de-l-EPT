@@ -35,6 +35,7 @@ import lombok.Setter;
 @Setter
 public class Conversation {
     public static final int LONGUEUR_MAX_NOM = 80;
+    public static final int LONGUEUR_MAX_DESCRIPTION = 500;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -54,6 +55,14 @@ public class Conversation {
      */
     @Column(name = "cle_directe", length = 73)
     private String cleDirecte;
+
+    /** Présentation d'un groupe, facultative ; toujours absente pour une conversation directe. */
+    @Column(length = LONGUEUR_MAX_DESCRIPTION)
+    private String description;
+
+    /** Photo d'un groupe ({@code /api/photos/…}, carré de 600 px), facultative. */
+    @Column(name = "url_photo")
+    private String urlPhoto;
 
     @Column(nullable = false, updatable = false)
     private Instant creeLe;
@@ -80,6 +89,13 @@ public class Conversation {
         conversation.setType(TypeConversation.GROUPE);
         conversation.setNom(nom);
         return conversation;
+    }
+
+    /** L'autre personne d'une conversation directe, lue dans sa clé. */
+    public UUID interlocuteurDe(UUID moi) {
+        if (type != TypeConversation.DIRECTE) throw new IllegalStateException("Un groupe n'a pas d'interlocuteur unique.");
+        String[] ids = cleDirecte.split(":");
+        return UUID.fromString(ids[0].equals(moi.toString()) ? ids[1] : ids[0]);
     }
 
     /** Même clé quel que soit l'ordre des deux personnes. */

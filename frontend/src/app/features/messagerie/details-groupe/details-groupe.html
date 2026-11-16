@@ -12,48 +12,83 @@
       @if (confirmation()) { <p class="confirmation-texte" aria-hidden="true">{{ confirmation() }}</p> }
       @if (erreur()) { <p class="erreur" role="alert">{{ erreur() }}</p> }
 
+      <app-photo-groupe [detail]="detail" [administrateur]="administrateur()" (modifie)="photoModifiee($event)" />
+
       @if (administrateur()) {
-        <form class="renommage" (submit)="renommer($event)" novalidate>
-          <div class="champ-nom">
-            <label for="renommer-groupe">Nom du groupe</label>
-            <div class="ligne">
-              <input id="renommer-groupe" type="text" autocomplete="off" [formField]="formulaire.nom"
-                [attr.aria-invalid]="formulaire.nom().touched() && formulaire.nom().invalid()"
-                aria-describedby="erreur-renommage" />
-              <button type="submit" class="secondaire"
-                [disabled]="enCours() || formulaire().submitting() || modele().nom.trim() === detail.nom">Renommer</button>
-            </div>
+        <form class="identite-groupe" (submit)="enregistrer($event)" novalidate>
+          <div class="champ">
+            <label for="nom-groupe">Nom du groupe</label>
+            <input id="nom-groupe" type="text" autocomplete="off" [formField]="formulaire.nom"
+              [attr.aria-invalid]="formulaire.nom().touched() && formulaire.nom().invalid()"
+              aria-describedby="erreur-nom-groupe" />
             @if (formulaire.nom().touched() && formulaire.nom().errors()[0]; as erreurNom) {
-              <small id="erreur-renommage" class="erreur-champ">{{ erreurNom.message }}</small>
+              <small id="erreur-nom-groupe" class="erreur-champ">{{ erreurNom.message }}</small>
             }
           </div>
+          <div class="champ">
+            <label for="description-groupe">Description <span class="facultatif">(facultative)</span></label>
+            <textarea id="description-groupe" rows="3" [formField]="formulaire.description"
+              placeholder="À quoi sert ce groupe ?"
+              [attr.aria-invalid]="formulaire.description().invalid()"
+              aria-describedby="aide-description-groupe"></textarea>
+            <small id="aide-description-groupe" [class.erreur-champ]="formulaire.description().invalid()">
+              {{ modele().description.length }} / {{ longueurDescription }} caractères
+            </small>
+          </div>
+          <button type="submit" class="secondaire"
+            [disabled]="enCours() || formulaire().submitting() || !modifieLocalement()">Enregistrer</button>
         </form>
       } @else {
-        <p class="nom-groupe">{{ detail.nom }}</p>
+        <div>
+          <p class="nom-groupe">{{ detail.nom }}</p>
+          @if (detail.description) { <p class="description">{{ detail.description }}</p> }
+        </div>
       }
 
       <section aria-labelledby="titre-participants">
         <h3 id="titre-participants">{{ detail.participants.length }} participant{{ detail.participants.length > 1 ? 's' : '' }}</h3>
         <ul class="participants">
           @for (membre of detail.participants; track membre.id) {
+            @let estMoi = membre.id === moiId();
+            @let admin = membre.roleParticipant === 'ADMINISTRATEUR';
             <li>
               <div class="ligne-membre">
                 <app-avatar-membre [urlPhoto]="membre.urlPhoto" [prenom]="membre.prenom" [nom]="membre.nom"
                   [roleMembre]="membre.role" [taille]="2.25" />
                 <span class="identite">
-                  <strong>{{ membre.nomAffiche }}@if (membre.id === moiId()) { (vous)}</strong>
-                  @if (membre.roleParticipant === 'ADMINISTRATEUR') { <small>Administrateur</small> }
+                  <strong>{{ membre.nomAffiche }}@if (estMoi) { (vous)}</strong>
+                  @if (admin) { <small>Administrateur</small> }
                 </span>
-                @if (administrateur() && membre.id !== moiId() && aRetirer() !== membre.id) {
-                  <button type="button" class="lien-retirer" [disabled]="enCours()"
-                    [attr.aria-label]="'Retirer ' + membre.nomAffiche + ' du groupe'" (click)="aRetirer.set(membre.id)">Retirer</button>
-                }
               </div>
-              @if (aRetirer() === membre.id) {
-                <div class="confirmer" role="group" [attr.aria-label]="'Retirer ' + membre.nomAffiche">
-                  <span>Retirer {{ membre.nomAffiche }} du groupe ?</span>
-                  <button type="button" class="danger" [disabled]="enCours()" (click)="retirer(membre.id)">Retirer</button>
-                  <button type="button" class="secondaire" [disabled]="enCours()" (click)="aRetirer.set(null)">Annuler</button>
+              @if (actionMembre(); as action) {
+                @if (action.membreId === membre.id) {
+                  <div class="confirmer" role="group" [attr.aria-label]="'Confirmer pour ' + membre.nomAffiche">
+                    @if (action.type === 'retirer') {
+                      <span>Retirer {{ membre.nomAffiche }} du groupe ?</span>
+                      <button type="button" class="danger" [disabled]="enCours()" (click)="retirer(membre.id)">Retirer</button>
+                    } @else {
+                      <span>{{ admin ? (estMoi ? 'Ne plus être administrateur ?' : 'Retirer le rôle d’administrateur à ' + membre.nomAffiche + ' ?')
+                        : 'Nommer ' + membre.nomAffiche + ' administrateur ?' }}</span>
+                      <button type="button" class="principal" [disabled]="enCours()" (click)="changerRole(membre)">Confirmer</button>
+                    }
+                    <button type="button" class="secondaire" [disabled]="enCours()" (click)="actionMembre.set(null)">Annuler</button>
+                  </div>
+                }
+              }
+              @if (actionMembre()?.membreId !== membre.id && (roleModifiable(membre) || (administrateur() && !estMoi))) {
+                <div class="actions-membre">
+                  @if (roleModifiable(membre)) {
+                    <button type="button" class="lien" [disabled]="enCours()"
+                      [attr.aria-label]="(admin ? 'Retirer le rôle d’administrateur à ' : 'Nommer administrateur ') + membre.nomAffiche"
+                      (click)="actionMembre.set({ type: 'role', membreId: membre.id })">
+                      {{ admin ? 'Retirer le rôle d’admin' : 'Nommer admin' }}
+                    </button>
+                  }
+                  @if (administrateur() && !estMoi) {
+                    <button type="button" class="lien danger-texte" [disabled]="enCours()"
+                      [attr.aria-label]="'Retirer ' + membre.nomAffiche + ' du groupe'"
+                      (click)="actionMembre.set({ type: 'retirer', membreId: membre.id })">Retirer</button>
+                  }
                 </div>
               }
             </li>
@@ -77,16 +112,29 @@
     </div>
 
     <footer>
-      @if (confirmerDepart()) {
+      @if (confirmerSuppression()) {
+        <div class="confirmer" role="group" aria-label="Supprimer le groupe">
+          <span>Le groupe et tous ses messages seront supprimés pour tous les participants.</span>
+          <button type="button" class="danger" [disabled]="enCours()" (click)="supprimer()">Supprimer définitivement</button>
+          <button type="button" class="secondaire" [disabled]="enCours()" (click)="confirmerSuppression.set(false)">Annuler</button>
+        </div>
+      } @else if (confirmerDepart()) {
         <div class="confirmer" role="group" aria-label="Quitter le groupe">
           <span>Vous ne verrez plus cette conversation.</span>
           <button type="button" class="danger" [disabled]="enCours()" (click)="quitter()">Quitter le groupe</button>
           <button type="button" class="secondaire" [disabled]="enCours()" (click)="confirmerDepart.set(false)">Annuler</button>
         </div>
       } @else {
-        <button type="button" class="danger" (click)="confirmerDepart.set(true)">
-          <i class="pi pi-sign-out" aria-hidden="true"></i> Quitter le groupe
-        </button>
+        <div class="actions-depart">
+          <button type="button" class="danger" (click)="confirmerDepart.set(true)">
+            <i class="pi pi-sign-out" aria-hidden="true"></i> Quitter le groupe
+          </button>
+          @if (administrateur()) {
+            <button type="button" class="lien danger-texte" (click)="confirmerSuppression.set(true)">
+              <i class="pi pi-trash" aria-hidden="true"></i> Supprimer le groupe
+            </button>
+          }
+        </div>
         <button type="button" class="secondaire" (click)="dialogue.close()">Fermer</button>
       }
     </footer>

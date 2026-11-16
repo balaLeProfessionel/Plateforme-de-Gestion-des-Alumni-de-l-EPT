@@ -1,7 +1,8 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import {
-  Conversation, ConversationDetail, Message, PageConversations, PageMessages,
+  Conversation, ConversationDetail, MembreBloque, Message, ModificationGroupe, PageConversations, PageMessages,
+  RoleParticipant,
 } from '../models/messagerie.model';
 
 const API = '/api/messagerie';
@@ -21,16 +22,40 @@ export class MessagerieService {
     return this.http.post<Conversation>(`${API}/conversations/directes`, { destinataireId });
   }
 
-  creerGroupe(nom: string, membreIds: readonly string[]) {
-    return this.http.post<ConversationDetail>(`${API}/conversations/groupes`, { nom, membreIds });
+  creerGroupe(nom: string, membreIds: readonly string[], description = '') {
+    return this.http.post<ConversationDetail>(`${API}/conversations/groupes`,
+      { nom, membreIds, ...(description ? { description } : {}) });
   }
 
   obtenir(id: string) {
     return this.http.get<ConversationDetail>(`${API}/conversations/${encodeURIComponent(id)}`);
   }
 
-  renommer(id: string, nom: string) {
-    return this.http.patch<ConversationDetail>(`${API}/conversations/${encodeURIComponent(id)}`, { nom });
+  /** Nom et description du groupe (administrateur). */
+  modifierGroupe(id: string, modification: ModificationGroupe) {
+    return this.http.patch<ConversationDetail>(`${API}/conversations/${encodeURIComponent(id)}`, modification);
+  }
+
+  /** Supprime le groupe et ses messages pour tous ses membres (administrateur). */
+  supprimerGroupe(id: string) {
+    return this.http.delete<void>(`${API}/conversations/${encodeURIComponent(id)}`);
+  }
+
+  /** Photo déjà recadrée en carré : le serveur la ramène à 600 × 600. */
+  changerPhotoGroupe(id: string, photo: File) {
+    const donnees = new FormData();
+    donnees.append('photo', photo, photo.name);
+    return this.http.post<ConversationDetail>(`${API}/conversations/${encodeURIComponent(id)}/photo`, donnees);
+  }
+
+  retirerPhotoGroupe(id: string) {
+    return this.http.delete<ConversationDetail>(`${API}/conversations/${encodeURIComponent(id)}/photo`);
+  }
+
+  /** Nommer un membre administrateur ou lui retirer ce rôle. */
+  changerRole(id: string, utilisateurId: string, role: RoleParticipant) {
+    return this.http.patch<ConversationDetail>(
+      `${API}/conversations/${encodeURIComponent(id)}/participants/${encodeURIComponent(utilisateurId)}`, { role });
   }
 
   ajouterParticipants(id: string, membreIds: readonly string[]) {
@@ -76,6 +101,18 @@ export class MessagerieService {
 
   marquerLu(id: string) {
     return this.http.patch<void>(`${API}/conversations/${encodeURIComponent(id)}/lu`, null);
+  }
+
+  listerBlocages() {
+    return this.http.get<MembreBloque[]>(`${API}/blocages`);
+  }
+
+  bloquer(utilisateurId: string) {
+    return this.http.put<void>(`${API}/blocages/${encodeURIComponent(utilisateurId)}`, null);
+  }
+
+  debloquer(utilisateurId: string) {
+    return this.http.delete<void>(`${API}/blocages/${encodeURIComponent(utilisateurId)}`);
   }
 
   compterNonLus() {

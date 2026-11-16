@@ -36,17 +36,8 @@
 }
 
 .action-entete { display: inline-flex; flex: 0 0 auto; margin-left: auto; padding: 0 0.75rem; border: 1px solid var(--ept-border); }
+.action-entete + .action-entete { margin-left: 0; }
 
-.avatar-groupe {
-  display: grid;
-  width: 2.5rem;
-  height: 2.5rem;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--ept-primary-light);
-  color: var(--ept-primary);
-}
 
 .titre {
   min-width: 0;

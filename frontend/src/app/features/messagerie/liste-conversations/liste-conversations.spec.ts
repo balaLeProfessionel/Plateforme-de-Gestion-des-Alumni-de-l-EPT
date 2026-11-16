@@ -40,7 +40,7 @@ describe('ListeConversations', () => {
 
   it('affiche chaque conversation avec son aperçu et ses non-lus', () => {
     conversations.set([{
-      id: 'c-1', type: 'GROUPE', nom: 'Promo 2018', interlocuteur: null, nombreParticipants: 4, monRole: 'MEMBRE',
+      id: 'c-1', type: 'GROUPE', nom: 'Promo 2018', interlocuteur: null, urlPhoto: null, nombreParticipants: 4, monRole: 'MEMBRE', ecriture: 'OUVERTE',
       nombreNonLus: 3, dernierMessageLe: '2026-11-14T10:00:00Z',
       dernierMessage: { auteurId: 'x', auteurNom: 'Awa Diop', contenu: 'On se voit samedi ?', supprime: false, envoyeLe: '2026-11-14T10:00:00Z' },
     }]);

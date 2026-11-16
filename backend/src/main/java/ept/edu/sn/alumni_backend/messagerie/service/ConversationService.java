@@ -17,25 +17,30 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
+import ept.edu.sn.alumni_backend.messagerie.EtatEcriture;
 import ept.edu.sn.alumni_backend.messagerie.RoleParticipant;
 import ept.edu.sn.alumni_backend.messagerie.TypeConversation;
 import ept.edu.sn.alumni_backend.messagerie.dto.ConversationDetailResponse;
 import ept.edu.sn.alumni_backend.messagerie.dto.ConversationResponse;
 import ept.edu.sn.alumni_backend.messagerie.dto.GroupeRequest;
 import ept.edu.sn.alumni_backend.messagerie.dto.MembreConversationResponse;
+import ept.edu.sn.alumni_backend.messagerie.dto.ModificationGroupeRequest;
 import ept.edu.sn.alumni_backend.messagerie.entity.Conversation;
 import ept.edu.sn.alumni_backend.messagerie.entity.Message;
 import ept.edu.sn.alumni_backend.messagerie.entity.Participant;
 import ept.edu.sn.alumni_backend.messagerie.exception.ConflitMessagerieException;
 import ept.edu.sn.alumni_backend.messagerie.exception.MessagerieIntrouvableException;
+import ept.edu.sn.alumni_backend.messagerie.repository.BlocageRepository;
 import ept.edu.sn.alumni_backend.messagerie.repository.ConversationRepository;
 import ept.edu.sn.alumni_backend.messagerie.repository.MessageRepository;
 import ept.edu.sn.alumni_backend.messagerie.repository.ParticipantRepository;
 import ept.edu.sn.alumni_backend.messagerie.tempsreel.EvenementMessagerie;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
+import ept.edu.sn.alumni_backend.utilisateur.photo.StockagePhotoProfil;
 
 /** Conversations : liste, ouverture d'une conversation directe, groupes et leurs membres. */
 @Service
@@ -48,11 +53,15 @@ public class ConversationService {
     private final MessagerieMapper mapper;
     private final TransactionTemplate transaction;
     private final ApplicationEventPublisher evenements;
+    private final BlocageRepository blocages;
+    private final StockagePhotoProfil stockagePhoto;
+    private final StockagePieceJointe stockagePieceJointe;
 
     public ConversationService(ConversationRepository conversations, ParticipantRepository participants,
                                MessageRepository messages, UtilisateurRepository utilisateurs, AccesConversation acces,
                                MessagerieMapper mapper, PlatformTransactionManager gestionnaire,
-                               ApplicationEventPublisher evenements) {
+                               ApplicationEventPublisher evenements, BlocageRepository blocages,
+                               StockagePhotoProfil stockagePhoto, StockagePieceJointe stockagePieceJointe) {
         this.conversations = conversations;
         this.participants = participants;
         this.messages = messages;
@@ -61,6 +70,9 @@ public class ConversationService {
         this.mapper = mapper;
         this.transaction = new TransactionTemplate(gestionnaire);
         this.evenements = evenements;
+        this.blocages = blocages;
+        this.stockagePhoto = stockagePhoto;
+        this.stockagePieceJointe = stockagePieceJointe;
     }
 
     /** Résultat de l'ouverture d'une conversation directe : {@code creee} décide entre 201 et 200. */
@@ -80,10 +92,11 @@ public class ConversationService {
         Map<UUID, Long> nonLus = messages.compterNonLusParConversation(moi, ids).stream()
             .collect(Collectors.toMap(MessageRepository.NombreParConversation::getConversationId,
                 MessageRepository.NombreParConversation::getNombre));
+        List<BlocageRepository.Paire> paires = blocages.findPairesImpliquant(moi);
 
         return PageResponse.depuis(resultat.map(conversation -> versLigne(conversation, moi,
             membres.getOrDefault(conversation.getId(), List.of()), derniers.get(conversation.getId()),
-            nonLus.getOrDefault(conversation.getId(), 0L))));
+            nonLus.getOrDefault(conversation.getId(), 0L), paires)));
     }
 
     /**
@@ -97,7 +110,15 @@ public class ConversationService {
         String cle = Conversation.cleDirecte(moi, destinataireId);
         Ouverture existante = transaction.execute(statut -> {
             acces.chargerJoignable(destinataireId);
-            return conversations.findByCleDirecte(cle).map(c -> new Ouverture(ligne(c, moi), false)).orElse(null);
+            Ouverture trouvee = conversations.findByCleDirecte(cle).map(c -> new Ouverture(ligne(c, moi), false)).orElse(null);
+            // Une conversation existante se relit toujours ; une nouvelle ne s'ouvre pas à travers un blocage.
+            if (trouvee == null && blocages.existsByBloqueurIdAndBloqueId(moi, destinataireId)) {
+                throw new ConflitMessagerieException(AccesConversation.J_AI_BLOQUE);
+            }
+            if (trouvee == null && blocages.existsByBloqueurIdAndBloqueId(destinataireId, moi)) {
+                throw new MessagerieIntrouvableException("Ce membre est introuvable.");
+            }
+            return trouvee;
         });
         if (existante != null) return existante;
         try {
@@ -122,9 +143,11 @@ public class ConversationService {
         membreIds.remove(moi);
         List<Utilisateur> membres = membreIds.stream().map(acces::chargerJoignable).toList();
 
-        Conversation groupe = conversations.save(Conversation.groupe(requete.nom().trim()));
+        Conversation groupe = Conversation.groupe(requete.nom().trim());
+        groupe.setDescription(descriptionNettoyee(requete.description()));
+        groupe = conversations.save(groupe);
         participants.save(Participant.de(groupe, utilisateurs.getReferenceById(moi), RoleParticipant.ADMINISTRATEUR));
-        membres.forEach(membre -> participants.save(Participant.de(groupe, membre, RoleParticipant.MEMBRE)));
+        for (Utilisateur membre : membres) participants.save(Participant.de(groupe, membre, RoleParticipant.MEMBRE));
         participants.flush();
         signaler(groupe.getId());
         return detail(groupe, moi);
@@ -135,15 +158,84 @@ public class ConversationService {
         return detail(acces.chargerParticipant(conversationId, moi).getConversation(), moi);
     }
 
+    /** Nom et description du groupe ; un champ absent reste tel quel. */
     @Transactional
-    public ConversationDetailResponse renommer(UUID conversationId, UUID moi, String nom) {
-        Participant participant = acces.chargerParticipant(conversationId, moi);
-        Conversation conversation = participant.getConversation();
-        acces.exigerGroupe(conversation, "Une conversation directe n'a pas de nom à modifier.");
-        acces.exigerAdministrateur(participant, "Seul un administrateur du groupe peut le renommer.");
-        conversation.setNom(nom.trim());
+    public ConversationDetailResponse modifier(UUID conversationId, UUID moi, ModificationGroupeRequest requete) {
+        Conversation conversation = groupeAdministre(conversationId, moi, "Seul un administrateur du groupe peut le modifier.");
+        if (requete.nom() == null && requete.description() == null) {
+            throw new IllegalArgumentException("Indiquez le nom ou la description à modifier.");
+        }
+        if (requete.nom() != null) conversation.setNom(requete.nom().trim());
+        if (requete.description() != null) conversation.setDescription(descriptionNettoyee(requete.description()));
         signaler(conversationId);
         return detail(conversation, moi);
+    }
+
+    /** La photo est recadrée en carré de 600 px, comme une photo de profil ; l'ancienne quitte le disque après l'enregistrement. */
+    @Transactional
+    public ConversationDetailResponse changerPhoto(UUID conversationId, UUID moi, MultipartFile photo) {
+        Conversation conversation = groupeAdministre(conversationId, moi, "Seul un administrateur du groupe peut changer sa photo.");
+        String ancienne = conversation.getUrlPhoto();
+        String nouvelle = stockagePhoto.stocker(photo);
+        ApresTransaction.siAnnulee(() -> stockagePhoto.supprimerSiGeree(nouvelle));
+        ApresTransaction.siValidee(() -> stockagePhoto.supprimerSiGeree(ancienne));
+        conversation.setUrlPhoto(nouvelle);
+        signaler(conversationId);
+        return detail(conversation, moi);
+    }
+
+    @Transactional
+    public ConversationDetailResponse retirerPhoto(UUID conversationId, UUID moi) {
+        Conversation conversation = groupeAdministre(conversationId, moi, "Seul un administrateur du groupe peut retirer sa photo.");
+        String ancienne = conversation.getUrlPhoto();
+        if (ancienne != null) {
+            conversation.setUrlPhoto(null);
+            ApresTransaction.siValidee(() -> stockagePhoto.supprimerSiGeree(ancienne));
+            signaler(conversationId);
+        }
+        return detail(conversation, moi);
+    }
+
+    /** Nomme un membre administrateur ou lui retire ce rôle ; le groupe garde toujours au moins un administrateur. */
+    @Transactional
+    public ConversationDetailResponse changerRole(UUID conversationId, UUID moi, UUID utilisateurId, RoleParticipant role) {
+        groupeAdministre(conversationId, moi, "Seul un administrateur du groupe peut changer les rôles.");
+        Conversation groupe = verrouiller(conversationId);
+        Participant cible = participants.findByConversationIdAndUtilisateurId(conversationId, utilisateurId)
+            .orElseThrow(() -> new MessagerieIntrouvableException("Ce membre ne fait pas partie du groupe."));
+        if (cible.getRole() == role) return detail(groupe, moi);
+        if (role == RoleParticipant.MEMBRE
+                && participants.countByConversationIdAndRole(conversationId, RoleParticipant.ADMINISTRATEUR) <= 1) {
+            throw new ConflitMessagerieException("Le groupe garde au moins un administrateur : nommez-en un autre d'abord.");
+        }
+        cible.setRole(role);
+        participants.flush();
+        signaler(conversationId);
+        return detail(groupe, moi);
+    }
+
+    /**
+     * Supprime le groupe pour tout le monde, avec ses messages ; les fichiers joints et la photo quittent le disque
+     * une fois la suppression enregistrée. Les participants sont prévenus en temps réel avant de perdre l'accès.
+     */
+    @Transactional
+    public void supprimerGroupe(UUID conversationId, UUID moi) {
+        groupeAdministre(conversationId, moi, "Seul un administrateur du groupe peut le supprimer.");
+        Conversation groupe = verrouiller(conversationId);
+        Set<UUID> aPrevenir = participants.findUtilisateurIds(conversationId);
+        List<String> fichiers = messages.findFichiersJoints(conversationId);
+        String photo = groupe.getUrlPhoto();
+
+        messages.supprimerDeConversation(conversationId);
+        participants.supprimerDeConversation(conversationId);
+        conversations.deleteById(conversationId);
+        conversations.flush();
+
+        ApresTransaction.siValidee(() -> {
+            fichiers.forEach(stockagePieceJointe::supprimer);
+            stockagePhoto.supprimerSiGeree(photo);
+        });
+        signaler(conversationId, aPrevenir);
     }
 
     @Transactional
@@ -193,6 +285,32 @@ public class ConversationService {
         evenements.publishEvent(new EvenementMessagerie(destinataires, EvenementMessagerie.Type.CONVERSATION, conversationId));
     }
 
+    private Conversation groupeAdministre(UUID conversationId, UUID moi, String messageRefus) {
+        Participant participant = acces.chargerParticipant(conversationId, moi);
+        acces.exigerGroupe(participant.getConversation(), "Une conversation directe ne se modifie pas.");
+        acces.exigerAdministrateur(participant, messageRefus);
+        return participant.getConversation();
+    }
+
+    private static String descriptionNettoyee(String description) {
+        if (description == null) return null;
+        String texte = description.strip();
+        return texte.isEmpty() ? null : texte;
+    }
+
+    /** État d'écriture de mes conversations directes, d'après les blocages où j'apparais. */
+    private EtatEcriture ecriture(Conversation conversation, UUID moi, List<BlocageRepository.Paire> paires) {
+        if (conversation.getType() != TypeConversation.DIRECTE) return EtatEcriture.OUVERTE;
+        UUID autre = conversation.interlocuteurDe(moi);
+        if (paires.stream().anyMatch(p -> p.getBloqueurId().equals(moi) && p.getBloqueId().equals(autre))) {
+            return EtatEcriture.J_AI_BLOQUE;
+        }
+        if (paires.stream().anyMatch(p -> p.getBloqueurId().equals(autre) && p.getBloqueId().equals(moi))) {
+            return EtatEcriture.FERMEE;
+        }
+        return EtatEcriture.OUVERTE;
+    }
+
     private Conversation verrouiller(UUID conversationId) {
         return conversations.findByIdForUpdate(conversationId)
             .orElseThrow(() -> new MessagerieIntrouvableException(AccesConversation.CONVERSATION_INTROUVABLE));
@@ -205,11 +323,11 @@ public class ConversationService {
             .max(Comparator.comparing(Message::getId)).orElse(null);
         long nonLus = messages.compterNonLusParConversation(moi, List.of(id)).stream()
             .mapToLong(MessageRepository.NombreParConversation::getNombre).sum();
-        return versLigne(conversation, moi, membres, dernier, nonLus);
+        return versLigne(conversation, moi, membres, dernier, nonLus, blocages.findPairesImpliquant(moi));
     }
 
     private ConversationResponse versLigne(Conversation conversation, UUID moi, List<Participant> membres,
-                                           Message dernier, long nonLus) {
+                                           Message dernier, long nonLus, List<BlocageRepository.Paire> paires) {
         Participant interlocuteur = conversation.getType() == TypeConversation.DIRECTE
             ? membres.stream().filter(p -> !p.getUtilisateur().getId().equals(moi)).findFirst().orElse(null)
             : null;
@@ -219,7 +337,8 @@ public class ConversationService {
         String nom = conversation.getType() == TypeConversation.GROUPE
             ? conversation.getNom()
             : (autre == null ? "Conversation" : autre.nomAffiche());
-        return new ConversationResponse(conversation.getId(), conversation.getType(), nom, autre, membres.size(), monRole,
+        return new ConversationResponse(conversation.getId(), conversation.getType(), nom, autre, conversation.getUrlPhoto(),
+            membres.size(), monRole, ecriture(conversation, moi, paires),
             dernier == null ? null : mapper.versApercu(dernier), nonLus, conversation.getDernierMessageLe());
     }
 
@@ -233,7 +352,8 @@ public class ConversationService {
             ? conversation.getNom()
             : liste.stream().filter(m -> !m.id().equals(moi)).map(MembreConversationResponse::nomAffiche)
                 .findFirst().orElse("Conversation");
-        return new ConversationDetailResponse(conversation.getId(), conversation.getType(), nom, monRole,
-            conversation.getCreeLe(), liste);
+        return new ConversationDetailResponse(conversation.getId(), conversation.getType(), nom,
+            conversation.getDescription(), conversation.getUrlPhoto(), monRole,
+            ecriture(conversation, moi, blocages.findPairesImpliquant(moi)), conversation.getCreeLe(), liste);
     }
 }

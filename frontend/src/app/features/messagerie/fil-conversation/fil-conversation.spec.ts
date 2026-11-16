@@ -19,7 +19,8 @@ registerLocaleData(localeFr);
 
 const MOI = 'u-moi';
 const detailDirect: ConversationDetail = {
-  id: 'c-1', type: 'DIRECTE', nom: 'Moussa Ndiaye', monRole: 'MEMBRE', creeLe: '2026-11-14T09:00:00Z',
+  id: 'c-1', type: 'DIRECTE', nom: 'Moussa Ndiaye', description: null, urlPhoto: null, monRole: 'MEMBRE',
+  ecriture: 'OUVERTE', creeLe: '2026-11-14T09:00:00Z',
   participants: [
     { id: MOI, prenom: 'Awa', nom: 'Diop', nomAffiche: 'Awa Diop', urlPhoto: null, role: 'ALUMNI', roleParticipant: 'MEMBRE' },
     { id: 'u-2', prenom: 'Moussa', nom: 'Ndiaye', nomAffiche: 'Moussa Ndiaye', urlPhoto: null, role: 'ETUDIANT', roleParticipant: 'MEMBRE' },
@@ -63,8 +64,8 @@ describe('FilConversation', () => {
 
   afterEach(() => http.verify());
 
-  async function charger(messages: Message[], plusAnciens = false): Promise<void> {
-    http.expectOne('/api/messagerie/conversations/c-1').flush(detailDirect);
+  async function charger(messages: Message[], plusAnciens = false, detail = detailDirect): Promise<void> {
+    http.expectOne('/api/messagerie/conversations/c-1').flush(detail);
     http.expectOne((req) => req.url === '/api/messagerie/conversations/c-1/messages').flush({ messages, plusAnciens });
     await fixture.whenStable();
     fixture.detectChanges();
@@ -86,6 +87,50 @@ describe('FilConversation', () => {
     expect(etat.marquerLue).toHaveBeenCalledWith('c-1');
     // Flux ouvert : le badge est recompté par le signal « lu », pas une seconde fois ici.
     expect(compteur.actualiser).not.toHaveBeenCalled();
+  });
+
+  it('bloque l’interlocuteur après confirmation, puis remplace la saisie par le bouton « Débloquer »', async () => {
+    await charger([message('m1', 'Bonjour Awa', false)]);
+    http.expectOne('/api/messagerie/conversations/c-1/lu').flush(null);
+    const racine = fixture.nativeElement as HTMLElement;
+    const boutons = () => [...racine.querySelectorAll('button')];
+
+    boutons().find((b) => b.textContent?.trim() === 'Bloquer')?.click();
+    fixture.detectChanges();
+    expect(racine.querySelector('app-zone-saisie')).toBeNull();
+    expect(racine.querySelector('app-bandeau-blocage')?.textContent).toContain('Bloquer Moussa Ndiaye ?');
+
+    racine.querySelector<HTMLButtonElement>('app-bandeau-blocage .danger')?.click();
+    const blocage = http.expectOne('/api/messagerie/blocages/u-2');
+    expect(blocage.request.method).toBe('PUT');
+    blocage.flush(null);
+    await fixture.whenStable();
+    http.expectOne('/api/messagerie/conversations/c-1').flush({ ...detailDirect, ecriture: 'J_AI_BLOQUE' });
+    fixture.detectChanges();
+
+    expect(etat.actualiser).toHaveBeenCalled();
+    expect(racine.querySelector('app-bandeau-blocage')?.textContent).toContain('Vous avez bloqué Moussa Ndiaye');
+    expect(boutons().some((b) => b.textContent?.trim() === 'Bloquer')).toBe(false);
+
+    boutons().find((b) => b.textContent?.trim() === 'Débloquer')?.click();
+    const deblocage = http.expectOne('/api/messagerie/blocages/u-2');
+    expect(deblocage.request.method).toBe('DELETE');
+    deblocage.flush(null);
+    await fixture.whenStable();
+    http.expectOne('/api/messagerie/conversations/c-1').flush(detailDirect);
+    fixture.detectChanges();
+    expect(racine.querySelector('app-zone-saisie')).not.toBeNull();
+  });
+
+  it('ferme la saisie sans dire pourquoi quand l’interlocuteur m’a bloqué', async () => {
+    await charger([message('m1', 'Bonjour Awa', false)], false, { ...detailDirect, ecriture: 'FERMEE' });
+    http.expectOne('/api/messagerie/conversations/c-1/lu').flush(null);
+    const racine = fixture.nativeElement as HTMLElement;
+
+    expect(racine.querySelector('app-zone-saisie')).toBeNull();
+    const bandeau = racine.querySelector('app-bandeau-blocage')?.textContent ?? '';
+    expect(bandeau).toContain('Vous ne pouvez plus écrire dans cette conversation.');
+    expect(bandeau).not.toContain('bloqué');
   });
 
   it('recharge le fil quand le flux signale un message dans cette conversation, et seulement celle-ci', async () => {

@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -19,6 +20,15 @@ import ept.edu.sn.alumni_backend.messagerie.entity.Message;
  */
 public interface MessageRepository extends JpaRepository<Message, UUID> {
     long countByConversationId(UUID conversationId);
+
+    /** Fichiers joints d'une conversation, à retirer du disque quand on la supprime. */
+    @Query("select message.pieceJointe.fichier from Message message"
+        + " where message.conversation.id = :conversationId and message.pieceJointe.fichier is not null")
+    List<String> findFichiersJoints(@Param("conversationId") UUID conversationId);
+
+    @Modifying
+    @Query("delete from Message message where message.conversation.id = :conversationId")
+    void supprimerDeConversation(@Param("conversationId") UUID conversationId);
 
     /** Derniers messages, du plus récent au plus ancien. */
     @EntityGraph(attributePaths = "auteur")

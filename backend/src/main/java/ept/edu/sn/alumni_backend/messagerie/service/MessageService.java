@@ -71,6 +71,7 @@ public class MessageService {
     public MessageResponse envoyer(UUID conversationId, UUID moi, String contenu, MultipartFile fichier) {
         Participant auteur = acces.chargerParticipant(conversationId, moi);
         Conversation conversation = auteur.getConversation();
+        acces.exigerEcriture(conversation, moi);
         String texte = contenu == null ? "" : contenu.strip();
         boolean avecFichier = fichier != null && !fichier.isEmpty();
         if (texte.isEmpty() && !avecFichier) throw new IllegalArgumentException("Écrivez un message ou joignez un fichier.");

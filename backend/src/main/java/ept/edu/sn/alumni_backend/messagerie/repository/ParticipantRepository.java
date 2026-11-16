@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -25,6 +26,11 @@ public interface ParticipantRepository extends JpaRepository<Participant, UUID> 
 
     @EntityGraph(attributePaths = "utilisateur")
     List<Participant> findByConversationIdInOrderByRejointLeAsc(Collection<UUID> conversationIds);
+
+    /** Vide le contexte de persistance : les participants déjà chargés n'existent plus. */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("delete from Participant participant where participant.conversation.id = :conversationId")
+    void supprimerDeConversation(@Param("conversationId") UUID conversationId);
 
     long countByConversationIdAndRole(UUID conversationId, RoleParticipant role);
 

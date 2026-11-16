@@ -2,7 +2,7 @@ import { Conversation } from '../../core/services/models/messagerie.model';
 import { apercuConversation } from './apercu';
 
 const conversation = (type: 'DIRECTE' | 'GROUPE', dernier: Partial<Conversation['dernierMessage']> | null): Conversation => ({
-  id: 'c', type, nom: 'Nom', interlocuteur: null, nombreParticipants: 2, monRole: 'MEMBRE', nombreNonLus: 0,
+  id: 'c', type, nom: 'Nom', interlocuteur: null, urlPhoto: null, nombreParticipants: 2, monRole: 'MEMBRE', ecriture: 'OUVERTE', nombreNonLus: 0,
   dernierMessageLe: '2026-11-14T10:00:00Z',
   dernierMessage: dernier && { auteurId: 'autre', auteurNom: 'Awa Diop', contenu: 'Salut', supprime: false,
     envoyeLe: '2026-11-14T10:00:00Z', ...dernier },
