@@ -5,11 +5,12 @@ import localeFr from '@angular/common/locales/fr';
 import { LOCALE_ID, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { vi } from 'vitest';
 
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { CompteurMessages } from '../../../core/services/messagerie/compteur-messages';
+import { EvenementMessagerie, FluxMessagerie } from '../../../core/services/messagerie/flux-messagerie';
 import { ConversationDetail, Message } from '../../../core/services/models/messagerie.model';
 import { EtatConversations } from '../etat-conversations';
 import { FilConversation } from './fil-conversation';
@@ -35,9 +36,11 @@ describe('FilConversation', () => {
   let parametres: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
   const etat = { actualiser: vi.fn(), marquerLue: vi.fn() };
   const compteur = { actualiser: vi.fn() };
+  let signaux: Subject<EvenementMessagerie>;
 
   beforeEach(async () => {
     parametres = new BehaviorSubject(convertToParamMap({ id: 'c-1' }));
+    signaux = new Subject();
     etat.actualiser.mockClear();
     etat.marquerLue.mockClear();
     compteur.actualiser.mockClear();
@@ -49,6 +52,7 @@ describe('FilConversation', () => {
         { provide: ActivatedRoute, useValue: { paramMap: parametres } },
         { provide: EtatConversations, useValue: etat },
         { provide: CompteurMessages, useValue: compteur },
+        { provide: FluxMessagerie, useValue: { evenements: signaux, connecte: signal(true) } },
         { provide: AuthService, useValue: { utilisateur: signal({ id: MOI }) } },
       ],
     }).compileComponents();
@@ -80,7 +84,45 @@ describe('FilConversation', () => {
     expect(lu.request.method).toBe('PATCH');
     lu.flush(null);
     expect(etat.marquerLue).toHaveBeenCalledWith('c-1');
-    expect(compteur.actualiser).toHaveBeenCalled();
+    // Flux ouvert : le badge est recompté par le signal « lu », pas une seconde fois ici.
+    expect(compteur.actualiser).not.toHaveBeenCalled();
+  });
+
+  it('recharge le fil quand le flux signale un message dans cette conversation, et seulement celle-ci', async () => {
+    await charger([message('m1', 'Bonjour Awa', false)]);
+    http.expectOne('/api/messagerie/conversations/c-1/lu').flush(null);
+
+    signaux.next({ type: 'message', conversationId: 'autre' });
+    http.expectNone((req) => req.url.includes('/messages'));
+
+    signaux.next({ type: 'message', conversationId: 'c-1' });
+    http.expectOne((req) => req.url === '/api/messagerie/conversations/c-1/messages')
+      .flush({ messages: [message('m2', 'Tu es là ?', false, '2026-11-14T09:35:00Z')], plusAnciens: false });
+    http.expectOne('/api/messagerie/conversations/c-1/lu').flush(null);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const textes = [...(fixture.nativeElement as HTMLElement).querySelectorAll('.bulle p')].map((p) => p.textContent?.trim());
+    expect(textes).toEqual(['Bonjour Awa', 'Tu es là ?']);
+  });
+
+  it('ignore le signal « lu » : la lecture ne recharge ni le détail ni les messages', async () => {
+    await charger([message('m1', 'Bonjour Awa', false)]);
+    http.expectOne('/api/messagerie/conversations/c-1/lu').flush(null);
+
+    signaux.next({ type: 'lu', conversationId: 'c-1' });
+    http.expectNone((req) => req.url.startsWith('/api/messagerie/conversations/c-1'));
+  });
+
+  it('annonce que l’on ne fait plus partie de la conversation quand on en est retiré', async () => {
+    await charger([message('m1', 'Bonjour Awa', false)]);
+    http.expectOne('/api/messagerie/conversations/c-1/lu').flush(null);
+
+    signaux.next({ type: 'conversation', conversationId: 'c-1' });
+    http.expectOne('/api/messagerie/conversations/c-1').flush({ message: 'introuvable' }, { status: 404, statusText: 'Not Found' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).querySelector('[role="alert"]')?.textContent)
+      .toContain('ne faites plus partie');
   });
 
   it('charge les messages plus anciens avant le premier affiché', async () => {

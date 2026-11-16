@@ -6,10 +6,11 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
-  catchError, distinctUntilChanged, EMPTY, filter, forkJoin, map, of, switchMap, tap, timer,
+  catchError, distinctUntilChanged, EMPTY, filter, forkJoin, fromEvent, map, merge, of, switchMap, tap, timer,
 } from 'rxjs';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { CompteurMessages } from '../../../core/services/messagerie/compteur-messages';
+import { FluxMessagerie } from '../../../core/services/messagerie/flux-messagerie';
 import { MessagerieService } from '../../../core/services/messagerie/messagerie';
 import { ConversationDetail, Message } from '../../../core/services/models/messagerie.model';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
@@ -19,7 +20,7 @@ import { MessageFil } from '../message-fil/message-fil';
 import { ZoneSaisie } from '../zone-saisie/zone-saisie';
 import { fusionnerMessages, lignesDuFil } from './blocs-messages';
 
-/** Relève des nouveaux messages tant que le fil est ouvert et visible. */
+/** Relève de secours des nouveaux messages quand le flux temps réel est coupé. */
 export const INTERVALLE_FIL = 8_000;
 /** En deçà de cette distance du bas, un nouveau message fait défiler le fil jusqu’à lui. */
 const MARGE_BAS_PX = 120;
@@ -39,6 +40,7 @@ export class FilConversation {
   private readonly compteur = inject(CompteurMessages);
   private readonly authService = inject(AuthService);
   private readonly document = inject(DOCUMENT);
+  private readonly flux = inject(FluxMessagerie);
   private readonly injector = inject(Injector);
   private readonly locale = inject(LOCALE_ID);
   private readonly zone = viewChild<ElementRef<HTMLElement>>('zone');
@@ -101,11 +103,33 @@ export class FilConversation {
       this.marquerLu();
     });
 
-    timer(INTERVALLE_FIL, INTERVALLE_FIL).pipe(
+    // Nouveaux messages : signal du flux pour cette conversation, reconnexion, retour sur l’onglet
+    // (un signal reçu onglet caché est ignoré : rien n’est marqué lu sans être vu), ou relève de secours.
+    const retour = fromEvent(this.document, 'visibilitychange');
+    const signaux = this.flux.evenements.pipe(filter((evenement) =>
+      evenement.type === 'pret' || (evenement.type === 'message' && evenement.conversationId === this.conversationId())));
+    const secours = timer(INTERVALLE_FIL, INTERVALLE_FIL).pipe(filter(() => !this.flux.connecte()));
+    merge(signaux, secours, retour).pipe(
       filter(() => this.document.visibilityState !== 'hidden' && !this.chargement() && !this.erreur()),
       switchMap(() => this.messagerie.listerMessages(this.conversationId()).pipe(catchError(() => EMPTY))),
       takeUntilDestroyed(destroyRef),
     ).subscribe(({ messages }) => this.integrer(messages));
+
+    // Nom ou membres changés ailleurs ; si l’on m’a retiré du groupe, le fil l’annonce.
+    this.flux.evenements.pipe(
+      filter((evenement) => evenement.type === 'conversation' && evenement.conversationId === this.conversationId()),
+      filter(() => !this.chargement() && !this.erreur()),
+      switchMap(() => this.messagerie.obtenir(this.conversationId()).pipe(
+        map((detail) => ({ detail, perdue: false })),
+        catchError((erreur: HttpErrorResponse) => erreur.status === 404 ? of({ detail: null, perdue: true }) : EMPTY))),
+      takeUntilDestroyed(destroyRef),
+    ).subscribe(({ detail, perdue }) => {
+      if (detail) this.detail.set(detail);
+      if (perdue) {
+        this.detailsOuverts.set(false);
+        this.erreur.set('Vous ne faites plus partie de cette conversation.');
+      }
+    });
   }
 
   protected chargerAnciens(): void {
@@ -180,7 +204,8 @@ export class FilConversation {
     const id = this.conversationId();
     this.messagerie.marquerLu(id).pipe(catchError(() => EMPTY)).subscribe(() => {
       this.etat.marquerLue(id);
-      this.compteur.actualiser();
+      // Flux ouvert : le signal « lu » recompte déjà le badge.
+      if (!this.flux.connecte()) this.compteur.actualiser();
     });
   }
 

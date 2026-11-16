@@ -3,6 +3,8 @@ package ept.edu.sn.alumni_backend.security;
 import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import java.util.List;
 
+import jakarta.servlet.DispatcherType;
+
 import org.springframework.http.HttpMethod;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -74,6 +76,8 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // Fin d'une réponse asynchrone (flux SSE) : la requête d'origine a déjà été authentifiée.
+                .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
                 .requestMatchers(
                     "/api/auth/register",
                     "/api/auth/login",

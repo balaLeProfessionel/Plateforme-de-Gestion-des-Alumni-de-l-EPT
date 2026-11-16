@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -19,6 +20,8 @@ import ept.edu.sn.alumni_backend.messagerie.entity.Message;
 import ept.edu.sn.alumni_backend.messagerie.entity.Participant;
 import ept.edu.sn.alumni_backend.messagerie.exception.MessagerieIntrouvableException;
 import ept.edu.sn.alumni_backend.messagerie.repository.MessageRepository;
+import ept.edu.sn.alumni_backend.messagerie.repository.ParticipantRepository;
+import ept.edu.sn.alumni_backend.messagerie.tempsreel.EvenementMessagerie;
 import ept.edu.sn.alumni_backend.notification.NouvelleNotification;
 import ept.edu.sn.alumni_backend.notification.TypeNotification;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MessageService {
     private final MessageRepository messages;
+    private final ParticipantRepository participants;
     private final AccesConversation acces;
     private final MessagerieMapper mapper;
     private final ApplicationEventPublisher evenements;
@@ -61,6 +65,7 @@ public class MessageService {
         messages.flush();
 
         notifierPremierNonLu(conversation, message);
+        signaler(conversationId, EvenementMessagerie.Type.MESSAGE);
         return mapper.versMessage(message, moi);
     }
 
@@ -77,16 +82,24 @@ public class MessageService {
         if (message.estSupprime()) return;
         message.setSupprimeLe(Instant.now());
         message.setContenu("");
+        signaler(conversationId, EvenementMessagerie.Type.MESSAGE);
     }
 
     @Transactional
     public void marquerLu(UUID conversationId, UUID moi) {
         acces.chargerParticipant(conversationId, moi).setDernierLuLe(Instant.now());
+        // Mes autres onglets effacent la pastille de cette conversation.
+        evenements.publishEvent(new EvenementMessagerie(Set.of(moi), EvenementMessagerie.Type.LU, conversationId));
     }
 
     @Transactional(readOnly = true)
     public long compterNonLus(UUID moi) {
         return messages.compterNonLus(moi);
+    }
+
+    /** Prévient en temps réel tous les participants, auteur compris (ses autres onglets). */
+    private void signaler(UUID conversationId, EvenementMessagerie.Type type) {
+        evenements.publishEvent(new EvenementMessagerie(participants.findUtilisateurIds(conversationId), type, conversationId));
     }
 
     /** Une notification par conversation tant qu'elle reste non lue : seulement pour qui n'a que ce message à lire. */

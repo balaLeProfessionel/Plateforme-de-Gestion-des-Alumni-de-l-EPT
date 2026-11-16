@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +33,7 @@ import ept.edu.sn.alumni_backend.messagerie.exception.MessagerieIntrouvableExcep
 import ept.edu.sn.alumni_backend.messagerie.repository.ConversationRepository;
 import ept.edu.sn.alumni_backend.messagerie.repository.MessageRepository;
 import ept.edu.sn.alumni_backend.messagerie.repository.ParticipantRepository;
+import ept.edu.sn.alumni_backend.messagerie.tempsreel.EvenementMessagerie;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 
@@ -45,10 +47,12 @@ public class ConversationService {
     private final AccesConversation acces;
     private final MessagerieMapper mapper;
     private final TransactionTemplate transaction;
+    private final ApplicationEventPublisher evenements;
 
     public ConversationService(ConversationRepository conversations, ParticipantRepository participants,
                                MessageRepository messages, UtilisateurRepository utilisateurs, AccesConversation acces,
-                               MessagerieMapper mapper, PlatformTransactionManager gestionnaire) {
+                               MessagerieMapper mapper, PlatformTransactionManager gestionnaire,
+                               ApplicationEventPublisher evenements) {
         this.conversations = conversations;
         this.participants = participants;
         this.messages = messages;
@@ -56,6 +60,7 @@ public class ConversationService {
         this.acces = acces;
         this.mapper = mapper;
         this.transaction = new TransactionTemplate(gestionnaire);
+        this.evenements = evenements;
     }
 
     /** Résultat de l'ouverture d'une conversation directe : {@code creee} décide entre 201 et 200. */
@@ -101,6 +106,7 @@ public class ConversationService {
                 participants.save(Participant.de(conversation, utilisateurs.getReferenceById(moi), RoleParticipant.MEMBRE));
                 participants.save(Participant.de(conversation, acces.chargerJoignable(destinataireId), RoleParticipant.MEMBRE));
                 participants.flush();
+                signaler(conversation.getId(), Set.of(moi, destinataireId));
                 return new Ouverture(ligne(conversation, moi), true);
             });
         } catch (DataIntegrityViolationException doublon) {
@@ -120,6 +126,7 @@ public class ConversationService {
         participants.save(Participant.de(groupe, utilisateurs.getReferenceById(moi), RoleParticipant.ADMINISTRATEUR));
         membres.forEach(membre -> participants.save(Participant.de(groupe, membre, RoleParticipant.MEMBRE)));
         participants.flush();
+        signaler(groupe.getId());
         return detail(groupe, moi);
     }
 
@@ -135,6 +142,7 @@ public class ConversationService {
         acces.exigerGroupe(conversation, "Une conversation directe n'a pas de nom à modifier.");
         acces.exigerAdministrateur(participant, "Seul un administrateur du groupe peut le renommer.");
         conversation.setNom(nom.trim());
+        signaler(conversationId);
         return detail(conversation, moi);
     }
 
@@ -150,6 +158,7 @@ public class ConversationService {
             participants.save(Participant.de(groupe, acces.chargerJoignable(membreId), RoleParticipant.MEMBRE));
         }
         participants.flush();
+        signaler(conversationId);
         return detail(groupe, moi);
     }
 
@@ -164,13 +173,24 @@ public class ConversationService {
         verrouiller(conversationId);
         Participant retire = participants.findByConversationIdAndUtilisateurId(conversationId, utilisateurId)
             .orElseThrow(() -> new MessagerieIntrouvableException("Ce membre ne fait pas partie du groupe."));
+        Set<UUID> aPrevenir = participants.findUtilisateurIds(conversationId);
         participants.delete(retire);
         participants.flush();
+        signaler(conversationId, aPrevenir);
 
         if (participants.countByConversationIdAndRole(conversationId, RoleParticipant.ADMINISTRATEUR) == 0) {
             participants.findByConversationIdOrderByRejointLeAsc(conversationId).stream().findFirst()
                 .ifPresent(plusAncien -> plusAncien.setRole(RoleParticipant.ADMINISTRATEUR));
         }
+    }
+
+    /** Nom, membres ou rôles ont changé : chaque participant recharge le détail et sa liste. */
+    private void signaler(UUID conversationId) {
+        signaler(conversationId, participants.findUtilisateurIds(conversationId));
+    }
+
+    private void signaler(UUID conversationId, Set<UUID> destinataires) {
+        evenements.publishEvent(new EvenementMessagerie(destinataires, EvenementMessagerie.Type.CONVERSATION, conversationId));
     }
 
     private Conversation verrouiller(UUID conversationId) {

@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
 import ept.edu.sn.alumni_backend.messagerie.dto.AjoutParticipantsRequest;
@@ -31,6 +33,7 @@ import ept.edu.sn.alumni_backend.messagerie.dto.PageMessagesResponse;
 import ept.edu.sn.alumni_backend.messagerie.dto.RenommageGroupeRequest;
 import ept.edu.sn.alumni_backend.messagerie.service.ConversationService;
 import ept.edu.sn.alumni_backend.messagerie.service.MessageService;
+import ept.edu.sn.alumni_backend.messagerie.tempsreel.DiffuseurMessagerie;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -45,6 +48,13 @@ import lombok.RequiredArgsConstructor;
 public class MessagerieController {
     private final ConversationService conversationService;
     private final MessageService messageService;
+    private final DiffuseurMessagerie diffuseur;
+
+    /** Flux temps réel (Server-Sent Events) : de courts signaux « telle conversation a changé ». */
+    @GetMapping(value = "/flux", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter flux(@AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return diffuseur.ouvrir(moi(principal));
+    }
 
     @GetMapping("/conversations")
     public PageResponse<ConversationResponse> lister(@RequestParam(defaultValue = "0") @Min(0) int page,

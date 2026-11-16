@@ -1,12 +1,13 @@
 import { DOCUMENT } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
-import { catchError, filter, map, of, Subject, switchMap, timer } from 'rxjs';
+import { catchError, debounceTime, filter, map, of, Subject, switchMap, timer } from 'rxjs';
 import { CompteurMessages } from '../../core/services/messagerie/compteur-messages';
+import { FluxMessagerie } from '../../core/services/messagerie/flux-messagerie';
 import { MessagerieService } from '../../core/services/messagerie/messagerie';
 import { Conversation } from '../../core/services/models/messagerie.model';
 
-/** Relève de la liste pendant que la messagerie est ouverte. */
+/** Relève de secours de la liste quand le flux temps réel est coupé. */
 export const INTERVALLE_LISTE_CONVERSATIONS = 30_000;
 
 /**
@@ -19,6 +20,7 @@ export class EtatConversations {
   private readonly messagerie = inject(MessagerieService);
   private readonly compteur = inject(CompteurMessages);
   private readonly document = inject(DOCUMENT);
+  private readonly flux = inject(FluxMessagerie);
   private readonly demandes = new Subject<void>();
 
   private readonly conversationsSignal = signal<Conversation[]>([]);
@@ -51,11 +53,14 @@ export class EtatConversations {
       this.erreurSignal.set(conversations || this.chargeeSignal() ? null : erreur);
       this.chargementSignal.set(false);
     });
+    // Le badge suit le flux de lui-même : seule la liste est rechargée ici.
+    const signaux = this.flux.evenements.pipe(debounceTime(300)).subscribe(() => this.demandes.next());
     const releve = timer(INTERVALLE_LISTE_CONVERSATIONS, INTERVALLE_LISTE_CONVERSATIONS)
-      .pipe(filter(() => this.document.visibilityState !== 'hidden'))
+      .pipe(filter(() => !this.flux.connecte() && this.document.visibilityState !== 'hidden'))
       .subscribe(() => this.actualiser());
     inject(DestroyRef).onDestroy(() => {
       abonnement.unsubscribe();
+      signaux.unsubscribe();
       releve.unsubscribe();
     });
     this.actualiser();

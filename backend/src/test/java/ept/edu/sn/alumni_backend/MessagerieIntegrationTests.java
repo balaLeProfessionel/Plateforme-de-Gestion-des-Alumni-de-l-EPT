@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.UUID;
@@ -21,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -293,7 +295,65 @@ class MessagerieIntegrationTests {
             .andExpect(jsonPath("$.participants", hasSize(1)));
     }
 
+    // --- Temps réel ---
+
+    @Test
+    void m14_leFluxSOuvreParUnSignalPretEtResteFermeSansConnexion() throws Exception {
+        mockMvc.perform(get(API + "/flux")).andExpect(status().isForbidden());
+
+        MockHttpServletResponse flux = ouvrirFlux(membre("Awa", TypeRole.ALUMNI));
+        assertThat(flux.getContentType()).startsWith(MediaType.TEXT_EVENT_STREAM_VALUE);
+        assertThat(flux.getContentAsString()).contains("event:pret");
+    }
+
+    @Test
+    void m15_unMessagePrevientLesParticipantsEtPersonneDAutre() throws Exception {
+        Utilisateur awa = membre("Awa", TypeRole.ALUMNI);
+        Utilisateur moussa = membre("Moussa", TypeRole.ETUDIANT);
+        Utilisateur intrus = membre("Intrus", TypeRole.ALUMNI);
+        String id = JsonPath.read(ouvrirDirecte(awa, moussa).andReturn().getResponse().getContentAsString(), "$.id");
+        MockHttpServletResponse fluxMoussa = ouvrirFlux(moussa);
+        MockHttpServletResponse fluxIntrus = ouvrirFlux(intrus);
+
+        envoyer(awa, id, "Bonjour").andExpect(status().isCreated());
+
+        // Le signal ne porte que l'identifiant : le contenu se relit par l'API, qui vérifie les droits.
+        assertThat(fluxMoussa.getContentAsString())
+            .contains("event:message")
+            .contains("\"conversationId\":\"" + id + "\"")
+            .doesNotContain("Bonjour");
+        assertThat(fluxIntrus.getContentAsString()).doesNotContain("event:message").doesNotContain(id);
+    }
+
+    @Test
+    void m16_lireOuQuitterUneConversationPrevientLesBonnesPersonnes() throws Exception {
+        Utilisateur awa = membre("Awa", TypeRole.ALUMNI);
+        Utilisateur moussa = membre("Moussa", TypeRole.ALUMNI);
+        Utilisateur fatou = membre("Fatou", TypeRole.ALUMNI);
+        String id = idDe(creerGroupe(awa, "Bureau", moussa, fatou));
+        MockHttpServletResponse fluxAwa = ouvrirFlux(awa);
+        MockHttpServletResponse fluxFatou = ouvrirFlux(fatou);
+        MockHttpServletResponse fluxMoussa = ouvrirFlux(moussa);
+
+        // Lire ne concerne que moi (mes autres onglets), par un signal distinct que le fil ignore.
+        mockMvc.perform(authentifie(patch(API + "/conversations/{id}/lu", id), moussa)).andExpect(status().isNoContent());
+        assertThat(fluxMoussa.getContentAsString()).contains("event:lu").contains(id).doesNotContain("event:conversation");
+        assertThat(fluxAwa.getContentAsString()).doesNotContain("event:lu").doesNotContain("event:conversation");
+
+        // La personne retirée est prévenue aussi : son onglet quitte la conversation.
+        mockMvc.perform(authentifie(delete(API + "/conversations/{id}/participants/{u}", id, fatou.getId()), awa))
+            .andExpect(status().isNoContent());
+        assertThat(fluxFatou.getContentAsString()).contains("event:conversation").contains(id);
+        assertThat(fluxAwa.getContentAsString()).contains("event:conversation");
+    }
+
     // --- Outils ---
+
+    private MockHttpServletResponse ouvrirFlux(Utilisateur utilisateur) throws Exception {
+        return mockMvc.perform(authentifie(get(API + "/flux"), utilisateur).accept(MediaType.TEXT_EVENT_STREAM))
+            .andExpect(request().asyncStarted())
+            .andReturn().getResponse();
+    }
 
     private Utilisateur membre(String prenom, TypeRole role) {
         Utilisateur utilisateur = new Utilisateur();
