@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -52,6 +53,10 @@ public class Message {
 
     private Instant supprimeLe;
 
+    /** Absente pour un message sans fichier, et effacée avec le message. */
+    @Embedded
+    private PieceJointe pieceJointe;
+
     @PrePersist
     void avantCreation() {
         if (envoyeLe == null) envoyeLe = Instant.now();
@@ -59,5 +64,10 @@ public class Message {
 
     public boolean estSupprime() {
         return supprimeLe != null;
+    }
+
+    /** Hibernate rend un objet vide plutôt que {@code null} quand les colonnes sont toutes nulles. */
+    public boolean aPieceJointe() {
+        return pieceJointe != null && pieceJointe.getFichier() != null;
     }
 }

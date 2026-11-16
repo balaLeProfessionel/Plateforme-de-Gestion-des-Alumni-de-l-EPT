@@ -7,11 +7,14 @@ import java.util.stream.Stream;
 
 import org.springframework.stereotype.Component;
 
+import ept.edu.sn.alumni_backend.messagerie.TypePieceJointe;
 import ept.edu.sn.alumni_backend.messagerie.dto.ApercuMessageResponse;
 import ept.edu.sn.alumni_backend.messagerie.dto.MembreConversationResponse;
 import ept.edu.sn.alumni_backend.messagerie.dto.MessageResponse;
+import ept.edu.sn.alumni_backend.messagerie.dto.PieceJointeResponse;
 import ept.edu.sn.alumni_backend.messagerie.entity.Message;
 import ept.edu.sn.alumni_backend.messagerie.entity.Participant;
+import ept.edu.sn.alumni_backend.messagerie.entity.PieceJointe;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 
 @Component
@@ -28,13 +31,23 @@ public class MessagerieMapper {
         Utilisateur auteur = message.getAuteur();
         return new MessageResponse(message.getId(), auteur.getId(), nomAffiche(auteur), auteur.getUrlPhoto(),
             message.estSupprime() ? null : message.getContenu(), message.estSupprime(), message.getEnvoyeLe(),
-            auteur.getId().equals(moi));
+            auteur.getId().equals(moi), versPieceJointe(message));
     }
 
     public ApercuMessageResponse versApercu(Message message) {
-        String contenu = message.estSupprime() ? null : tronquer(message.getContenu());
+        String texte = message.getContenu();
+        // Un fichier envoyé seul s'annonce par son nom dans la liste.
+        if (texte.isBlank() && message.aPieceJointe()) texte = "Pièce jointe : " + message.getPieceJointe().getNom();
+        String contenu = message.estSupprime() ? null : tronquer(texte);
         return new ApercuMessageResponse(message.getAuteur().getId(), nomAffiche(message.getAuteur()), contenu,
             message.estSupprime(), message.getEnvoyeLe());
+    }
+
+    private static PieceJointeResponse versPieceJointe(Message message) {
+        if (message.estSupprime() || !message.aPieceJointe()) return null;
+        PieceJointe piece = message.getPieceJointe();
+        boolean image = TypePieceJointe.depuisTypeMime(piece.getType()).map(TypePieceJointe::image).orElse(false);
+        return new PieceJointeResponse(piece.getNom(), piece.getType(), piece.getTaille(), image);
     }
 
     /** Prénom et nom, ou nom de l'organisme pour un compte organisme ; jamais l'adresse e-mail. */

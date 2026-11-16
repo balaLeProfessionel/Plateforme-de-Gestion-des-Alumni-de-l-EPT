@@ -6,13 +6,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.IntConsumer;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.multipart.MultipartFile;
 
 import ept.edu.sn.alumni_backend.messagerie.TypeConversation;
+import ept.edu.sn.alumni_backend.messagerie.TypePieceJointe;
+import ept.edu.sn.alumni_backend.messagerie.entity.PieceJointe;
 import ept.edu.sn.alumni_backend.messagerie.dto.MessageResponse;
 import ept.edu.sn.alumni_backend.messagerie.dto.PageMessagesResponse;
 import ept.edu.sn.alumni_backend.messagerie.entity.Conversation;
@@ -35,6 +42,7 @@ public class MessageService {
     private final AccesConversation acces;
     private final MessagerieMapper mapper;
     private final ApplicationEventPublisher evenements;
+    private final StockagePieceJointe stockage;
 
     /** Page de l'historique : les {@code taille} messages avant {@code avant} (ou les derniers), du plus ancien au plus récent. */
     @Transactional(readOnly = true)
@@ -52,13 +60,33 @@ public class MessageService {
 
     @Transactional
     public MessageResponse envoyer(UUID conversationId, UUID moi, String contenu) {
+        return envoyer(conversationId, moi, contenu, null);
+    }
+
+    /**
+     * Texte, fichier ou les deux. Le droit d'écrire est vérifié avant d'écrire le fichier sur le disque ;
+     * si la transaction échoue ensuite, le fichier est retiré.
+     */
+    @Transactional
+    public MessageResponse envoyer(UUID conversationId, UUID moi, String contenu, MultipartFile fichier) {
         Participant auteur = acces.chargerParticipant(conversationId, moi);
         Conversation conversation = auteur.getConversation();
+        String texte = contenu == null ? "" : contenu.strip();
+        boolean avecFichier = fichier != null && !fichier.isEmpty();
+        if (texte.isEmpty() && !avecFichier) throw new IllegalArgumentException("Écrivez un message ou joignez un fichier.");
+        if (texte.length() > Message.LONGUEUR_MAX_CONTENU) {
+            throw new IllegalArgumentException("Un message fait au plus " + Message.LONGUEUR_MAX_CONTENU + " caractères");
+        }
 
         Message message = new Message();
         message.setConversation(conversation);
         message.setAuteur(auteur.getUtilisateur());
-        message.setContenu(contenu.trim());
+        message.setContenu(texte);
+        if (avecFichier) {
+            PieceJointe piece = stockage.stocker(fichier);
+            apresTransaction(statut -> { if (statut != TransactionSynchronization.STATUS_COMMITTED) stockage.supprimer(piece.getFichier()); });
+            message.setPieceJointe(piece);
+        }
         messages.save(message);
         conversation.setDernierMessageLe(message.getEnvoyeLe());
         auteur.setDernierLuLe(message.getEnvoyeLe());
@@ -82,7 +110,36 @@ public class MessageService {
         if (message.estSupprime()) return;
         message.setSupprimeLe(Instant.now());
         message.setContenu("");
+        if (message.aPieceJointe()) {
+            String fichier = message.getPieceJointe().getFichier();
+            message.setPieceJointe(null);
+            // Le fichier ne quitte le disque qu'une fois la suppression enregistrée.
+            apresTransaction(statut -> { if (statut == TransactionSynchronization.STATUS_COMMITTED) stockage.supprimer(fichier); });
+        }
         signaler(conversationId, EvenementMessagerie.Type.MESSAGE);
+    }
+
+    /** Fichier joint d'un message, pour un participant seulement ; 404 pour les autres ou un message supprimé. */
+    @Transactional(readOnly = true)
+    public FichierJoint lirePieceJointe(UUID conversationId, UUID messageId, UUID moi) {
+        acces.chargerParticipant(conversationId, moi);
+        Message message = messages.findById(messageId)
+            .filter(m -> m.getConversation().getId().equals(conversationId) && !m.estSupprime() && m.aPieceJointe())
+            .orElseThrow(() -> new MessagerieIntrouvableException("Ce fichier est introuvable."));
+        PieceJointe piece = message.getPieceJointe();
+        boolean image = TypePieceJointe.depuisTypeMime(piece.getType()).map(TypePieceJointe::image).orElse(false);
+        return new FichierJoint(stockage.lire(piece.getFichier()), piece.getNom(), piece.getType(), image);
+    }
+
+    public record FichierJoint(Resource contenu, String nom, String type, boolean image) {}
+
+    private static void apresTransaction(IntConsumer action) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int statut) {
+                action.accept(statut);
+            }
+        });
     }
 
     @Transactional

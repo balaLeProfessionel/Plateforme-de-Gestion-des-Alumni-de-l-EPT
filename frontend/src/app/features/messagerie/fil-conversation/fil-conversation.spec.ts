@@ -27,7 +27,7 @@ const detailDirect: ConversationDetail = {
 };
 const message = (id: string, contenu: string, deMoi: boolean, envoyeLe = '2026-11-14T09:30:00Z'): Message => ({
   id, auteurId: deMoi ? MOI : 'u-2', auteurNom: deMoi ? 'Awa Diop' : 'Moussa Ndiaye', auteurPhoto: null,
-  contenu, supprime: false, envoyeLe, deMoi,
+  contenu, supprime: false, envoyeLe, deMoi, pieceJointe: null,
 });
 
 describe('FilConversation', () => {

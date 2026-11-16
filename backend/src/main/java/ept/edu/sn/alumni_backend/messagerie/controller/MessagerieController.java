@@ -1,10 +1,16 @@
 package ept.edu.sn.alumni_backend.messagerie.controller;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.CacheControl;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,7 +23,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
@@ -114,11 +122,42 @@ public class MessagerieController {
         return messageService.lister(id, moi(principal), avant, taille);
     }
 
-    @PostMapping("/conversations/{id}/messages")
+    @PostMapping(value = "/conversations/{id}/messages", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<MessageResponse> envoyer(@PathVariable UUID id, @Valid @RequestBody MessageRequest requete,
                                                    @AuthenticationPrincipal UtilisateurPrincipal principal) {
-        MessageResponse message = messageService.envoyer(id, moi(principal), requete.contenu());
-        return ResponseEntity.created(URI.create("/api/messagerie/conversations/" + id + "/messages/" + message.id()))
+        return cree(id, messageService.envoyer(id, moi(principal), requete.contenu()));
+    }
+
+    /** Même route, en multipart : un fichier ({@code fichier}) avec ou sans texte ({@code contenu}). */
+    @PostMapping(value = "/conversations/{id}/messages", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MessageResponse> envoyerAvecFichier(@PathVariable UUID id,
+                                                              @RequestPart("fichier") MultipartFile fichier,
+                                                              @RequestParam(required = false) String contenu,
+                                                              @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return cree(id, messageService.envoyer(id, moi(principal), contenu, fichier));
+    }
+
+    /**
+     * Le fichier joint, pour les participants seulement. Une image s'affiche, le reste se télécharge ;
+     * {@code nosniff} et le bac à sable CSP empêchent qu'un fichier soit interprété comme une page.
+     */
+    @GetMapping("/conversations/{id}/messages/{messageId}/piece-jointe")
+    public ResponseEntity<Resource> pieceJointe(@PathVariable UUID id, @PathVariable UUID messageId,
+                                                @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        MessageService.FichierJoint fichier = messageService.lirePieceJointe(id, messageId, moi(principal));
+        ContentDisposition disposition = (fichier.image() ? ContentDisposition.inline() : ContentDisposition.attachment())
+            .filename(fichier.nom(), StandardCharsets.UTF_8).build();
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType(fichier.type()))
+            .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+            .header("X-Content-Type-Options", "nosniff")
+            .header("Content-Security-Policy", "sandbox; default-src 'none'")
+            .cacheControl(CacheControl.maxAge(Duration.ofHours(1)).cachePrivate())
+            .body(fichier.contenu());
+    }
+
+    private static ResponseEntity<MessageResponse> cree(UUID conversationId, MessageResponse message) {
+        return ResponseEntity.created(URI.create("/api/messagerie/conversations/" + conversationId + "/messages/" + message.id()))
             .body(message);
     }
 

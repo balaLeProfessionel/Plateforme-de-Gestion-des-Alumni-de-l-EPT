@@ -4,6 +4,7 @@ import { Component, inject, input, output, signal } from '@angular/core';
 import { MessagerieService } from '../../../core/services/messagerie/messagerie';
 import { Message } from '../../../core/services/models/messagerie.model';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
+import { PieceJointeMessage } from '../piece-jointe/piece-jointe-message';
 
 /**
  * Une bulle du fil : les miennes à droite, celles des autres à gauche (avec le nom de l’auteur dans un groupe).
@@ -11,7 +12,7 @@ import { AvatarMembre } from '../../../shared/images/avatar-membre';
  */
 @Component({
   selector: 'app-message-fil',
-  imports: [AvatarMembre, DatePipe],
+  imports: [AvatarMembre, DatePipe, PieceJointeMessage],
   templateUrl: './message-fil.html',
   styleUrl: './message-fil.scss',
   host: {

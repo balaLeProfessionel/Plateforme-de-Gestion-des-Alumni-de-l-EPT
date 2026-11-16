@@ -6,7 +6,7 @@ import { fusionnerMessages, libelleJour, lignesDuFil } from './blocs-messages';
 registerLocaleData(localeFr);
 
 const message = (id: string, envoyeLe: string, auteurId = 'a', deMoi = false): Message => ({
-  id, auteurId, auteurNom: 'Awa Diop', auteurPhoto: null, contenu: id, supprime: false, envoyeLe, deMoi,
+  id, auteurId, auteurNom: 'Awa Diop', auteurPhoto: null, contenu: id, supprime: false, envoyeLe, deMoi, pieceJointe: null,
 });
 
 describe('Blocs du fil de messages', () => {

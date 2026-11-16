@@ -1,0 +1,52 @@
+/* Une ligne entière de la bulle, au-dessus du texte et de l’heure. */
+:host { display: block; min-width: 0; flex: 1 0 100%; margin-bottom: 0.35rem; }
+
+.apercu {
+  display: block;
+  border-radius: 0.75rem;
+  overflow: hidden;
+
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+}
+
+img { display: block; width: 100%; max-width: 20rem; max-height: 18rem; object-fit: cover; }
+
+.attente { display: block; padding: 2rem 1rem; font-size: 0.8rem; opacity: 0.8; }
+
+/* Fond clair dans les deux bulles (marine ou blanche) : le contraste reste celui d’un bouton ordinaire. */
+.fichier {
+  display: flex;
+  width: 100%;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--ept-border);
+  border-radius: var(--ept-radius-sm);
+  background: var(--ept-bg);
+  color: var(--ept-primary);
+  font: inherit;
+  font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: var(--ept-primary-light); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+  &:disabled { cursor: wait; opacity: 0.7; }
+}
+
+.nom { min-width: 0; flex: 1 1 auto; font-weight: 600; overflow-wrap: anywhere; }
+.taille { flex: 0 0 auto; color: var(--ept-text-secondary); font-size: 0.78rem; }
+
+.erreur {
+  margin: 0.3rem 0 0;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--ept-radius-sm);
+  background: var(--ept-error-light);
+  color: var(--ept-error-dark);
+  font-size: 0.8rem;
+}
+
+/* Dans ma bulle marine, l’anneau marine serait invisible : on passe au ciel. */
+:host(.sur-sombre) .apercu:focus-visible,
+:host(.sur-sombre) .fichier:focus-visible { outline-color: var(--ept-sky); }

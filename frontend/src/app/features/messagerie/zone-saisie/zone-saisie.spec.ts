@@ -77,4 +77,48 @@ describe('ZoneSaisie', () => {
       .toContain('Cette conversation est introuvable.');
     expect(champ.value).toBe('Bonjour');
   });
+
+  function choisir(fichier: File): void {
+    const selecteur = (fixture.nativeElement as HTMLElement).querySelector('input[type="file"]') as HTMLInputElement;
+    Object.defineProperty(selecteur, 'files', { configurable: true, value: { 0: fichier, length: 1, item: () => fichier } });
+    selecteur.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+  }
+
+  it('envoie un fichier seul en multipart, puis retire la pastille', async () => {
+    choisir(new File(['%PDF-1.7'], 'Programme.pdf', { type: 'application/pdf' }));
+    const racine = fixture.nativeElement as HTMLElement;
+    expect(racine.querySelector('.fichier-choisi')?.textContent).toContain('Programme.pdf');
+    expect(bouton.disabled).toBe(false);
+
+    bouton.click();
+    const requete = http.expectOne('/api/messagerie/conversations/c-1/messages');
+    const corps = requete.request.body as FormData;
+    expect((corps.get('fichier') as File).name).toBe('Programme.pdf');
+    expect(corps.has('contenu')).toBe(false);
+    requete.flush({ id: 'm-1', contenu: '' } as Message);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(racine.querySelector('.fichier-choisi')).toBeNull();
+    expect(bouton.disabled).toBe(true);
+  });
+
+  it('refuse aussitôt un type de fichier non accepté', () => {
+    choisir(new File(['MZ'], 'outil.exe'));
+    const racine = fixture.nativeElement as HTMLElement;
+    expect(racine.querySelector('[role="alert"]')?.textContent).toContain('n’est pas accepté');
+    expect(racine.querySelector('.fichier-choisi')).toBeNull();
+    expect(bouton.disabled).toBe(true);
+  });
+
+  it('retire le fichier choisi et rend le focus au trombone', () => {
+    choisir(new File(['Bonjour'], 'notes.txt', { type: 'text/plain' }));
+    const racine = fixture.nativeElement as HTMLElement;
+    (racine.querySelector('.retirer') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(racine.querySelector('.fichier-choisi')).toBeNull();
+    expect(document.activeElement).toBe(racine.querySelector('.joindre'));
+  });
 });

@@ -54,6 +54,21 @@ export class MessagerieService {
     return this.http.post<Message>(`${API}/conversations/${encodeURIComponent(id)}/messages`, { contenu });
   }
 
+  /** Envoi multipart : le navigateur pose lui-même l’en-tête `Content-Type` et sa frontière. */
+  envoyerAvecFichier(id: string, fichier: File, contenu: string) {
+    const donnees = new FormData();
+    donnees.append('fichier', fichier, fichier.name);
+    if (contenu) donnees.append('contenu', contenu);
+    return this.http.post<Message>(`${API}/conversations/${encodeURIComponent(id)}/messages`, donnees);
+  }
+
+  /** Le fichier joint passe par HttpClient (jeton JWT) : il n’a pas d’adresse publique. */
+  telechargerPieceJointe(id: string, messageId: string) {
+    return this.http.get(
+      `${API}/conversations/${encodeURIComponent(id)}/messages/${encodeURIComponent(messageId)}/piece-jointe`,
+      { responseType: 'blob' });
+  }
+
   supprimerMessage(id: string, messageId: string) {
     return this.http.delete<void>(
       `${API}/conversations/${encodeURIComponent(id)}/messages/${encodeURIComponent(messageId)}`);

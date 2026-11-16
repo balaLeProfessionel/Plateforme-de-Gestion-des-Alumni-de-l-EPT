@@ -7,6 +7,19 @@ export const LONGUEUR_MAX_MESSAGE = 2000;
 export const LONGUEUR_MAX_NOM_GROUPE = 80;
 export const MEMBRES_MAX_PAR_AJOUT = 50;
 
+/** Pièce jointe : un fichier par message, mêmes limites que `StockagePieceJointe` et `TypePieceJointe`. */
+export const TAILLE_MAX_PIECE_JOINTE = 10 * 1024 * 1024;
+export const EXTENSIONS_PIECE_JOINTE: readonly string[] =
+  ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'docx', 'xlsx', 'pptx', 'txt'];
+
+/** Fichier joint, décrit sans son contenu ; `image` : affiché dans le fil plutôt que téléchargé. */
+export interface PieceJointe {
+  nom: string;
+  type: string;
+  taille: number;
+  image: boolean;
+}
+
 export interface MembreConversation {
   id: string;
   prenom: string | null;
@@ -57,6 +70,7 @@ export interface Message {
   supprime: boolean;
   envoyeLe: string;
   deMoi: boolean;
+  pieceJointe: PieceJointe | null;
 }
 
 export interface PageMessages {

@@ -15,7 +15,11 @@
     @if (m.supprime) {
       <p><i class="pi pi-ban" aria-hidden="true"></i>Message supprimé</p>
     } @else {
-      <p>{{ m.contenu }}</p>
+      @if (m.pieceJointe; as piece) {
+        <app-piece-jointe-message [conversationId]="conversationId()" [messageId]="m.id" [pieceJointe]="piece"
+          [surFondSombre]="m.deMoi" />
+      }
+      @if (m.contenu) { <p>{{ m.contenu }}</p> }
     }
     <time [attr.datetime]="m.envoyeLe" aria-hidden="true">{{ m.envoyeLe | date: 'HH:mm' }}</time>
   </div>

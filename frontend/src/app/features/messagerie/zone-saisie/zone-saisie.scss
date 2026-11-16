@@ -62,3 +62,56 @@ textarea {
 @media (hover: none) { .raccourci { display: none; } }
 
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Le sélecteur natif reste caché : le bouton trombone l’ouvre. */
+.selecteur { display: none; }
+
+.joindre {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--ept-border);
+  border-radius: 50%;
+  background: var(--ept-surface);
+  color: var(--ept-primary);
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: var(--ept-primary-light); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+  &:disabled { color: var(--ept-text-secondary); cursor: default; }
+}
+
+.fichier-choisi {
+  display: flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.45rem;
+  padding: 0.3rem 0.3rem 0.3rem 0.75rem;
+  border: 1px solid var(--ept-border);
+  border-radius: var(--ept-radius-sm);
+  background: var(--ept-bg);
+  color: var(--ept-text);
+  font-size: 0.85rem;
+
+  .nom { min-width: 0; flex: 1 1 auto; overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+  .taille { flex: 0 0 auto; color: var(--ept-text-secondary); font-size: 0.78rem; }
+}
+
+.retirer {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: var(--ept-radius-sm);
+  background: transparent;
+  color: var(--ept-text-secondary);
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: var(--ept-primary-light); color: var(--ept-error-dark); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 1px; }
+}
