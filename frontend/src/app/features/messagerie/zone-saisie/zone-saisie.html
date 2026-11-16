@@ -12,7 +12,7 @@
     </div>
   }
   <div class="ligne">
-    <input #selecteur type="file" class="selecteur" tabindex="-1" aria-hidden="true" [accept]="accept"
+    <input #selecteur type="file" class="selecteur fichier-cache" tabindex="-1" aria-hidden="true" [accept]="accept"
       (change)="fichierChoisi($event)" />
     <button #joindre type="button" class="joindre" aria-label="Joindre un fichier (10 Mo au plus)" title="Joindre un fichier"
       [disabled]="formulaire().submitting()" (click)="ouvrirSelecteur()">
