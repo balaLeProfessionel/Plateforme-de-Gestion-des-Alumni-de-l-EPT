@@ -78,7 +78,8 @@
 
     @if (!chargement()) {
       @if (ecriture() === 'OUVERTE' && !confirmerBlocage()) {
-        <app-zone-saisie [conversationId]="conversationId()" (envoye)="messageEnvoye($event)" />
+        <app-zone-saisie [conversationId]="conversationId()" (envoye)="messageEnvoye($event)"
+          (refuse)="envoiRefuse()" />
       } @else if (interlocuteur(); as autre) {
         <app-bandeau-blocage [interlocuteur]="autre" [ecriture]="ecriture()" [(confirmer)]="confirmerBlocage"
           (modifie)="blocageModifie()" (annule)="blocageAnnule()" />

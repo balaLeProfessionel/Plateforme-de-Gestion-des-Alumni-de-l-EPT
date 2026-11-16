@@ -166,6 +166,27 @@ export class FilConversation {
     this.etat.actualiser();
   }
 
+  /**
+   * Envoi refusé : la conversation a été fermée (blocage, compte suspendu) ou quittée entre-temps. Le fil se
+   * recharge ; si l’écriture est fermée, le bandeau remplace la zone de saisie et reçoit le focus.
+   */
+  protected envoiRefuse(): void {
+    this.messagerie.obtenir(this.conversationId()).pipe(
+      catchError((erreur: HttpErrorResponse) => {
+        if (erreur.status === 404) {
+          this.detailsOuverts.set(false);
+          this.erreur.set('Vous ne faites plus partie de cette conversation.');
+        }
+        return EMPTY;
+      }),
+    ).subscribe((detail) => {
+      this.detail.set(detail);
+      if (detail.ecriture === 'J_AI_BLOQUE') this.focaliser('app-bandeau-blocage button');
+      else if (detail.ecriture === 'FERMEE') this.focaliser('app-bandeau-blocage .bandeau');
+    });
+    this.etat.actualiser();
+  }
+
   protected messageSupprime(id: string): void {
     this.messages.update((actuels) => actuels.map((message) =>
       message.id === id ? { ...message, supprime: true, contenu: null } : message));

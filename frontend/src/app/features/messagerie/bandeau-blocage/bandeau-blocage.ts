@@ -32,7 +32,7 @@ import { EtatEcriture, MembreConversation } from '../../../core/services/models/
         </div>
       </div>
     } @else if (ecriture() === 'FERMEE') {
-      <div class="bandeau">
+      <div class="bandeau" tabindex="-1">
         <p><i class="pi pi-lock" aria-hidden="true"></i> Vous ne pouvez plus écrire dans cette conversation.</p>
       </div>
     }

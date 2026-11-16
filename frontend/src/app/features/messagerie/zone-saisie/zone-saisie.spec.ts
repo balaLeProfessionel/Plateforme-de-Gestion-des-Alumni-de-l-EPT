@@ -78,6 +78,38 @@ describe('ZoneSaisie', () => {
     expect(champ.value).toBe('Bonjour');
   });
 
+  it('prévient le fil quand l’envoi est refusé parce que la conversation a été fermée, et seulement alors', async () => {
+    const refus = vi.fn();
+    fixture.componentInstance.refuse.subscribe(refus);
+
+    saisir('Bonjour');
+    bouton.click();
+    http.expectOne('/api/messagerie/conversations/c-1/messages')
+      .flush({ message: 'Erreur interne' }, { status: 500, statusText: 'Server Error' });
+    await fixture.whenStable();
+    expect(refus).not.toHaveBeenCalled();
+
+    fixture.detectChanges();
+    bouton.click();
+    http.expectOne('/api/messagerie/conversations/c-1/messages').flush(
+      { message: 'Vous ne pouvez plus écrire dans cette conversation.' }, { status: 409, statusText: 'Conflict' });
+    await fixture.whenStable();
+    expect(refus).toHaveBeenCalledOnce();
+  });
+
+  it('garde le texte quand le réseau est coupé, avec un message générique', async () => {
+    saisir('Bonjour');
+    bouton.click();
+    http.expectOne('/api/messagerie/conversations/c-1/messages').error(new ProgressEvent('error'));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('[role="alert"]')?.textContent)
+      .toContain('Le message n’a pas pu être envoyé. Réessayez.');
+    expect(champ.value).toBe('Bonjour');
+    expect(document.activeElement).toBe(champ);
+  });
+
   function choisir(fichier: File): void {
     const selecteur = (fixture.nativeElement as HTMLElement).querySelector('input[type="file"]') as HTMLInputElement;
     Object.defineProperty(selecteur, 'files', { configurable: true, value: { 0: fichier, length: 1, item: () => fichier } });

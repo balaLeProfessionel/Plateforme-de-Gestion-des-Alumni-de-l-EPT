@@ -133,6 +133,27 @@ describe('FilConversation', () => {
     expect(bandeau).not.toContain('bloqué');
   });
 
+  it('remplace la saisie par le bandeau quand un envoi est refusé parce que la conversation s’est fermée', async () => {
+    await charger([message('m1', 'Bonjour Awa', false)]);
+    http.expectOne('/api/messagerie/conversations/c-1/lu').flush(null);
+    const racine = fixture.nativeElement as HTMLElement;
+    const champ = racine.querySelector('app-zone-saisie textarea') as HTMLTextAreaElement;
+    champ.value = 'Tu es là ?';
+    champ.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    (racine.querySelector('app-zone-saisie button[type="submit"]') as HTMLButtonElement).click();
+    http.expectOne((req) => req.method === 'POST' && req.url === '/api/messagerie/conversations/c-1/messages').flush(
+      { message: 'Vous ne pouvez plus écrire dans cette conversation.' }, { status: 409, statusText: 'Conflict' });
+    await fixture.whenStable();
+    http.expectOne('/api/messagerie/conversations/c-1').flush({ ...detailDirect, ecriture: 'FERMEE' });
+    fixture.detectChanges();
+
+    expect(racine.querySelector('app-zone-saisie')).toBeNull();
+    expect(etat.actualiser).toHaveBeenCalled();
+    await vi.waitFor(() => expect(document.activeElement).toBe(racine.querySelector('app-bandeau-blocage .bandeau')));
+  });
+
   it('recharge le fil quand le flux signale un message dans cette conversation, et seulement celle-ci', async () => {
     await charger([message('m1', 'Bonjour Awa', false)]);
     http.expectOne('/api/messagerie/conversations/c-1/lu').flush(null);

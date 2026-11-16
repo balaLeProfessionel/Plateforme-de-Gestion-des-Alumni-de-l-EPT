@@ -26,6 +26,8 @@ export class ZoneSaisie {
   private readonly boutonJoindre = viewChild.required<ElementRef<HTMLButtonElement>>('joindre');
   readonly conversationId = input.required<string>();
   readonly envoye = output<Message>();
+  /** Envoi refusé parce que la conversation a changé entre-temps (fermée : 409, quittée : 404). */
+  readonly refuse = output<void>();
 
   /** Fichier choisi, envoyé avec le texte : le texte devient alors facultatif. */
   protected readonly fichier = signal<File | null>(null);
@@ -96,6 +98,7 @@ export class ZoneSaisie {
       } catch (erreur) {
         this.erreur.set(erreur instanceof HttpErrorResponse && erreur.error?.message
           ? erreur.error.message : 'Le message n’a pas pu être envoyé. Réessayez.');
+        if (erreur instanceof HttpErrorResponse && (erreur.status === 409 || erreur.status === 404)) this.refuse.emit();
       }
       this.champ().nativeElement.focus();
       return undefined;
