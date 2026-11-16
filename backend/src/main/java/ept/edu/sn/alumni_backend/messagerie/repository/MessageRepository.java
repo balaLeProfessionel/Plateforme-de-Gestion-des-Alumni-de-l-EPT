@@ -21,6 +21,9 @@ import ept.edu.sn.alumni_backend.messagerie.entity.Message;
 public interface MessageRepository extends JpaRepository<Message, UUID> {
     long countByConversationId(UUID conversationId);
 
+    /** Envois d'une personne depuis un instant, supprimés compris (limite par minute). */
+    long countByAuteurIdAndEnvoyeLeGreaterThanEqual(UUID auteurId, Instant depuis);
+
     /** Fichiers joints d'une conversation, à retirer du disque quand on la supprime. */
     @Query("select message.pieceJointe.fichier from Message message"
         + " where message.conversation.id = :conversationId and message.pieceJointe.fichier is not null")

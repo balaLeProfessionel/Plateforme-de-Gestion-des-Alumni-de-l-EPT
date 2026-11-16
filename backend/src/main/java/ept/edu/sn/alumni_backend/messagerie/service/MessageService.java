@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.messagerie.service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,6 +18,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
+import ept.edu.sn.alumni_backend.messagerie.MessagerieProperties;
 import ept.edu.sn.alumni_backend.messagerie.TypeConversation;
 import ept.edu.sn.alumni_backend.messagerie.TypePieceJointe;
 import ept.edu.sn.alumni_backend.messagerie.entity.PieceJointe;
@@ -25,6 +27,7 @@ import ept.edu.sn.alumni_backend.messagerie.dto.PageMessagesResponse;
 import ept.edu.sn.alumni_backend.messagerie.entity.Conversation;
 import ept.edu.sn.alumni_backend.messagerie.entity.Message;
 import ept.edu.sn.alumni_backend.messagerie.entity.Participant;
+import ept.edu.sn.alumni_backend.messagerie.exception.LimiteEnvoisAtteinteException;
 import ept.edu.sn.alumni_backend.messagerie.exception.MessagerieIntrouvableException;
 import ept.edu.sn.alumni_backend.messagerie.repository.MessageRepository;
 import ept.edu.sn.alumni_backend.messagerie.repository.ParticipantRepository;
@@ -43,6 +46,7 @@ public class MessageService {
     private final MessagerieMapper mapper;
     private final ApplicationEventPublisher evenements;
     private final StockagePieceJointe stockage;
+    private final MessagerieProperties proprietes;
 
     /** Page de l'historique : les {@code taille} messages avant {@code avant} (ou les derniers), du plus ancien au plus récent. */
     @Transactional(readOnly = true)
@@ -72,6 +76,10 @@ public class MessageService {
         Participant auteur = acces.chargerParticipant(conversationId, moi);
         Conversation conversation = auteur.getConversation();
         acces.exigerEcriture(conversation, moi);
+        if (messages.countByAuteurIdAndEnvoyeLeGreaterThanEqual(moi, Instant.now().minus(Duration.ofMinutes(1)))
+                >= proprietes.limiteEnvoisParMinute()) {
+            throw new LimiteEnvoisAtteinteException();
+        }
         String texte = contenu == null ? "" : contenu.strip();
         boolean avecFichier = fichier != null && !fichier.isEmpty();
         if (texte.isEmpty() && !avecFichier) throw new IllegalArgumentException("Écrivez un message ou joignez un fichier.");

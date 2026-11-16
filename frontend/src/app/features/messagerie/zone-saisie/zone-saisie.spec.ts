@@ -97,6 +97,23 @@ describe('ZoneSaisie', () => {
     expect(refus).toHaveBeenCalledOnce();
   });
 
+  it('dit d’attendre quand on envoie trop vite, garde le texte et ne recharge pas le fil', async () => {
+    const refus = vi.fn();
+    fixture.componentInstance.refuse.subscribe(refus);
+    saisir('Encore un');
+    bouton.click();
+    http.expectOne('/api/messagerie/conversations/c-1/messages').flush(
+      { message: 'Vous envoyez des messages trop vite. Patientez un instant avant de réessayer.' },
+      { status: 429, statusText: 'Too Many Requests' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('[role="alert"]')?.textContent)
+      .toContain('Patientez un instant');
+    expect(champ.value).toBe('Encore un');
+    expect(refus).not.toHaveBeenCalled();
+  });
+
   it('garde le texte quand le réseau est coupé, avec un message générique', async () => {
     saisir('Bonjour');
     bouton.click();

@@ -21,13 +21,14 @@ import lombok.Setter;
 
 /**
  * Message d'une conversation. Supprimé, il garde sa ligne (affiché « Message supprimé ») pour que
- * l'historique et les non-lus restent cohérents. L'index sert à charger l'historique page par page.
+ * l'historique et les non-lus restent cohérents. Les index servent à charger l'historique page par page, et à
+ * compter les envois récents d'une personne (limite par minute).
  */
 @Entity
-@Table(name = "messages", indexes = @Index(
-    name = "ix_message_conversation_envoi",
-    columnList = "conversation_id, envoye_le"
-))
+@Table(name = "messages", indexes = {
+    @Index(name = "ix_message_conversation_envoi", columnList = "conversation_id, envoye_le"),
+    @Index(name = "ix_message_auteur_envoi", columnList = "auteur_id, envoye_le"),
+})
 @Getter
 @Setter
 public class Message {

@@ -19,6 +19,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.UUID;
 
 import javax.imageio.ImageIO;
@@ -30,6 +32,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
@@ -70,6 +73,7 @@ class MessagerieBlocageGroupesIntegrationTests {
     @Autowired private BlocageRepository blocages;
     @Autowired private NotificationRepository notifications;
     @Autowired private OrganismeRepository organismes;
+    @Autowired private JdbcTemplate jdbc;
     @Value("${app.storage.photos.dir:./data/photos}") private String repertoirePhotos;
 
     @AfterEach
@@ -175,6 +179,36 @@ class MessagerieBlocageGroupesIntegrationTests {
 
         changerStatut(moussa, StatutCompte.ACTIF);
         envoyer(awa, directe, "Bon retour").andExpect(status().isCreated());
+    }
+
+    // --- Limite d'envoi ---
+
+    @Test
+    void e01_auDelaDeTrenteMessagesParMinuteLEnvoiEstRefuseJusquAuRepit() throws Exception {
+        Utilisateur awa = membre("Awa");
+        Utilisateur moussa = membre("Moussa");
+        String directe = idDe(ouvrirDirecte(awa, moussa));
+        String groupe = idDe(creerGroupe(awa, "Promo 2018", moussa));
+
+        for (int i = 1; i <= 30; i++) {
+            envoyer(awa, i % 2 == 0 ? directe : groupe, "Message " + i).andExpect(status().isCreated());
+        }
+        // La limite vaut pour toutes les conversations, fichier compris, et ne crée aucun message.
+        envoyer(awa, directe, "Un de trop").andExpect(status().isTooManyRequests())
+            .andExpect(jsonPath("$.message").value("Vous envoyez des messages trop vite. Patientez un instant avant de réessayer."));
+        MockMultipartFile fichier = new MockMultipartFile("fichier", "notes.txt", "text/plain", "Ordre du jour".getBytes());
+        mockMvc.perform(multipart(API + "/conversations/{id}/messages", groupe).file(fichier)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.genererToken(new UtilisateurPrincipal(awa))))
+            .andExpect(status().isTooManyRequests());
+        assertThat(messages.countByConversationId(UUID.fromString(directe))
+            + messages.countByConversationId(UUID.fromString(groupe))).isEqualTo(30);
+        // Elle est propre à chacun.
+        envoyer(moussa, directe, "Moi, je peux encore").andExpect(status().isCreated());
+
+        // Une minute plus tard, Awa écrit de nouveau.
+        jdbc.update("update messages set envoye_le = ? where auteur_id = ?",
+            Timestamp.from(Instant.now().minusSeconds(61)), awa.getId());
+        envoyer(awa, directe, "Me revoilà").andExpect(status().isCreated());
     }
 
     // --- Liste : recherche et pages ---

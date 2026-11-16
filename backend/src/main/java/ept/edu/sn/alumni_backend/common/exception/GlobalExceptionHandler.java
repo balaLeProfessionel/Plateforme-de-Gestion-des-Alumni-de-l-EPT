@@ -28,6 +28,7 @@ import ept.edu.sn.alumni_backend.evenement.exception.LimiteCreationEvenementAtte
 import ept.edu.sn.alumni_backend.mentorat.exception.ConflitMentoratException;
 import ept.edu.sn.alumni_backend.mentorat.exception.MentoratIntrouvableException;
 import ept.edu.sn.alumni_backend.messagerie.exception.ConflitMessagerieException;
+import ept.edu.sn.alumni_backend.messagerie.exception.LimiteEnvoisAtteinteException;
 import ept.edu.sn.alumni_backend.messagerie.exception.MessagerieIntrouvableException;
 import ept.edu.sn.alumni_backend.organisme.exception.OrganismeIntrouvableException;
 import ept.edu.sn.alumni_backend.article.exception.ArticleIntrouvableException;
@@ -185,6 +186,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MessagerieIntrouvableException.class)
     public ResponseEntity<Map<String, String>> handleMessagerieIntrouvable(MessagerieIntrouvableException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(LimiteEnvoisAtteinteException.class)
+    public ResponseEntity<Map<String, String>> handleLimiteEnvois(LimiteEnvoisAtteinteException e) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of("message", e.getMessage()));
     }
 
     @ExceptionHandler(ConflitMessagerieException.class)
