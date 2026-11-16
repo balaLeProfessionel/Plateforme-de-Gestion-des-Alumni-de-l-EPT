@@ -91,3 +91,5 @@ h3 { margin: 0 0 0.4rem; color: var(--ept-primary-dark); font-family: var(--ept-
 .actions-depart .danger { display: inline-flex; align-items: center; gap: 0.4rem; }
 
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+#titre-details:focus { outline: none; }

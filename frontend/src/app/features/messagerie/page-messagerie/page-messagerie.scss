@@ -32,6 +32,8 @@
   gap: 0.5rem;
   padding: 1rem 1rem 0.75rem;
 
+  h1:focus { outline: none; }
+
   h1 {
     margin: 0;
     color: var(--ept-primary-dark);
@@ -68,6 +70,15 @@
   }
   .colonne-liste, .colonne-fil { height: 100%; border-right: 0; }
   .colonne-fil { display: none; }
-  .fil-ouvert .colonne-liste { display: none; }
+  /* Fil ouvert : la liste disparaît, mais le titre « Messagerie » reste le h1 de la page pour les lecteurs d’écran. */
+  .fil-ouvert .colonne-liste {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .fil-ouvert .colonne-liste > :not(.entete-liste), .fil-ouvert .bouton-nouvelle { display: none; }
   .fil-ouvert .colonne-fil { display: flex; }
 }

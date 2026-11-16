@@ -20,7 +20,7 @@ import { EtatEcriture, MembreConversation } from '../../../core/services/models/
         </p>
         <div class="actions">
           <button type="button" class="danger" [disabled]="enCours()" (click)="bloquer()">Bloquer</button>
-          <button type="button" class="secondaire" [disabled]="enCours()" (click)="confirmer.set(false)">Annuler</button>
+          <button type="button" class="secondaire" [disabled]="enCours()" (click)="annuler()">Annuler</button>
         </div>
       </div>
     } @else if (ecriture() === 'J_AI_BLOQUE') {
@@ -81,6 +81,7 @@ export class BandeauBlocage {
   readonly confirmer = model(false);
   /** Le blocage a changé : le fil recharge le détail de la conversation. */
   readonly modifie = output<void>();
+  readonly annule = output<void>();
 
   protected readonly enCours = signal(false);
   protected readonly erreur = signal<string | null>(null);
@@ -90,6 +91,11 @@ export class BandeauBlocage {
     effect(() => {
       if (this.confirmer()) afterNextRender(() => this.confirmation()?.nativeElement.focus(), { injector: this.injector });
     });
+  }
+
+  protected annuler(): void {
+    this.confirmer.set(false);
+    this.annule.emit();
   }
 
   protected async bloquer(): Promise<void> {

@@ -18,6 +18,7 @@
   <i class="pi pi-search" aria-hidden="true"></i>
   <input [id]="identifiant() + '-recherche'" type="search" autocomplete="off" placeholder="Nom, prénom…"
     [formField]="formulaire.recherche" [attr.aria-describedby]="identifiant() + '-aide'"
+    [attr.autofocus]="focusInitial() ? '' : null"
     (keydown.enter)="$event.preventDefault()" />
 </div>
 

@@ -1,6 +1,6 @@
 <dialog #dialogue class="fenetre" aria-labelledby="titre-details" (close)="fermee.emit()">
   <header>
-    <h2 id="titre-details">Détails du groupe</h2>
+    <h2 id="titre-details" tabindex="-1">Détails du groupe</h2>
     <button type="button" class="fermer" aria-label="Fermer" (click)="dialogue.close()">
       <i class="pi pi-times" aria-hidden="true"></i>
     </button>
@@ -51,7 +51,7 @@
           @for (membre of detail.participants; track membre.id) {
             @let estMoi = membre.id === moiId();
             @let admin = membre.roleParticipant === 'ADMINISTRATEUR';
-            <li>
+            <li [attr.data-membre]="membre.id">
               <div class="ligne-membre">
                 <app-avatar-membre [urlPhoto]="membre.urlPhoto" [prenom]="membre.prenom" [nom]="membre.nom"
                   [roleMembre]="membre.role" [taille]="2.25" />

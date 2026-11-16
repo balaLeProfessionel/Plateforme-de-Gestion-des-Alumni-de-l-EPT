@@ -46,6 +46,7 @@ export class FilConversation {
   private readonly injector = inject(Injector);
   private readonly locale = inject(LOCALE_ID);
   private readonly zone = viewChild<ElementRef<HTMLElement>>('zone');
+  private readonly hote = inject<ElementRef<HTMLElement>>(ElementRef);
 
   protected readonly conversationId = signal('');
   protected readonly detail = signal<ConversationDetail | null>(null);
@@ -178,8 +179,21 @@ export class FilConversation {
 
   /** Bloqué ou débloqué : la zone de saisie s’ouvre ou se ferme, la liste se met à jour. */
   protected blocageModifie(): void {
-    this.messagerie.obtenir(this.conversationId()).pipe(catchError(() => EMPTY)).subscribe((detail) => this.detail.set(detail));
+    this.messagerie.obtenir(this.conversationId()).pipe(catchError(() => EMPTY)).subscribe((detail) => {
+      this.detail.set(detail);
+      // Le bouton cliqué a disparu : le focus va à ce qui le remplace (« Débloquer » ou la zone de saisie).
+      this.focaliser(detail.ecriture === 'OUVERTE' ? 'app-zone-saisie textarea' : 'app-bandeau-blocage button');
+    });
     this.etat.actualiser();
+  }
+
+  /** Question « Bloquer ? » annulée : le focus revient au bouton de l’en-tête. */
+  protected blocageAnnule(): void {
+    this.focaliser('.entete-fil .bouton-bloquer');
+  }
+
+  private focaliser(selecteur: string): void {
+    afterNextRender(() => this.hote.nativeElement.querySelector<HTMLElement>(selecteur)?.focus(), { injector: this.injector });
   }
 
   protected groupeQuitte(): void {

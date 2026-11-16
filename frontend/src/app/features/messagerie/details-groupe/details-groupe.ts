@@ -1,5 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, effect, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
+import {
+  afterNextRender, Component, computed, effect, ElementRef, inject, Injector, input, output, signal, viewChild,
+} from '@angular/core';
 import { FormField, form, maxLength, required, submit, validate } from '@angular/forms/signals';
 import { firstValueFrom, Observable } from 'rxjs';
 import { AuthService } from '../../../core/services/auth/auth-service';
@@ -31,6 +33,9 @@ interface ActionMembre {
 export class DetailsGroupe {
   private readonly messagerie = inject(MessagerieService);
   private readonly authService = inject(AuthService);
+  private readonly injector = inject(Injector);
+  /** Où rendre le focus quand la question en cours se ferme (le bouton qui l’a ouverte a disparu). */
+  private retourFocus: string | null = null;
   private readonly dialogue = viewChild.required<ElementRef<HTMLDialogElement>>('dialogue');
   readonly detail = input<ConversationDetail | null>(null);
   readonly ouvert = input(false);
@@ -82,6 +87,31 @@ export class DetailsGroupe {
         dialogue.close();
       }
     });
+    // Une question de confirmation prend la place du bouton cliqué : elle reçoit le focus, puis le rend.
+    effect(() => {
+      const action = this.actionMembre();
+      const depart = this.confirmerDepart();
+      const suppression = this.confirmerSuppression();
+      if (action || depart || suppression) {
+        const zone = action ? `li[data-membre="${action.membreId}"]` : 'footer';
+        this.retourFocus = action ? `${zone} button` : depart ? '.actions-depart .danger' : '.actions-depart .danger-texte';
+        this.focaliser(`${zone} .confirmer button`);
+      } else if (this.retourFocus) {
+        this.focaliser(this.retourFocus);
+        this.retourFocus = null;
+      }
+    });
+  }
+
+  /** Focalise l’élément voulu après le rendu ; s’il n’existe plus (membre retiré), le titre de la fenêtre. */
+  private focaliser(selecteur: string): void {
+    afterNextRender(() => {
+      const dialogue = this.dialogue().nativeElement;
+      if (!dialogue.open) return;
+      const cible = dialogue.querySelector<HTMLElement>(`${selecteur}:not(:disabled)`)
+        ?? dialogue.querySelector<HTMLElement>('#titre-details');
+      cible?.focus();
+    }, { injector: this.injector });
   }
 
   /** Peut-on changer le rôle de ce membre ? Le dernier administrateur ne peut pas redevenir simple membre. */
@@ -100,6 +130,7 @@ export class DetailsGroupe {
         'Le groupe est enregistré.');
       return undefined;
     });
+    if (this.formulaire.nom().invalid()) this.dialogue().nativeElement.querySelector<HTMLInputElement>('#nom-groupe')?.focus();
   }
 
   protected photoModifiee(detail: ConversationDetail): void {

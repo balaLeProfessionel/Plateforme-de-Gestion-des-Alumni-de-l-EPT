@@ -78,6 +78,8 @@ export class NouvelleConversation {
       }
       return undefined;
     });
+    // Nom manquant : le focus va au champ en erreur.
+    if (this.formulaire.nom().invalid()) this.dialogue().nativeElement.querySelector<HTMLInputElement>('#nom-groupe')?.focus();
   }
 
   private reinitialiser(): void {

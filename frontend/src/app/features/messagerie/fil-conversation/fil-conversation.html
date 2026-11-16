@@ -33,7 +33,7 @@
             </a>
           }
           @if (ecriture() !== 'J_AI_BLOQUE') {
-            <button type="button" class="action-entete" [attr.aria-expanded]="confirmerBlocage()"
+            <button type="button" class="action-entete bouton-bloquer" [attr.aria-expanded]="confirmerBlocage()"
               (click)="confirmerBlocage.set(true)">
               <i class="pi pi-ban" aria-hidden="true"></i><span class="libelle">Bloquer</span>
             </button>
@@ -81,7 +81,7 @@
         <app-zone-saisie [conversationId]="conversationId()" (envoye)="messageEnvoye($event)" />
       } @else if (interlocuteur(); as autre) {
         <app-bandeau-blocage [interlocuteur]="autre" [ecriture]="ecriture()" [(confirmer)]="confirmerBlocage"
-          (modifie)="blocageModifie()" />
+          (modifie)="blocageModifie()" (annule)="blocageAnnule()" />
       }
     }
   }

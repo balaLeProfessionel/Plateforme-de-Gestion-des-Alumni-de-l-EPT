@@ -115,4 +115,20 @@ describe('DetailsGroupe', () => {
     await fixture.whenStable();
     expect(quitte).toHaveBeenCalled();
   });
+
+  it('donne le focus à la question de confirmation, puis le rend à la ligne du membre', async () => {
+    const racine = ouvrir(groupe('ADMINISTRATEUR', [membre(MOI, 'Awa', 'ADMINISTRATEUR'), membre('u-2', 'Moussa', 'MEMBRE')]));
+    document.body.appendChild(racine);
+    try {
+      bouton(racine, 'Nommer admin')?.click();
+      await fixture.whenStable();
+      expect(document.activeElement?.textContent?.trim()).toBe('Confirmer');
+
+      bouton(racine, 'Annuler')?.click();
+      await fixture.whenStable();
+      expect(document.activeElement?.textContent?.trim()).toBe('Nommer admin');
+    } finally {
+      racine.remove();
+    }
+  });
 });

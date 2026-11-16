@@ -29,6 +29,8 @@ export class SelectionMembres {
   /** Préfixe des identifiants HTML : deux sélecteurs peuvent coexister dans la page. */
   readonly identifiant = input.required<string>();
   readonly libelle = input('Rechercher un membre');
+  /** Champ à focaliser à l’ouverture de la fenêtre (`<dialog>` respecte `autofocus`). */
+  readonly focusInitial = input(false);
 
   protected readonly modele = signal({ recherche: '' });
   protected readonly formulaire = form(this.modele);

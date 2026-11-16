@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, input, output, signal } from '@angular/core';
+import { afterNextRender, Component, ElementRef, inject, Injector, input, output, signal } from '@angular/core';
 import { firstValueFrom, Observable } from 'rxjs';
 import { MessagerieService } from '../../../core/services/messagerie/messagerie';
 import { ConversationDetail } from '../../../core/services/models/messagerie.model';
@@ -67,6 +67,8 @@ import { AvatarGroupe } from '../avatar-groupe';
 })
 export class PhotoGroupe {
   private readonly messagerie = inject(MessagerieService);
+  private readonly hote = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
   readonly detail = input.required<ConversationDetail>();
   readonly administrateur = input(false);
   readonly modifie = output<ConversationDetail>();
@@ -93,6 +95,7 @@ export class PhotoGroupe {
     const image = this.aRecadrer();
     if (image) URL.revokeObjectURL(image.src);
     this.aRecadrer.set(null);
+    this.rendreFocus();
   }
 
   protected envoyer(photo: File): Promise<void> {
@@ -114,6 +117,13 @@ export class PhotoGroupe {
         ? erreur.error.message : 'La photo n’a pas pu être enregistrée. Réessayez.');
     } finally {
       this.enCours.set(false);
+      this.rendreFocus();
     }
+  }
+
+  /** Le recadreur ou le bouton « Retirer » disparaît : le focus revient au choix de la photo. */
+  private rendreFocus(): void {
+    afterNextRender(() => this.hote.nativeElement.querySelector<HTMLInputElement>('#photo-groupe')?.focus(),
+      { injector: this.injector });
   }
 }
