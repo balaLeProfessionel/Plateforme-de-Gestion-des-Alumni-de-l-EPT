@@ -39,19 +39,29 @@ public class AccesConversation {
             .orElseThrow(() -> new MessagerieIntrouvableException(CONVERSATION_INTROUVABLE));
     }
 
-    /** Un compte vérifié, actif ou en attente de validation, peut recevoir des messages. */
+    /** Un compte vérifié, actif ou en attente de validation, peut recevoir des messages (un compte suspendu, non). */
+    public static boolean estJoignable(Utilisateur utilisateur) {
+        return utilisateur.isEmailVerifie() && STATUTS_JOIGNABLES.contains(utilisateur.getStatutCompte());
+    }
+
     public Utilisateur chargerJoignable(UUID utilisateurId) {
         return utilisateurs.findById(utilisateurId)
-            .filter(utilisateur -> utilisateur.isEmailVerifie() && STATUTS_JOIGNABLES.contains(utilisateur.getStatutCompte()))
+            .filter(AccesConversation::estJoignable)
             .orElseThrow(() -> new MessagerieIntrouvableException("Ce membre est introuvable."));
     }
 
-    /** Un blocage, dans un sens ou dans l'autre, ferme l'écriture d'une conversation directe ; un groupe reste ouvert. */
+    /**
+     * Une conversation directe se ferme si l'un a bloqué l'autre, ou si l'interlocuteur n'est plus joignable
+     * (compte suspendu) ; elle se rouvre d'elle-même au déblocage ou à la réactivation. Un groupe reste ouvert.
+     */
     public void exigerEcriture(Conversation conversation, UUID moi) {
         if (conversation.getType() != TypeConversation.DIRECTE) return;
         UUID autre = conversation.interlocuteurDe(moi);
         if (blocages.existsByBloqueurIdAndBloqueId(moi, autre)) throw new ConflitMessagerieException(J_AI_BLOQUE);
         if (blocages.existsByBloqueurIdAndBloqueId(autre, moi)) throw new ConflitMessagerieException(ECRITURE_FERMEE);
+        if (!utilisateurs.findById(autre).map(AccesConversation::estJoignable).orElse(false)) {
+            throw new ConflitMessagerieException(ECRITURE_FERMEE);
+        }
     }
 
     public void exigerGroupe(Conversation conversation, String message) {

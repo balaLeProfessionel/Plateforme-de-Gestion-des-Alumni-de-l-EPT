@@ -12,8 +12,9 @@ const API = '/api/messagerie';
 export class MessagerieService {
   private readonly http = inject(HttpClient);
 
-  listerConversations(page = 0, taille = 30) {
-    const params = new HttpParams().set('page', page).set('taille', taille);
+  listerConversations(page = 0, taille = 30, recherche = '') {
+    let params = new HttpParams().set('page', page).set('taille', taille);
+    if (recherche.trim()) params = params.set('recherche', recherche.trim());
     return this.http.get<PageConversations>(`${API}/conversations`, { params });
   }
 

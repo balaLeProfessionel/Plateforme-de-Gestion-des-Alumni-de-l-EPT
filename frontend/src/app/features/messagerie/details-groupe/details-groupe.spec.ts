@@ -122,11 +122,11 @@ describe('DetailsGroupe', () => {
     try {
       bouton(racine, 'Nommer admin')?.click();
       await fixture.whenStable();
-      expect(document.activeElement?.textContent?.trim()).toBe('Confirmer');
+      await vi.waitFor(() => expect(document.activeElement?.textContent?.trim()).toBe('Confirmer'));
 
       bouton(racine, 'Annuler')?.click();
       await fixture.whenStable();
-      expect(document.activeElement?.textContent?.trim()).toBe('Nommer admin');
+      await vi.waitFor(() => expect(document.activeElement?.textContent?.trim()).toBe('Nommer admin'));
     } finally {
       racine.remove();
     }

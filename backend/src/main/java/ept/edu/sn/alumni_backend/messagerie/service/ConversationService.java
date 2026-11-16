@@ -1,8 +1,10 @@
 package ept.edu.sn.alumni_backend.messagerie.service;
 
+import java.text.Normalizer;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -79,8 +81,11 @@ public class ConversationService {
     public record Ouverture(ConversationResponse conversation, boolean creee) {}
 
     @Transactional(readOnly = true)
-    public PageResponse<ConversationResponse> lister(UUID moi, int page, int taille) {
-        Page<Conversation> resultat = conversations.findDeParticipant(moi, PageRequest.of(page, taille));
+    public PageResponse<ConversationResponse> lister(UUID moi, int page, int taille, String recherche) {
+        PageRequest pagination = PageRequest.of(page, taille);
+        Page<Conversation> resultat = recherche == null || recherche.isBlank()
+            ? conversations.findDeParticipant(moi, pagination)
+            : conversations.rechercherDeParticipant(moi, motifRecherche(recherche), pagination);
         List<UUID> ids = resultat.getContent().stream().map(Conversation::getId).toList();
         if (ids.isEmpty()) return PageResponse.depuis(resultat.map(c -> (ConversationResponse) null));
 
@@ -97,6 +102,17 @@ public class ConversationService {
         return PageResponse.depuis(resultat.map(conversation -> versLigne(conversation, moi,
             membres.getOrDefault(conversation.getId(), List.of()), derniers.get(conversation.getId()),
             nonLus.getOrDefault(conversation.getId(), 0L), paires)));
+    }
+
+    /**
+     * Motif sans accents ni majuscules (« verif » trouve « Vérification ») ; « % » et « _ » tapés par l'utilisateur
+     * se cherchent tels quels, sans jouer le rôle de jokers.
+     */
+    private static String motifRecherche(String recherche) {
+        String sansAccents = Normalizer.normalize(recherche.trim().toLowerCase(Locale.ROOT), Normalizer.Form.NFD)
+            .replaceAll("\\p{M}", "");
+        String echappee = sansAccents.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+        return "%" + echappee + "%";
     }
 
     /**
@@ -121,9 +137,10 @@ public class ConversationService {
         }
         String cle = Conversation.cleDirecte(moi, destinataireId);
         Ouverture existante = transaction.execute(statut -> {
-            acces.chargerJoignable(destinataireId);
             Ouverture trouvee = conversations.findByCleDirecte(cle).map(c -> new Ouverture(ligne(c, moi), false)).orElse(null);
-            // Une conversation existante se relit toujours ; une nouvelle ne s'ouvre pas à travers un blocage.
+            // Une conversation existante se relit toujours (fermée si l'autre est suspendu ou a bloqué) ;
+            // une nouvelle ne s'ouvre ni avec un compte suspendu, ni à travers un blocage.
+            if (trouvee == null) acces.chargerJoignable(destinataireId);
             if (trouvee == null && blocages.existsByBloqueurIdAndBloqueId(moi, destinataireId)) {
                 throw new ConflitMessagerieException(AccesConversation.J_AI_BLOQUE);
             }
@@ -311,7 +328,9 @@ public class ConversationService {
     }
 
     /** État d'écriture de mes conversations directes, d'après les blocages où j'apparais. */
-    private EtatEcriture ecriture(Conversation conversation, UUID moi, List<BlocageRepository.Paire> paires) {
+    /** Même règle qu'{@link AccesConversation#exigerEcriture}, calculée sur des données déjà chargées. */
+    private EtatEcriture ecriture(Conversation conversation, UUID moi, List<Participant> membres,
+                                  List<BlocageRepository.Paire> paires) {
         if (conversation.getType() != TypeConversation.DIRECTE) return EtatEcriture.OUVERTE;
         UUID autre = conversation.interlocuteurDe(moi);
         if (paires.stream().anyMatch(p -> p.getBloqueurId().equals(moi) && p.getBloqueId().equals(autre))) {
@@ -320,7 +339,10 @@ public class ConversationService {
         if (paires.stream().anyMatch(p -> p.getBloqueurId().equals(autre) && p.getBloqueId().equals(moi))) {
             return EtatEcriture.FERMEE;
         }
-        return EtatEcriture.OUVERTE;
+        boolean joignable = membres.stream().map(Participant::getUtilisateur)
+            .filter(utilisateur -> utilisateur.getId().equals(autre))
+            .anyMatch(AccesConversation::estJoignable);
+        return joignable ? EtatEcriture.OUVERTE : EtatEcriture.FERMEE;
     }
 
     private Conversation verrouiller(UUID conversationId) {
@@ -350,7 +372,7 @@ public class ConversationService {
             ? conversation.getNom()
             : (autre == null ? "Conversation" : autre.nomAffiche());
         return new ConversationResponse(conversation.getId(), conversation.getType(), nom, autre, conversation.getUrlPhoto(),
-            membres.size(), monRole, ecriture(conversation, moi, paires),
+            membres.size(), monRole, ecriture(conversation, moi, membres, paires),
             dernier == null ? null : mapper.versApercu(dernier), nonLus, conversation.getDernierMessageLe());
     }
 
@@ -366,6 +388,6 @@ public class ConversationService {
                 .findFirst().orElse("Conversation");
         return new ConversationDetailResponse(conversation.getId(), conversation.getType(), nom,
             conversation.getDescription(), conversation.getUrlPhoto(), monRole,
-            ecriture(conversation, moi, blocages.findPairesImpliquant(moi)), conversation.getCreeLe(), liste);
+            ecriture(conversation, moi, membres, blocages.findPairesImpliquant(moi)), conversation.getCreeLe(), liste);
     }
 }

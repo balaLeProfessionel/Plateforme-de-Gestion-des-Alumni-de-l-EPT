@@ -1,3 +1,12 @@
+@if (rechercheVisible()) {
+  <div class="recherche" role="search">
+    <label for="recherche-conversations" class="sr-only">Rechercher une conversation</label>
+    <i class="pi pi-search" aria-hidden="true"></i>
+    <input id="recherche-conversations" type="search" autocomplete="off" placeholder="Rechercher une conversation"
+      [formField]="formulaire.recherche" />
+    <p class="sr-only" role="status">{{ statutRecherche() }}</p>
+  </div>
+}
 <div class="zone" aria-live="polite" [attr.aria-busy]="etat.chargement()">
   @if (etat.erreur(); as erreur) {
     <div class="etat" role="alert">
@@ -10,6 +19,12 @@
         <li><span class="rond"></span><span class="barres"><span></span><span></span></span></li>
       }
     </ul>
+  } @else if (lignes().length === 0 && etat.recherche().trim()) {
+    <div class="etat vide">
+      <i class="pi pi-search" aria-hidden="true"></i>
+      <p>Aucune conversation ne correspond à « {{ etat.recherche().trim() }} ».</p>
+      <button type="button" class="lien-action" (click)="effacerRecherche()">Effacer la recherche</button>
+    </div>
   } @else if (lignes().length === 0) {
     <div class="etat vide">
       <i class="pi pi-comments" aria-hidden="true"></i>
@@ -48,5 +63,10 @@
         </li>
       }
     </ul>
+    @if (etat.aPlus()) {
+      <button type="button" class="lien-action plus" [disabled]="etat.chargement()" (click)="afficherPlus()">
+        Afficher plus de conversations
+      </button>
+    }
   }
 </div>

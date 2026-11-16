@@ -16,12 +16,22 @@ describe('ListeConversations', () => {
   const conversations = signal<Conversation[]>([]);
   const chargee = signal(true);
   const erreur = signal<string | null>(null);
-  const etat = { conversations, chargee, erreur, chargement: signal(false), actualiser: vi.fn() };
+  const recherche = signal('');
+  const aPlus = signal(false);
+  const total = signal(0);
+  const etat = {
+    conversations, chargee, erreur, recherche, aPlus, total, chargement: signal(false),
+    actualiser: vi.fn(), afficherPlus: vi.fn(), rechercher: vi.fn((texte: string) => recherche.set(texte)),
+  };
 
   beforeEach(() => {
     conversations.set([]);
     chargee.set(true);
     erreur.set(null);
+    recherche.set('');
+    aPlus.set(false);
+    total.set(0);
+    vi.clearAllMocks();
     TestBed.configureTestingModule({
       imports: [ListeConversations],
       providers: [
@@ -72,5 +82,50 @@ describe('ListeConversations', () => {
     expect(racine.querySelector('[role="alert"]')?.textContent).toContain('Impossible de charger');
     (racine.querySelector('[role="alert"] button') as HTMLButtonElement).click();
     expect(etat.actualiser).toHaveBeenCalled();
+  });
+
+  const conversation = (id: string, nom: string): Conversation => ({
+    id, type: 'GROUPE', nom, interlocuteur: null, urlPhoto: null, nombreParticipants: 3, monRole: 'MEMBRE',
+    ecriture: 'OUVERTE', nombreNonLus: 0, dernierMessageLe: '2026-11-14T10:00:00Z', dernierMessage: null,
+  });
+
+  it('cherche une conversation par son nom après une courte pause de frappe', async () => {
+    vi.useFakeTimers();
+    try {
+      conversations.set([conversation('c-1', 'Promo 2018')]);
+      const fixture = TestBed.createComponent(ListeConversations);
+      fixture.detectChanges();
+      const racine = fixture.nativeElement as HTMLElement;
+      const champ = racine.querySelector<HTMLInputElement>('#recherche-conversations');
+      expect(racine.querySelector('label[for="recherche-conversations"]')?.textContent).toBe('Rechercher une conversation');
+
+      champ!.value = 'pro';
+      champ!.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(etat.rechercher).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(300);
+      expect(etat.rechercher).toHaveBeenCalledWith('pro');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('dit quand la recherche ne trouve rien et permet de l’effacer', () => {
+    recherche.set('zzz');
+    const racine = rendu();
+
+    expect(racine.querySelector('.etat.vide')?.textContent).toContain('Aucune conversation ne correspond à « zzz »');
+    expect(racine.querySelector('[role="status"]')?.textContent).toBe('Aucune conversation trouvée.');
+    expect(racine.querySelector('#recherche-conversations')).not.toBeNull();
+  });
+
+  it('affiche les conversations suivantes à la demande', () => {
+    conversations.set([conversation('c-1', 'Promo 2018')]);
+    aPlus.set(true);
+    const racine = rendu();
+
+    const plus = [...racine.querySelectorAll('button')].find((b) => b.textContent?.includes('Afficher plus'));
+    plus?.click();
+    expect(etat.afficherPlus).toHaveBeenCalled();
   });
 });

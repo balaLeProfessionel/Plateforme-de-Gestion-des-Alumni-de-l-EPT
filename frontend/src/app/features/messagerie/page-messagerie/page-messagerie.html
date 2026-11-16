@@ -2,9 +2,15 @@
   <section class="colonne-liste" aria-labelledby="titre-messagerie">
     <header class="entete-liste">
       <h1 id="titre-messagerie" tabindex="-1">Messagerie</h1>
-      <button type="button" class="bouton-nouvelle" (click)="nouvelleOuverte.set(true)">
-        <i class="pi pi-pen-to-square" aria-hidden="true"></i>Nouvelle conversation
-      </button>
+      <div class="actions-entete">
+        <button type="button" class="bouton-bloques" aria-label="Membres bloqués" title="Membres bloqués"
+          (click)="bloquesOuverts.set(true)">
+          <i class="pi pi-ban" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="bouton-nouvelle" (click)="nouvelleOuverte.set(true)">
+          <i class="pi pi-pen-to-square" aria-hidden="true"></i>Nouvelle conversation
+        </button>
+      </div>
     </header>
     <app-liste-conversations (nouvelle)="nouvelleOuverte.set(true)" />
   </section>
@@ -15,3 +21,4 @@
 </div>
 
 <app-nouvelle-conversation [ouverte]="nouvelleOuverte()" (fermee)="nouvelleOuverte.set(false)" />
+<app-membres-bloques [ouverte]="bloquesOuverts()" (fermee)="bloquesOuverts.set(false)" />

@@ -148,6 +148,67 @@ class MessagerieBlocageGroupesIntegrationTests {
         mockMvc.perform(put(API + "/blocages/{id}", moussa.getId())).andExpect(status().isForbidden());
     }
 
+    // --- Compte suspendu ---
+
+    @Test
+    void s01_unMembreSuspenduFermeLaConversationDirecteJusquASaReactivation() throws Exception {
+        Utilisateur awa = membre("Awa");
+        Utilisateur moussa = membre("Moussa");
+        Utilisateur fatou = membre("Fatou");
+        String directe = idDe(ouvrirDirecte(awa, moussa));
+        String groupe = idDe(creerGroupe(awa, "Promo 2018", moussa));
+
+        changerStatut(moussa, StatutCompte.SUSPENDU);
+        changerStatut(fatou, StatutCompte.SUSPENDU);
+
+        envoyer(awa, directe, "Bonjour").andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value(ECRITURE_FERMEE));
+        envoyer(awa, groupe, "Le groupe reste ouvert").andExpect(status().isCreated());
+        mockMvc.perform(authentifie(get(API + "/conversations/{id}", directe), awa))
+            .andExpect(jsonPath("$.ecriture").value("FERMEE"));
+        mockMvc.perform(authentifie(get(API + "/conversations"), awa))
+            .andExpect(jsonPath("$.contenu[?(@.id == '" + directe + "')].ecriture").value("FERMEE"));
+        // Depuis le profil, la conversation existante se rouvre (fermée) ; une nouvelle ne se crée pas.
+        ouvrirDirecte(awa, moussa).andExpect(status().isOk()).andExpect(jsonPath("$.id").value(directe))
+            .andExpect(jsonPath("$.ecriture").value("FERMEE"));
+        ouvrirDirecte(awa, fatou).andExpect(status().isNotFound());
+
+        changerStatut(moussa, StatutCompte.ACTIF);
+        envoyer(awa, directe, "Bon retour").andExpect(status().isCreated());
+    }
+
+    // --- Liste : recherche et pages ---
+
+    @Test
+    void l01_laListeSeChercheParNomDeGroupeOuDInterlocuteurEtSeLitParPages() throws Exception {
+        Utilisateur awa = membre("Awa");
+        Utilisateur moussa = membre("Moussa");
+        String directe = idDe(ouvrirDirecte(awa, moussa));
+        String promo = idDe(creerGroupe(awa, "Promo 2018", moussa));
+        String club = idDe(creerGroupe(awa, "Club_IA", moussa));
+        idDe(creerGroupe(awa, "Club des 100 %", moussa));
+        String reseau = idDe(creerGroupe(awa, "Réseau Télécoms", moussa));
+
+        rechercher(awa, "PROMO").andExpect(jsonPath("$.totalElements").value(1)).andExpect(jsonPath("$.contenu[0].id").value(promo));
+        rechercher(awa, " moussa ").andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.contenu[0].id").value(directe));
+        // « _ » et « % » se cherchent tels quels, sans servir de jokers.
+        rechercher(awa, "_").andExpect(jsonPath("$.totalElements").value(1)).andExpect(jsonPath("$.contenu[0].id").value(club));
+        rechercher(awa, "%").andExpect(jsonPath("$.totalElements").value(1));
+        // Ni les majuscules ni les accents ne comptent, dans un sens comme dans l’autre.
+        rechercher(awa, "reseau tele").andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.contenu[0].id").value(reseau));
+        rechercher(awa, "TÉLÉCOMS").andExpect(jsonPath("$.contenu[0].id").value(reseau));
+        // Moussa ne me trouve pas sous son propre nom, mais sous le mien.
+        rechercher(moussa, "moussa").andExpect(jsonPath("$.totalElements").value(0));
+        rechercher(moussa, "awa").andExpect(jsonPath("$.contenu[0].id").value(directe));
+
+        mockMvc.perform(authentifie(get(API + "/conversations").param("page", "1").param("taille", "3"), awa))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.totalElements").value(5))
+            .andExpect(jsonPath("$.totalPages").value(2)).andExpect(jsonPath("$.contenu", hasSize(2)));
+        rechercher(awa, "x".repeat(101)).andExpect(status().isBadRequest());
+    }
+
     // --- Organisme ---
 
     @Test
@@ -284,6 +345,16 @@ class MessagerieBlocageGroupesIntegrationTests {
         organisme.setNom(nom);
         organisme.setTypeOrganisme(TypeOrganisme.ENTREPRISE);
         return organismes.saveAndFlush(organisme);
+    }
+
+    private void changerStatut(Utilisateur utilisateur, StatutCompte statut) {
+        Utilisateur compte = utilisateurs.findById(utilisateur.getId()).orElseThrow();
+        compte.setStatutCompte(statut);
+        utilisateurs.saveAndFlush(compte);
+    }
+
+    private ResultActions rechercher(Utilisateur moi, String recherche) throws Exception {
+        return mockMvc.perform(authentifie(get(API + "/conversations").param("recherche", recherche), moi));
     }
 
     private ResultActions ecrireAOrganisme(Utilisateur moi, UUID organismeId) throws Exception {

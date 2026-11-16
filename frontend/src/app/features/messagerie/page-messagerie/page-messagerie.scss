@@ -61,6 +61,23 @@
   &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
 }
 
+.actions-entete { display: flex; align-items: center; gap: 0.4rem; }
+
+.bouton-bloques {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border: 1px solid var(--ept-border);
+  border-radius: 50%;
+  background: var(--ept-surface);
+  color: var(--ept-primary);
+  cursor: pointer;
+
+  &:hover { background: var(--ept-primary-light); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+}
+
 @media (max-width: 760px) {
   /* Sous l’en-tête mobile (4rem) et au-dessus de la barre du bas (6rem). */
   .messagerie-page {
@@ -79,6 +96,6 @@
     clip-path: inset(50%);
     white-space: nowrap;
   }
-  .fil-ouvert .colonne-liste > :not(.entete-liste), .fil-ouvert .bouton-nouvelle { display: none; }
+  .fil-ouvert .colonne-liste > :not(.entete-liste), .fil-ouvert .actions-entete { display: none; }
   .fil-ouvert .colonne-fil { display: flex; }
 }

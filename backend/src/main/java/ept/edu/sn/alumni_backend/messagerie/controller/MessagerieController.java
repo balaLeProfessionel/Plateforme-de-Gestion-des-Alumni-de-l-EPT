@@ -51,6 +51,7 @@ import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 
 /** Messagerie interne : conversations directes et groupes. Seuls les participants y ont accès. */
@@ -73,8 +74,9 @@ public class MessagerieController {
     @GetMapping("/conversations")
     public PageResponse<ConversationResponse> lister(@RequestParam(defaultValue = "0") @Min(0) int page,
                                                      @RequestParam(defaultValue = "20") @Min(1) @Max(48) int taille,
+                                                     @RequestParam(required = false) @Size(max = 100) String recherche,
                                                      @AuthenticationPrincipal UtilisateurPrincipal principal) {
-        return conversationService.lister(moi(principal), page, taille);
+        return conversationService.lister(moi(principal), page, taille, recherche);
     }
 
     /** 201 à la création, 200 quand la conversation existait déjà. */
