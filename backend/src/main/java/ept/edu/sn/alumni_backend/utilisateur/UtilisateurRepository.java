@@ -30,6 +30,9 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, UUID>,
 
     boolean existsByEmail(String email);
 
+    /** Le compte qui représente un organisme (son contact), le plus ancien s'il y en avait plusieurs. */
+    Optional<Utilisateur> findFirstByOrganismeIdOrderByDateCreationAsc(UUID organismeId);
+
     List<Utilisateur> findByStatutCompte(StatutCompte statutCompte);
 
     long countByStatutCompteAndEmailVerifieTrue(StatutCompte statutCompte);

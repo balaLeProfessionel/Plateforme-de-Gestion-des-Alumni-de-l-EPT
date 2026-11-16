@@ -100,6 +100,18 @@ public class ConversationService {
     }
 
     /**
+     * Même règle que {@link #ouvrirDirecte}, le destinataire étant le compte qui représente l'organisme.
+     */
+    public Ouverture ouvrirAvecOrganisme(UUID moi, UUID organismeId) {
+        UUID contact = transaction.execute(statut -> utilisateurs.findFirstByOrganismeIdOrderByDateCreationAsc(organismeId)
+            .map(Utilisateur::getId).orElse(null));
+        if (contact == null) {
+            throw new MessagerieIntrouvableException("Cet organisme ne peut pas être contacté pour l'instant.");
+        }
+        return ouvrirDirecte(moi, contact);
+    }
+
+    /**
      * Ouvre la conversation directe avec un membre, ou renvoie celle qui existe. Si les deux personnes l'ouvrent au
      * même instant, la contrainte unique de la base refuse la seconde création : on relit alors celle de l'autre.
      */

@@ -39,12 +39,15 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import com.jayway.jsonpath.JsonPath;
 
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
+import ept.edu.sn.alumni_backend.enums.TypeOrganisme;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.messagerie.repository.BlocageRepository;
 import ept.edu.sn.alumni_backend.messagerie.repository.ConversationRepository;
 import ept.edu.sn.alumni_backend.messagerie.repository.MessageRepository;
 import ept.edu.sn.alumni_backend.messagerie.repository.ParticipantRepository;
 import ept.edu.sn.alumni_backend.notification.NotificationRepository;
+import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
+import ept.edu.sn.alumni_backend.organisme.repository.OrganismeRepository;
 import ept.edu.sn.alumni_backend.security.JwtService;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
@@ -66,6 +69,7 @@ class MessagerieBlocageGroupesIntegrationTests {
     @Autowired private MessageRepository messages;
     @Autowired private BlocageRepository blocages;
     @Autowired private NotificationRepository notifications;
+    @Autowired private OrganismeRepository organismes;
     @Value("${app.storage.photos.dir:./data/photos}") private String repertoirePhotos;
 
     @AfterEach
@@ -142,6 +146,35 @@ class MessagerieBlocageGroupesIntegrationTests {
         assertThat(blocages.count()).isEqualTo(1);
         assertThat(notifications.count()).isZero();
         mockMvc.perform(put(API + "/blocages/{id}", moussa.getId())).andExpect(status().isForbidden());
+    }
+
+    // --- Organisme ---
+
+    @Test
+    void o01_ecrireAUnOrganismeOuvreLaConversationAvecLeCompteQuiLeRepresente() throws Exception {
+        Utilisateur awa = membre("Awa");
+        Organisme organisme = organisme("Société messagerie");
+        Utilisateur contact = membre("Contact");
+        contact.setRole(TypeRole.ORGANISME);
+        contact.setOrganisme(organisme);
+        contact = utilisateurs.saveAndFlush(contact);
+
+        String id = idDe(ecrireAOrganisme(awa, organisme.getId()).andExpect(status().isCreated())
+            .andExpect(jsonPath("$.interlocuteur.id").value(contact.getId().toString())));
+        ecrireAOrganisme(awa, organisme.getId()).andExpect(status().isOk()).andExpect(jsonPath("$.id").value(id));
+        ouvrirDirecte(contact, awa).andExpect(status().isOk()).andExpect(jsonPath("$.id").value(id));
+        ecrireAOrganisme(contact, organisme.getId()).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void o02_unOrganismeSansCompteOuInconnuNeSeContactePas() throws Exception {
+        Utilisateur awa = membre("Awa");
+        String message = "Cet organisme ne peut pas être contacté pour l'instant.";
+
+        ecrireAOrganisme(awa, organisme("Sans compte").getId()).andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value(message));
+        ecrireAOrganisme(awa, UUID.randomUUID()).andExpect(status().isNotFound());
+        assertThat(conversations.count()).isZero();
     }
 
     // --- Groupes ---
@@ -244,6 +277,17 @@ class MessagerieBlocageGroupesIntegrationTests {
 
     private ResultActions bloquer(Utilisateur moi, Utilisateur membre) throws Exception {
         return mockMvc.perform(authentifie(put(API + "/blocages/{id}", membre.getId()), moi));
+    }
+
+    private Organisme organisme(String nom) {
+        Organisme organisme = new Organisme();
+        organisme.setNom(nom);
+        organisme.setTypeOrganisme(TypeOrganisme.ENTREPRISE);
+        return organismes.saveAndFlush(organisme);
+    }
+
+    private ResultActions ecrireAOrganisme(Utilisateur moi, UUID organismeId) throws Exception {
+        return mockMvc.perform(authentifie(post(API + "/conversations/organismes/{id}", organismeId), moi));
     }
 
     private ResultActions ouvrirDirecte(Utilisateur moi, Utilisateur destinataire) throws Exception {

@@ -26,6 +26,9 @@ h1 { margin: 0; overflow-wrap: anywhere; color: var(--ept-primary-dark); font-si
 .bouton.principal { background: var(--ept-primary); color: white; }
 .bouton.principal:hover { background: var(--ept-primary-dark); }
 .bouton:focus-visible, .voir:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 3px; }
+button.bouton { font: inherit; font-weight: 700; cursor: pointer; }
+button.bouton:disabled { cursor: wait; opacity: 0.7; }
+.erreur-ecriture { margin: 0; padding: 0 1.75rem 0.9rem; color: var(--ept-error-dark); font-size: 0.9rem; text-align: right; }
 
 /* Place dans le réseau EPT : visages empilés et une phrase. */
 .reseau { display: flex; align-items: center; gap: 1rem; padding: 0.9rem 1.75rem; border-top: 1px solid var(--ept-border); background: #f4f9fb; }

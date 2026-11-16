@@ -86,6 +86,15 @@ public class MessagerieController {
         return ResponseEntity.created(emplacement(ouverture.conversation().id())).body(ouverture.conversation());
     }
 
+    /** Écrire à un organisme depuis sa fiche : la conversation s'ouvre avec le compte qui le représente. */
+    @PostMapping("/conversations/organismes/{organismeId}")
+    public ResponseEntity<ConversationResponse> ouvrirAvecOrganisme(@PathVariable UUID organismeId,
+                                                                    @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        ConversationService.Ouverture ouverture = conversationService.ouvrirAvecOrganisme(moi(principal), organismeId);
+        if (!ouverture.creee()) return ResponseEntity.ok(ouverture.conversation());
+        return ResponseEntity.created(emplacement(ouverture.conversation().id())).body(ouverture.conversation());
+    }
+
     @PostMapping("/conversations/groupes")
     public ResponseEntity<ConversationDetailResponse> creerGroupe(@Valid @RequestBody GroupeRequest requete,
                                                                   @AuthenticationPrincipal UtilisateurPrincipal principal) {

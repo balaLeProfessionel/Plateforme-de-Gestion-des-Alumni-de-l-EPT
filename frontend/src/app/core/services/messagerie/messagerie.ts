@@ -22,6 +22,11 @@ export class MessagerieService {
     return this.http.post<Conversation>(`${API}/conversations/directes`, { destinataireId });
   }
 
+  /** Conversation avec le compte qui représente l'organisme (créée au besoin). */
+  ouvrirAvecOrganisme(organismeId: string) {
+    return this.http.post<Conversation>(`${API}/conversations/organismes/${organismeId}`, null);
+  }
+
   creerGroupe(nom: string, membreIds: readonly string[], description = '') {
     return this.http.post<ConversationDetail>(`${API}/conversations/groupes`,
       { nom, membreIds, ...(description ? { description } : {}) });

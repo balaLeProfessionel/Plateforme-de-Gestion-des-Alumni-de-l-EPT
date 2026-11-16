@@ -25,10 +25,15 @@
       }
     </div>
 
-    @if (siteWeb() || estMaFiche()) {
+    @if (siteWeb() || estMaFiche() || peutEcrire()) {
       <div class="actions">
+        @if (peutEcrire()) {
+          <button type="button" class="bouton principal" [disabled]="ecritureEnCours()" (click)="ecrire.emit()">
+            <i class="pi pi-comments" aria-hidden="true"></i>Écrire<span class="sr-only"> à {{ organisme.nom }}</span>
+          </button>
+        }
         @if (siteWeb(); as site) {
-          <a class="bouton principal" [href]="site" target="_blank" rel="noopener noreferrer">
+          <a class="bouton" [class.principal]="!peutEcrire()" [href]="site" target="_blank" rel="noopener noreferrer">
             <i class="pi pi-external-link" aria-hidden="true"></i>Site web
             <span class="sr-only">de l’organisme ({{ domaine() }}, nouvel onglet)</span>
           </a>
@@ -41,6 +46,7 @@
       </div>
     }
   </div>
+  @if (erreurEcriture(); as erreur) { <p class="erreur-ecriture" role="alert">{{ erreur }}</p> }
 
   @if (reseau(); as infos) {
     @if (infos.actuels + infos.anciens > 0) {
