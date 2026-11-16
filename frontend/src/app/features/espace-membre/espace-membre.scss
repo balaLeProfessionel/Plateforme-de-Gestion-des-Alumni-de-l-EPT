@@ -198,6 +198,8 @@ a:focus-visible, button:focus-visible {
 
 @media (max-width: 760px) {
   .espace-membre { display: block; padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
+  /* La messagerie tient déjà dans l’écran, barre du bas déduite : la réserve en plus ferait défiler la page. */
+  .espace-membre:has(app-page-messagerie) { padding-bottom: 0; }
   .barre-laterale, .barre-outils { display: none; }
 
   .entete-mobile {
