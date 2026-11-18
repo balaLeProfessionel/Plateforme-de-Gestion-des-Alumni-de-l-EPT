@@ -38,8 +38,10 @@ describe('FilConversation', () => {
   const etat = { actualiser: vi.fn(), marquerLue: vi.fn() };
   const compteur = { actualiser: vi.fn() };
   let signaux: Subject<EvenementMessagerie>;
+  const connecte = signal(true);
 
   beforeEach(async () => {
+    connecte.set(true);
     parametres = new BehaviorSubject(convertToParamMap({ id: 'c-1' }));
     signaux = new Subject();
     etat.actualiser.mockClear();
@@ -53,7 +55,7 @@ describe('FilConversation', () => {
         { provide: ActivatedRoute, useValue: { paramMap: parametres } },
         { provide: EtatConversations, useValue: etat },
         { provide: CompteurMessages, useValue: compteur },
-        { provide: FluxMessagerie, useValue: { evenements: signaux, connecte: signal(true) } },
+        { provide: FluxMessagerie, useValue: { evenements: signaux, connecte } },
         { provide: AuthService, useValue: { utilisateur: signal({ id: MOI }) } },
       ],
     }).compileComponents();
@@ -95,8 +97,11 @@ describe('FilConversation', () => {
     const racine = fixture.nativeElement as HTMLElement;
     const boutons = () => [...racine.querySelectorAll('button')];
 
-    boutons().find((b) => b.textContent?.trim() === 'Bloquer')?.click();
+    racine.querySelector<HTMLButtonElement>('.bouton-plus')?.click();
     fixture.detectChanges();
+    boutons().find((b) => b.textContent?.trim() === 'Bloquer Moussa Ndiaye')?.click();
+    fixture.detectChanges();
+    expect(racine.querySelector('#menu-fil')).toBeNull();
     expect(racine.querySelector('app-zone-saisie')).toBeNull();
     expect(racine.querySelector('app-bandeau-blocage')?.textContent).toContain('Bloquer Moussa Ndiaye ?');
 
@@ -120,6 +125,66 @@ describe('FilConversation', () => {
     http.expectOne('/api/messagerie/conversations/c-1').flush(detailDirect);
     fixture.detectChanges();
     expect(racine.querySelector('app-zone-saisie')).not.toBeNull();
+  });
+
+  it('donne le rôle sous le nom, et un menu « ⋯ » qui se ferme avec Échap en rendant le focus', async () => {
+    fixture.autoDetectChanges();
+    document.body.appendChild(fixture.nativeElement);
+    await charger([message('m1', 'Bonjour Awa', false)]);
+    http.expectOne('/api/messagerie/conversations/c-1/lu').flush(null);
+    const racine = fixture.nativeElement as HTMLElement;
+    expect(racine.querySelector('.titre p')?.textContent).toBe('Étudiant');
+    expect(racine.querySelector('h2 a')?.getAttribute('href')).toBe('/profil/u-2');
+
+    const plus = racine.querySelector<HTMLButtonElement>('.bouton-plus')!;
+    plus.click();
+    await fixture.whenStable();
+    expect(plus.getAttribute('aria-expanded')).toBe('true');
+    expect(racine.querySelector('#menu-fil a')?.textContent?.trim()).toBe('Voir le profil');
+
+    racine.querySelector<HTMLElement>('#menu-fil a')!.focus();
+    racine.querySelector('#menu-fil a')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await fixture.whenStable();
+    expect(racine.querySelector('#menu-fil')).toBeNull();
+    await vi.waitFor(() => expect(document.activeElement).toBe(racine.querySelector('.bouton-plus')));
+    fixture.nativeElement.remove();
+  });
+
+  it('groupe : bulles avec le nom de l’auteur, et « Détails du groupe » dans le même menu « ⋯ »', async () => {
+    HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) { this.open = true; };
+    HTMLDialogElement.prototype.close ??= function (this: HTMLDialogElement) { this.open = false; };
+    const groupe: ConversationDetail = {
+      ...detailDirect, type: 'GROUPE', nom: 'Promo 2018', monRole: 'ADMINISTRATEUR',
+      participants: [...detailDirect.participants,
+        { id: 'u-3', prenom: 'Fatou', nom: 'Sall', nomAffiche: 'Fatou Sall', urlPhoto: null, role: 'ALUMNI', roleParticipant: 'MEMBRE' }],
+    };
+    fixture.autoDetectChanges();
+    document.body.appendChild(fixture.nativeElement);
+    await charger([
+      message('m1', 'Salut', false), message('m2', 'Ça va ?', false, '2026-11-14T09:30:30Z'),
+      message('m3', 'Oui', true, '2026-11-14T09:31:00Z'),
+    ], false, groupe);
+    http.expectOne('/api/messagerie/conversations/c-1/lu').flush(null);
+    const racine = fixture.nativeElement as HTMLElement;
+
+    expect(racine.querySelector('.titre p')?.textContent).toBe('Groupe · 3 participants');
+    const lignes = [...racine.querySelectorAll('app-message-fil')];
+    expect(lignes.map((l) => l.querySelector('.auteur')?.textContent?.trim() ?? null)).toEqual(['Moussa Ndiaye', null, null]);
+    expect(lignes.every((l) => l.querySelector('.bulle'))).toBe(true);
+
+    racine.querySelector<HTMLButtonElement>('.bouton-plus')!.click();
+    await fixture.whenStable();
+    const details = [...racine.querySelectorAll<HTMLButtonElement>('#menu-fil button')];
+    expect(details.map((b) => b.textContent?.trim())).toEqual(['Infos du groupe']);
+    details[0].click();
+    await fixture.whenStable();
+    const dialogue = racine.querySelector('app-details-groupe dialog') as HTMLDialogElement;
+    expect(dialogue.open).toBe(true);
+
+    dialogue.close();
+    dialogue.dispatchEvent(new Event('close'));
+    await vi.waitFor(() => expect(document.activeElement).toBe(racine.querySelector('.bouton-plus')));
+    fixture.nativeElement.remove();
   });
 
   it('ferme la saisie sans dire pourquoi quand l’interlocuteur m’a bloqué', async () => {
@@ -169,6 +234,32 @@ describe('FilConversation', () => {
     fixture.detectChanges();
     const textes = [...(fixture.nativeElement as HTMLElement).querySelectorAll('.bulle p')].map((p) => p.textContent?.trim());
     expect(textes).toEqual(['Bonjour Awa', 'Tu es là ?']);
+  });
+
+  it('ne marque rien comme lu quand seuls mes propres messages arrivent', async () => {
+    await charger([message('m1', 'Bonjour Awa', false)]);
+    http.expectOne('/api/messagerie/conversations/c-1/lu').flush(null);
+    etat.marquerLue.mockClear();
+
+    signaux.next({ type: 'message', conversationId: 'c-1' });
+    http.expectOne((req) => req.url === '/api/messagerie/conversations/c-1/messages')
+      .flush({ messages: [message('m2', 'Depuis mon téléphone', true, '2026-11-14T09:35:00Z')], plusAnciens: false });
+    http.expectNone('/api/messagerie/conversations/c-1/lu');
+    expect(etat.marquerLue).not.toHaveBeenCalled();
+  });
+
+  it('garde la pastille si le serveur refuse la lecture : la liste reste fidèle au serveur', async () => {
+    await charger([message('m1', 'Bonjour Awa', false)]);
+    http.expectOne('/api/messagerie/conversations/c-1/lu').flush(null, { status: 403, statusText: 'Forbidden' });
+    expect(etat.marquerLue).not.toHaveBeenCalled();
+  });
+
+  it('recompte le badge lui-même après la lecture quand le flux temps réel est coupé', async () => {
+    connecte.set(false);
+    await charger([message('m1', 'Bonjour Awa', false)]);
+    http.expectOne('/api/messagerie/conversations/c-1/lu').flush(null);
+    expect(etat.marquerLue).toHaveBeenCalledWith('c-1');
+    expect(compteur.actualiser).toHaveBeenCalledOnce();
   });
 
   it('ignore le signal « lu » : la lecture ne recharge ni le détail ni les messages', async () => {

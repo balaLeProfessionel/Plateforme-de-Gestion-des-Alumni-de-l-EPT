@@ -60,6 +60,21 @@
   box-sizing: border-box;
 }
 
+/*
+ * Barres de défilement de tout le site : un fin trait arrondi, sans flèches ni rail (même style que la messagerie).
+ * Chrome, Edge et Safari passent par ::-webkit-scrollbar ; Firefox par la barre fine native. On ne donne pas
+ * `scrollbar-width` à Chrome : il ignorerait alors ::-webkit-scrollbar et garderait ses flèches.
+ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-button { display: none; }
+::-webkit-scrollbar-thumb { border-radius: 999px; background: var(--ept-border); }
+::-webkit-scrollbar-thumb:hover { background: var(--ept-text-secondary); }
+
+@supports not selector(::-webkit-scrollbar) {
+  * { scrollbar-width: thin; scrollbar-color: var(--ept-border) transparent; }
+}
+
 .marque-obligatoire {
   color: var(--ept-error);
   font-weight: 700;

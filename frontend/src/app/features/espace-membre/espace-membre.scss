@@ -200,6 +200,8 @@ a:focus-visible, button:focus-visible {
   .espace-membre { display: block; padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
   /* La messagerie tient déjà dans l’écran, barre du bas déduite : la réserve en plus ferait défiler la page. */
   .espace-membre:has(app-page-messagerie) { padding-bottom: 0; }
+  /* Conversation ouverte : comme dans les messageries, la barre du bas laisse la place au fil (retour par « ← »). */
+  .espace-membre:has(.messagerie-page.fil-ouvert) app-navigation-mobile { display: none; }
   .barre-laterale, .barre-outils { display: none; }
 
   .entete-mobile {

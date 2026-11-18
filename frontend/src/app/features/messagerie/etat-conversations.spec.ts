@@ -21,13 +21,15 @@ const page = (numero: number, ids: string[], totalPages: number, totalElements =
 describe('EtatConversations', () => {
   let http: HttpTestingController;
   let etat: EtatConversations;
+  let evenements: Subject<unknown>;
 
   beforeEach(() => {
+    evenements = new Subject<unknown>();
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(), provideHttpClientTesting(), EtatConversations,
         { provide: CompteurMessages, useValue: { actualiser: vi.fn() } },
-        { provide: FluxMessagerie, useValue: { evenements: new Subject<unknown>(), connecte: signal(true) } },
+        { provide: FluxMessagerie, useValue: { evenements, connecte: signal(true) } },
       ],
     });
     http = TestBed.inject(HttpTestingController);
@@ -72,5 +74,26 @@ describe('EtatConversations', () => {
 
     etat.rechercher(' promo ');
     http.expectNone((requete) => requete.url === '/api/messagerie/conversations');
+  });
+
+  it('retire tout de suite la pastille de la conversation lue, et d’elle seule', () => {
+    const nonLue = (id: string, nombreNonLus: number): Conversation => ({ ...conversation(id), nombreNonLus });
+    demande(0).flush({ ...page(0, [], 1, 2), contenu: [nonLue('a', 1), nonLue('b', 3)] });
+
+    etat.marquerLue('a');
+    expect(etat.conversations().map((c) => [c.id, c.nombreNonLus])).toEqual([['a', 0], ['b', 3]]);
+  });
+
+  it('relit la liste quand le flux signale une lecture faite ailleurs (autre onglet)', () => {
+    vi.useFakeTimers();
+    try {
+      demande(0).flush({ ...page(0, [], 1, 1), contenu: [{ ...conversation('a'), nombreNonLus: 2 }] });
+      evenements.next({ type: 'lu', conversationId: 'a' });
+      vi.advanceTimersByTime(300);
+      demande(0).flush(page(0, ['a'], 1, 1));
+      expect(etat.conversations()[0].nombreNonLus).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

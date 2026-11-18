@@ -1,5 +1,11 @@
 <form (submit)="envoyer($event)" novalidate>
-  @if (erreur()) { <p class="erreur" role="alert">{{ erreur() }}</p> }
+  <!-- Une ligne discrète au-dessus du champ ; le texte reste en place pour un nouvel envoi. -->
+  @if (erreur()) {
+    <p class="erreur" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <span>{{ erreur() }}</span>
+    </p>
+  }
   @if (fichier(); as choisi) {
     <div class="fichier-choisi">
       <i class="pi pi-paperclip" aria-hidden="true"></i>

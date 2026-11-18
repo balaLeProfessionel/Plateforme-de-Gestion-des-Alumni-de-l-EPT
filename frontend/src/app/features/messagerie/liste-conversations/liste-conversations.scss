@@ -18,19 +18,8 @@
   &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: -2px; }
 }
 
-.avatar-groupe {
-  display: grid;
-  width: 2.75rem;
-  height: 2.75rem;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--ept-primary-light);
-  color: var(--ept-primary);
-  font-size: 1.1rem;
-}
-
-.active .avatar-groupe { background: var(--ept-surface); }
+/* Sur la ligne active (fond bleu clair), le carré du groupe passe en blanc pour rester visible. */
+.active app-avatar-groupe { --fond-avatar-groupe: var(--ept-surface); }
 
 .texte { display: grid; min-width: 0; flex: 1; gap: 0.15rem; }
 

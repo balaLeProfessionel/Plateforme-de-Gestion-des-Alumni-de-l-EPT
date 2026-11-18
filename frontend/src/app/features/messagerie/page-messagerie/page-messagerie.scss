@@ -98,4 +98,6 @@
   }
   .fil-ouvert .colonne-liste > :not(.entete-liste), .fil-ouvert .actions-entete { display: none; }
   .fil-ouvert .colonne-fil { display: flex; }
+  /* Conversation ouverte : la barre du bas est cachée (voir l’espace membre), le fil va jusqu’en bas. */
+  .messagerie-page.fil-ouvert { height: calc(100dvh - 4rem); padding-bottom: env(safe-area-inset-bottom); box-sizing: border-box; }
 }

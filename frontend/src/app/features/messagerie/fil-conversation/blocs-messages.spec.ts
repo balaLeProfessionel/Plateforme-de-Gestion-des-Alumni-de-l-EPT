@@ -41,4 +41,24 @@ describe('Blocs du fil de messages', () => {
     expect(lignes.map((l) => l.jour)).toEqual(['Hier', 'Aujourd’hui', null, null, null]);
     expect(lignes.map((l) => l.suite)).toEqual([false, false, true, false, false]);
   });
+
+  it('résume en une ligne les suppressions d’affilée d’un même auteur, le même jour', () => {
+    const supprime = (id: string, heure: number, minute: number, auteurId = 'a'): Message =>
+      ({ ...message(id, new Date(2026, 10, 14, heure, minute).toISOString(), auteurId), supprime: true, contenu: null });
+    const lignes = lignesDuFil([
+      { ...message('m0', new Date(2026, 10, 13, 22, 0).toISOString()), supprime: true, contenu: null },
+      supprime('m1', 9, 0),
+      supprime('m2', 9, 1),
+      supprime('m3', 9, 40),
+      supprime('m4', 9, 41, 'b'),
+      message('m5', new Date(2026, 10, 14, 9, 42).toISOString(), 'a'),
+      supprime('m6', 9, 43),
+    ], maintenant);
+
+    // Hier reste à part (autre jour) ; b rompt la série de a ; un message intact aussi.
+    expect(lignes.map((l) => [l.message.id, l.supprimes])).toEqual([
+      ['m0', 1], ['m1', 3], ['m4', 1], ['m5', 0], ['m6', 1],
+    ]);
+    expect(lignes.map((l) => l.jour)).toEqual(['Hier', 'Aujourd’hui', null, null, null]);
+  });
 });

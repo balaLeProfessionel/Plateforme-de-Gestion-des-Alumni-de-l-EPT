@@ -42,7 +42,7 @@ h2:focus { outline: none; }
   .section-membres { padding: 1.2rem; }
   .onglets button { flex: 1; justify-content: center; }
   .vignettes { display: flex; overflow-x: auto; margin-inline: -1.2rem; padding: 0.25rem 1.2rem 0.5rem; scroll-snap-type: x mandatory;
-    scroll-padding-inline: 1.2rem; scrollbar-width: thin; }
+    scroll-padding-inline: 1.2rem; }
   .vignettes li { flex: 0 0 9.5rem; scroll-snap-align: start; }
   .tout-voir { width: 100%; justify-content: center; }
 }

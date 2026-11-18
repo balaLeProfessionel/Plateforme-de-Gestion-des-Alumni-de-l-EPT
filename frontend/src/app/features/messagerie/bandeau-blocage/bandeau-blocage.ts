@@ -26,7 +26,7 @@ import { EtatEcriture, MembreConversation } from '../../../core/services/models/
     } @else if (ecriture() === 'J_AI_BLOQUE') {
       <div class="bandeau">
         <p><i class="pi pi-ban" aria-hidden="true"></i>
-          Vous avez bloqué {{ interlocuteur().nomAffiche }}. Débloquez-le pour vous écrire à nouveau.</p>
+          Vous avez bloqué {{ interlocuteur().nomAffiche }}. Débloquez cette personne pour vous écrire à nouveau.</p>
         <div class="actions">
           <button type="button" class="secondaire" [disabled]="enCours()" (click)="debloquer()">Débloquer</button>
         </div>

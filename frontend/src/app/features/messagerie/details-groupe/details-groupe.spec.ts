@@ -48,6 +48,8 @@ describe('DetailsGroupe', () => {
   const boutons = (racine: HTMLElement) => [...racine.querySelectorAll('button')];
   const bouton = (racine: HTMLElement, texte: string) =>
     boutons(racine).find((b) => b.textContent?.trim() === texte) as HTMLButtonElement | undefined;
+  const parLibelle = (racine: HTMLElement, libelle: string) =>
+    racine.querySelector<HTMLButtonElement>(`button[aria-label="${libelle}"]`);
 
   it('montre la description à un membre, sans aucune action d’administration', () => {
     const racine = ouvrir(groupe('MEMBRE', [membre(MOI, 'Awa', 'MEMBRE'), membre('u-2', 'Moussa', 'ADMINISTRATEUR')]));
@@ -64,8 +66,10 @@ describe('DetailsGroupe', () => {
     const modifie = vi.fn();
     fixture.componentInstance.modifie.subscribe(modifie);
 
-    // Seul administrateur : je ne peux pas me retirer ce rôle.
-    expect(bouton(racine, 'Retirer le rôle d’admin')).toBeUndefined();
+    // Seul administrateur : je ne peux pas me retirer ce rôle, donc aucun menu « ⋯ » sur ma ligne.
+    expect(parLibelle(racine, 'Actions pour Awa Diop')).toBeNull();
+    parLibelle(racine, 'Actions pour Moussa Diop')?.click();
+    fixture.detectChanges();
     bouton(racine, 'Nommer admin')?.click();
     fixture.detectChanges();
     expect(racine.textContent).toContain('Nommer Moussa Diop administrateur ?');
@@ -82,6 +86,9 @@ describe('DetailsGroupe', () => {
 
   it('enregistre le nom et la description modifiés', async () => {
     const racine = ouvrir(groupe('ADMINISTRATEUR', [membre(MOI, 'Awa', 'ADMINISTRATEUR')]));
+    expect(racine.querySelector('form')).toBeNull();
+    parLibelle(racine, 'Modifier le nom et la description')?.click();
+    fixture.detectChanges();
     const enregistrer = bouton(racine, 'Enregistrer');
     expect(enregistrer?.disabled).toBe(true);
 
@@ -116,17 +123,19 @@ describe('DetailsGroupe', () => {
     expect(quitte).toHaveBeenCalled();
   });
 
-  it('donne le focus à la question de confirmation, puis le rend à la ligne du membre', async () => {
+  it('donne le focus à « Annuler » de la question, puis le rend au menu « ⋯ » du membre', async () => {
     const racine = ouvrir(groupe('ADMINISTRATEUR', [membre(MOI, 'Awa', 'ADMINISTRATEUR'), membre('u-2', 'Moussa', 'MEMBRE')]));
     document.body.appendChild(racine);
     try {
+      parLibelle(racine, 'Actions pour Moussa Diop')?.click();
+      await fixture.whenStable();
       bouton(racine, 'Nommer admin')?.click();
       await fixture.whenStable();
-      await vi.waitFor(() => expect(document.activeElement?.textContent?.trim()).toBe('Confirmer'));
+      await vi.waitFor(() => expect(document.activeElement?.textContent?.trim()).toBe('Annuler'));
 
       bouton(racine, 'Annuler')?.click();
       await fixture.whenStable();
-      await vi.waitFor(() => expect(document.activeElement?.textContent?.trim()).toBe('Nommer admin'));
+      await vi.waitFor(() => expect(document.activeElement).toBe(parLibelle(racine, 'Actions pour Moussa Diop')));
     } finally {
       racine.remove();
     }

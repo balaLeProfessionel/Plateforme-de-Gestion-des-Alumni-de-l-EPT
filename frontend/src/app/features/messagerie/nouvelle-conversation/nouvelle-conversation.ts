@@ -40,7 +40,8 @@ export class NouvelleConversation {
   protected readonly libelleAction = computed(() => {
     const choisis = this.choisis();
     if (choisis.length >= 2) return 'Créer le groupe';
-    if (choisis.length === 1) return `Écrire à ${choisis[0].prenom ?? choisis[0].nom}`;
+    // Nom complet : plusieurs membres peuvent porter le même prénom.
+    if (choisis.length === 1) return `Écrire à ${[choisis[0].prenom, choisis[0].nom].filter(Boolean).join(' ')}`;
     return 'Choisissez un membre';
   });
   protected readonly longueurMaxNom = LONGUEUR_MAX_NOM_GROUPE;
@@ -71,7 +72,8 @@ export class NouvelleConversation {
           : (await firstValueFrom(this.messagerie.creerGroupe(this.modele().nom.trim(), choisis.map((m) => m.id)))).id;
         this.etat.actualiser();
         this.dialogue().nativeElement.close();
-        await this.router.navigate(['/messagerie', id]);
+        // Le fil ouvert donne le focus à la zone de saisie : on vient pour écrire.
+        await this.router.navigate(['/messagerie', id], { state: { saisie: true } });
       } catch (erreur) {
         this.erreur.set(erreur instanceof HttpErrorResponse && erreur.error?.message
           ? erreur.error.message : 'La conversation n’a pas pu être ouverte. Réessayez.');

@@ -121,8 +121,8 @@ describe('ZoneSaisie', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect((fixture.nativeElement as HTMLElement).querySelector('[role="alert"]')?.textContent)
-      .toContain('Le message n’a pas pu être envoyé. Réessayez.');
+    const alerte = (fixture.nativeElement as HTMLElement).querySelector('[role="alert"]');
+    expect(alerte?.textContent).toContain('Message non envoyé.');
     expect(champ.value).toBe('Bonjour');
     expect(document.activeElement).toBe(champ);
   });

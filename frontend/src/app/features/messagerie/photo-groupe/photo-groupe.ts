@@ -21,7 +21,7 @@ import { AvatarGroupe } from '../avatar-groupe';
         (recadree)="envoyer($event)" (annulee)="fermerRecadrage()" />
     } @else {
       <div class="photo">
-        <app-avatar-groupe [urlPhoto]="detail().urlPhoto" [taille]="4.5"
+        <app-avatar-groupe [urlPhoto]="detail().urlPhoto" [nom]="detail().nom" [taille]="6.5"
           [libelle]="detail().urlPhoto ? 'Photo du groupe ' + detail().nom : null" />
         @if (administrateur()) {
           <div class="actions">
@@ -41,20 +41,22 @@ import { AvatarGroupe } from '../avatar-groupe';
   `,
   styles: `
     :host { display: grid; gap: 0.5rem; }
-    .photo { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
-    .actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    /* Grande photo centrée, les actions en liens discrets dessous (fiche du groupe). */
+    :host { justify-items: center; }
+    .photo { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+    .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.25rem; }
     .bouton {
       display: inline-flex;
-      min-height: 2.5rem;
+      min-height: 2.25rem;
       align-items: center;
-      padding: 0 0.85rem;
+      padding: 0 0.75rem;
       border-radius: var(--ept-radius-sm);
       font: inherit;
       font-size: 0.875rem;
       font-weight: 600;
       cursor: pointer;
     }
-    .secondaire { border: 1px solid var(--ept-border); background: white; color: var(--ept-primary); }
+    .secondaire { border: 0; background: transparent; color: var(--ept-primary); }
     .secondaire:hover { background: var(--ept-primary-light); }
     .lien-danger { border: 0; background: transparent; color: var(--ept-error-dark); }
     .lien-danger:hover { background: var(--ept-error-light); }

@@ -96,9 +96,10 @@ export class ZoneSaisie {
         this.formulaire().reset();
         this.envoye.emit(message);
       } catch (erreur) {
+        const refus = erreur instanceof HttpErrorResponse && (erreur.status === 409 || erreur.status === 404);
         this.erreur.set(erreur instanceof HttpErrorResponse && erreur.error?.message
-          ? erreur.error.message : 'Le message n’a pas pu être envoyé. Réessayez.');
-        if (erreur instanceof HttpErrorResponse && (erreur.status === 409 || erreur.status === 404)) this.refuse.emit();
+          ? erreur.error.message : 'Message non envoyé.');
+        if (refus) this.refuse.emit();
       }
       this.champ().nativeElement.focus();
       return undefined;

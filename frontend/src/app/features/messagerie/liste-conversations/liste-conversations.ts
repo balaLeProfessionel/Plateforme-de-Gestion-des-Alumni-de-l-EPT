@@ -7,6 +7,7 @@ import { AuthService } from '../../../core/services/auth/auth-service';
 import { DateRelativePipe } from '../../../shared/dates/date-relative';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
 import { apercuConversation } from '../apercu';
+import { AvatarGroupe } from '../avatar-groupe';
 import { EtatConversations } from '../etat-conversations';
 
 /** Longueur maximale d’une recherche (même limite que l’API). */
@@ -18,7 +19,7 @@ export const LONGUEUR_MAX_RECHERCHE_CONVERSATIONS = 100;
  */
 @Component({
   selector: 'app-liste-conversations',
-  imports: [FormField, RouterLink, RouterLinkActive, AvatarMembre, DateRelativePipe],
+  imports: [FormField, RouterLink, RouterLinkActive, AvatarMembre, AvatarGroupe, DateRelativePipe],
   templateUrl: './liste-conversations.html',
   styleUrl: './liste-conversations.scss',
 })

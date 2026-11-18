@@ -4,6 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 
 import { PieceJointe } from '../../../core/services/models/messagerie.model';
+import { simulerDialogue } from '../../../testing/dialogue';
 import { PieceJointeMessage } from './piece-jointe-message';
 
 const ADRESSE = '/api/messagerie/conversations/c-1/messages/m-1/piece-jointe';
@@ -49,6 +50,32 @@ describe('PieceJointeMessage', () => {
     expect(image.alt).toBe('Image jointe : photo.png');
     fixture.destroy();
     expect(revoquer).toHaveBeenCalledWith('blob:local/1');
+  });
+
+  it('ouvre la photo en grand au clic, puis rend le focus à la miniature', async () => {
+    simulerDialogue();
+    const racine = afficher({ nom: 'photo.png', type: 'image/png', taille: 2048, image: true });
+    document.body.appendChild(racine);
+    try {
+      http.expectOne(ADRESSE).flush(new Blob(['png']));
+      fixture.detectChanges();
+      const miniature = racine.querySelector<HTMLButtonElement>('.apercu')!;
+      expect(miniature.getAttribute('aria-label')).toBe('Agrandir l’image photo.png');
+
+      miniature.click();
+      await fixture.whenStable();
+      const visionneuse = racine.querySelector<HTMLDialogElement>('app-visionneuse-image dialog')!;
+      expect(visionneuse.open).toBe(true);
+      expect(visionneuse.querySelector('img')?.getAttribute('src')).toBe('blob:local/1');
+      expect(document.activeElement?.getAttribute('aria-label')).toBe('Fermer');
+
+      visionneuse.querySelector<HTMLButtonElement>('.fermer')!.click();
+      await fixture.whenStable();
+      await vi.waitFor(() => expect(document.activeElement).toBe(racine.querySelector('.apercu')));
+      expect(racine.querySelector('app-visionneuse-image')).toBeNull();
+    } finally {
+      racine.remove();
+    }
   });
 
   it('propose un autre fichier au téléchargement sans le charger d’avance', () => {

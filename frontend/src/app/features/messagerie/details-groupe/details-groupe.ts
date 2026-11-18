@@ -3,6 +3,7 @@ import {
   afterNextRender, Component, computed, effect, ElementRef, inject, Injector, input, output, signal, viewChild,
 } from '@angular/core';
 import { FormField, form, maxLength, required, submit, validate } from '@angular/forms/signals';
+import { RouterLink } from '@angular/router';
 import { firstValueFrom, Observable } from 'rxjs';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { MessagerieService } from '../../../core/services/messagerie/messagerie';
@@ -21,12 +22,13 @@ interface ActionMembre {
 }
 
 /**
- * Fenêtre « Détails du groupe » : photo, description et participants pour tous ; l’administrateur modifie le
- * groupe, nomme d’autres administrateurs, ajoute, retire et supprime le groupe ; chacun peut le quitter.
+ * Fenêtre « Infos du groupe », en fiche comme dans les messageries courantes : grande photo, nom et nombre de
+ * participants, puis des cartes (description, participants, sortie). L’administrateur modifie le groupe au crayon,
+ * gère chaque membre par son menu « ⋯ », ajoute des membres et supprime le groupe ; chacun peut le quitter.
  */
 @Component({
   selector: 'app-details-groupe',
-  imports: [FormField, AvatarMembre, PhotoGroupe, SelectionMembres],
+  imports: [FormField, RouterLink, AvatarMembre, PhotoGroupe, SelectionMembres],
   templateUrl: './details-groupe.html',
   styleUrl: './details-groupe.scss',
 })
@@ -68,6 +70,11 @@ export class DetailsGroupe {
   });
   protected readonly nouveaux = signal<MembreChoisi[]>([]);
   protected readonly actionMembre = signal<ActionMembre | null>(null);
+  /** Le membre dont le petit menu « ⋯ » est ouvert. */
+  protected readonly menuMembre = signal<string | null>(null);
+  /** Nom et description en cours de modification (crayon de l’en-tête). */
+  protected readonly edition = signal(false);
+  protected readonly ajoutOuvert = signal(false);
   protected readonly confirmerDepart = signal(false);
   protected readonly confirmerSuppression = signal(false);
   protected readonly enCours = signal(false);
@@ -93,8 +100,8 @@ export class DetailsGroupe {
       const depart = this.confirmerDepart();
       const suppression = this.confirmerSuppression();
       if (action || depart || suppression) {
-        const zone = action ? `li[data-membre="${action.membreId}"]` : 'footer';
-        this.retourFocus = action ? `${zone} button` : depart ? '.actions-depart .danger' : '.actions-depart .danger-texte';
+        const zone = action ? `li[data-membre="${action.membreId}"]` : '.sortie';
+        this.retourFocus = action ? `${zone} .plus-membre` : depart ? '.quitter' : '.supprimer-groupe';
         this.focaliser(`${zone} .confirmer button`);
       } else if (this.retourFocus) {
         this.focaliser(this.retourFocus);
@@ -114,6 +121,34 @@ export class DetailsGroupe {
     }, { injector: this.injector });
   }
 
+  protected basculerMenu(membreId: string): void {
+    this.menuMembre.update((ouvert) => (ouvert === membreId ? null : membreId));
+    if (this.menuMembre()) this.focaliser(`li[data-membre="${membreId}"] .menu-membre button`);
+  }
+
+  protected fermerMenu(membreId: string): void {
+    this.menuMembre.set(null);
+    this.focaliser(`li[data-membre="${membreId}"] .plus-membre`);
+  }
+
+  /** Une entrée du menu « ⋯ » : le menu se ferme, la question de confirmation prend sa place. */
+  protected demander(type: ActionMembre['type'], membreId: string): void {
+    this.menuMembre.set(null);
+    this.actionMembre.set({ type, membreId });
+  }
+
+  protected ouvrirEdition(): void {
+    this.modele.set({ nom: this.detail()?.nom ?? '', description: this.detail()?.description ?? '' });
+    this.formulaire().reset();
+    this.edition.set(true);
+    this.focaliser('#nom-groupe');
+  }
+
+  protected fermerEdition(): void {
+    this.edition.set(false);
+    this.focaliser('.modifier');
+  }
+
   /** Peut-on changer le rôle de ce membre ? Le dernier administrateur ne peut pas redevenir simple membre. */
   protected roleModifiable(membre: MembreConversation): boolean {
     return this.administrateur()
@@ -126,8 +161,10 @@ export class DetailsGroupe {
     if (!detail) return;
     await submit(this.formulaire, async () => {
       const { nom, description } = this.modele();
-      await this.executer(this.messagerie.modifierGroupe(detail.id, { nom: nom.trim(), description: description.trim() }),
+      const ok = await this.executer(
+        this.messagerie.modifierGroupe(detail.id, { nom: nom.trim(), description: description.trim() }),
         'Le groupe est enregistré.');
+      if (ok) this.fermerEdition();
       return undefined;
     });
     if (this.formulaire.nom().invalid()) this.dialogue().nativeElement.querySelector<HTMLInputElement>('#nom-groupe')?.focus();
@@ -229,6 +266,9 @@ export class DetailsGroupe {
     this.formulaire().reset();
     this.nouveaux.set([]);
     this.actionMembre.set(null);
+    this.menuMembre.set(null);
+    this.edition.set(false);
+    this.ajoutOuvert.set(false);
     this.confirmerDepart.set(false);
     this.confirmerSuppression.set(false);
     this.erreur.set(null);

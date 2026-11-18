@@ -1,7 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
-  afterNextRender, Component, computed, DestroyRef, ElementRef, inject, Injector, LOCALE_ID, signal, viewChild,
+  afterNextRender, Component, computed, DestroyRef, effect, ElementRef, inject, Injector, LOCALE_ID, signal, viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -12,6 +12,7 @@ import { AuthService } from '../../../core/services/auth/auth-service';
 import { CompteurMessages } from '../../../core/services/messagerie/compteur-messages';
 import { FluxMessagerie } from '../../../core/services/messagerie/flux-messagerie';
 import { MessagerieService } from '../../../core/services/messagerie/messagerie';
+import { LIBELLES_ROLE_COMPTE, RoleCompte } from '../../../core/services/models/admin.model';
 import { ConversationDetail, Message } from '../../../core/services/models/messagerie.model';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
 import { AvatarGroupe } from '../avatar-groupe';
@@ -59,6 +60,10 @@ export class FilConversation {
   protected readonly detailsOuverts = signal(false);
   /** Question « Bloquer … ? » ouverte au bas du fil. */
   protected readonly confirmerBlocage = signal(false);
+  /** Menu « ⋯ » d’une conversation directe (profil, blocage). */
+  protected readonly menuOuvert = signal(false);
+  /** Le fil est tenu en bas : une image qui finit de charger l’y garde. */
+  private collerEnBas = true;
 
   protected readonly lignes = computed(() => lignesDuFil(this.messages(), new Date(), this.locale));
   protected readonly estGroupe = computed(() => this.detail()?.type === 'GROUPE');
@@ -78,13 +83,26 @@ export class FilConversation {
     if (!detail) return '';
     if (detail.type === 'GROUPE') {
       const nombre = detail.participants.length;
-      return `Groupe de ${nombre} participant${nombre > 1 ? 's' : ''}`;
+      // Même forme que le sous-titre d’une conversation privée (« Étudiant », « Organisme ») : le type d’abord.
+      return `Groupe · ${nombre} participant${nombre > 1 ? 's' : ''}`;
     }
-    return 'Conversation privée';
+    const autre = this.interlocuteur();
+    return autre ? LIBELLES_ROLE_COMPTE[autre.role as RoleCompte] ?? 'Conversation privée' : 'Conversation privée';
   });
 
   constructor() {
     const destroyRef = inject(DestroyRef);
+
+    // Une image jointe arrive après le rendu et allonge le fil ; l’événement `load` ne remonte pas,
+    // d’où l’écoute en phase de capture sur la zone.
+    effect((nettoyer) => {
+      const zone = this.zone()?.nativeElement;
+      if (!zone) return;
+      const imageChargee = () => { if (this.collerEnBas) zone.scrollTop = zone.scrollHeight; };
+      zone.addEventListener('load', imageChargee, true);
+      nettoyer(() => zone.removeEventListener('load', imageChargee, true));
+    });
+
     this.route.paramMap.pipe(
       map((params) => params.get('id') ?? ''),
       distinctUntilChanged(),
@@ -107,6 +125,9 @@ export class FilConversation {
       this.plusAnciens.set(resultat.page.plusAnciens);
       this.defilerEnBas();
       this.marquerLu();
+      // Ouverte depuis « Nouvelle conversation » : on vient pour écrire.
+      const etatHistorique = this.document.defaultView?.history.state as { saisie?: boolean } | null | undefined;
+      if (etatHistorique?.saisie) this.focaliser('app-zone-saisie textarea');
     });
 
     // Nouveaux messages : signal du flux pour cette conversation, reconnexion, retour sur l’onglet
@@ -191,6 +212,8 @@ export class FilConversation {
     this.messages.update((actuels) => actuels.map((message) =>
       message.id === id ? { ...message, supprime: true, contenu: null } : message));
     this.etat.actualiser();
+    // Les boutons de la confirmation ont disparu avec le message : le focus reste dans le fil.
+    this.focaliser('.zone-messages');
   }
 
   protected groupeModifie(detail: ConversationDetail): void {
@@ -208,9 +231,44 @@ export class FilConversation {
     this.etat.actualiser();
   }
 
-  /** Question « Bloquer ? » annulée : le focus revient au bouton de l’en-tête. */
+  /** Question « Bloquer ? » annulée : le focus revient au bouton « ⋯ » de l’en-tête. */
   protected blocageAnnule(): void {
-    this.focaliser('.entete-fil .bouton-bloquer');
+    this.focaliser('.entete-fil .bouton-plus');
+  }
+
+  /** « Bloquer » choisi dans le menu : la question s’ouvre au bas du fil (elle prend le focus). */
+  protected demanderBlocage(): void {
+    this.menuOuvert.set(false);
+    this.confirmerBlocage.set(true);
+  }
+
+  /** Ouverte depuis le nom du groupe ou depuis le menu « ⋯ » : le focus y reviendra à la fermeture. */
+  private retourDetails = '.entete-fil .bouton-plus';
+
+  protected ouvrirDetails(): void {
+    this.retourDetails = this.menuOuvert() ? '.entete-fil .bouton-plus' : '.entete-fil .nom-groupe';
+    this.menuOuvert.set(false);
+    this.detailsOuverts.set(true);
+  }
+
+  /** L’entrée du menu qui avait ouvert la fenêtre a disparu : le focus revient au bouton « ⋯ » (ou au nom). */
+  protected detailsFermes(): void {
+    if (!this.detailsOuverts()) return;
+    this.detailsOuverts.set(false);
+    this.focaliser(this.retourDetails);
+  }
+
+  /** Échap ferme le menu et rend le focus au bouton « ⋯ ». */
+  protected fermerMenu(rendreFocus: boolean): void {
+    if (!this.menuOuvert()) return;
+    this.menuOuvert.set(false);
+    if (rendreFocus) this.focaliser('.entete-fil .bouton-plus');
+  }
+
+  /** Le focus quitte le menu (Tab, clic ailleurs) : il se ferme. */
+  protected menuQuitte(evenement: FocusEvent): void {
+    const conteneur = evenement.currentTarget as HTMLElement;
+    if (!conteneur.contains(evenement.relatedTarget as Node | null)) this.menuOuvert.set(false);
   }
 
   private focaliser(selecteur: string): void {
@@ -233,6 +291,7 @@ export class FilConversation {
     this.erreurAnciens.set(null);
     this.detailsOuverts.set(false);
     this.confirmerBlocage.set(false);
+    this.menuOuvert.set(false);
   }
 
   /** Ajoute les messages relevés ; ceux des autres sont lus aussitôt puisque le fil est sous les yeux. */
@@ -256,7 +315,13 @@ export class FilConversation {
     });
   }
 
+  protected suivreDefilement(): void {
+    const zone = this.zone()?.nativeElement;
+    if (zone) this.collerEnBas = zone.scrollHeight - zone.scrollTop - zone.clientHeight < MARGE_BAS_PX;
+  }
+
   private defilerEnBas(): void {
+    this.collerEnBas = true;
     afterNextRender(() => {
       const zone = this.zone()?.nativeElement;
       if (zone) zone.scrollTop = zone.scrollHeight;

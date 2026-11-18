@@ -73,7 +73,7 @@ describe('NouvelleConversation', () => {
     expect(soumettre().disabled).toBe(true);
 
     choisir('Moussa Diouf');
-    expect(soumettre().textContent?.trim()).toBe('Écrire à Moussa');
+    expect(soumettre().textContent?.trim()).toBe('Écrire à Moussa Diouf');
     soumettre().click();
 
     const requete = http.expectOne('/api/messagerie/conversations/directes');
@@ -82,7 +82,7 @@ describe('NouvelleConversation', () => {
     await fixture.whenStable();
 
     expect(etat.actualiser).toHaveBeenCalled();
-    expect(navigate).toHaveBeenCalledWith(['/messagerie', 'c-9']);
+    expect(navigate).toHaveBeenCalledWith(['/messagerie', 'c-9'], { state: { saisie: true } });
   });
 
   it('demande un nom pour créer un groupe avec plusieurs membres', async () => {
@@ -107,6 +107,6 @@ describe('NouvelleConversation', () => {
     expect(requete.request.body).toEqual({ nom: 'Promo 2018', membreIds: ['u-2', 'u-3'] });
     requete.flush({ id: 'g-1' });
     await fixture.whenStable();
-    expect(navigate).toHaveBeenCalledWith(['/messagerie', 'g-1']);
+    expect(navigate).toHaveBeenCalledWith(['/messagerie', 'g-1'], { state: { saisie: true } });
   });
 });

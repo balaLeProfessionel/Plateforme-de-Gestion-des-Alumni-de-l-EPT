@@ -7,36 +7,44 @@
   </span>
 }
 <div class="corps">
-  @if (groupe() && !m.deMoi && !suite()) {
-    <span class="auteur" aria-hidden="true">{{ m.auteurNom }}</span>
-  }
-  <div class="bulle" [class.supprimee]="m.supprime">
-    <span class="sr-only">{{ m.deMoi ? 'Vous' : m.auteurNom }}, {{ m.envoyeLe | date: 'HH:mm' }} :</span>
-    @if (m.supprime) {
-      <p><i class="pi pi-ban" aria-hidden="true"></i>Message supprimé</p>
-    } @else {
+  @if (m.supprime) {
+    <p class="supprime">
+      <span class="sr-only">{{ m.deMoi ? 'Vous' : m.auteurNom }}, {{ m.envoyeLe | date: 'HH:mm' }} :</span>
+      <i class="pi pi-ban" aria-hidden="true"></i>{{ supprimes() > 1 ? supprimes() + ' messages supprimés' : 'Message supprimé' }}
+    </p>
+  } @else {
+    <div class="bulle" (click)="basculerActions($event)">
+      <span class="sr-only">{{ m.deMoi ? 'Vous' : m.auteurNom }}, {{ m.envoyeLe | date: 'HH:mm' }} :</span>
+      <!-- Groupe : le nom de l’auteur en tête de la première bulle d’une série (le lecteur d’écran l’a déjà). -->
+      @if (groupe() && !m.deMoi && !suite()) {
+        <span class="auteur" aria-hidden="true" [style.color]="couleurAuteur()">{{ m.auteurNom }}</span>
+      }
       @if (m.pieceJointe; as piece) {
-        <app-piece-jointe-message [conversationId]="conversationId()" [messageId]="m.id" [pieceJointe]="piece"
-          [surFondSombre]="m.deMoi" />
+        <app-piece-jointe-message [conversationId]="conversationId()" [messageId]="m.id" [pieceJointe]="piece" />
       }
       @if (m.contenu) { <p>{{ m.contenu }}</p> }
-    }
-    <time [attr.datetime]="m.envoyeLe" aria-hidden="true">{{ m.envoyeLe | date: 'HH:mm' }}</time>
-  </div>
-
-  @if (m.deMoi && !m.supprime) {
-    @if (confirmation()) {
-      <div class="confirmation" role="group" aria-label="Confirmer la suppression">
-        <span>Supprimer ce message ?</span>
-        <button type="button" class="danger" [disabled]="enCours()" (click)="supprimer()">Supprimer</button>
-        <button type="button" [disabled]="enCours()" (click)="confirmation.set(false); erreur.set(null)">Annuler</button>
-      </div>
-      @if (erreur()) { <p class="erreur" role="alert">{{ erreur() }}</p> }
-    } @else {
-      <button type="button" class="ouvrir-suppression" aria-label="Supprimer ce message" title="Supprimer ce message"
-        (click)="confirmation.set(true)">
-        <i class="pi pi-trash" aria-hidden="true"></i>
-      </button>
-    }
+      <time [attr.datetime]="m.envoyeLe" aria-hidden="true">{{ m.envoyeLe | date: 'HH:mm' }}</time>
+    </div>
   }
 </div>
+<!-- Confirmation : une petite fenêtre modale (alertdialog), créée seulement quand on la demande. -->
+@if (m.deMoi && !m.supprime && confirmation()) {
+  <dialog #dialogue class="confirmation" role="alertdialog" [attr.aria-labelledby]="'titre-suppression-' + m.id"
+    (cancel)="enCours() && $event.preventDefault()" (close)="confirmationFermee()">
+    <span class="icone" aria-hidden="true"><i class="pi pi-trash"></i></span>
+    <h2 [id]="'titre-suppression-' + m.id">Supprimer ce message ?</h2>
+    @if (erreur()) { <p class="erreur" role="alert">{{ erreur() }}</p> }
+    <div class="boutons">
+      <button type="button" class="annuler" [disabled]="enCours()" (click)="annuler()">Annuler</button>
+      <button type="button" class="danger" [disabled]="enCours()" (click)="supprimer()">
+        {{ enCours() ? 'Suppression…' : 'Supprimer' }}
+      </button>
+    </div>
+  </dialog>
+}
+@if (m.deMoi && !m.supprime && !confirmation()) {
+  <button type="button" class="ouvrir-suppression" aria-label="Supprimer ce message" title="Supprimer ce message"
+    (click)="ouvrirConfirmation()">
+    <i class="pi pi-trash" aria-hidden="true"></i>
+  </button>
+}

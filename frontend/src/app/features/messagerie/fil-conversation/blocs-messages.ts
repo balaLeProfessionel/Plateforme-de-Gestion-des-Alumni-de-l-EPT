@@ -10,6 +10,11 @@ export interface LigneFil {
   jour: string | null;
   /** Même auteur que le message précédent, peu après : la bulle se colle à la précédente. */
   suite: boolean;
+  /**
+   * Messages supprimés que cette ligne résume : ceux d’un même auteur qui se suivent, le même jour, tiennent
+   * en une ligne (« 3 messages supprimés ») ; 0 pour un message qui ne l’est pas.
+   */
+  supprimes: number;
 }
 
 /** Messages triés du plus ancien au plus récent, sans doublon : les plus récents remplacent les anciens. */
@@ -28,20 +33,29 @@ export function libelleJour(date: Date, maintenant: Date, locale = 'fr'): string
   return formatDate(date, format, locale);
 }
 
-/** Découpe le fil en jours et en suites de messages d’un même auteur. */
+/** Découpe le fil en jours et en suites de messages d’un même auteur ; les suppressions d’affilée se regroupent. */
 export function lignesDuFil(messages: readonly Message[], maintenant: Date, locale = 'fr'): LigneFil[] {
-  return messages.map((message, index) => {
+  const lignes: LigneFil[] = [];
+  messages.forEach((message, index) => {
     const precedent = index > 0 ? messages[index - 1] : null;
     const date = new Date(message.envoyeLe);
     const datePrecedente = precedent ? new Date(precedent.envoyeLe) : null;
     const nouveauJour = !datePrecedente || debutJour(datePrecedente) !== debutJour(date);
-    return {
+    const derniere = lignes.at(-1);
+    if (message.supprime && !nouveauJour && derniere?.message.supprime && precedent?.supprime
+        && derniere.message.auteurId === message.auteurId) {
+      derniere.supprimes += 1;
+      return;
+    }
+    lignes.push({
       message,
       jour: nouveauJour ? libelleJour(date, maintenant, locale) : null,
       suite: !nouveauJour && precedent !== null && precedent.auteurId === message.auteurId
         && date.getTime() - (datePrecedente?.getTime() ?? 0) < ECART_SUITE_MS,
-    };
+      supprimes: message.supprime ? 1 : 0,
+    });
   });
+  return lignes;
 }
 
 function debutJour(date: Date): number {

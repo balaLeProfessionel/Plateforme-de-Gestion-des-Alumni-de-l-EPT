@@ -5,17 +5,29 @@
   background: var(--ept-surface);
 }
 
-.ligne { display: flex; align-items: flex-end; gap: 0.5rem; }
+/* Un seul bloc : trombone, champ et envoi dans le même cadre (bord à 3:1 sur blanc, WCAG 1.4.11). */
+.ligne {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid color-mix(in srgb, var(--ept-text-secondary) 80%, white);
+  border-radius: 1.25rem;
+  background: var(--ept-surface);
+
+  /* Un seul anneau de 2 px (bord + ombre accolée) plutôt qu’un bord doublé d’un contour décalé. */
+  &:has(textarea:focus-visible) { border-color: var(--ept-primary); box-shadow: 0 0 0 1px var(--ept-primary); }
+  &:has(textarea[aria-invalid='true']) { border-color: var(--ept-error); }
+}
 
 textarea {
   min-width: 0;
   min-height: 2.75rem;
   max-height: 9rem;
   flex: 1;
-  padding: 0.6rem 0.9rem;
-  border: 1px solid var(--ept-border);
-  border-radius: 1.4rem;
-  background: var(--ept-bg);
+  padding: 0.6rem 0.25rem;
+  border: 0;
+  background: transparent;
   color: var(--ept-text);
   font: inherit;
   font-size: 0.95rem;
@@ -24,8 +36,7 @@ textarea {
   field-sizing: content;
 
   &::placeholder { color: var(--ept-text-secondary); }
-  &:focus-visible { border-color: var(--ept-primary); outline: 2px solid var(--ept-focus-clair); outline-offset: 1px; }
-  &[aria-invalid='true'] { border-color: var(--ept-error); }
+  &:focus-visible { outline: none; }
 }
 
 .envoyer {
@@ -35,7 +46,7 @@ textarea {
   flex: 0 0 auto;
   place-items: center;
   border: 0;
-  border-radius: 50%;
+  border-radius: 0.9rem;
   background: var(--ept-primary);
   color: var(--ept-text-on-dark);
   cursor: pointer;
@@ -56,10 +67,23 @@ textarea {
 }
 
 .compteur.depasse { color: var(--ept-error-dark); font-weight: 600; }
-.erreur { margin: 0 0 0.4rem; color: var(--ept-error-dark); font-size: 0.85rem; }
+/* Échec : une seule ligne rouge, sans cadre, le texte saisi reste dans le champ. */
+.erreur {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.4rem;
+  margin: 0 0.4rem 0.35rem;
+  color: var(--ept-error-dark);
+  font-size: 0.8rem;
 
-/* Sur mobile, le clavier virtuel n’a pas de Maj + Entrée évident : l’aide est inutile. */
-@media (hover: none) { .raccourci { display: none; } }
+  i { font-size: 0.85rem; }
+}
+
+/* Le rappel du clavier n’apparaît que pendant la saisie ; sur mobile (pas de Maj + Entrée évident), jamais. */
+.raccourci { display: none; }
+:host(:focus-within) .raccourci { display: inline; }
+@media (hover: none) { :host(:focus-within) .raccourci { display: none; } }
 
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
@@ -72,9 +96,9 @@ textarea {
   height: 2.75rem;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid var(--ept-border);
-  border-radius: 50%;
-  background: var(--ept-surface);
+  border: 0;
+  border-radius: 0.9rem;
+  background: transparent;
   color: var(--ept-primary);
   cursor: pointer;
 

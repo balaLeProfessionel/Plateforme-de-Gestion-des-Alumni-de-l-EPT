@@ -111,7 +111,7 @@ export class ConsultationOrganisme {
     this.ouvertureMessagerie.set(true);
     this.erreurMessagerie.set(null);
     this.messagerie.ouvrirAvecOrganisme(organismeId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: ({ id }) => void this.router.navigate(['/messagerie', id]),
+      next: ({ id }) => void this.router.navigate(['/messagerie', id], { state: { saisie: true } }),
       error: (erreur: HttpErrorResponse) => {
         this.ouvertureMessagerie.set(false);
         this.erreurMessagerie.set(erreur.error?.message ?? 'La conversation n’a pas pu être ouverte. Réessayez.');
