@@ -75,7 +75,7 @@ export class EspaceMembre implements OnDestroy {
           libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', exact: false,
           compteur: this.compteurMentorat.nombre(), libelleCompteur: 'demandes en attente',
         }] : []),
-        { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages', exact: false }] : []),
+        { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages', exact: false },
       ] }];
     }
     const peut = (permission: PermissionAdmin) => this.authService.aPermission(permission);
@@ -136,9 +136,7 @@ export class EspaceMembre implements OnDestroy {
     : [
       { libelle: 'Articles', icone: 'pi-book', route: '/articles' },
       ...(this.mentorat()
-        ? [
-      ...(this.voitMentorat() ? [{ libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() }] : []),
-    ] : []),
+        ? [{ libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() }] : []),
       { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages' },
     ]);
 

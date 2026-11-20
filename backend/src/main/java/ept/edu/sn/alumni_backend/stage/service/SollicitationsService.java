@@ -100,7 +100,7 @@ public class SollicitationsService {
         });
         Sollicitation enregistree = sollicitationRepository.saveAndFlush(sollicitation);
         enregistree.getDestinataires().forEach(d ->
-            evenements.publishEvent(new NotificationCompte(d.getEmail(), enregistree.getObjet(), enregistree.getMessage())));
+            evenements.publishEvent(new NotificationCompte(null, d.getEmail(), enregistree.getObjet(), enregistree.getMessage())));
         return versReponse(enregistree, true);
     }
 

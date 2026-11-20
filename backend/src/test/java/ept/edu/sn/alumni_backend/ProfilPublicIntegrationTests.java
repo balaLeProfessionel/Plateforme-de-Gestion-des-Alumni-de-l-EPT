@@ -50,12 +50,6 @@ class ProfilPublicIntegrationTests {
 
 
     @Autowired
-
-    private NotificationRepository notificationRepository;
-
-
-    @Autowired
-
     private NotificationRepository notificationRepository;
 
     @Autowired

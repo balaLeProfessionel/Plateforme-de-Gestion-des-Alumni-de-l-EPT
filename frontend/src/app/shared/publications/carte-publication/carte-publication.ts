@@ -62,7 +62,9 @@ export class CartePublication {
 
   protected readonly auteur = computed(() =>
     `${this.publication().auteurPrenom ?? ''} ${this.publication().auteurNom ?? ''}`.trim() || 'Membre EPT');
-  protected readonly role = computed(() => LIBELLES_ROLE_COMPTE[this.publication().auteurRole as RoleCompte] ?? '');
+  /** Une publication de l’administration parle au nom de l’école : « Administration », pas « Administrateur ». */
+  protected readonly role = computed(() => this.publication().auteurRole === 'ADMIN'
+    ? 'Administration' : LIBELLES_ROLE_COMPTE[this.publication().auteurRole as RoleCompte] ?? '');
   protected readonly audience = computed(() => AUDIENCES[this.publication().audience]);
   protected readonly lienLinkedin = computed(() => estLinkedin(this.publication().lien?.url, this.publication().lien?.site));
   /**

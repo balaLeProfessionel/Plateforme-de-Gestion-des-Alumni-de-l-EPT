@@ -322,14 +322,14 @@ public class ListeDefinitiveService {
 
     private void prevenirEtudiant(Stage stage, String sujet, String message) {
         String email = stage.getEtudiant().getEmail();
-        if (email != null) evenements.publishEvent(new NotificationCompte(email, sujet, message));
+        if (email != null) evenements.publishEvent(new NotificationCompte(stage.getEtudiant().getId(), email, sujet, message));
     }
 
     /** Un organisme sans compte n'est pas prévenu : l'école le contacte elle-même. */
     private void prevenirOrganisme(OffreStage offre, String sujet, String message) {
         Utilisateur contact = offre.getOrganisme().getContact();
         if (contact != null && contact.getEmail() != null) {
-            evenements.publishEvent(new NotificationCompte(contact.getEmail(), sujet, "Bonjour, " + message));
+            evenements.publishEvent(new NotificationCompte(contact.getId(), contact.getEmail(), sujet, "Bonjour, " + message));
         }
     }
 

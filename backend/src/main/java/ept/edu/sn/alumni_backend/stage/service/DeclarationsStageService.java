@@ -154,7 +154,7 @@ public class DeclarationsStageService {
     }
 
     private void prevenir(Utilisateur destinataire, String sujet, String message) {
-        if (destinataire.getEmail() != null) evenements.publishEvent(new NotificationCompte(destinataire.getEmail(), sujet, message));
+        if (destinataire.getEmail() != null) evenements.publishEvent(new NotificationCompte(destinataire.getId(), destinataire.getEmail(), sujet, message));
     }
 
     /** Chaque administrateur Stages actif, super administrateurs compris, est prévenu d'une déclaration à traiter. */
@@ -163,7 +163,7 @@ public class DeclarationsStageService {
         String message = "Bonjour, " + etudiant.getPrenom() + " " + etudiant.getNom() + " a déclaré un stage chez " + stage.nomOrganisme()
             + " (« " + stage.getSujet() + " », " + ListeDefinitiveService.periode(stage) + "). Il attend votre décision dans Stages › Stages déclarés.";
         utilisateurRepository.administrateursActifsAvecUneDe(List.of(PermissionAdmin.GERER_STAGES, PermissionAdmin.GERER_ADMINISTRATEURS))
-            .forEach(admin -> evenements.publishEvent(new NotificationCompte(admin.getEmail(), "Un stage déclaré attend votre décision", message)));
+            .forEach(admin -> evenements.publishEvent(new NotificationCompte(admin.getId(), admin.getEmail(), "Un stage déclaré attend votre décision", message)));
     }
 
     private static DeclarationResponse versReponse(Stage s, boolean ecole) {

@@ -59,6 +59,9 @@ class EvenementConsultationIntegrationTests {
 
     @BeforeEach
     void preparerComptes() {
+        // EvenementParticipationIntegrationTests laisse ses événements en base ; vidage annulé à la fin du test (@Transactional).
+        participationRepository.deleteAll();
+        evenementRepository.deleteAll();
         alumni = creerUtilisateur(TypeRole.ALUMNI, StatutCompte.ACTIF, true);
         etudiant = creerUtilisateur(TypeRole.ETUDIANT, StatutCompte.ACTIF, true);
         personnel = creerUtilisateur(TypeRole.PERSONNEL, StatutCompte.ACTIF, true);

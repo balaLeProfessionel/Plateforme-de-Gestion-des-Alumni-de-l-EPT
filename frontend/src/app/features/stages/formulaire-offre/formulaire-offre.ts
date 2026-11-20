@@ -13,7 +13,7 @@ import { OffresStageService } from '../../../core/services/stages/offres-stage';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { focaliserPremiereErreur } from '../../../shared/formulaires/focus-premiere-erreur';
 import { chargerImagePourRecadrage } from '../../../shared/images/charger-image';
-import { estPetite, FORMAT_OFFRE_STAGE } from '../../../shared/images/recadrage';
+import { estTropPetite, FORMAT_OFFRE_STAGE } from '../../../shared/images/recadrage';
 import { RecadreurImage } from '../../../shared/images/recadreur-image';
 import { TaillePipe } from '../taille-fichier';
 
@@ -136,7 +136,7 @@ export class FormulaireOffre implements OnDestroy {
     try {
       this.fermerRecadrage();
       const image = await chargerImagePourRecadrage(fichier, FORMAT_OFFRE_STAGE);
-      if (estPetite({ largeur: image.naturalWidth, hauteur: image.naturalHeight }, FORMAT_OFFRE_STAGE)) {
+      if (estTropPetite({ largeur: image.naturalWidth, hauteur: image.naturalHeight }, FORMAT_OFFRE_STAGE)) {
         this.avertissementImage.set(`Image de petite taille (${image.naturalWidth} × ${image.naturalHeight} pixels) : elle pourra paraître un peu floue.`);
       }
       this.imageARecadrer.set(image);

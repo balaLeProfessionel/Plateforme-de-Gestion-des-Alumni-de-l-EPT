@@ -313,14 +313,14 @@ public class OffresStageService {
             + " ». Elle attend votre vérification dans Stages › Offres de stage, avant d'être visible des étudiants.";
         utilisateurRepository.administrateursActifsAvecUneDe(List.of(PermissionAdmin.GERER_STAGES, PermissionAdmin.GERER_ADMINISTRATEURS))
             .forEach(admin -> evenements.publishEvent(
-                new NotificationCompte(admin.getEmail(), "Une offre de stage attend votre vérification", message)));
+                new NotificationCompte(admin.getId(), admin.getEmail(), "Une offre de stage attend votre vérification", message)));
     }
 
     /** Un organisme sans compte n'est pas prévenu : l'administrateur Stages saisit ses offres pour lui. */
     private void prevenirOrganisme(OffreStage offre, String sujet, String message) {
         Utilisateur contact = offre.getOrganisme().getContact();
         if (contact != null && contact.getEmail() != null) {
-            evenements.publishEvent(new NotificationCompte(contact.getEmail(), sujet, "Bonjour, " + message));
+            evenements.publishEvent(new NotificationCompte(contact.getId(), contact.getEmail(), sujet, "Bonjour, " + message));
         }
     }
 

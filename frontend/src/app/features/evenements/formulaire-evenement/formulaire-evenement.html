@@ -5,14 +5,7 @@
   (fermer)="retourner()" />
 
 <div class="formulaire-evenement-page">
-  <app-bouton-retour [secours]="urlSecours" />
-
-  <header class="entete-formulaire">
-    <p class="sur-titre">La vie du réseau</p>
-    <h1>{{ modeEdition() ? 'Modifier l’événement' : 'Créer un événement' }}</h1>
-    <p>Partagez une rencontre avec les membres concernés de la communauté EPT.</p>
-  </header>
-
+  <div class="colonne-formulaire">
   @if (enChargement()) {
     <div class="etat-formulaire" aria-busy="true" aria-label="Chargement de l’événement">
       <span class="indicateur-chargement" aria-hidden="true"></span>Chargement…

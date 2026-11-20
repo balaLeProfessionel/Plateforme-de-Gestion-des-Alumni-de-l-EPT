@@ -89,7 +89,7 @@ public class EvaluationsStageService {
         Stage stage = evaluation.getStage();
         Utilisateur encadrant = stage.getEncadrantInterne();
         if (encadrant != null && encadrant.getEmail() != null) {
-            evenements.publishEvent(new NotificationCompte(encadrant.getEmail(), "Évaluation de stage reçue",
+            evenements.publishEvent(new NotificationCompte(encadrant.getId(), encadrant.getEmail(), "Évaluation de stage reçue",
                 "Bonjour, l'évaluation du stage de " + stage.getEtudiant().getPrenom() + " " + stage.getEtudiant().getNom() + " chez "
                     + stage.nomOrganisme() + " a été remise. Retrouvez-la dans Stages › Suivi des stages."));
         }

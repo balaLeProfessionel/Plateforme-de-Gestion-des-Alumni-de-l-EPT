@@ -115,8 +115,9 @@ public class AnnuaireService {
 
     /** Un point par information utile dans l'annuaire : photo, poste, ville, filière et présentation. */
     private static Expression<Integer> scoreCompletude(Root<Utilisateur> racine, CriteriaBuilder cb) {
-        Expression<Integer> score = cb.literal(0);
-        for (String champ : List.of("urlPhoto", "posteActuel", "villeResidence", "filiere", "bio")) {
+        // La filière est une entité : elle compte dès qu'elle est renseignée.
+        Expression<Integer> score = cb.<Integer>selectCase().when(cb.isNotNull(racine.get("filiere")), 1).otherwise(0);
+        for (String champ : List.of("urlPhoto", "posteActuel", "villeResidence", "bio")) {
             Expression<String> valeur = racine.get(champ);
             score = cb.sum(score, cb.<Integer>selectCase()
                 .when(cb.greaterThan(cb.length(cb.trim(cb.coalesce(valeur, ""))), 0), 1)

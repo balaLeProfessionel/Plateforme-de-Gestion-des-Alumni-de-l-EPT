@@ -22,7 +22,7 @@ public enum PermissionAdmin {
     GERER_PARTENARIATS("Partenariats"),
     GERER_EVENEMENTS("Événements"),
     GERER_MENTORAT("Mentorat"),
-    GERER_ADMINISTRATEURS("Super administrateur");
+    GERER_ADMINISTRATEURS("Super administrateur"),
     /** Publier une annonce officielle ou un appel à projet. */
     PUBLIER_ANNONCES("Publier des annonces"),
     /** Traiter les signalements et masquer une publication ; voit aussi les publications de toutes les audiences. */

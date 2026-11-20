@@ -113,7 +113,7 @@ public class RapportsStageService {
     }
 
     private void prevenir(Utilisateur destinataire, String sujet, String message) {
-        if (destinataire.getEmail() != null) evenements.publishEvent(new NotificationCompte(destinataire.getEmail(), sujet, message));
+        if (destinataire.getEmail() != null) evenements.publishEvent(new NotificationCompte(destinataire.getId(), destinataire.getEmail(), sujet, message));
     }
 
     private static LocalDate aujourdhui() {
