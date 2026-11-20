@@ -61,6 +61,11 @@ export class SuiviStagesService {
     return this.http.post<Convention>(`${API_ADMIN}/suivi/${stageId}/convention/scan`, corps);
   }
 
+  /** Convention pré-remplie à partir du modèle de l’EPT (.docx modifiable), à imprimer pour les signatures. */
+  genererConvention(stageId: string) {
+    return this.http.get(`${API_ADMIN}/suivi/${stageId}/convention/document`, { responseType: 'blob' });
+  }
+
   telechargerScan(stageId: string) {
     return this.http.get(`${API_ADMIN}/suivi/${stageId}/convention/scan`, { responseType: 'blob' });
   }

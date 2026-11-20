@@ -8,10 +8,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -121,6 +130,61 @@ class ConventionsStageIntegrationTests {
         mockMvc.perform(authentifie(get("/api/admin/stages/suivi/{id}/convention", declare.getId()), adminStages))
             .andExpect(status().isNotFound());
         mockMvc.perform(authentifie(get(url()), stage.getEtudiant())).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void c03_laConventionGenereeReprendLeStageSansBaliseRestante() throws Exception {
+        for (TypeStage type : TypeStage.values()) {
+            stage.setTypeStage(type);
+            stage = stageRepository.saveAndFlush(stage);
+            String texte = texteDocument(mockMvc.perform(authentifie(get(url() + "/document"), adminStages))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, org.hamcrest.Matchers.containsString("Convention")))
+                .andReturn().getResponse().getContentAsByteArray());
+            assertFalse(texte.contains("{{"), type + " : balise restante");
+            assertTrue(texte.contains("« Sujet convention »"), type + " : sujet");
+            assertTrue(texte.contains("au sein de Organisme convention"), type + " : organisme");
+            assertTrue(texte.contains("Pr. Mamadou WADE"), type + " : directeur");
+            assertTrue(texte.contains("du 1 février 2031 au 30 juin 2031"), type + " : dates");
+            assertEquals(type == TypeStage.PFE || type == TypeStage.RECHERCHE, texte.contains("devant un jury"), type + " : article 9");
+            // Sans clauses saisies : allocation en pointillés, ni NB de confidentialité ni conditions particulières.
+            assertTrue(texte.contains("allocation mensuelle de …………………… FCFA"), type + " : allocation");
+            assertFalse(texte.contains("NB :"), type + " : confidentialité");
+            assertFalse(texte.contains("Conditions particulières"), type + " : conditions");
+        }
+    }
+
+    @Test
+    void c04_lesClausesSaisiesApparaissentDansLaConventionGeneree() throws Exception {
+        envoyer(put(url()), "{\"assurance\":\"AXA <police> & co\",\"indemnite\":\"100 000 FCFA\",\"logement\":\"\",\"clauseConfidentialite\":true}")
+            .andExpect(status().isOk());
+        String texte = texteDocument(mockMvc.perform(authentifie(get(url() + "/document"), adminStages))
+            .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray());
+        assertTrue(texte.contains("allocation mensuelle de 100 000 FCFA."));
+        assertTrue(texte.contains("NB :"));
+        assertTrue(texte.contains("Article 12 – Conditions particulières"));
+        assertTrue(texte.contains("Assurance : AXA <police> & co."), "la saisie est échappée, pas interprétée");
+        assertFalse(texte.contains("Logement :"));
+
+        Stage declare = stage(StatutStage.DECLARE);
+        mockMvc.perform(authentifie(get("/api/admin/stages/suivi/{id}/convention/document", declare.getId()), adminStages))
+            .andExpect(status().isNotFound());
+        mockMvc.perform(authentifie(get(url() + "/document"), stage.getEtudiant())).andExpect(status().isForbidden());
+    }
+
+    /** Texte du corps de la convention (word/document.xml sans balises XML, entités décodées). */
+    private static String texteDocument(byte[] docx) throws IOException {
+        try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(docx))) {
+            for (ZipEntry partie; (partie = zip.getNextEntry()) != null; ) {
+                if (partie.getName().equals("word/document.xml")) {
+                    String xml = new String(zip.readAllBytes(), StandardCharsets.UTF_8);
+                    return xml.replaceAll("</w:p>", "\n").replaceAll("<[^>]+>", "")
+                        .replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&amp;", "&");
+                }
+            }
+        }
+        throw new AssertionError("word/document.xml absent");
     }
 
     private String url() {

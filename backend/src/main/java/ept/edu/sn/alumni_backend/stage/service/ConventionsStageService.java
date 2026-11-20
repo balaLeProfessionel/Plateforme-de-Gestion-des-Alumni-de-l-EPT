@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
  * - Les clauses (assurance, indemnité, logement, confidentialité) se saisissent ; sujet et encadrants viennent du stage.
  * - Chaque signature sur papier s'enregistre avec sa date, jamais dans le futur ; le scan signé est un PDF remplaçable.
  * - Complète quand les trois signatures et le scan sont enregistrés : c'est la condition de l'évaluation (STA-06).
- * La génération du document attend le modèle officiel de l'école.
+ * - Le document pré-rempli (.docx) se génère à partir du modèle de l'EPT, avant ou pendant la saisie des clauses.
  */
 @Service
 @RequiredArgsConstructor
@@ -44,12 +44,26 @@ public class ConventionsStageService {
     private final AccesStage acces;
     private final EvaluationStageRepository evaluationRepository;
     private final RapportStageRepository rapportRepository;
+    private final DocumentConvention documentConvention;
 
     @Transactional(readOnly = true)
     public ConventionResponse lire(UUID stageId) {
         Stage stage = stageRepository.findById(stageId).filter(s -> s.getStatut() == StatutStage.CONFIRME)
             .orElseThrow(OffreStageIntrouvableException::new);
         return versReponse(stage, conventionRepository.findByStage_Id(stageId).orElse(null));
+    }
+
+    /** Convention pré-remplie à imprimer pour les signatures ; les données absentes restent en pointillés. */
+    @Transactional(readOnly = true)
+    public DocumentGenere document(UUID stageId) {
+        Stage stage = stageRepository.findById(stageId).filter(s -> s.getStatut() == StatutStage.CONFIRME)
+            .orElseThrow(OffreStageIntrouvableException::new);
+        byte[] contenu = documentConvention.generer(stage, conventionRepository.findByStage_Id(stageId).orElse(null));
+        String etudiant = (stage.getEtudiant().getPrenom() + " " + stage.getEtudiant().getNom()).strip();
+        return new DocumentGenere(FichiersOffreService.nomAffiche("Convention de stage - " + etudiant + ".docx"), contenu);
+    }
+
+    public record DocumentGenere(String nomFichier, byte[] contenu) {
     }
 
     @Transactional

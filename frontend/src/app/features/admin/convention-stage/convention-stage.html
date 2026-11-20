@@ -25,6 +25,14 @@
       <div class="boutons"><button type="button" class="bouton principal" [disabled]="enCours()" (click)="enregistrerClauses()">Enregistrer les clauses</button></div>
     </section>
 
+    <section class="carte" aria-labelledby="titre-document">
+      <h2 id="titre-document">Document à signer</h2>
+      <p class="aide" id="aide-document">Convention pré-remplie à partir du modèle de l’EPT, avec le stage et les clauses enregistrées.
+        Complétez les pointillés (représentant de l’organisme, date) avant l’impression ; le fichier Word reste modifiable.</p>
+      <div class="boutons"><button type="button" class="bouton" aria-describedby="aide-document" [disabled]="generation()"
+        (click)="genererDocument()">{{ generation() ? 'Génération…' : 'Générer la convention (.docx)' }}</button></div>
+    </section>
+
     <section class="carte" aria-labelledby="titre-signatures">
       <h2 id="titre-signatures">Signatures</h2>
       <ul class="signatures">

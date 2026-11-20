@@ -37,6 +37,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Validated
 public class AdminConventionStageController {
+    private static final MediaType DOCX =
+        MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+
     private final ConventionsStageService service;
 
     @GetMapping
@@ -60,6 +63,18 @@ public class AdminConventionStageController {
     public ResponseEntity<ConventionResponse> deposerScan(@PathVariable UUID id, @RequestPart("fichier") MultipartFile fichier,
             @AuthenticationPrincipal UtilisateurPrincipal principal) {
         return ResponseEntity.ok(service.deposerScan(id, fichier, principal));
+    }
+
+    /** Convention pré-remplie (.docx modifiable), à imprimer pour les trois signatures. */
+    @GetMapping("/document")
+    public ResponseEntity<byte[]> document(@PathVariable UUID id) {
+        ConventionsStageService.DocumentGenere document = service.document(id);
+        return ResponseEntity.ok()
+            .contentType(DOCX)
+            .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(document.nomFichier(), StandardCharsets.UTF_8).build().toString())
+            .header("X-Content-Type-Options", "nosniff")
+            .cacheControl(CacheControl.noStore())
+            .body(document.contenu());
     }
 
     @GetMapping("/scan")

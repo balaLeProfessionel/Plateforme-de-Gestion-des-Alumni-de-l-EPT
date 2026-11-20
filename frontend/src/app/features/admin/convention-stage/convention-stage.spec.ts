@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Convention } from '../../../core/services/models/stage.model';
 import { unSuivi } from '../../stages/testing/donnees-stages';
 import { ConventionStagePage } from './convention-stage';
@@ -82,6 +82,35 @@ describe('ConventionStagePage', () => {
     champ.dispatchEvent(new Event('change'));
     await fixture.whenStable();
     expect(element().querySelector('[role="alert"]')?.textContent).toContain('Le scan doit être un fichier PDF.');
+  });
+
+  it('génère la convention pré-remplie au nom de l’étudiant', async () => {
+    http.expectOne(URL).flush(uneConvention());
+    await fixture.whenStable();
+    const telecharges: string[] = [];
+    const creerUrl = vi.spyOn(globalThis.URL, 'createObjectURL').mockReturnValue('blob:convention');
+    const revoquer = vi.spyOn(globalThis.URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      telecharges.push(this.download);
+    });
+    bouton('Générer la convention (.docx)').click();
+    const requete = http.expectOne(`${URL}/document`);
+    expect(requete.request.responseType).toBe('blob');
+    requete.flush(new Blob(['docx']));
+    const etudiant = uneConvention().stage.etudiant;
+    expect(telecharges).toEqual([`Convention de stage - ${etudiant.prenom} ${etudiant.nom}.docx`]);
+    clic.mockRestore();
+    creerUrl.mockRestore();
+    revoquer.mockRestore();
+  });
+
+  it('dit quand la convention n’a pas pu être générée', async () => {
+    http.expectOne(URL).flush(uneConvention());
+    await fixture.whenStable();
+    bouton('Générer la convention (.docx)').click();
+    http.expectOne(`${URL}/document`).flush(new Blob(), { status: 500, statusText: 'Erreur' });
+    await fixture.whenStable();
+    expect(element().querySelector('[role="alert"]')?.textContent).toContain('La convention n’a pas pu être générée.');
   });
 
   it('signale un stage introuvable', async () => {

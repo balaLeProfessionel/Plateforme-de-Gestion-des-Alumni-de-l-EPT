@@ -43,6 +43,7 @@ export class ConventionStagePage {
   protected readonly clauses = signal<ClausesConvention>({ assurance: '', indemnite: '', logement: '', clauseConfidentialite: false });
   protected readonly dates = signal<Record<PartieConvention, string>>({ ETUDIANT: '', ORGANISME: '', ECOLE: '' });
   protected readonly enCours = signal(false);
+  protected readonly generation = signal(false);
   protected readonly message = signal<string | null>(null);
   protected readonly erreur = signal<string | null>(null);
   protected readonly aujourdhui = new Date().toLocaleDateString('sv-SE');
@@ -110,6 +111,23 @@ export class ConventionStagePage {
       return;
     }
     this.executer(this.service.deposerScan(this.stageId, fichier), 'Scan de la convention signée déposé.');
+  }
+
+  protected genererDocument(): void {
+    const c = this.convention();
+    if (!c || this.generation()) return;
+    this.generation.set(true);
+    this.erreur.set(null);
+    this.service.genererConvention(this.stageId).subscribe({
+      next: (contenu) => {
+        this.generation.set(false);
+        enregistrerFichier(this.document, contenu, `Convention de stage - ${c.stage.etudiant.prenom} ${c.stage.etudiant.nom}.docx`);
+      },
+      error: () => {
+        this.generation.set(false);
+        this.erreur.set('La convention n’a pas pu être générée. Réessayez.');
+      },
+    });
   }
 
   protected telechargerScan(nom: string): void {
