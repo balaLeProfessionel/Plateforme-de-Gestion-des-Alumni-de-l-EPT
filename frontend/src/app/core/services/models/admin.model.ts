@@ -145,10 +145,12 @@ export function lienFicheCompte(compte: CompteAdmin): string[] | null {
  * Miroir de PermissionAdmin : chaque rubrique de l’administration exige l’une d’elles. Le tableau de bord est
  * ouvert à tout administrateur ; les autres sont les responsabilités que le super administrateur coche.
  */
-export type PermissionAdmin = 'CONSULTER_TABLEAU_DE_BORD' | 'GERER_COMPTES' | 'CONSULTER_JOURNAL' | 'GERER_STAGES'
+export type PermissionAdmin = 'CONSULTER_TABLEAU_DE_BORD' | 'GERER_COMPTES' | 'CONSULTER_JOURNAL'
+  | 'PUBLIER_ANNONCES' | 'MODERER_PUBLICATIONS' | 'GERER_STAGES'
   | 'GERER_MOBILITES' | 'GERER_PARTENARIATS' | 'GERER_EVENEMENTS' | 'GERER_MENTORAT' | 'GERER_ADMINISTRATEURS';
 export const TOUTES_LES_PERMISSIONS: readonly PermissionAdmin[] = [
-  'CONSULTER_TABLEAU_DE_BORD', 'GERER_COMPTES', 'CONSULTER_JOURNAL', 'GERER_STAGES', 'GERER_MOBILITES',
+  'CONSULTER_TABLEAU_DE_BORD', 'GERER_COMPTES', 'CONSULTER_JOURNAL',
+  'PUBLIER_ANNONCES', 'MODERER_PUBLICATIONS', 'GERER_STAGES', 'GERER_MOBILITES',
   'GERER_PARTENARIATS', 'GERER_EVENEMENTS', 'GERER_MENTORAT', 'GERER_ADMINISTRATEURS',
 ];
 /** Permissions d’une session ouverte avant leur envoi par le serveur : celles que tout administrateur avait alors. */

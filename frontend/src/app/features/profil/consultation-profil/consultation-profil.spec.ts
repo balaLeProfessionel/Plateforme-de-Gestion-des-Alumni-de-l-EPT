@@ -69,8 +69,13 @@ describe('ConsultationProfil', () => {
     expect(service.obtenirProfil).toHaveBeenCalled();
     expect(contenu).toContain('Informations privées');
     expect(contenu).toContain('awa@example.com');
-    expect(contenu).toContain('Votre parcours est vide');
-    expect(fixture.nativeElement.querySelector('a[href="/profil/parametres#parcours"]')).not.toBeNull();
+    expect(contenu).toContain('Racontez votre parcours');
+    const etatVide = fixture.nativeElement.querySelector('app-parcours-vide') as HTMLElement;
+    expect(etatVide.querySelector('a[href="/profil/parametres#parcours"]')?.textContent).toContain('Ajouter une expérience');
+    expect(etatVide.querySelector('a[href="/profil/parametres#formations"]')?.textContent).toContain('Ajouter une formation');
+    const jauge = fixture.nativeElement.querySelector('app-completude-profil [role="progressbar"]') as HTMLElement;
+    expect(Number(jauge.getAttribute('aria-valuenow'))).toBeLessThan(100);
+    expect(fixture.nativeElement.querySelector('app-completude-profil')?.textContent).toContain('Ajouter une expérience');
     expect(fixture.nativeElement.querySelector('.modifier')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('app-bouton-retour')?.textContent).toContain('Retour');
   });

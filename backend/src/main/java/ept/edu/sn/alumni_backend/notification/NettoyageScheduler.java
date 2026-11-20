@@ -20,6 +20,7 @@ public class NettoyageScheduler {
     private final CodeVerificationRepository codeVerificationRepository;
     private final CodeReinitialisationMotDePasseRepository codeReinitialisationRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final NotificationService notificationService;
 
     // Toutes les heures
     @Scheduled(fixedRate = 3_600_000)
@@ -34,5 +35,13 @@ public class NettoyageScheduler {
     @Scheduled(fixedRate = 3_600_000) // toutes les heures, comme les OTP
     public void nettoyerRefreshTokensExpires() {
         refreshTokenRepository.supprimerExpires(LocalDateTime.now());
+    }
+
+    @Scheduled(fixedRate = 3_600_000) // la cloche garde 90 jours d'historique
+    public void nettoyerNotificationsAnciennes() {
+        int supprimees = notificationService.supprimerAnciennes();
+        if (supprimees > 0) {
+            log.info("Nettoyage : {} notification(s) de plus de 90 jours supprimée(s)", supprimees);
+        }
     }
 }

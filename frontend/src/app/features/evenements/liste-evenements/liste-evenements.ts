@@ -6,7 +6,7 @@ import { catchError, combineLatest, firstValueFrom, map, of, startWith, Subject,
 
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { EvenementService } from '../../../core/services/evenements/evenement';
-import { FilAriane } from '../../../shared/fil-ariane/fil-ariane';
+import { Onglet, Onglets } from '../../../shared/onglets/onglets';
 import { VisuelEvenement } from '../../../shared/images/visuel-evenement';
 import {
   AUCUN_FILTRE, Evenement, FiltresEvenements, PageEvenements, PeriodeEvenement,
@@ -15,7 +15,7 @@ import { BarreFiltresEvenements } from '../filtres-evenements/filtres-evenements
 
 @Component({
   selector: 'app-liste-evenements',
-  imports: [RouterLink, FilAriane, VisuelEvenement, BarreFiltresEvenements],
+  imports: [RouterLink, VisuelEvenement, BarreFiltresEvenements, Onglets],
   templateUrl: './liste-evenements.html',
   styleUrl: './liste-evenements.scss',
 })
@@ -30,6 +30,11 @@ export class ListeEvenements {
   protected readonly page = signal<PageEvenements | null>(null);
   protected readonly periode = signal<PeriodeEvenement>('AVENIR');
   protected readonly mesEvenements = signal(false);
+  /** Changer de vue garde la période et les filtres, et revient à la première page. */
+  protected readonly vues = computed((): readonly Onglet[] => [
+    { libelle: 'Tous les événements', lien: '/evenements', parametres: { vue: null, page: 0 }, actif: !this.mesEvenements() },
+    { libelle: 'Mes événements', lien: '/evenements', parametres: { vue: 'mes', page: 0 }, actif: this.mesEvenements() },
+  ]);
   protected readonly filtres = signal<FiltresEvenements>(AUCUN_FILTRE);
   protected readonly filtresActifs = computed(() => Object.values(this.filtres()).some(Boolean));
 
@@ -66,6 +71,7 @@ export class ListeEvenements {
       })),
       tap(({ periode, mesEvenements, page, filtres }) => {
         this.periode.set(periode);
+        if (mesEvenements !== this.mesEvenements()) this.confirmationAnnulation.set(null);
         this.mesEvenements.set(mesEvenements);
         this.filtres.set(filtres);
         this.enChargement.set(true);
@@ -108,16 +114,6 @@ export class ListeEvenements {
     void this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { periode: this.periode(), page },
-      queryParamsHandling: 'merge'
-    });
-  }
-
-  protected changerVue(mesEvenements: boolean): void {
-    if (mesEvenements === this.mesEvenements()) return;
-    this.confirmationAnnulation.set(null);
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { vue: mesEvenements ? 'mes' : null, page: 0 },
       queryParamsHandling: 'merge'
     });
   }

@@ -1,6 +1,6 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
-import { OrganismePublic, OrganismeSuggestion } from '../models/organisme.model';
+import { OrganismePublic, OrganismeSuggestion, PageMembresOrganisme, PresenceMembre } from '../models/organisme.model';
 
 
 export interface CompleterOrganismeRequest {
@@ -19,6 +19,14 @@ export class OrganismeService {
 
   obtenirProfilPublic(id: string) {
     return this.http.get<OrganismePublic>(`/api/organisme/${encodeURIComponent(id)}`);
+  }
+
+  /** « Ils travaillent ou ont travaillé ici » : seuls les profils visibles dans l'annuaire. */
+  listerMembres(id: string, page: number, taille = 12, presence: PresenceMembre | null = null, recherche = '') {
+    let params = new HttpParams().set('page', page).set('taille', taille);
+    if (presence) params = params.set('presence', presence);
+    if (recherche.trim()) params = params.set('recherche', recherche.trim());
+    return this.http.get<PageMembresOrganisme>(`/api/organisme/${encodeURIComponent(id)}/membres`, { params });
   }
 
   obtenirMonProfil() {

@@ -59,7 +59,7 @@ describe('FormulaireEvenement', () => {
   it('crée un événement valide avec une capacité facultative absente', async () => {
     fixture.componentInstance['modele'].set({
       titre: '  Rencontre Alumni  ', description: 'Description de la rencontre', lieu: 'Thiès',
-      dateDebut: '2026-10-15T09:00', dateFin: '2026-10-15T12:00', audience: 'ALUMNI', nombrePlaces: '',
+      dateDebut: '2026-10-15T09:00', dateFin: '2026-10-15T12:00', audience: 'ALUMNI', nombrePlaces: '', participantsVisibles: true,
     });
     await fixture.componentInstance['soumettre'](new Event('submit'));
 
@@ -69,10 +69,19 @@ describe('FormulaireEvenement', () => {
     }));
   });
 
+  it('envoie le choix de masquer la liste des inscrits', async () => {
+    fixture.componentInstance['modele'].set({
+      titre: 'Conférence', description: 'Description', lieu: 'Thiès',
+      dateDebut: '2026-10-22T15:34', dateFin: '', audience: 'TOUS', nombrePlaces: '', participantsVisibles: false,
+    });
+    await fixture.componentInstance['soumettre'](new Event('submit'));
+    expect(creer).toHaveBeenCalledWith(expect.objectContaining({ participantsVisibles: false }));
+  });
+
   it('crée un événement ponctuel sans date de fin', async () => {
     fixture.componentInstance['modele'].set({
       titre: 'Conférence', description: 'Description', lieu: 'Thiès',
-      dateDebut: '2026-10-22T15:34', dateFin: '', audience: 'TOUS', nombrePlaces: '',
+      dateDebut: '2026-10-22T15:34', dateFin: '', audience: 'TOUS', nombrePlaces: '', participantsVisibles: true,
     });
     await fixture.componentInstance['soumettre'](new Event('submit'));
     expect(creer).toHaveBeenCalledWith(expect.objectContaining({ dateFin: null }));
@@ -91,7 +100,7 @@ describe('FormulaireEvenement', () => {
   it('bloque une fin antérieure au début avant l’appel réseau', async () => {
     fixture.componentInstance['modele'].set({
       titre: 'Rencontre', description: 'Description', lieu: 'Thiès',
-      dateDebut: '2026-10-15T12:00', dateFin: '2026-10-15T09:00', audience: 'TOUS', nombrePlaces: '',
+      dateDebut: '2026-10-15T12:00', dateFin: '2026-10-15T09:00', audience: 'TOUS', nombrePlaces: '', participantsVisibles: true,
     });
     await fixture.componentInstance['soumettre'](new Event('submit'));
     await fixture.whenStable();
@@ -126,7 +135,7 @@ describe('FormulaireEvenement', () => {
     const image = new File(['affiche'], 'affiche.png', { type: 'image/png' });
     fixture.componentInstance['modele'].set({
       titre: 'Rencontre Alumni', description: 'Une rencontre EPT', lieu: 'Thiès',
-      dateDebut: '2026-10-15T09:00', dateFin: '2026-10-15T12:00', audience: 'ALUMNI', nombrePlaces: '',
+      dateDebut: '2026-10-15T09:00', dateFin: '2026-10-15T12:00', audience: 'ALUMNI', nombrePlaces: '', participantsVisibles: true,
     });
     fixture.componentInstance['fichierImage'].set(image);
 
@@ -196,7 +205,7 @@ describe('FormulaireEvenement', () => {
       dateDebut: '2026-10-15T09:00:00Z', dateFin: '2026-10-15T12:00:00Z',
       audience: 'TOUS', nombrePlaces: null, officielEpt: false, statut: 'PUBLIE',
       organisateurId: 'organisateur-1', organisateurNom: 'Diop', organisateurPrenom: 'Awa',
-      nombreParticipants: 0, maReponse: null, ...modifications,
+      nombreParticipants: 0, maReponse: null, participantsVisibles: true, ...modifications,
     };
   }
 

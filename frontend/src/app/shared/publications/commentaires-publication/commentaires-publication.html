@@ -1,0 +1,72 @@
+@if (ouverte()) {
+  <section class="discussion" [attr.aria-label]="'Commentaires'">
+    @if (chargement() && !commentaires().length) { <p class="etat" role="status">Chargement des commentaires…</p> }
+    @if (erreurChargement()) {
+      <p class="etat erreur" role="alert">Impossible de charger les commentaires.
+        <button type="button" class="lien" (click)="charger(page() + (charge() ? 1 : 0))">Réessayer</button></p>
+    }
+
+    @if (fils().length) {
+      <ul class="fils">
+        @for (fil of fils(); track fil.commentaire.id) {
+          <li class="fil" [class.avec-reponses]="fil.reponses.length || parent()?.id === fil.commentaire.id">
+            <app-message-commentaire [commentaire]="fil.commentaire" (repondre)="repondreA($event)" />
+            @if (fil.reponses.length || parent()?.id === fil.commentaire.id) {
+              <ul class="reponses">
+                @for (reponse of fil.reponses; track reponse.id) {
+                  <li><app-message-commentaire [commentaire]="reponse" [reponse]="true" (repondre)="repondreA($event)" /></li>
+                }
+                @if (parent()?.id === fil.commentaire.id) {
+                  <li><ng-container [ngTemplateOutlet]="saisieCommentaire" /></li>
+                }
+              </ul>
+            }
+          </li>
+        }
+      </ul>
+    }
+
+    @if (restants() > 0 && page() + 1 < totalPages()) {
+      <button type="button" class="suite" [disabled]="chargement()" (click)="charger(page() + 1)">
+        {{ chargement() ? 'Chargement…' : 'Afficher ' + restants() + ' commentaire' + (restants() === 1 ? '' : 's') + ' de plus' }}
+      </button>
+    }
+
+    @if (!parent()) { <ng-container [ngTemplateOutlet]="saisieCommentaire" /> }
+    <p class="visuellement-cache" role="status">{{ annonce() }}</p>
+  </section>
+}
+
+<ng-template #saisieCommentaire>
+  <form class="saisie" [class.en-reponse]="parent()" (submit)="envoyer($event)" novalidate>
+    @if (parent(); as cible) {
+      <p class="contexte">
+        <i class="pi pi-reply" aria-hidden="true"></i>
+        <span>Réponse à <strong>{{ nomDe(cible) }}</strong></span>
+        <button type="button" class="fermer" (click)="annulerReponse()" aria-label="Annuler la réponse">
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      </p>
+    }
+    <div class="ligne">
+      <app-avatar-membre [urlPhoto]="moi()?.urlPhoto" [nom]="moi()?.nom" [prenom]="moi()?.prenom"
+        [roleMembre]="moi()?.role" [taille]="parent() ? 1.75 : 2.25" />
+      <div class="champ">
+        <label class="visuellement-cache" [for]="'commentaire-' + publicationId()">
+          @if (parent(); as cible) { Votre réponse à {{ nomDe(cible) }} } @else { Votre commentaire }
+        </label>
+        <textarea #saisie [id]="'commentaire-' + publicationId()" [formField]="formulaire.contenu" rows="1"
+          [placeholder]="parent() ? 'Écrire une réponse…' : 'Écrire un commentaire…'"
+          [attr.aria-describedby]="erreurEnvoi() ? 'erreur-commentaire-' + publicationId() : null"
+          (keydown)="raccourci($event)"></textarea>
+        <button type="submit" class="envoyer" [disabled]="envoi()"
+          [attr.aria-label]="parent() ? 'Publier la réponse' : 'Publier le commentaire'">
+          <i class="pi" [class.pi-send]="!envoi()" [class.pi-spin]="envoi()" [class.pi-spinner]="envoi()" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+    @if (erreurEnvoi()) {
+      <p class="erreur" role="alert" [id]="'erreur-commentaire-' + publicationId()">{{ erreurEnvoi() }}</p>
+    }
+  </form>
+</ng-template>

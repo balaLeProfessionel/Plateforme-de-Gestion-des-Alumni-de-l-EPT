@@ -28,6 +28,7 @@ import ept.edu.sn.alumni_backend.parcours.entity.Formation;
 import ept.edu.sn.alumni_backend.parcours.repository.ExperienceRepository;
 import ept.edu.sn.alumni_backend.parcours.repository.FormationRepository;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
+import ept.edu.sn.alumni_backend.notification.NotificationRepository;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 
 @SpringBootTest
@@ -46,6 +47,16 @@ class ProfilPublicIntegrationTests {
 
     @Autowired
     private ept.edu.sn.alumni_backend.filiere.repository.ChefDepartementRepository chefDepartementRepository;
+
+
+    @Autowired
+
+    private NotificationRepository notificationRepository;
+
+
+    @Autowired
+
+    private NotificationRepository notificationRepository;
 
     @Autowired
     private OrganismeRepository organismeRepository;
@@ -68,11 +79,14 @@ class ProfilPublicIntegrationTests {
         evenementRepository.deleteAll();
         experienceRepository.deleteAll();
         formationRepository.deleteAll();
-        organismeRepository.deleteAll();
+        notificationRepository.deleteAll();
+        // Les comptes avant les organismes : un compte organisme laissé par une autre classe
+        // de tests référence encore son organisme (échec selon l'ordre d'exécution, vu sur la CI).
         // Filières et chefs de département référencent des comptes (TRA-14) : on les détache avant de vider.
         chefDepartementRepository.deleteAll();
         filiereRepository.saveAll(filiereRepository.findAll().stream().peek(filiere -> filiere.setCreeePar(null)).toList());
         utilisateurRepository.deleteAll();
+        organismeRepository.deleteAll();
     }
 
     @Test

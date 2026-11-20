@@ -20,7 +20,7 @@
   gap: 0.5rem;
   min-height: 2.75rem;
   padding: 0.55rem 1rem;
-  border-radius: 8px;
+  border-radius: var(--ept-radius-sm);
   background: var(--ept-primary);
   color: white;
   font-weight: 700;
@@ -39,7 +39,7 @@
   gap: 0.4rem;
   padding: 1rem 1.15rem;
   border: 1px solid var(--ept-border);
-  border-radius: 12px;
+  border-radius: var(--ept-radius);
   background: var(--ept-surface);
 
   &:hover { border-color: var(--ept-primary); }
@@ -78,7 +78,7 @@
   p { max-width: 30rem; color: var(--ept-text-secondary); }
 }
 
-.squelette { min-height: 6rem; border-radius: 12px; background: #edf1f3; }
+.squelette { min-height: 6rem; border-radius: var(--ept-radius); background: #edf1f3; }
 
 @media (max-width: 560px) {
   .programmes-page { width: min(100% - 2rem, 1100px); }

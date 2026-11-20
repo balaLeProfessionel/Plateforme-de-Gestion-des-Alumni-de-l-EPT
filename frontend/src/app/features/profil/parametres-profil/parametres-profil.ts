@@ -1,6 +1,7 @@
-import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Component, Injector, OnDestroy, afterNextRender, computed, inject, signal } from '@angular/core';
 import { form, FormField, minLength, required } from '@angular/forms/signals';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { InputText } from 'primeng/inputtext';
 
 import { AuthService } from '../../../core/services/auth/auth-service';
@@ -31,6 +32,9 @@ interface ModeleMotDePasse {
 export class ParametresProfil implements OnDestroy {
   private readonly profilService = inject(ProfilService);
   private readonly authService = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly document = inject(DOCUMENT);
+  private readonly injector = inject(Injector);
 
   protected readonly libelleClasse = libelleClasse;
   protected readonly profil = signal<Profil | null>(null);
@@ -76,6 +80,17 @@ export class ParametresProfil implements OnDestroy {
     this.charger();
   }
 
+  /**
+   * Lien vers une section (#parcours, #formations…) : les sections n’existent qu’une fois le profil chargé,
+   * après le défilement automatique du routeur ; on y va donc une fois la page affichée.
+   */
+  private allerALaSection(): void {
+    const fragment = this.route.snapshot.fragment;
+    if (!fragment) return;
+    afterNextRender({ read: () => this.document.getElementById(fragment)?.scrollIntoView({ block: 'start' }) },
+      { injector: this.injector });
+  }
+
   ngOnDestroy(): void {
     this.libererApercu();
     this.fermerRecadrage();
@@ -88,6 +103,7 @@ export class ParametresProfil implements OnDestroy {
       next: (profil) => {
         this.profil.set(profil);
         this.enChargement.set(false);
+        this.allerALaSection();
       },
       error: () => {
         this.erreurChargement.set('Impossible de charger les paramètres du profil.');

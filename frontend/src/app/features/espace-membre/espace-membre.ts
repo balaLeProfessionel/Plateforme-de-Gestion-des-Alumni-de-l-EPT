@@ -11,6 +11,7 @@ import { SidebarModule } from 'primeng/sidebar';
 import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurInscriptions } from '../../core/services/admin/compteur-inscriptions';
+import { CompteurSignalements } from '../../core/services/publications/moderation';
 import { CompteurDeclarationsATraiter } from '../../core/services/stages/compteur-declarations';
 import { CompteurOffresAVerifier } from '../../core/services/stages/compteur-offres';
 import { PermissionAdmin, TOUTES_LES_PERMISSIONS } from '../../core/services/models/admin.model';
@@ -19,6 +20,8 @@ import { participeAuMentorat } from '../../core/services/models/mentorat.model';
 import { AvatarMembre } from '../../shared/images/avatar-membre';
 import { MenuMobile, RubriqueAVenir, RubriqueMenu } from './menu-mobile/menu-mobile';
 import { NavigationMobile } from './navigation-mobile/navigation-mobile';
+import { ClocheNotifications } from './cloche-notifications/cloche-notifications';
+import { NotificationService } from '../../core/services/notifications/notifications';
 
 interface LienNavigation extends RubriqueMenu {
   exact: boolean;
@@ -33,7 +36,7 @@ interface GroupeNavigation {
   selector: 'app-espace-membre',
   imports: [
     AvatarMembre, RouterLink, RouterLinkActive, RouterOutlet, SidebarModule, MenuModule, TooltipModule, ButtonModule,
-    IconeSidebar, MenuMobile, NavigationMobile,
+    IconeSidebar, MenuMobile, NavigationMobile, ClocheNotifications,
   ],
   templateUrl: './espace-membre.html',
   styleUrl: './espace-membre.scss',
@@ -45,11 +48,14 @@ export class EspaceMembre implements OnDestroy {
   private readonly formatNavigation = this.document.defaultView?.matchMedia?.('(max-width: 1023px)');
   private readonly changementFormatNavigation = (evenement: MediaQueryListEvent) =>
     this.sidebarOuverte.set(!evenement.matches);
-  /** Partagé par le bouton du compte, la barre du bas et le dialog « Mon espace ». */
+  /** Partagé par le bouton « Menu » de la barre du bas et le dialog « Mon espace ». */
   protected readonly menuOuvert = signal(false);
   protected readonly sidebarOuverte = signal(!this.formatNavigation?.matches);
   protected readonly compteurMentorat = inject(CompteurDemandesMentorat);
+  private readonly mentorat = computed(() => participeAuMentorat(this.authService.utilisateur()?.role));
   private readonly compteurInscriptions = inject(CompteurInscriptions);
+  private readonly compteurSignalements = inject(CompteurSignalements);
+  private readonly notificationService = inject(NotificationService);
   private readonly compteurOffres = inject(CompteurOffresAVerifier);
   private readonly compteurDeclarations = inject(CompteurDeclarationsATraiter);
   /** Un compte d’administration navigue par domaine ; un membre garde les rubriques de la communauté. */
@@ -63,11 +69,13 @@ export class EspaceMembre implements OnDestroy {
         { libelle: 'Accueil', icone: 'pi-home', route: '/accueil', exact: true },
         { libelle: 'Annuaire', icone: 'pi-users', route: '/annuaire', exact: false },
         { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
-        ...(this.voitMentorat() ? [{
+        { libelle: 'Articles', icone: 'pi-book', route: '/articles', exact: false },
+        // Un compte organisme publie, écrit et organise, mais ne prend pas part au mentorat.
+        ...(this.mentorat() ? [{
           libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', exact: false,
           compteur: this.compteurMentorat.nombre(), libelleCompteur: 'demandes en attente',
         }] : []),
-        { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages', exact: false },
+        { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages', exact: false }] : []),
       ] }];
     }
     const peut = (permission: PermissionAdmin) => this.authService.aPermission(permission);
@@ -94,6 +102,12 @@ export class EspaceMembre implements OnDestroy {
         }, { libelle: 'Suivi des stages', icone: 'pi-eye', route: '/admin/stages/suivi', exact: false },
         { libelle: 'Solliciter les organismes', icone: 'pi-envelope', route: '/admin/stages/sollicitations', exact: false }] : [] },
       { titre: 'Contenus', liens: [
+        ...(peut('PUBLIER_ANNONCES')
+          ? [{ libelle: 'Annonces et appels', icone: 'pi-megaphone', route: '/admin/publications', exact: false }] : []),
+        ...(peut('MODERER_PUBLICATIONS') ? [{
+          libelle: 'Signalements', icone: 'pi-flag', route: '/admin/signalements', exact: false,
+          compteur: this.compteurSignalements.nombre(), libelleCompteur: 'signalements à examiner',
+        }] : []),
         { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
         ...(peut('GERER_MENTORAT')
           ? [{ libelle: 'Programmes de mentorat', icone: 'pi-sitemap', route: '/mentorat/gestion-programmes', exact: false }] : []),
@@ -106,12 +120,10 @@ export class EspaceMembre implements OnDestroy {
   });
   protected readonly rubriquesAVenir = computed<readonly RubriqueAVenir[]>(() => this.administration() ? [
     { libelle: 'Statistiques', icone: 'pi-chart-bar' },
-    { libelle: 'Modération', icone: 'pi-flag' },
-    { libelle: 'Annonces', icone: 'pi-megaphone' },
     { libelle: 'Enquêtes', icone: 'pi-clipboard' },
   ] : [
+    // Les actualités vivent dans le fil de l’accueil : plus de rubrique à part.
     { libelle: 'Offres d’emploi', icone: 'pi-briefcase' },
-    { libelle: 'Actualités', icone: 'pi-megaphone' },
   ]);
   /**
    * La barre du bas garde quatre entrées (Accueil, Annuaire, Événements, Menu) : le reste passe par le panneau
@@ -122,7 +134,11 @@ export class EspaceMembre implements OnDestroy {
       .flatMap((groupe) => groupe.liens)
       .filter((lien) => !['/annuaire', '/evenements'].includes(lien.route))
     : [
+      { libelle: 'Articles', icone: 'pi-book', route: '/articles' },
+      ...(this.mentorat()
+        ? [
       ...(this.voitMentorat() ? [{ libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() }] : []),
+    ] : []),
       { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages' },
     ]);
 
@@ -181,6 +197,8 @@ export class EspaceMembre implements OnDestroy {
     this.authService.resynchroniser();
     if (participeAuMentorat(this.authService.utilisateur()?.role)) this.compteurMentorat.actualiser();
     if (this.authService.aPermission('GERER_COMPTES')) this.compteurInscriptions.actualiser();
+    if (this.authService.aPermission('MODERER_PUBLICATIONS')) this.compteurSignalements.actualiser();
+    this.notificationService.demarrer();
     if (this.authService.aPermission('GERER_STAGES')) {
       this.compteurOffres.actualiser();
       this.compteurDeclarations.actualiser();
@@ -189,10 +207,7 @@ export class EspaceMembre implements OnDestroy {
 
   ngOnDestroy(): void {
     this.formatNavigation?.removeEventListener('change', this.changementFormatNavigation);
-  }
-
-  protected basculerMenu(): void {
-    this.menuOuvert.update((ouvert) => !ouvert);
+    this.notificationService.arreter();
   }
 
   protected seDeconnecter(): void {

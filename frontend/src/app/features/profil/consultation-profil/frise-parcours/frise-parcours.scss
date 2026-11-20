@@ -7,7 +7,7 @@
 .en-cours .point { background: var(--ept-primary); }
 .ept .point { border-color: var(--ept-gold); background: var(--ept-gold); }
 
-.element { display: grid; gap: 0.15rem; min-width: 0; padding: 0.5rem 0.75rem; border-radius: 10px; color: inherit; text-decoration: none; }
+.element { display: grid; gap: 0.15rem; min-width: 0; padding: 0.5rem 0.75rem; border-radius: var(--ept-radius-sm); color: inherit; text-decoration: none; }
 .element:hover { background: var(--ept-bg); }
 .ept .element { background: var(--ept-gold-light); }
 .type { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; color: var(--ept-text-secondary); font-size: 0.8rem; font-weight: 600; }

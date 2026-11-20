@@ -1,0 +1,60 @@
+@let organisme = fiche();
+<header class="entete">
+  <div class="bandeau" aria-hidden="true"></div>
+
+  <div class="corps">
+    <app-avatar-membre class="logo" [urlPhoto]="organisme.logoUrl" [nom]="organisme.nom" roleMembre="ORGANISME" [taille]="7.5" />
+
+    <div class="identite">
+      <div class="ligne-nom">
+        <h1>{{ organisme.nom }}</h1>
+        <span class="pastille">{{ typeLibelle() }}</span>
+        @if (organisme.statutCompte === 'EN_ATTENTE') {
+          <span class="pastille attente">En attente de validation</span>
+        }
+      </div>
+      @if (organisme.secteurActivite || localisation()) {
+        <ul class="resume">
+          @if (organisme.secteurActivite) {
+            <li><i class="pi pi-briefcase" aria-hidden="true"></i>{{ organisme.secteurActivite }}</li>
+          }
+          @if (localisation()) {
+            <li><i class="pi pi-map-marker" aria-hidden="true"></i>{{ localisation() }}</li>
+          }
+        </ul>
+      }
+    </div>
+
+    @if (siteWeb() || estMaFiche()) {
+      <div class="actions">
+        @if (siteWeb(); as site) {
+          <a class="bouton principal" [href]="site" target="_blank" rel="noopener noreferrer">
+            <i class="pi pi-external-link" aria-hidden="true"></i>Site web
+            <span class="sr-only">de l’organisme ({{ domaine() }}, nouvel onglet)</span>
+          </a>
+        }
+        @if (estMaFiche()) {
+          <a class="bouton" routerLink="/organisme/parametres">
+            <i class="pi pi-pencil" aria-hidden="true"></i>Modifier la fiche
+          </a>
+        }
+      </div>
+    }
+  </div>
+
+  @if (reseau(); as infos) {
+    @if (infos.actuels + infos.anciens > 0) {
+      <div class="reseau">
+        <span class="visages" aria-hidden="true">
+          @for (membre of visages(); track membre.id) {
+            <app-avatar-membre [urlPhoto]="membre.urlPhoto" [prenom]="membre.prenom" [nom]="membre.nom"
+              [roleMembre]="membre.role" [taille]="2.4" />
+          }
+          @if (autres() > 0) { <span class="autres">+{{ autres() }}</span> }
+        </span>
+        <p>{{ phraseReseau() }}</p>
+        <a class="voir" href="#titre-membres" (click)="$event.preventDefault(); allerAuxMembres()">Voir qui</a>
+      </div>
+    }
+  }
+</header>

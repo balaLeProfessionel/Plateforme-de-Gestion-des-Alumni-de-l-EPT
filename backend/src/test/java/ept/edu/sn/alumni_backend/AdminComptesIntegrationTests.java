@@ -319,7 +319,7 @@ class AdminComptesIntegrationTests {
         // Un super administrateur (les responsabilités sont testées dans AdministrateursIntegrationTests) les a toutes.
         mockMvc.perform(authentifie(get("/api/auth/me"), admin))
             .andExpect(jsonPath("$.permissions").value(org.hamcrest.Matchers.containsInAnyOrder(
-                java.util.Arrays.stream(ept.edu.sn.alumni_backend.admin.PermissionAdmin.values()).map(Enum::name).toArray())));
+                java.util.Arrays.stream(ept.edu.sn.alumni_backend.admin.PermissionAdmin.values()).map(Enum::name).toArray(), "PUBLIER_ANNONCES", "MODERER_PUBLICATIONS")));
     }
 
     @Test

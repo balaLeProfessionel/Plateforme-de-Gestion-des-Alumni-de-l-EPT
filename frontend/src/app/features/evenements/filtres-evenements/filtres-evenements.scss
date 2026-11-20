@@ -13,7 +13,7 @@
   min-width: 0;
 
   i { position: absolute; top: 50%; left: 0.8rem; transform: translateY(-50%); color: var(--ept-text-secondary); }
-  input { width: 100%; min-width: 0; min-height: 2.6rem; padding: 0.45rem 0.7rem 0.45rem 2.3rem; border: 1px solid var(--ept-border); border-radius: 8px; background: white; color: var(--ept-primary-dark); font: inherit; }
+  input { width: 100%; min-width: 0; min-height: 2.6rem; padding: 0.45rem 0.7rem 0.45rem 2.3rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm); background: white; color: var(--ept-primary-dark); font: inherit; }
   input:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
 }
 
@@ -25,7 +25,7 @@
   min-height: 2.6rem;
   padding: 0.45rem 0.85rem;
   border: 1px solid var(--ept-border);
-  border-radius: 8px;
+  border-radius: var(--ept-radius-sm);
   background: white;
   color: var(--ept-primary-dark);
   font: inherit;
@@ -65,14 +65,14 @@
   display: inline-flex;
   gap: 0.25rem;
   padding: 0.2rem;
-  border-radius: 10px;
+  border-radius: var(--ept-radius-sm);
   background: var(--ept-bg);
 
   button {
     min-height: 2.3rem;
     padding: 0.35rem 0.75rem;
     border: 0;
-    border-radius: 8px;
+    border-radius: var(--ept-radius-sm);
     background: transparent;
     color: var(--ept-text-secondary);
     font: inherit;
@@ -102,7 +102,7 @@
   text-decoration: underline;
   cursor: pointer;
 
-  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; border-radius: 6px; }
+  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; border-radius: var(--ept-radius-sm); }
 }
 
 @media (max-width: 760px) {

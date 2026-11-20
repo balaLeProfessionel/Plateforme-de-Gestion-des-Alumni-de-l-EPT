@@ -1,6 +1,6 @@
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-.etapes { display: grid; gap: 0.75rem; min-width: 0; padding: 1.25rem; border: 1px solid var(--ept-border); border-radius: 12px; background: var(--ept-surface); }
+.etapes { display: grid; gap: 0.75rem; min-width: 0; padding: 1.25rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: var(--ept-surface); }
 
 header {
   display: flex;
@@ -41,7 +41,7 @@ a:focus-visible, button:focus-visible, textarea:focus-visible { outline: 2px sol
 
 .aide, .description, .validation { margin: 0; color: var(--ept-text-secondary); font-size: 0.85rem; }
 .validation { color: var(--ept-success-dark); font-weight: 600; }
-.erreur { margin: 0; padding: 0.6rem 0.8rem; border-radius: 8px; background: var(--ept-error-light); color: var(--ept-error-dark); }
+.erreur { margin: 0; padding: 0.6rem 0.8rem; border-radius: var(--ept-radius-sm); background: var(--ept-error-light); color: var(--ept-error-dark); }
 
 .liste {
   display: grid;
@@ -79,7 +79,7 @@ blockquote { margin: 0; padding: 0.4rem 0.7rem; border-left: 3px solid var(--ept
   width: 100%;
 
   label { color: var(--ept-primary-dark); font-size: 0.85rem; font-weight: 600; }
-  textarea { box-sizing: border-box; width: 100%; padding: 0.5rem; border: 1px solid var(--ept-border); border-radius: 8px; font: inherit; resize: vertical; }
+  textarea { box-sizing: border-box; width: 100%; padding: 0.5rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm); font: inherit; resize: vertical; }
   textarea[aria-invalid='true'] { border-color: var(--ept-error); }
   small { color: var(--ept-text-secondary); font-size: 0.78rem; }
 }
@@ -93,7 +93,7 @@ button {
   min-height: 2.5rem;
   padding: 0.4rem 0.85rem;
   border: 1px solid var(--ept-primary);
-  border-radius: 8px;
+  border-radius: var(--ept-radius-sm);
   font: inherit;
   font-size: 0.85rem;
   font-weight: 700;

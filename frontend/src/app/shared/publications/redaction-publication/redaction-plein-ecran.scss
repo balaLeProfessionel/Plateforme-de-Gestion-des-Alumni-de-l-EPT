@@ -1,0 +1,56 @@
+// Page dédiée (option A) : un rédacteur plein écran. L’auteur et son
+// public, un grand texte sans cadre, l’image en grand, et la barre d’outils qui reste sous le pouce.
+.integree {
+  // Le texte s’étire : la barre d’outils reste en bas de l’espace de rédaction.
+  &, form, .zone { display: flex; flex: 1 1 auto; flex-direction: column; }
+  .message { flex: 1 1 auto; }
+  .outils { margin-top: auto; }
+
+
+  .auteur { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .4rem .75rem;
+    padding: 1rem var(--marge-redaction) .25rem; }
+  .pastille-audience { position: relative; display: inline-flex; grid-column: 2; align-items: center; justify-self: start;
+    max-width: 100%; color: var(--ept-primary); font-size: .85rem; }
+  .pastille-audience .pi { position: absolute; pointer-events: none; font-size: .8rem; }
+  .pastille-audience .pi-users { left: .65rem; }
+  .pastille-audience .pi-chevron-down { right: .65rem; font-size: .65rem; }
+  .pastille-audience select { max-width: 100%; min-height: 2.25rem; padding: .25rem 1.8rem .25rem 1.9rem; border: 0; border-radius: 999px;
+    background: var(--ept-primary-light); color: var(--ept-primary); font-weight: 600; appearance: none; cursor: pointer; }
+
+  .choix-type, .etiquette-champ, .champ-date, .aide { margin-inline: var(--marge-redaction); }
+  .champ-date { width: calc(100% - 2 * var(--marge-redaction)); }
+  .zone { border: 0; border-radius: 0; background: transparent; }
+  .zone:focus-within { box-shadow: none; }
+  .titre { padding-inline: var(--marge-redaction); }
+  .message { min-height: 9rem; max-height: none; padding: .75rem var(--marge-redaction) 1rem; font-size: 1.15rem; resize: none; }
+  .message:focus-visible { outline: 3px solid var(--ept-sky); outline-offset: -3px; border-radius: var(--ept-radius-sm); }
+  .panneau-lien, .chargement-image { margin-inline: var(--marge-redaction); }
+  .chargement-image { padding-inline: 0; }
+
+  .apercu-publication.grand { display: grid; grid-template-columns: minmax(0, 1fr); gap: .75rem;
+    margin: 0 var(--marge-redaction) 1rem; padding: 0; background: transparent; }
+  .cadre-image { position: relative; width: min(100%, 22rem); }
+  .cadre-image img { border-radius: var(--ept-radius); }
+  .grand .actions-image-publication { position: absolute; top: .6rem; right: .6rem; display: flex; gap: .4rem; }
+  .grand .actions-image-publication button { display: inline-flex; align-items: center; gap: .4rem; min-height: 2.5rem;
+    width: auto; padding: .4rem .8rem; border: 0; border-radius: 999px; background: rgb(11 37 51 / 78%); color: white; }
+  .grand .actions-image-publication button:hover { background: rgb(11 37 51 / 92%); }
+  .grand .retirer-image { justify-content: center; width: 2.5rem !important; padding: 0 !important; }
+
+  // La barre d’outils colle au bas de l’écran pendant qu’on écrit.
+  .outils { position: sticky; bottom: 0; z-index: 1; gap: .25rem; padding: .5rem calc(var(--marge-redaction) - .5rem);
+    background: var(--ept-surface); }
+  .outils .fichier { top: 0; left: 0; }
+  .compteur-outils { margin: 0 0 0 auto; padding-inline: .5rem; color: var(--ept-text-secondary); font-size: .8rem;
+    font-variant-numeric: tabular-nums; }
+  .compteur-outils.limite { color: var(--ept-error-dark); font-weight: 600; }
+
+  .mention-lien, .erreur-publication { margin-inline: var(--marge-redaction); }
+  .erreur-publication { margin-block: .75rem; }
+}
+
+@media (max-width: 560px) {
+  // Au-dessus de la barre de navigation mobile.
+  .integree .outils { bottom: calc(4.9rem + env(safe-area-inset-bottom)); }
+  .integree .cadre-image { width: 100%; }
+}

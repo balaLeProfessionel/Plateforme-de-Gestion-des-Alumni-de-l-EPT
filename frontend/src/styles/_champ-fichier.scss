@@ -1,0 +1,55 @@
+// Champ de choix de fichier de la plateforme : une zone en pointillés (on peut aussi y déposer le fichier)
+// avec un vrai bouton marine. On garde le champ natif : clavier, lecteurs d'écran et glisser-déposer
+// fonctionnent sans code, seul l'habillage change.
+$icone-envoi: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpolyline points='17 8 12 3 7 8'/%3E%3Cline x1='12' y1='3' x2='12' y2='15'/%3E%3C/svg%3E";
+
+@mixin champ-fichier {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: .9rem;
+  border: 1.5px dashed #a9c3d1;
+  border-radius: var(--ept-radius);
+  background: var(--ept-bg);
+  color: var(--ept-text-secondary);
+  font: inherit;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: border-color .15s, background-color .15s;
+
+  &:hover { border-color: var(--ept-primary); background-color: var(--ept-primary-light); }
+  &:focus-visible { border-color: var(--ept-primary); outline: 3px solid var(--ept-sky); outline-offset: 2px; }
+  &:disabled { opacity: .6; cursor: not-allowed; }
+
+  &::file-selector-button {
+    margin-right: .9rem;
+    padding: .6rem 1rem .6rem 2.35rem;
+    border: 0;
+    border-radius: var(--ept-radius-sm);
+    background: var(--ept-primary) url($icone-envoi) no-repeat .85rem center / 1rem;
+    color: white;
+    font: 600 .9rem var(--ept-font-heading);
+    cursor: pointer;
+    transition: background-color .15s;
+  }
+  &:hover::file-selector-button { background-color: var(--ept-primary-dark); }
+
+  // Sur un écran étroit, le bouton prend toute la largeur et le nom du fichier passe dessous, en entier.
+  @media (max-width: 560px) {
+    white-space: normal;
+    &::file-selector-button {
+      display: block;
+      width: 100%;
+      margin: 0 0 .45rem;
+      padding-left: 1rem;
+      background-position: calc(50% - 5.25rem) center;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    &::file-selector-button { transition: none; }
+  }
+}

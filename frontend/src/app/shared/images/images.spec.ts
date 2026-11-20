@@ -92,8 +92,10 @@ describe('chargerImagePourRecadrage', () => {
   let decodage: () => Promise<void> = () => Promise.resolve();
 
   beforeEach(() => {
-    URL.createObjectURL = vi.fn(() => 'blob:image');
-    URL.revokeObjectURL = vi.fn();
+    // Selon la version de Node, ces méthodes statiques sont en lecture seule : une simple
+    // affectation échoue (c'était le cas sur la CI), on redéfinit donc la propriété.
+    Object.defineProperty(URL, 'createObjectURL', { value: vi.fn(() => 'blob:image'), configurable: true, writable: true });
+    Object.defineProperty(URL, 'revokeObjectURL', { value: vi.fn(), configurable: true, writable: true });
     // jsdom n'implémente pas decode(), présent dans tous les navigateurs modernes.
     HTMLImageElement.prototype.decode ??= () => Promise.resolve();
     vi.spyOn(HTMLImageElement.prototype, 'decode').mockImplementation(() => decodage());

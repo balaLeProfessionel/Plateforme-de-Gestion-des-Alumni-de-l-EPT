@@ -5,7 +5,7 @@
   gap: 0.6rem;
   padding: 1.25rem;
   border: 1px solid var(--ept-border);
-  border-radius: 12px;
+  border-radius: var(--ept-radius);
   background: var(--ept-surface);
 
   h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1.05rem; }
@@ -28,7 +28,7 @@ form { display: grid; gap: 0.5rem; }
     width: 2.5rem;
     height: 2.5rem;
     place-items: center;
-    border-radius: 8px;
+    border-radius: var(--ept-radius-sm);
     color: #b7c3cb;
     font-size: 1.35rem;
     cursor: pointer;
@@ -41,13 +41,13 @@ form { display: grid; gap: 0.5rem; }
 }
 
 .libelle { color: var(--ept-primary-dark); font-size: 0.82rem; font-weight: 600; }
-textarea { padding: 0.5rem 0.65rem; border: 1px solid var(--ept-border); border-radius: 8px; font: inherit; resize: vertical; }
+textarea { padding: 0.5rem 0.65rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm); font: inherit; resize: vertical; }
 textarea:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
 
 button {
   min-height: 2.5rem;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--ept-radius-sm);
   background: var(--ept-primary);
   color: white;
   font: inherit;

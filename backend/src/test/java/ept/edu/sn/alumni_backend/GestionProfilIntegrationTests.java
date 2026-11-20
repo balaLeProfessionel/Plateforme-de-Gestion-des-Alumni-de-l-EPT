@@ -33,6 +33,7 @@ import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.security.RefreshTokenRepository;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
+import ept.edu.sn.alumni_backend.notification.NotificationRepository;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 import ept.edu.sn.alumni_backend.utilisateur.photo.PhotoIntrouvableException;
 import ept.edu.sn.alumni_backend.utilisateur.photo.StockagePhotoProfil;
@@ -45,6 +46,9 @@ class GestionProfilIntegrationTests {
     private MockMvc mockMvc;
     @Autowired
     private UtilisateurRepository utilisateurRepository;
+
+    @Autowired
+    private NotificationRepository notificationRepository;
     @Autowired
     private StockagePhotoProfil stockagePhoto;
     @Autowired
@@ -56,6 +60,7 @@ class GestionProfilIntegrationTests {
 
     @BeforeEach
     void preparer() {
+        notificationRepository.deleteAll();
         utilisateurRepository.deleteAll();
         utilisateur = new Utilisateur();
         utilisateur.setEmail("profil@example.com");

@@ -65,10 +65,11 @@ public class EtapesMentoratService {
                 nouvelle.setAtteintLe(Instant.now());
                 nouvelle.setValidePar(utilisateurRepository.getReferenceById(principal.getUtilisateur().getId()));
                 nouvelle.setCommentaire(texteOuNull(commentaire));
-                evenements.publishEvent(new NotificationMentorat(
-                    acces.autreParticipant(mentorat, principal).getEmail(),
+                evenements.publishEvent(NotificationMentorat.pour(
+                    acces.autreParticipant(mentorat, principal),
                     "Étape de mentorat franchie",
-                    nomComplet(principal.getUtilisateur()) + " a validé l'étape « " + etape.getTitre() + " »."));
+                    nomComplet(principal.getUtilisateur()) + " a validé l'étape « " + etape.getTitre() + " ».",
+                    NotificationMentorat.lienSuivi(mentorat.getId())));
                 return progressionRepository.saveAndFlush(nouvelle);
             });
         return versResponse(etape, progression);

@@ -32,7 +32,7 @@ import { ActionAdmin, detailsLisibles, LIBELLES_ACTION_ADMIN } from '../../../co
     }
   `,
   styles: `
-    :host { display: block; padding: 0.75rem 0.9rem; border-radius: 8px; background: var(--ept-bg); font-size: 0.84rem; }
+    :host { display: block; padding: 0.75rem 0.9rem; border-radius: var(--ept-radius-sm); background: var(--ept-bg); font-size: 0.84rem; }
     ol { display: grid; gap: 0.55rem; margin: 0; padding: 0; list-style: none; }
     li { display: grid; gap: 0.1rem; padding-left: 0.75rem; border-left: 3px solid var(--ept-primary-light); }
     strong { color: var(--ept-primary-dark); }
