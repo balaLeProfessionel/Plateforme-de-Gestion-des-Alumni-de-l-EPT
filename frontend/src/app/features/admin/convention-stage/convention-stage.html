@@ -57,11 +57,11 @@
     <section class="carte" aria-labelledby="titre-scan">
       <h2 id="titre-scan">Convention signée</h2>
       @if (c.scanNom; as nom) {
-        <p>Scan déposé : <button type="button" class="lien" (click)="telechargerScan(nom)">{{ nom }}</button></p>
-      } @else { <p class="aide">Aucun scan déposé.</p> }
-      <div class="champ"><label for="scan">{{ c.scanNom ? 'Remplacer le scan' : 'Déposer le scan' }}</label>
+        <p>Convention signée : <button type="button" class="lien" (click)="telechargerScan(nom)">{{ nom }}</button></p>
+      } @else { <p class="aide">Aucune convention signée déposée.</p> }
+      <div class="champ"><label for="scan">{{ c.scanNom ? 'Remplacer la convention signée' : 'Déposer la convention signée' }}</label>
         <input id="scan" type="file" accept="application/pdf,.pdf" aria-describedby="aide-scan" [disabled]="enCours()" (change)="deposerScan($event)" />
-        <small id="aide-scan" class="aide">PDF de 5 Mo au plus, avec les trois signatures.</small></div>
+        <small id="aide-scan" class="aide">PDF de 5 Mo au plus, avec les trois signatures. Un nouveau dépôt remplace le précédent.</small></div>
     </section>
   } @else {
     <p class="aide" role="status" aria-busy="true">Chargement de la convention…</p>

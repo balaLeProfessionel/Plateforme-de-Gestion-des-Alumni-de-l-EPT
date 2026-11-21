@@ -16,7 +16,7 @@
 
     @if (e.etat !== 'SOUMISE' && !e.modifiable) {
       <p class="aide bloc">{{ e.stage.convention === 'COMPLETE' ? 'L’évaluation n’a pas encore été remise par l’organisme.'
-        : 'L’évaluation s’ouvrira quand la convention sera complète : trois signatures et scan signé.' }}</p>
+        : 'L’évaluation s’ouvrira quand la convention sera complète : trois signatures et convention signée déposée.' }}</p>
     } @else {
       <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
 

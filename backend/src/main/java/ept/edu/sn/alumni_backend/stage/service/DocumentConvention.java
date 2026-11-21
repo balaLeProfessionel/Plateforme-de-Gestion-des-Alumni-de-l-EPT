@@ -8,7 +8,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -33,18 +35,23 @@ import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
  * - Un paragraphe qui commence par {{?condition}} n'est gardé que si la condition est vraie (clause de confidentialité,
  *   conditions particulières).
  * - Le document reste un .docx modifiable : l'organisme peut demander des retouches avant signature.
- * Le modèle se remplace par celui de l'école sans toucher au code, tant qu'il garde les mêmes balises, chacune tapée d'un seul tenant.
+ * Le modèle se modifie dans Word par un développeur, en gardant les mêmes balises. Word découpe souvent une balise tapée à la main en plusieurs morceaux de texte (correcteur, historique de
+ * saisie) : chaque paragraphe est d'abord recollé (normaliser) avant le remplacement.
  */
 @Component
 public class DocumentConvention {
     static final String MODELE = "modeles/convention-stage.docx";
     static final String POINTILLES = "……………………";
     private static final Pattern BALISE = Pattern.compile("\\{\\{([a-z_]+)\\}\\}");
-    /** Paragraphe Word entier dont le texte commence par une condition. */
-    private static final Pattern PARAGRAPHE_CONDITIONNEL =
-        Pattern.compile("<w:p>(?:(?!</w:p>).)*?\\{\\{\\?([a-z_]+)\\}\\}(?:(?!</w:p>).)*?</w:p>", Pattern.DOTALL);
-    private static final Pattern RUN_CONDITION =
-        Pattern.compile("<w:r>(?:<w:rPr>(?:(?!</w:r>).)*?</w:rPr>)?<w:t xml:space=\"preserve\">\\{\\{\\?[a-z_]+\\}\\}</w:t></w:r>");
+    private static final Pattern CONDITION = Pattern.compile("\\{\\{\\?([a-z_]+)\\}\\}");
+    /** Balise ou condition, une fois le texte du paragraphe recollé. */
+    private static final Pattern BALISE_OU_CONDITION = Pattern.compile("\\{\\{\\??[a-z_]+\\}\\}");
+    /** Un paragraphe Word, avec ou sans attributs (Word en ajoute : w14:paraId, w:rsidR…) ; pas <w:pPr>, <w:pBdr> ni <w:p/> vide. */
+    private static final Pattern PARAGRAPHE = Pattern.compile("<w:p(?=[\\s>])[^>]*(?<!/)>.*?</w:p>", Pattern.DOTALL);
+    /** Un morceau de texte d'un paragraphe : <w:t> ou <w:t xml:space="preserve">, pas <w:tab/> ni <w:tbl>. */
+    private static final Pattern TEXTE = Pattern.compile("<w:t(?:\\s[^>]*)?>([^<]*)</w:t>");
+    /** Parties du .docx qui portent du texte : corps, en-têtes, pieds de page. */
+    private static final Pattern PARTIE_TEXTE = Pattern.compile("word/(document|header\\d*|footer\\d*)\\.xml");
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.FRENCH);
     private static final String[] NOMBRES = {"zéro", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf",
         "dix", "onze", "douze"};
@@ -65,8 +72,9 @@ public class DocumentConvention {
              ZipOutputStream sortie = new ZipOutputStream(octets)) {
             for (ZipEntry partie; (partie = entree.getNextEntry()) != null; ) {
                 byte[] contenu = entree.readAllBytes();
-                if (partie.getName().equals("word/document.xml")) {
-                    contenu = remplir(new String(contenu, StandardCharsets.UTF_8), valeurs, conditions).getBytes(StandardCharsets.UTF_8);
+                if (PARTIE_TEXTE.matcher(partie.getName()).matches()) {
+                    String xml = normaliser(new String(contenu, StandardCharsets.UTF_8));
+                    contenu = remplir(xml, valeurs, conditions).getBytes(StandardCharsets.UTF_8);
                 }
                 sortie.putNextEntry(new ZipEntry(partie.getName()));
                 sortie.write(contenu);
@@ -79,13 +87,69 @@ public class DocumentConvention {
         }
     }
 
+    /**
+     * Recolle dans chaque paragraphe les balises que Word a coupées : chaque caractère d'une balise rejoint le morceau
+     * de texte où elle commence, les autres morceaux perdent les caractères qu'ils en portaient. La mise en forme de la
+     * balise est donc celle de son premier caractère ; le reste du paragraphe ne change pas.
+     */
+    static String normaliser(String xml) {
+        Matcher paragraphe = PARAGRAPHE.matcher(xml);
+        StringBuilder sortie = new StringBuilder();
+        while (paragraphe.find()) {
+            paragraphe.appendReplacement(sortie, Matcher.quoteReplacement(recoller(paragraphe.group())));
+        }
+        paragraphe.appendTail(sortie);
+        return sortie.toString();
+    }
+
+    private static String recoller(String paragraphe) {
+        Matcher morceau = TEXTE.matcher(paragraphe);
+        List<String> textes = new ArrayList<>();
+        while (morceau.find()) textes.add(morceau.group(1));
+        if (textes.size() < 2) return paragraphe;
+        StringBuilder tout = new StringBuilder();
+        List<Integer> proprietaire = new ArrayList<>();
+        for (int i = 0; i < textes.size(); i++) {
+            tout.append(textes.get(i));
+            for (int c = 0; c < textes.get(i).length(); c++) proprietaire.add(i);
+        }
+        boolean coupee = false;
+        Matcher balise = BALISE_OU_CONDITION.matcher(tout);
+        while (balise.find()) {
+            int premier = proprietaire.get(balise.start());
+            for (int c = balise.start(); c < balise.end(); c++) {
+                if (proprietaire.get(c) != premier) coupee = true;
+                proprietaire.set(c, premier);
+            }
+        }
+        if (!coupee) return paragraphe;
+        StringBuilder[] nouveaux = new StringBuilder[textes.size()];
+        for (int i = 0; i < nouveaux.length; i++) nouveaux[i] = new StringBuilder();
+        for (int c = 0; c < tout.length(); c++) nouveaux[proprietaire.get(c)].append(tout.charAt(c));
+        StringBuilder sortie = new StringBuilder();
+        int[] rang = {0};
+        Matcher remplacement = TEXTE.matcher(paragraphe);
+        while (remplacement.find()) {
+            // xml:space="preserve" : un morceau qui commence ou finit désormais par une espace la garde.
+            remplacement.appendReplacement(sortie, Matcher.quoteReplacement(
+                "<w:t xml:space=\"preserve\">" + nouveaux[rang[0]++] + "</w:t>"));
+        }
+        remplacement.appendTail(sortie);
+        return sortie.toString();
+    }
+
     static String remplir(String xml, Map<String, String> valeurs, Map<String, Boolean> conditions) {
-        Matcher paragraphe = PARAGRAPHE_CONDITIONNEL.matcher(xml);
+        Matcher paragraphe = PARAGRAPHE.matcher(xml);
         StringBuilder filtre = new StringBuilder();
         while (paragraphe.find()) {
-            boolean garder = conditions.getOrDefault(paragraphe.group(1), false);
-            String remplacement = garder ? RUN_CONDITION.matcher(paragraphe.group()).replaceFirst("") : "";
-            paragraphe.appendReplacement(filtre, Matcher.quoteReplacement(remplacement));
+            String contenu = paragraphe.group();
+            Matcher condition = CONDITION.matcher(contenu);
+            if (condition.find()) {
+                // Un paragraphe sous condition est retiré entier, ou gardé sans le texte de sa condition.
+                boolean garder = conditions.getOrDefault(condition.group(1), false);
+                contenu = garder ? CONDITION.matcher(contenu).replaceAll("") : "";
+            }
+            paragraphe.appendReplacement(filtre, Matcher.quoteReplacement(contenu));
         }
         paragraphe.appendTail(filtre);
 
@@ -94,7 +158,7 @@ public class DocumentConvention {
         while (balise.find()) {
             String valeur = valeurs.get(balise.group(1));
             if (valeur == null) throw new IllegalStateException("Balise inconnue dans le modèle de convention : " + balise.group());
-            balise.appendReplacement(rempli, Matcher.quoteReplacement(xml(valeur)));
+            balise.appendReplacement(rempli, Matcher.quoteReplacement(xml(insecables(valeur))));
         }
         balise.appendTail(rempli);
         return rempli.toString();
@@ -208,6 +272,14 @@ public class DocumentConvention {
 
     private static String texte(String valeur) {
         return valeur == null || valeur.isBlank() ? null : valeur.strip();
+    }
+
+    /**
+     * Ponctuation française : l'espace avant « : ; ! ? » » et après « « » devient insécable, pour que Word ne renvoie
+     * jamais le signe seul en début ou en fin de ligne. Vaut pour les textes du code comme pour les saisies.
+     */
+    static String insecables(String valeur) {
+        return valeur.replaceAll(" ([:;!?»])", " $1").replace("« ", "« ");
     }
 
     /** Échappement XML : une saisie ne doit pas pouvoir casser le document. */

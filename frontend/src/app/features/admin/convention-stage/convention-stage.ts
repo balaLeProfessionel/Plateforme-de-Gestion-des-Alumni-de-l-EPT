@@ -103,14 +103,14 @@ export class ConventionStagePage {
     this.erreur.set(null);
     if (!fichier) return;
     if (fichier.type !== 'application/pdf' || !fichier.name.toLowerCase().endsWith('.pdf')) {
-      this.erreur.set('Le scan doit être un fichier PDF.');
+      this.erreur.set('La convention signée doit être un fichier PDF.');
       return;
     }
     if (fichier.size > POIDS_MAX_PIECE) {
-      this.erreur.set('Le scan ne doit pas dépasser 5 Mo.');
+      this.erreur.set('La convention signée ne doit pas dépasser 5 Mo.');
       return;
     }
-    this.executer(this.service.deposerScan(this.stageId, fichier), 'Scan de la convention signée déposé.');
+    this.executer(this.service.deposerScan(this.stageId, fichier), 'Convention signée déposée.');
   }
 
   protected genererDocument(): void {
@@ -133,7 +133,7 @@ export class ConventionStagePage {
   protected telechargerScan(nom: string): void {
     this.service.telechargerScan(this.stageId).subscribe({
       next: (contenu) => enregistrerFichier(this.document, contenu, nom),
-      error: () => this.erreur.set('Le scan n’a pas pu être téléchargé. Réessayez.'),
+      error: () => this.erreur.set('La convention signée n’a pas pu être téléchargée. Réessayez.'),
     });
   }
 

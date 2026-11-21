@@ -143,14 +143,14 @@ class ConventionsStageIntegrationTests {
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, org.hamcrest.Matchers.containsString("Convention")))
                 .andReturn().getResponse().getContentAsByteArray());
             assertFalse(texte.contains("{{"), type + " : balise restante");
-            assertTrue(texte.contains("« Sujet convention »"), type + " : sujet");
+            assertTrue(texte.contains("«\u00a0Sujet convention\u00a0»"), type + " : sujet");
             assertTrue(texte.contains("au sein de Organisme convention"), type + " : organisme");
             assertTrue(texte.contains("Pr. Mamadou WADE"), type + " : directeur");
             assertTrue(texte.contains("du 1 février 2031 au 30 juin 2031"), type + " : dates");
             assertEquals(type == TypeStage.PFE || type == TypeStage.RECHERCHE, texte.contains("devant un jury"), type + " : article 9");
             // Sans clauses saisies : allocation en pointillés, ni NB de confidentialité ni conditions particulières.
             assertTrue(texte.contains("allocation mensuelle de …………………… FCFA"), type + " : allocation");
-            assertFalse(texte.contains("NB :"), type + " : confidentialité");
+            assertFalse(texte.contains("NB\u00a0:"), type + " : confidentialité");
             assertFalse(texte.contains("Conditions particulières"), type + " : conditions");
         }
     }
@@ -162,10 +162,10 @@ class ConventionsStageIntegrationTests {
         String texte = texteDocument(mockMvc.perform(authentifie(get(url() + "/document"), adminStages))
             .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray());
         assertTrue(texte.contains("allocation mensuelle de 100 000 FCFA."));
-        assertTrue(texte.contains("NB :"));
+        assertTrue(texte.contains("NB\u00a0:"));
         assertTrue(texte.contains("Article 12 – Conditions particulières"));
-        assertTrue(texte.contains("Assurance : AXA <police> & co."), "la saisie est échappée, pas interprétée");
-        assertFalse(texte.contains("Logement :"));
+        assertTrue(texte.contains("Assurance\u00a0: AXA <police> & co."), "la saisie est échappée, pas interprétée");
+        assertFalse(texte.contains("Logement\u00a0:"));
 
         Stage declare = stage(StatutStage.DECLARE);
         mockMvc.perform(authentifie(get("/api/admin/stages/suivi/{id}/convention/document", declare.getId()), adminStages))

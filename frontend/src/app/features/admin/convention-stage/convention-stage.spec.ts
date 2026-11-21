@@ -81,7 +81,7 @@ describe('ConventionStagePage', () => {
     Object.defineProperty(champ, 'files', { value: [new File(['x'], 'scan.png', { type: 'image/png' })] });
     champ.dispatchEvent(new Event('change'));
     await fixture.whenStable();
-    expect(element().querySelector('[role="alert"]')?.textContent).toContain('Le scan doit être un fichier PDF.');
+    expect(element().querySelector('[role="alert"]')?.textContent).toContain('La convention signée doit être un fichier PDF.');
   });
 
   it('génère la convention pré-remplie au nom de l’étudiant', async () => {

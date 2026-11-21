@@ -147,7 +147,7 @@ public class EvaluationsStageService {
             throw new SecurityException("Seul l'organisme d'accueil ou l'administrateur Stages saisit l'évaluation.");
         }
         if (!conventionRepository.findByStage_Id(stageId).map(ConventionStage::complete).orElse(false)) {
-            throw new ConflitStageException("L'évaluation s'ouvre une fois la convention complète : trois signatures et scan signé.");
+            throw new ConflitStageException("L'évaluation s'ouvre une fois la convention complète : trois signatures et convention signée déposée.");
         }
         EvaluationStage evaluation = evaluationRepository.findByStage_Id(stageId).orElseGet(() -> new EvaluationStage(stage));
         if (evaluation.soumise()) {
