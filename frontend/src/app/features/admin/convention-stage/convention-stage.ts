@@ -1,4 +1,4 @@
-import { DatePipe, DOCUMENT } from '@angular/common';
+import { DatePipe, DOCUMENT, NgTemplateOutlet } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -13,6 +13,8 @@ import { FicheSuivi } from '../../stages/fiche-suivi/fiche-suivi';
 import { PageAdmin } from '../page-admin/page-admin';
 
 type ChampClause = 'assurance' | 'indemnite' | 'logement';
+/** Section de la page où s'affiche le retour d'une action, au plus près du bouton. */
+type Zone = 'clauses' | 'document' | 'signatures' | 'scan';
 
 /**
  * Convention tripartite d’un stage confirmé (STA-05). L’administrateur Stages saisit les clauses, enregistre la date
@@ -20,7 +22,7 @@ type ChampClause = 'assurance' | 'indemnite' | 'logement';
  */
 @Component({
   selector: 'app-convention-stage',
-  imports: [DatePipe, FicheSuivi, PageAdmin],
+  imports: [DatePipe, FicheSuivi, NgTemplateOutlet, PageAdmin],
   templateUrl: './convention-stage.html',
   styleUrls: ['../etats-admin.scss', '../formulaire-admin.scss', './convention-stage.scss'],
 })
@@ -44,8 +46,10 @@ export class ConventionStagePage {
   protected readonly dates = signal<Record<PartieConvention, string>>({ ETUDIANT: '', ORGANISME: '', ECOLE: '' });
   protected readonly enCours = signal(false);
   protected readonly generation = signal(false);
-  protected readonly message = signal<string | null>(null);
-  protected readonly erreur = signal<string | null>(null);
+  protected readonly message = signal<{ zone: Zone; texte: string } | null>(null);
+  protected readonly erreur = signal<{ zone: Zone; texte: string } | null>(null);
+  /** Partie dont le retrait de signature attend confirmation. */
+  protected readonly retraitDemande = signal<PartieConvention | null>(null);
   protected readonly aujourdhui = new Date().toLocaleDateString('sv-SE');
   protected readonly titre = computed(() => {
     const c = this.convention();
@@ -76,24 +80,31 @@ export class ConventionStagePage {
   }
 
   protected enregistrerClauses(): void {
-    this.executer(this.service.enregistrerClauses(this.stageId, this.clauses()), 'Clauses enregistrées.');
+    this.executer(this.service.enregistrerClauses(this.stageId, this.clauses()), 'Clauses enregistrées.', 'clauses');
   }
 
   protected signer(partie: PartieConvention, libelle: string): void {
     const date = this.dates()[partie];
     if (!date) {
-      this.erreur.set(`Indiquez la date de signature (${libelle}).`);
+      this.erreur.set({ zone: 'signatures', texte: `Indiquez la date de signature (${libelle}).` });
       return;
     }
     if (date > this.aujourdhui) {
-      this.erreur.set('La date de signature ne peut pas être dans le futur.');
+      this.erreur.set({ zone: 'signatures', texte: 'La date de signature ne peut pas être dans le futur.' });
       return;
     }
-    this.executer(this.service.signer(this.stageId, partie, date), `Signature enregistrée (${libelle}).`);
+    this.executer(this.service.signer(this.stageId, partie, date), `Signature enregistrée (${libelle}).`, 'signatures');
+  }
+
+  protected demanderRetrait(partie: PartieConvention): void {
+    this.erreur.set(null);
+    this.message.set(null);
+    this.retraitDemande.set(partie);
   }
 
   protected retirerSignature(partie: PartieConvention, libelle: string): void {
-    this.executer(this.service.signer(this.stageId, partie, null), `Signature retirée (${libelle}).`);
+    this.retraitDemande.set(null);
+    this.executer(this.service.signer(this.stageId, partie, null), `Signature retirée (${libelle}).`, 'signatures');
   }
 
   protected deposerScan(evenement: Event): void {
@@ -103,14 +114,14 @@ export class ConventionStagePage {
     this.erreur.set(null);
     if (!fichier) return;
     if (fichier.type !== 'application/pdf' || !fichier.name.toLowerCase().endsWith('.pdf')) {
-      this.erreur.set('La convention signée doit être un fichier PDF.');
+      this.erreur.set({ zone: 'scan', texte: 'La convention signée doit être un fichier PDF.' });
       return;
     }
     if (fichier.size > POIDS_MAX_PIECE) {
-      this.erreur.set('La convention signée ne doit pas dépasser 5 Mo.');
+      this.erreur.set({ zone: 'scan', texte: 'La convention signée ne doit pas dépasser 5 Mo.' });
       return;
     }
-    this.executer(this.service.deposerScan(this.stageId, fichier), 'Convention signée déposée.');
+    this.executer(this.service.deposerScan(this.stageId, fichier), 'Convention signée déposée.', 'scan');
   }
 
   protected genererDocument(): void {
@@ -125,7 +136,7 @@ export class ConventionStagePage {
       },
       error: () => {
         this.generation.set(false);
-        this.erreur.set('La convention n’a pas pu être générée. Réessayez.');
+        this.erreur.set({ zone: 'document', texte: 'La convention n’a pas pu être générée. Réessayez.' });
       },
     });
   }
@@ -133,11 +144,11 @@ export class ConventionStagePage {
   protected telechargerScan(nom: string): void {
     this.service.telechargerScan(this.stageId).subscribe({
       next: (contenu) => enregistrerFichier(this.document, contenu, nom),
-      error: () => this.erreur.set('La convention signée n’a pas pu être téléchargée. Réessayez.'),
+      error: () => this.erreur.set({ zone: 'scan', texte: 'La convention signée n’a pas pu être téléchargée. Réessayez.' }),
     });
   }
 
-  private executer(requete: Observable<Convention>, succes: string): void {
+  private executer(requete: Observable<Convention>, succes: string, zone: Zone): void {
     if (this.enCours()) return;
     this.enCours.set(true);
     this.erreur.set(null);
@@ -146,11 +157,11 @@ export class ConventionStagePage {
       next: (convention) => {
         this.enCours.set(false);
         this.afficher(convention);
-        this.message.set(convention.etat === 'COMPLETE' ? `${succes} La convention est complète.` : succes);
+        this.message.set({ zone, texte: convention.etat === 'COMPLETE' ? `${succes} La convention est complète.` : succes });
       },
       error: (erreur: HttpErrorResponse) => {
         this.enCours.set(false);
-        this.erreur.set(erreur.error?.message ?? 'L’enregistrement n’a pas abouti. Réessayez.');
+        this.erreur.set({ zone, texte: erreur.error?.message ?? 'L’enregistrement n’a pas abouti. Réessayez.' });
       },
     });
   }

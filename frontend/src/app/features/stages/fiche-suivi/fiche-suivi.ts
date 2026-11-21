@@ -2,9 +2,10 @@ import { DatePipe, DOCUMENT } from '@angular/common';
 import { Component, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { libelleClasse } from '../../../core/services/models/classe.model';
-import { LIBELLES_CONVENTION, LIBELLES_DEROULEMENT, LIBELLES_EVALUATION, LIBELLES_TYPE_STAGE, SuiviStage } from '../../../core/services/models/stage.model';
+import { LIBELLES_DEROULEMENT, LIBELLES_TYPE_STAGE, SuiviStage } from '../../../core/services/models/stage.model';
 import { SuiviStagesService } from '../../../core/services/stages/suivi-stages';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
+import { EtapesStage } from '../etapes-stage/etapes-stage';
 import { enregistrerFichier } from '../../../shared/telecharger';
 
 /**
@@ -13,7 +14,7 @@ import { enregistrerFichier } from '../../../shared/telecharger';
  */
 @Component({
   selector: 'app-fiche-suivi',
-  imports: [DatePipe, RouterLink, AvatarMembre],
+  imports: [DatePipe, RouterLink, AvatarMembre, EtapesStage],
   templateUrl: './fiche-suivi.html',
   styleUrl: './fiche-suivi.scss',
 })
@@ -21,6 +22,8 @@ export class FicheSuivi {
   readonly stage = input.required<SuiviStage>();
   /** Vue de l’administrateur Stages : le rapport se lit par la route d’administration. */
   readonly ecole = input(false);
+  /** Niveau du titre (nom de l'étudiant) : 2 quand la fiche suit directement le h1 de la page. */
+  readonly niveauTitre = input<2 | 3>(3);
 
   private readonly service = inject(SuiviStagesService);
   private readonly document = inject(DOCUMENT);
@@ -29,8 +32,6 @@ export class FicheSuivi {
 
   protected readonly types = LIBELLES_TYPE_STAGE;
   protected readonly deroulements = LIBELLES_DEROULEMENT;
-  protected readonly conventions = LIBELLES_CONVENTION;
-  protected readonly evaluations = LIBELLES_EVALUATION;
   protected readonly libelleClasse = libelleClasse;
 
   protected telechargerRapport(): void {

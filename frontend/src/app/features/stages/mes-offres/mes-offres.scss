@@ -5,7 +5,7 @@
 .statut-message { margin: 0 0 1rem; padding: 0.65rem 0.9rem; border-radius: 8px; background: var(--ept-success-light); color: var(--ept-success-dark); font-weight: 600; }
 .liste { display: grid; gap: 0.75rem; margin: 0; padding: 0; list-style: none; }
 .ligne {
-  display: grid; gap: 0.6rem; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: white;
+  display: grid; gap: 0.6rem; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: var(--ept-surface);
   @include a-partir-de(tablette) { grid-template-columns: minmax(0, 1fr) auto; align-items: start; .confirmation { grid-column: 1 / -1; } }
 }
 .principal { min-width: 0; }
@@ -25,7 +25,7 @@ h2 { margin: 0; font-size: 1rem; overflow-wrap: anywhere;
   p { margin: 0; color: var(--ept-primary-dark); }
   .erreur { margin-top: 0.4rem; color: var(--ept-error-dark); font-weight: 600; }
   .boutons { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; } }
-.squelette { min-height: 12rem; border-radius: 12px; background: #edf1f3; }
+.squelette { min-height: 12rem; border-radius: 12px; background: var(--ept-squelette); }
 
 .lien-candidatures { display: inline-flex; align-items: center; gap: 0.35rem; margin-top: 0.5rem; color: var(--ept-primary); font-size: 0.88rem; font-weight: 700;
   &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }

@@ -1,3 +1,4 @@
+@use '../accessibilite';
 .fichiers { display: grid; gap: 0.6rem; }
 h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1.05rem; }
 .pieces {
@@ -31,4 +32,3 @@ h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1.05rem; }
 .aide { color: var(--ept-text-secondary); font-size: 0.8rem; }
 .erreur { margin: 0; color: var(--ept-error-dark); font-weight: 600; }
 .message { margin: 0; color: var(--ept-success-dark); font-weight: 600; }
-.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

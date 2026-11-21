@@ -45,14 +45,15 @@
               @if (erreurAction(); as erreur) { <p class="erreur-champ" role="alert">{{ erreur }}</p> }
               <div class="boutons">
                 <button type="button" class="bouton principal" [disabled]="enCours() === 'publication'" (click)="publier()">Publier la liste</button>
-                <button type="button" class="bouton" (click)="confirmationPublication.set(false)">Annuler</button>
+                <button type="button" class="bouton" (click)="confirmationPublication.set(false)">Ne rien changer</button>
               </div>
             </div>
           } @else {
             @if (sansDates() > 0) {
-              <p class="aide alerte">{{ sansDates() }} étudiant{{ sansDates() > 1 ? 's n’ont' : ' n’a' }} pas encore de dates de stage : renseignez-les avant de publier.</p>
+              <p class="aide alerte" id="alerte-dates">{{ sansDates() }} étudiant{{ sansDates() > 1 ? 's n’ont' : ' n’a' }} pas encore de dates de stage : renseignez-les avant de publier (« Modifier les dates » sur chaque ligne).</p>
             }
-            <button type="button" class="bouton principal" (click)="confirmationPublication.set(true); erreurAction.set(null)">
+            <button type="button" class="bouton principal" [disabled]="sansDates() > 0" [attr.aria-describedby]="sansDates() > 0 ? 'alerte-dates' : null"
+              (click)="confirmationPublication.set(true); erreurAction.set(null)">
               <i class="pi pi-send" aria-hidden="true"></i>Publier la liste…</button>
           }
         </div>

@@ -84,12 +84,35 @@ describe('EvaluationStagePage', () => {
     http.expectOne('/api/admin/stages/suivi/s1/evaluation').flush(uneEvaluation({ etat: 'SOUMISE', modifiable: false, avisTuteurValide: true }));
     await fixture.whenStable();
     bouton('Valider le stage').click();
+    await fixture.whenStable();
+    http.expectNone('/api/admin/stages/suivi/s1/evaluation/decision');
+    expect(element().textContent).toContain('L’étudiant verra la décision dans « Mes stages »');
+    bouton('Confirmer la validation').click();
     const requete = http.expectOne('/api/admin/stages/suivi/s1/evaluation/decision');
     expect(requete.request.body).toEqual({ valide: true });
     requete.flush(uneEvaluation({ etat: 'SOUMISE', modifiable: false, stageValide: true, decideLe: '2026-07-03T10:00:00Z' }));
     await fixture.whenStable();
     expect(element().textContent).toContain('Stage validé');
+    // La décision prise s'affiche seule ; ses choix reviennent sur « Changer la décision ».
+    expect(bouton('Valider le stage')).toBeUndefined();
+    bouton('Changer la décision').click();
+    await fixture.whenStable();
     expect(bouton('Valider le stage').getAttribute('aria-pressed')).toBe('true');
+    expect(bouton('Valider le stage').disabled).toBe(true);
+    expect(element().querySelector('.decision [role="status"]')?.textContent).toContain('Stage validé.');
+  });
+
+  it('demande confirmation avant de rouvrir, et rien n’est envoyé si l’école ne change rien', async () => {
+    creer(true);
+    http.expectOne('/api/admin/stages/suivi/s1/evaluation').flush(uneEvaluation({ etat: 'SOUMISE', modifiable: false, stageValide: true }));
+    await fixture.whenStable();
+    bouton('Rouvrir l’évaluation').click();
+    await fixture.whenStable();
+    expect(element().textContent).toContain('La décision de l’école sera effacée.');
+    bouton('Ne rien changer').click();
+    await fixture.whenStable();
+    http.expectNone('/api/admin/stages/suivi/s1/evaluation/rouvrir');
+    expect(bouton('Rouvrir l’évaluation')).toBeDefined();
   });
 
   it('annonce l’attente de la convention', async () => {

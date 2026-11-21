@@ -6,10 +6,7 @@
     <p class="etat-convention" [attr.data-etat]="c.etat">Convention : <strong>{{ libelles[c.etat] }}</strong>
       @if (c.modifieLe) { <span>· modifiée le {{ c.modifieLe | date: 'd MMMM y à HH:mm' }}</span> }</p>
 
-    <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
-    @if (erreur(); as e) { <p class="message erreur" role="alert">{{ e }}</p> }
-
-    <app-fiche-suivi class="carte" [stage]="c.stage" />
+    <app-fiche-suivi class="carte" [stage]="c.stage" [niveauTitre]="2" />
 
     <section class="carte" aria-labelledby="titre-clauses">
       <h2 id="titre-clauses">Clauses</h2>
@@ -22,6 +19,7 @@
         <input id="logement" type="text" placeholder="Ex. : logement fourni par l’organisme, ou aucun" [maxLength]="longueur" [value]="clauses().logement" (input)="saisirClause('logement', $event)" /></div>
       <label class="case"><input type="checkbox" [checked]="clauses().clauseConfidentialite" (change)="basculerConfidentialite($event)" />
         Clause de confidentialité</label>
+      <ng-container *ngTemplateOutlet="retour; context: { $implicit: 'clauses' }" />
       <div class="boutons"><button type="button" class="bouton principal" [disabled]="enCours()" (click)="enregistrerClauses()">Enregistrer les clauses</button></div>
     </section>
 
@@ -31,6 +29,7 @@
         Complétez les pointillés (représentant de l’organisme, date) avant l’impression ; le fichier Word reste modifiable.</p>
       <div class="boutons"><button type="button" class="bouton" aria-describedby="aide-document" [disabled]="generation()"
         (click)="genererDocument()">{{ generation() ? 'Génération…' : 'Générer la convention (.docx)' }}</button></div>
+      <ng-container *ngTemplateOutlet="retour; context: { $implicit: 'document' }" />
     </section>
 
     <section class="carte" aria-labelledby="titre-signatures">
@@ -42,16 +41,27 @@
             <div class="champ"><label [for]="'signature-' + p.valeur">{{ p.libelle }}</label>
               <input [id]="'signature-' + p.valeur" type="date" [max]="aujourdhui" [value]="dates()[p.valeur]" (input)="saisirDate(p.valeur, $event)" /></div>
             <span class="statut" [class.signee]="signee">{{ signee ? 'Signée le ' + (signee | date: 'd MMMM y') : 'Pas encore signée' }}</span>
-            <div class="boutons">
-              <button type="button" class="bouton petit principal" [disabled]="enCours()" (click)="signer(p.valeur, p.libelle)">Enregistrer</button>
-              @if (signee) {
-                <button type="button" class="bouton petit" [disabled]="enCours()" (click)="retirerSignature(p.valeur, p.libelle)"
-                  [attr.aria-label]="'Retirer la signature : ' + p.libelle">Retirer</button>
-              }
-            </div>
+            @if (retraitDemande() === p.valeur) {
+              <div class="confirmation" role="group" [attr.aria-label]="'Retirer la signature : ' + p.libelle">
+                <p>Retirer la signature ({{ p.libelle }}) ?@if (c.etat === 'COMPLETE') { La convention ne sera plus complète. }</p>
+                <div class="boutons">
+                  <button type="button" class="bouton petit principal" [disabled]="enCours()" (click)="retirerSignature(p.valeur, p.libelle)">Retirer la signature</button>
+                  <button type="button" class="bouton petit" (click)="retraitDemande.set(null)">Ne rien changer</button>
+                </div>
+              </div>
+            } @else {
+              <div class="boutons">
+                <button type="button" class="bouton petit principal" [disabled]="enCours()" (click)="signer(p.valeur, p.libelle)">Enregistrer</button>
+                @if (signee) {
+                  <button type="button" class="bouton petit" [disabled]="enCours()" (click)="demanderRetrait(p.valeur)"
+                    [attr.aria-label]="'Retirer la signature : ' + p.libelle">Retirer</button>
+                }
+              </div>
+            }
           </li>
         }
       </ul>
+      <ng-container *ngTemplateOutlet="retour; context: { $implicit: 'signatures' }" />
     </section>
 
     <section class="carte" aria-labelledby="titre-scan">
@@ -62,8 +72,15 @@
       <div class="champ"><label for="scan">{{ c.scanNom ? 'Remplacer la convention signée' : 'Déposer la convention signée' }}</label>
         <input id="scan" type="file" accept="application/pdf,.pdf" aria-describedby="aide-scan" [disabled]="enCours()" (change)="deposerScan($event)" />
         <small id="aide-scan" class="aide">PDF de 5 Mo au plus, avec les trois signatures. Un nouveau dépôt remplace le précédent.</small></div>
+      <ng-container *ngTemplateOutlet="retour; context: { $implicit: 'scan' }" />
     </section>
   } @else {
     <p class="aide" role="status" aria-busy="true">Chargement de la convention…</p>
   }
 </app-page-admin>
+
+<!-- Retour d'une action, dans la section du bouton : la zone status existe toujours pour être annoncée. -->
+<ng-template #retour let-zone>
+  <p class="message" role="status" [hidden]="message()?.zone !== zone">{{ message()?.zone === zone ? message()?.texte : '' }}</p>
+  @if (erreur(); as e) { @if (e.zone === zone) { <p class="message erreur" role="alert">{{ e.texte }}</p> } }
+</ng-template>

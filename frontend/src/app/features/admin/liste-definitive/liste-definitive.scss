@@ -12,7 +12,7 @@ h2 a { color: var(--ept-primary-dark); &:focus-visible { outline: 2px solid var(
 .compte { min-width: 1.6rem; padding: 0.05rem 0.45rem; border-radius: 999px; background: var(--ept-primary-light); color: var(--ept-primary); font-size: 0.8rem; text-align: center; }
 .vide { margin: 0; color: var(--ept-text-secondary); }
 .lignes, .candidats { display: grid; gap: 0.6rem; margin: 0; padding: 0; list-style: none; }
-.candidats li { display: flex; align-items: center; gap: 0.6rem; min-width: 0; padding: 0.55rem 0.7rem; border: 1px solid var(--ept-border); border-radius: 8px; background: white; }
+.candidats li { display: flex; align-items: center; gap: 0.6rem; min-width: 0; padding: 0.55rem 0.7rem; border: 1px solid var(--ept-border); border-radius: 8px; background: var(--ept-surface); }
 .nom { display: grid; flex: 1; min-width: 0; color: var(--ept-primary-dark); font-weight: 600; overflow-wrap: anywhere;
   small { color: var(--ept-text-secondary); font-weight: 400; }
   [data-avis='RETENUE'] { color: var(--ept-success-dark); font-weight: 700; } }

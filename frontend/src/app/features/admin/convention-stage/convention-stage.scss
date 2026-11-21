@@ -1,6 +1,6 @@
 @use 'responsive' as *;
 
-.carte { display: grid; gap: 0.75rem; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 8px; background: white;
+.carte { display: grid; gap: 0.75rem; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 8px; background: var(--ept-surface);
   h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1.05rem; } }
 .etat-convention { margin: 0 0 0.75rem; color: var(--ept-primary-dark);
   strong { padding: 0.1rem 0.55rem; border-radius: 999px; background: var(--ept-bg); }
@@ -21,3 +21,8 @@
   &.signee { color: var(--ept-success-dark); font-weight: 600; } }
 .lien { padding: 0; border: 0; background: none; color: var(--ept-primary); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; overflow-wrap: anywhere;
   &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+.carte .message { margin: 0; }
+// Confirmation du retrait d'une signature : toute la largeur de la ligne, mêmes couleurs que les autres confirmations du module.
+.confirmation { grid-column: 1 / -1; display: grid; gap: 0.5rem; padding: 0.75rem; border: 1px solid var(--ept-gold); border-radius: var(--ept-radius-sm);
+  background: var(--ept-gold-light); color: var(--ept-primary-dark); font-size: 0.88rem;
+  p { margin: 0; } }

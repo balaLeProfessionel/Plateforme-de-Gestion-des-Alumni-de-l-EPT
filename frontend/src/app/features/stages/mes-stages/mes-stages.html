@@ -42,6 +42,7 @@
             <p class="periode"><i class="pi pi-calendar" aria-hidden="true"></i>Du {{ s.dateDebut | date: 'd MMMM y' }} au {{ s.dateFin | date: 'd MMMM y' }}</p>
             @if (s.statut === 'CONFIRME') {
               <p class="details">Confirmé le {{ s.confirmeLe | date: 'd MMMM y' }}</p>
+              <app-etapes-stage class="etapes" [convention]="s.convention" [stageValide]="s.stageValide" />
               <dl class="suivi">
                 <dt>Encadrant à l’EPT</dt>
                 <dd>@if (s.encadrant; as e) { {{ e.prenom }} {{ e.nom }} · <a [href]="'mailto:' + e.email">{{ e.email }}</a> } @else { Pas encore désigné }</dd>
@@ -61,7 +62,7 @@
                   @if (erreurRetrait(); as texte) { <p class="erreur" role="alert">{{ texte }}</p> }
                   <div class="actions">
                     <button type="button" class="bouton principal" (click)="retirer(s)">Retirer</button>
-                    <button type="button" class="bouton" (click)="aRetirer.set(null)">Garder</button>
+                    <button type="button" class="bouton" (click)="aRetirer.set(null)">Ne rien changer</button>
                   </div>
                 </div>
               } @else {

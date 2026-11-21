@@ -12,7 +12,7 @@
       <p class="aide">Fiche d’évaluation de l’école, remplie par le maître de stage. Pas de note chiffrée ; l’étudiant ne la voit pas.</p>
     </header>
 
-    <app-fiche-suivi class="bloc" [stage]="e.stage" />
+    <app-fiche-suivi class="bloc" [stage]="e.stage" [niveauTitre]="2" />
 
     @if (e.etat !== 'SOUMISE' && !e.modifiable) {
       <p class="aide bloc">{{ e.stage.convention === 'COMPLETE' ? 'L’évaluation n’a pas encore été remise par l’organisme.'
@@ -77,7 +77,7 @@
             <p>Une fois remise, l’évaluation ne pourra plus être modifiée, sauf si l’école la rouvre.</p>
             <div class="boutons">
               <button type="button" class="bouton principal" [disabled]="enCours()" (click)="soumettre()">Confirmer la remise</button>
-              <button type="button" class="bouton" (click)="confirmation.set(false)">Annuler</button>
+              <button type="button" class="bouton" (click)="confirmation.set(false)">Ne rien changer</button>
             </div>
           </div>
         } @else {
@@ -93,12 +93,32 @@
           <h2 id="titre-decision">Validation finale du stage</h2>
           <p class="aide">L’avis du tuteur est indicatif : la décision revient à l’école.
             @if (e.stageValide !== null) { <strong>Stage {{ e.stageValide ? 'validé' : 'non validé' }}@if (e.decideLe) { le {{ e.decideLe | date: 'd MMMM y' }} }.</strong> }</p>
-          <div class="boutons">
-            <button type="button" class="bouton principal" [attr.aria-pressed]="e.stageValide === true" [disabled]="enCours()" (click)="decider(true)">Valider le stage</button>
-            <button type="button" class="bouton" [attr.aria-pressed]="e.stageValide === false" [disabled]="enCours()" (click)="decider(false)">Ne pas valider</button>
-            @if (e.stageValide !== null) { <button type="button" class="bouton" [disabled]="enCours()" (click)="decider(null)">Annuler la décision</button> }
-            <button type="button" class="bouton" [disabled]="enCours()" (click)="rouvrir()">Rouvrir l’évaluation</button>
-          </div>
+          @if (messageDecision(); as texte) { <p class="message" role="status">{{ texte }}</p> }
+          @if (decisionDemandee(); as d) {
+            <div class="confirmation" role="group" [attr.aria-label]="confirmations[d].bouton">
+              <p>{{ confirmations[d].consequence }}</p>
+              <div class="boutons">
+                <button type="button" class="bouton principal" [disabled]="enCours()" (click)="confirmerDecision(d)">{{ confirmations[d].bouton }}</button>
+                <button type="button" class="bouton" (click)="decisionDemandee.set(null)">Ne rien changer</button>
+              </div>
+            </div>
+          } @else {
+            <!-- Sans décision : les deux choix. Décision prise : elle seule, à changer sur demande. -->
+            @if (e.stageValide === null || changementDecision()) {
+              <div class="boutons">
+                <button type="button" class="bouton principal" [attr.aria-pressed]="e.stageValide === true" [disabled]="enCours() || e.stageValide === true" (click)="demanderDecision('valider')">Valider le stage</button>
+                <button type="button" class="bouton" [attr.aria-pressed]="e.stageValide === false" [disabled]="enCours() || e.stageValide === false" (click)="demanderDecision('invalider')">Ne pas valider</button>
+                @if (e.stageValide !== null) {
+                  <button type="button" class="bouton" [disabled]="enCours()" (click)="demanderDecision('annuler')">Annuler la décision</button>
+                  <button type="button" class="bouton" (click)="changementDecision.set(false)">Ne rien changer</button>
+                }
+              </div>
+            } @else {
+              <div class="boutons"><button type="button" class="bouton" [disabled]="enCours()" (click)="changementDecision.set(true)">Changer la décision</button></div>
+            }
+            <p class="aide">Une correction à faire par le maître de stage ?
+              <button type="button" class="lien" [disabled]="enCours()" (click)="demanderDecision('rouvrir')">Rouvrir l’évaluation</button></p>
+          }
         </section>
       }
     }

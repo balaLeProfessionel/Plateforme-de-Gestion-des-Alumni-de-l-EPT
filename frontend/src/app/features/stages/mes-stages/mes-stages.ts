@@ -8,6 +8,7 @@ import { ListeDefinitiveService } from '../../../core/services/stages/liste-defi
 import { SuiviStagesService } from '../../../core/services/stages/suivi-stages';
 import { enregistrerFichier } from '../../../shared/telecharger';
 import { RapportStage } from './rapport-stage/rapport-stage';
+import { EtapesStage } from '../etapes-stage/etapes-stage';
 import { FilAriane } from '../../../shared/fil-ariane/fil-ariane';
 
 /**
@@ -16,7 +17,7 @@ import { FilAriane } from '../../../shared/fil-ariane/fil-ariane';
  */
 @Component({
   selector: 'app-mes-stages',
-  imports: [DatePipe, RouterLink, FilAriane, RapportStage],
+  imports: [DatePipe, RouterLink, FilAriane, RapportStage, EtapesStage],
   templateUrl: './mes-stages.html',
   styleUrl: './mes-stages.scss',
 })

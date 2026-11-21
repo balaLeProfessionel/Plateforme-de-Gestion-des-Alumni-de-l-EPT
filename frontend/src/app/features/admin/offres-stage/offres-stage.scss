@@ -1,9 +1,9 @@
 .onglets {
   display: flex; gap: 0.4rem; margin-bottom: 1rem; overflow-x: auto;
   button {
-    flex: none; min-height: 2.4rem; padding: 0.35rem 0.9rem; border: 1px solid var(--ept-border); border-radius: 999px; background: white;
+    flex: none; min-height: 2.4rem; padding: 0.35rem 0.9rem; border: 1px solid var(--ept-border); border-radius: 999px; background: var(--ept-surface);
     color: var(--ept-primary-dark); font: inherit; font-size: 0.85rem; cursor: pointer;
-    &[aria-pressed='true'] { border-color: var(--ept-primary); background: var(--ept-primary); color: white; font-weight: 600; }
+    &[aria-pressed='true'] { border-color: var(--ept-primary); background: var(--ept-primary); color: var(--ept-text-on-dark); font-weight: 600; }
     &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
   }
 }

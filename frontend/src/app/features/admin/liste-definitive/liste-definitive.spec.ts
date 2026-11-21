@@ -84,6 +84,13 @@ describe('ListeDefinitivePage', () => {
     expect(racine.querySelector('[role="status"]')?.textContent).toContain('Fatou Diop est ajouté à la liste.');
   });
 
+  it('bloque la publication tant qu’un étudiant retenu n’a pas de dates', () => {
+    const racine = afficher(uneListe({ lignes: [uneLigne({ dateDebut: null, dateFin: null })] }));
+    const publier = bouton(racine, 'Publier la liste…');
+    expect(publier.disabled).toBe(true);
+    expect(racine.querySelector('#' + publier.getAttribute('aria-describedby'))?.textContent).toContain('pas encore de dates de stage');
+  });
+
   it('publie la liste après confirmation et affiche l’erreur du serveur', () => {
     const racine = afficher(uneListe());
     cliquer(racine, 'Publier la liste…');

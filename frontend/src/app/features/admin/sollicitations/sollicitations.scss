@@ -1,8 +1,8 @@
-.bloc { display: grid; gap: 0.75rem; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 8px; background: white;
+.bloc { display: grid; gap: 0.75rem; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 8px; background: var(--ept-surface);
   h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1.05rem; } }
 .aide { margin: 0; color: var(--ept-text-secondary); font-size: 0.88rem; overflow-wrap: anywhere; }
 .types { display: flex; flex-wrap: wrap; gap: 0.5rem;
-  [aria-pressed='true'] { background: var(--ept-primary); color: white; } }
+  [aria-pressed='true'] { background: var(--ept-primary); color: var(--ept-text-on-dark); } }
 .bouton.petit { min-height: 2.25rem; padding: 0.3rem 0.75rem; font-size: 0.82rem; }
 .boutons { margin-top: 0; }
 .destinataires { display: grid; gap: 0.5rem; min-width: 0; margin: 0; padding: 0; border: 0;

@@ -1,10 +1,10 @@
 :host { display: block; height: 100%; }
 .carte {
   display: flex; flex-direction: column; gap: 0.45rem; height: 100%; padding: 1rem 1.1rem;
-  border: 1px solid var(--ept-border); border-top: 4px solid var(--ept-primary); border-radius: 12px; background: white;
+  border: 1px solid var(--ept-border); border-radius: 12px; background: var(--ept-surface);
   transition: border-color 150ms ease, box-shadow 150ms ease;
-  &:hover { border-color: var(--ept-primary); box-shadow: 0 4px 14px rgb(1 67 101 / 8%); }
-  &.close { border-top-color: var(--ept-border); }
+  &:hover { border-color: var(--ept-primary); box-shadow: 0 4px 14px color-mix(in srgb, var(--ept-primary) 8%, transparent); }
+  &.close { background: var(--ept-bg); }
   &.illustree { padding-top: 0; overflow: hidden; }
 }
 .image { width: calc(100% + 2.2rem); max-width: none; margin: 0 -1.1rem 0.3rem; aspect-ratio: 16 / 9; object-fit: cover; }

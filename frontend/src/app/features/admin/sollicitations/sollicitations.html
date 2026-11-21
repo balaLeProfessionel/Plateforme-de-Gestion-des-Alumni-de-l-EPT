@@ -41,7 +41,7 @@
           <p>Envoyer ce message à {{ choisis().length }} organisme{{ choisis().length > 1 ? 's' : '' }} ? L’envoi ne peut pas être annulé.</p>
           <div class="boutons">
             <button type="button" class="bouton principal" (click)="envoyer()">Confirmer l’envoi</button>
-            <button type="button" class="bouton" (click)="confirmation.set(false)">Annuler</button>
+            <button type="button" class="bouton" (click)="confirmation.set(false)">Ne rien changer</button>
           </div>
         </div>
       } @else {

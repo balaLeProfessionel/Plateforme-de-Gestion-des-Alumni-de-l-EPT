@@ -13,6 +13,15 @@ import { FilAriane } from '../../../shared/fil-ariane/fil-ariane';
 import { FicheSuivi } from '../fiche-suivi/fiche-suivi';
 
 type ChampTexte = 'pointsForts' | 'axesAmelioration' | 'observations';
+type Decision = 'valider' | 'invalider' | 'annuler' | 'rouvrir';
+
+/** Ce que chaque décision change, affiché avant de la confirmer (backend : EvaluationsStageService). */
+const CONFIRMATIONS: Record<Decision, { consequence: string; bouton: string }> = {
+  valider: { consequence: 'Le stage sera marqué validé. L’étudiant verra la décision dans « Mes stages ».', bouton: 'Confirmer la validation' },
+  invalider: { consequence: 'Le stage sera marqué non validé. L’étudiant verra la décision dans « Mes stages ».', bouton: 'Confirmer : stage non validé' },
+  annuler: { consequence: 'Le stage repassera sans décision de l’école, et l’étudiant ne verra plus de décision.', bouton: 'Confirmer l’annulation' },
+  rouvrir: { consequence: 'Le maître de stage pourra de nouveau modifier l’évaluation, qui devra être remise à nouveau. La décision de l’école sera effacée.', bouton: 'Confirmer la réouverture' },
+};
 
 const SAISIE_VIDE: SaisieEvaluation = {
   criteres: {}, dureeEffectiveMois: null, pointsForts: '', axesAmelioration: '', observations: '', appreciationGenerale: null, avisTuteurValide: null,
@@ -50,6 +59,12 @@ export class EvaluationStagePage {
   protected readonly message = signal<string | null>(null);
   protected readonly erreur = signal<string | null>(null);
   protected readonly confirmation = signal(false);
+  protected readonly confirmations = CONFIRMATIONS;
+  protected readonly decisionDemandee = signal<Decision | null>(null);
+  /** Une décision prise s'affiche seule ; ses choix ne reviennent que sur « Changer la décision ». */
+  protected readonly changementDecision = signal(false);
+  /** Retour d'une décision, affiché dans la section de décision plutôt qu'en haut de page. */
+  protected readonly messageDecision = signal<string | null>(null);
 
   protected readonly sections = computed(() => {
     const grille = this.evaluation()?.grille ?? [];
@@ -117,25 +132,36 @@ export class EvaluationStagePage {
       'Évaluation remise à l’école. Elle ne peut plus être modifiée.');
   }
 
-  protected rouvrir(): void {
-    this.executer(this.service.rouvrirEvaluation(this.stageId), 'Évaluation rouverte : elle peut de nouveau être modifiée.');
+  /** Décisions de l'école : chacune passe par une confirmation qui dit ce qu'elle change. */
+  protected demanderDecision(decision: Decision): void {
+    this.erreur.set(null);
+    this.messageDecision.set(null);
+    this.decisionDemandee.set(decision);
   }
 
-  protected decider(valide: boolean | null): void {
+  protected confirmerDecision(decision: Decision): void {
+    this.decisionDemandee.set(null);
+    this.changementDecision.set(false);
+    if (decision === 'rouvrir') {
+      this.executer(this.service.rouvrirEvaluation(this.stageId), 'Évaluation rouverte : le maître de stage peut de nouveau la modifier.');
+      return;
+    }
+    const valide = decision === 'annuler' ? null : decision === 'valider';
     const texte = valide === null ? 'Décision annulée.' : valide ? 'Stage validé.' : 'Stage non validé.';
-    this.executer(this.service.deciderStage(this.stageId, valide), texte);
+    this.executer(this.service.deciderStage(this.stageId, valide), texte, true);
   }
 
-  private executer(requete: Observable<Evaluation>, succes: string): void {
+  private executer(requete: Observable<Evaluation>, succes: string, decision = false): void {
     if (this.enCours()) return;
     this.enCours.set(true);
     this.erreur.set(null);
     this.message.set(null);
+    this.messageDecision.set(null);
     requete.subscribe({
       next: (evaluation) => {
         this.enCours.set(false);
         this.afficher(evaluation);
-        this.message.set(succes);
+        (decision ? this.messageDecision : this.message).set(succes);
       },
       error: (erreur: HttpErrorResponse) => {
         this.enCours.set(false);

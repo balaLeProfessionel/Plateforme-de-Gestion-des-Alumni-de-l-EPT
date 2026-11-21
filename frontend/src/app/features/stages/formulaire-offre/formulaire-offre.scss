@@ -1,7 +1,7 @@
 @use 'responsive' as *;
 @use '../stages';
 
-.carte { margin-top: 0.75rem; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: white;
+.carte { margin-top: 0.75rem; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: var(--ept-surface);
   @include a-partir-de(tablette) { padding: 1.25rem 1.5rem; } }
 .grille { display: grid; gap: 0.9rem 1rem;
   @include a-partir-de(tablette) { grid-template-columns: repeat(2, minmax(0, 1fr)); .large { grid-column: 1 / -1; } } }

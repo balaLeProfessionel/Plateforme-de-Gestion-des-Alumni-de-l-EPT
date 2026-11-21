@@ -50,7 +50,7 @@ describe('ConventionStagePage', () => {
     expect(requete.request.body).toEqual({ assurance: '', indemnite: '100 000 FCFA par mois', logement: '', clauseConfidentialite: false });
     requete.flush(uneConvention({ existe: true, indemnite: '100 000 FCFA par mois', etat: 'EN_COURS' }));
     await fixture.whenStable();
-    expect(element().querySelector('[role="status"]')?.textContent).toContain('Clauses enregistrées.');
+    expect(element().querySelector('[aria-labelledby="titre-clauses"] [role="status"]')?.textContent).toContain('Clauses enregistrées.');
     expect(element().querySelector('.etat-convention')?.textContent).toContain('En cours');
   });
 
@@ -71,7 +71,30 @@ describe('ConventionStagePage', () => {
     requete.flush(uneConvention({ existe: true, signeeEtudiantLe: '2026-01-10', signeeOrganismeLe: '2026-01-12', signeeEcoleLe: '2026-01-15',
       scanNom: 'convention.pdf', etat: 'COMPLETE' }));
     await fixture.whenStable();
-    expect(element().querySelector('[role="status"]')?.textContent).toContain('La convention est complète.');
+    expect(element().querySelector('[aria-labelledby="titre-signatures"] [role="status"]')?.textContent).toContain('La convention est complète.');
+  });
+
+  it('demande confirmation avant de retirer une signature d’une convention complète', async () => {
+    http.expectOne(URL).flush(uneConvention({ existe: true, signeeEtudiantLe: '2026-01-10', signeeOrganismeLe: '2026-01-12', signeeEcoleLe: '2026-01-15',
+      scanNom: 'convention.pdf', etat: 'COMPLETE' }));
+    await fixture.whenStable();
+    const ecole = element().querySelectorAll('.signatures li')[2];
+    (ecole.querySelector('[aria-label="Retirer la signature : École"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    http.expectNone(`${URL}/signature`);
+    expect(ecole.textContent).toContain('La convention ne sera plus complète.');
+    bouton('Ne rien changer').click();
+    await fixture.whenStable();
+    http.expectNone(`${URL}/signature`);
+
+    (ecole.querySelector('[aria-label="Retirer la signature : École"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    bouton('Retirer la signature').click();
+    const requete = http.expectOne(`${URL}/signature`);
+    expect(requete.request.body).toEqual({ partie: 'ECOLE', date: null });
+    requete.flush(uneConvention({ existe: true, signeeEtudiantLe: '2026-01-10', signeeOrganismeLe: '2026-01-12', scanNom: 'convention.pdf', etat: 'EN_COURS' }));
+    await fixture.whenStable();
+    expect(element().querySelector('[aria-labelledby="titre-signatures"] [role="status"]')?.textContent).toContain('Signature retirée (École).');
   });
 
   it('refuse un scan qui n’est pas un PDF sans appeler le serveur', async () => {

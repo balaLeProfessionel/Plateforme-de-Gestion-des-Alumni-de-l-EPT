@@ -3,7 +3,7 @@
 
 .liste { display: grid; gap: 0.75rem; margin: 0; padding: 0; list-style: none; }
 .ligne {
-  display: grid; gap: 0.5rem; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: white;
+  display: grid; gap: 0.5rem; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: var(--ept-surface);
   &:hover { border-color: var(--ept-primary); }
   @include a-partir-de(tablette) { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
 }
@@ -15,4 +15,4 @@ h2 { margin: 0; font-size: 1rem; overflow-wrap: anywhere; a { color: var(--ept-p
   &[data-statut='ENVOYEE'] { background: var(--ept-primary-light); color: var(--ept-primary); }
   &[data-statut='RETENUE'] { background: var(--ept-success-light); color: var(--ept-success-dark); }
 }
-.squelette { min-height: 10rem; border-radius: 12px; background: #edf1f3; }
+.squelette { min-height: 10rem; border-radius: 12px; background: var(--ept-squelette); }

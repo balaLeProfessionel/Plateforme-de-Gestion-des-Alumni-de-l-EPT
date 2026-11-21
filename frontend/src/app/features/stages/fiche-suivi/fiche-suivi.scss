@@ -1,9 +1,9 @@
 @use 'responsive' as *;
 
-:host { display: grid; gap: 0.6rem; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: white; }
+:host { display: grid; gap: 0.6rem; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: var(--ept-surface); }
 .entete-fiche { display: flex; align-items: flex-start; gap: 0.75rem; min-width: 0; }
 .texte { flex: 1; min-width: 0; }
-h3 { margin: 0; font-size: 1rem; overflow-wrap: anywhere; a { color: var(--ept-primary-dark); } }
+h2, h3 { margin: 0; font-size: 1rem; overflow-wrap: anywhere; a { color: var(--ept-primary-dark); } }
 a:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
 .details { margin: 0.2rem 0 0; color: var(--ept-text-secondary); font-size: 0.85rem; overflow-wrap: anywhere; a { color: var(--ept-primary); } }
 .deroulement { flex: none; padding: 0.15rem 0.6rem; border-radius: 999px; background: var(--ept-primary-light); color: var(--ept-primary); font-size: 0.75rem; font-weight: 700;

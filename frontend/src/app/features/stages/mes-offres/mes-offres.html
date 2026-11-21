@@ -48,7 +48,7 @@
                   @if (erreurRetrait(); as erreur) { <p class="erreur" role="alert">{{ erreur }}</p> }
                   <div class="boutons">
                     <button type="button" class="bouton principal" (click)="retirer(offre)">Retirer l’offre</button>
-                    <button type="button" class="bouton" (click)="aRetirer.set(null)">Annuler</button>
+                    <button type="button" class="bouton" (click)="aRetirer.set(null)">Ne rien changer</button>
                   </div>
                 </div>
               } @else {

@@ -4,10 +4,9 @@
 .message { margin: 0 0 1rem; padding: 0.65rem 0.9rem; border-radius: 8px; background: var(--ept-success-light); color: var(--ept-success-dark); font-weight: 600; }
 .liste { display: grid; gap: 0.75rem; margin: 0; padding: 0; list-style: none;
   @include a-partir-de(tablette) { grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); } }
-.stage { display: grid; gap: 0.35rem; align-content: start; padding: 1rem; border: 1px solid var(--ept-border); border-left: 4px solid var(--ept-success); border-radius: 12px; background: white;
-  &[data-statut='DECLARE'] { border-left-color: var(--ept-gold); }
-  &[data-statut='REFUSE'] { border-left-color: var(--ept-error); background: var(--ept-bg); }
-  &.carte-cliquable:hover { border-color: var(--ept-primary); border-left-color: var(--ept-success); } }
+.stage { display: grid; gap: 0.35rem; align-content: start; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: var(--ept-surface);
+  &[data-statut='REFUSE'] { background: var(--ept-bg); }
+  &.carte-cliquable:hover { border-color: var(--ept-primary); } }
 .pastilles { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0; }
 .type, .statut, .origine { padding: 0.1rem 0.55rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; }
 .type { background: var(--ept-primary-light); color: var(--ept-primary); }
@@ -23,7 +22,7 @@ h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1.05rem; overflow-wra
 .confirmation { display: grid; gap: 0.5rem; padding: 0.75rem; border: 1px solid var(--ept-primary); border-radius: 8px; background: var(--ept-primary-light);
   p { margin: 0; color: var(--ept-primary-dark); } }
 .erreur { color: var(--ept-error-dark); font-weight: 600; }
-.squelette { min-height: 10rem; border-radius: 12px; background: #edf1f3; }
+.squelette { min-height: 10rem; border-radius: 12px; background: var(--ept-squelette); }
 
 .suivi { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.2rem 0.75rem; margin: 0.3rem 0 0; font-size: 0.88rem;
   dt { color: var(--ept-text-secondary); }
@@ -32,3 +31,4 @@ h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1.05rem; overflow-wra
 .lien { position: relative; z-index: 2; padding: 0; border: 0; background: none; color: var(--ept-primary); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer;
   &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
 .erreur { margin: 0; color: var(--ept-error-dark); font-size: 0.85rem; }
+.etapes { display: block; margin: 0.65rem 0; }

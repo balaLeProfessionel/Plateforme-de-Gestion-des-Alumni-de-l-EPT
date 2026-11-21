@@ -46,7 +46,7 @@
                 <div class="boutons">
                   <button type="button" class="bouton principal" [disabled]="enCours()" (click)="confirmer(offre)">
                     {{ decision()?.action === 'refuser' ? 'Refuser l’offre' : 'Retirer l’offre' }}</button>
-                  <button type="button" class="bouton" (click)="decision.set(null)">Annuler</button>
+                  <button type="button" class="bouton" (click)="decision.set(null)">Ne rien changer</button>
                 </div>
               </div>
             } @else {
