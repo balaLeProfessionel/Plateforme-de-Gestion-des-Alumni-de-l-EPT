@@ -1,11 +1,11 @@
 import { DatePipe } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
 import { afterNextRender, Component, effect, ElementRef, inject, Injector, input, output, signal, viewChild } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { MessagerieService } from '../../../core/services/messagerie/messagerie';
 import { MembreBloque } from '../../../core/services/models/messagerie.model';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
 import { EtatConversations } from '../etat-conversations';
+import { messageServeur } from '../message-erreur';
 
 /**
  * Fenêtre « Membres bloqués » : la liste des personnes que j’ai bloquées, avec « Débloquer » pour chacune.
@@ -72,8 +72,7 @@ export class MembresBloques {
       this.etat.actualiser();
       this.focaliserApres(indice);
     } catch (erreur) {
-      this.erreur.set(erreur instanceof HttpErrorResponse && erreur.error?.message
-        ? erreur.error.message : 'Le déblocage a échoué. Réessayez.');
+      this.erreur.set(messageServeur(erreur, 'Le déblocage a échoué. Réessayez.'));
     } finally {
       this.enCours.set(null);
     }

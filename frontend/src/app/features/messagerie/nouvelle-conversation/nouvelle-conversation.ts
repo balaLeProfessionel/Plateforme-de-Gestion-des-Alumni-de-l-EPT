@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, effect, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
 import { FormField, form, maxLength, submit, validate } from '@angular/forms/signals';
 import { Router } from '@angular/router';
@@ -7,6 +6,7 @@ import { MessagerieService } from '../../../core/services/messagerie/messagerie'
 import { LONGUEUR_MAX_NOM_GROUPE, MembreChoisi } from '../../../core/services/models/messagerie.model';
 import { EtatConversations } from '../etat-conversations';
 import { SelectionMembres } from '../selection-membres/selection-membres';
+import { messageServeur } from '../message-erreur';
 
 /**
  * Fenêtre « Nouvelle conversation » : un membre choisi ouvre la conversation directe,
@@ -75,8 +75,7 @@ export class NouvelleConversation {
         // Le fil ouvert donne le focus à la zone de saisie : on vient pour écrire.
         await this.router.navigate(['/messagerie', id], { state: { saisie: true } });
       } catch (erreur) {
-        this.erreur.set(erreur instanceof HttpErrorResponse && erreur.error?.message
-          ? erreur.error.message : 'La conversation n’a pas pu être ouverte. Réessayez.');
+        this.erreur.set(messageServeur(erreur, 'La conversation n’a pas pu être ouverte. Réessayez.'));
       }
       return undefined;
     });

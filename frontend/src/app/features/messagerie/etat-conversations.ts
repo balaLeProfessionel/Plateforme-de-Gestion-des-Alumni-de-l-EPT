@@ -6,6 +6,7 @@ import { CompteurMessages } from '../../core/services/messagerie/compteur-messag
 import { FluxMessagerie } from '../../core/services/messagerie/flux-messagerie';
 import { MessagerieService } from '../../core/services/messagerie/messagerie';
 import { Conversation } from '../../core/services/models/messagerie.model';
+import { messageServeur } from './message-erreur';
 
 /** Relève de secours de la liste quand le flux temps réel est coupé. */
 export const INTERVALLE_LISTE_CONVERSATIONS = 30_000;
@@ -57,7 +58,7 @@ export class EtatConversations {
           map((resultats) => ({ resultats, erreur: null })),
           catchError((erreur: HttpErrorResponse) => of({
             resultats: null,
-            erreur: erreur.error?.message ?? 'Impossible de charger vos conversations. Vérifiez votre connexion.',
+            erreur: messageServeur(erreur, 'Impossible de charger vos conversations. Vérifiez votre connexion.'),
           })));
       }),
     ).subscribe(({ resultats, erreur }) => {

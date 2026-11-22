@@ -1,8 +1,8 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { afterNextRender, Component, effect, ElementRef, inject, Injector, input, model, output, signal, viewChild } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { MessagerieService } from '../../../core/services/messagerie/messagerie';
 import { EtatEcriture, MembreConversation } from '../../../core/services/models/messagerie.model';
+import { messageServeur } from '../message-erreur';
 
 /**
  * Bas du fil d’une conversation directe fermée ou en passe de l’être : confirmation du blocage, rappel
@@ -114,8 +114,7 @@ export class BandeauBlocage {
       this.modifie.emit();
       return true;
     } catch (erreur) {
-      this.erreur.set(erreur instanceof HttpErrorResponse && erreur.error?.message
-        ? erreur.error.message : 'L’opération a échoué. Réessayez.');
+      this.erreur.set(messageServeur(erreur, 'L’opération a échoué. Réessayez.'));
       return false;
     } finally {
       this.enCours.set(false);

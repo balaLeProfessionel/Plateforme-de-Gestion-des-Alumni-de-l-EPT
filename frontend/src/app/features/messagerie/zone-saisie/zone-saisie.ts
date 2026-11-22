@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { MessagerieService } from '../../../core/services/messagerie/messagerie';
 import { LONGUEUR_MAX_MESSAGE, Message } from '../../../core/services/models/messagerie.model';
 import { ACCEPT_PIECE_JOINTE, formaterTaille, verifierPieceJointe } from '../piece-jointe/pieces-jointes';
+import { messageServeur } from '../message-erreur';
 
 /** Le compteur de caractères n’apparaît qu’à l’approche de la limite. */
 const SEUIL_COMPTEUR = LONGUEUR_MAX_MESSAGE - 200;
@@ -97,8 +98,7 @@ export class ZoneSaisie {
         this.envoye.emit(message);
       } catch (erreur) {
         const refus = erreur instanceof HttpErrorResponse && (erreur.status === 409 || erreur.status === 404);
-        this.erreur.set(erreur instanceof HttpErrorResponse && erreur.error?.message
-          ? erreur.error.message : 'Message non envoyé.');
+        this.erreur.set(messageServeur(erreur, 'Message non envoyé.'));
         if (refus) this.refuse.emit();
       }
       this.champ().nativeElement.focus();

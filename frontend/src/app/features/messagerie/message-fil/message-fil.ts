@@ -5,6 +5,7 @@ import { MessagerieService } from '../../../core/services/messagerie/messagerie'
 import { Message } from '../../../core/services/models/messagerie.model';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
 import { PieceJointeMessage } from '../piece-jointe/piece-jointe-message';
+import { messageServeur } from '../message-erreur';
 
 /** Teintes foncées, toutes au-dessus de 4,5:1 sur blanc (WCAG AA), pour le nom des auteurs d’un groupe. */
 const COULEURS_AUTEURS = ['#014365', '#1F6447', '#7C5820', '#5B3E96', '#0B6577', '#9A3B5C'];
@@ -98,7 +99,7 @@ export class MessageFil {
       },
       error: (erreur: HttpErrorResponse) => {
         this.enCours.set(false);
-        this.erreur.set(erreur.error?.message ?? 'La suppression a échoué. Réessayez.');
+        this.erreur.set(messageServeur(erreur, 'La suppression a échoué. Réessayez.'));
       },
     });
   }

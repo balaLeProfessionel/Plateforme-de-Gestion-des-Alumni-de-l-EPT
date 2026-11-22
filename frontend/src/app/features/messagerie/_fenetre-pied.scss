@@ -11,6 +11,14 @@
 .consigne { margin: 0; color: var(--ept-text-secondary); font-size: 0.9rem; line-height: 1.5; }
 .confirmation-texte { margin: 0; color: var(--ept-success-dark); font-size: 0.85rem; }
 
+/* Petit écran : les boutons se partagent la largeur sur une ligne chacun ; un libellé trop long
+   (« Écrire à Fatou Binetou Ndiaye ») passe sous « Annuler » plutôt que de se couper en deux lignes. */
 @media (max-width: 560px) {
-  .fenetre footer > button { flex: 1; }
+  .fenetre footer > button {
+    max-width: 100%;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }

@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { afterNextRender, Component, ElementRef, inject, Injector, input, output, signal } from '@angular/core';
 import { firstValueFrom, Observable } from 'rxjs';
 import { MessagerieService } from '../../../core/services/messagerie/messagerie';
@@ -7,6 +6,7 @@ import { chargerImagePourRecadrage } from '../../../shared/images/charger-image'
 import { FORMAT_PHOTO_PROFIL } from '../../../shared/images/recadrage';
 import { RecadreurImage } from '../../../shared/images/recadreur-image';
 import { AvatarGroupe } from '../avatar-groupe';
+import { messageServeur } from '../message-erreur';
 
 /**
  * Photo du groupe : affichée pour tous, changée ou retirée par un administrateur. Elle passe par le même
@@ -115,8 +115,7 @@ export class PhotoGroupe {
     try {
       this.modifie.emit(await firstValueFrom(requete));
     } catch (erreur) {
-      this.erreur.set(erreur instanceof HttpErrorResponse && erreur.error?.message
-        ? erreur.error.message : 'La photo n’a pas pu être enregistrée. Réessayez.');
+      this.erreur.set(messageServeur(erreur, 'La photo n’a pas pu être enregistrée. Réessayez.'));
     } finally {
       this.enCours.set(false);
       this.rendreFocus();
