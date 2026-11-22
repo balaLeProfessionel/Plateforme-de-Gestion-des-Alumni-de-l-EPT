@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { Page } from '../models/mentorat.model';
 import {
-  CandidatureMobilite, CriteresOffresMobilite, OffreMobilite, OffreMobiliteRequete, StatutOffreMobilite, TypePiece,
+  CandidatureMobilite, CandidaturesOffre, CriteresOffresMobilite, DecisionMobilite, DossierMobilite, OffreMobilite, OffreMobiliteRequete, StatutOffreMobilite, TypePiece,
 } from '../models/mobilite.model';
 
 const API = '/api/mobilites';
@@ -81,6 +81,30 @@ export class OffresMobiliteService {
 
   telechargerPieceCandidature(candidatureId: string, pieceId: string) {
     return this.http.get(`${API}/candidatures/${candidatureId}/pieces/${pieceId}`, { responseType: 'blob' });
+  }
+
+  desister(candidatureId: string) {
+    return this.http.patch<void>(`${API}/candidatures/${candidatureId}/desister`, {});
+  }
+
+  retenus(offreId: string) {
+    return this.http.get<DossierMobilite[]>(`${API}/mes-offres/${offreId}/retenus`);
+  }
+
+  dossiers(offreId: string) {
+    return this.http.get<CandidaturesOffre>(`/api/admin/mobilites/offres/${offreId}/candidatures`);
+  }
+
+  decider(candidatureId: string, statut: DecisionMobilite, rang: number | null = null) {
+    return this.http.patch<CandidaturesOffre>(`/api/admin/mobilites/candidatures/${candidatureId}/decision`, { statut, rang });
+  }
+
+  publierListe(offreId: string) {
+    return this.http.patch<CandidaturesOffre>(`/api/admin/mobilites/offres/${offreId}/liste/publier`, {});
+  }
+
+  promouvoir(candidatureId: string) {
+    return this.http.patch<CandidaturesOffre>(`/api/admin/mobilites/candidatures/${candidatureId}/promouvoir`, {});
   }
 
   listerPourChef(statut: StatutOffreMobilite | '', page: number, taille = 20) {

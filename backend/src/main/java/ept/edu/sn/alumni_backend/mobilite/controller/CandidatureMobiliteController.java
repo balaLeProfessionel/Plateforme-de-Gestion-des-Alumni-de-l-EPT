@@ -24,7 +24,9 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import ept.edu.sn.alumni_backend.mobilite.TypePiece;
 import ept.edu.sn.alumni_backend.mobilite.dto.CandidatureMobiliteResponse;
+import ept.edu.sn.alumni_backend.mobilite.dto.CandidaturesOffreResponse;
 import ept.edu.sn.alumni_backend.mobilite.service.CandidaturesMobiliteService;
+import ept.edu.sn.alumni_backend.mobilite.service.DecisionsMobiliteService;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import lombok.RequiredArgsConstructor;
 
@@ -34,6 +36,20 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CandidatureMobiliteController {
     private final CandidaturesMobiliteService candidaturesService;
+    private final DecisionsMobiliteService decisionsService;
+
+    /** Le candidat retenu renonce à sa place. */
+    @PatchMapping("/candidatures/{id}/desister")
+    public ResponseEntity<Void> desister(@PathVariable UUID id, @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        decisionsService.desister(id, principal);
+        return ResponseEntity.noContent().build();
+    }
+
+    /** Candidats retenus d'une offre de l'institut connecté, après publication de la liste (rôle ORGANISME exigé). */
+    @GetMapping("/mes-offres/{id}/retenus")
+    public ResponseEntity<List<CandidaturesOffreResponse.Dossier>> retenus(@PathVariable UUID id, @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(decisionsService.retenusPourInstitut(id, principal));
+    }
 
     /** Sa candidature à l'offre ; 204 s'il n'en a pas. */
     @GetMapping("/offres/{id}/ma-candidature")

@@ -30,6 +30,9 @@
               <p class="details">{{ types[offre.type] }} · {{ periode(offre) }} · {{ offre.nombrePlaces }} place{{ offre.nombrePlaces > 1 ? 's' : '' }}
                 · candidatures jusqu’au {{ offre.dateLimite | date: 'd MMMM y' }}</p>
               @if (offre.motifRetrait) { <p class="motif"><strong>Motif de l’école :</strong> {{ offre.motifRetrait }}</p> }
+              @if (offre.statut === 'LISTE_PUBLIEE') {
+                <a class="lien-retenus" [routerLink]="['/mobilites/mes-offres', offre.id, 'retenus']"><i class="pi pi-users" aria-hidden="true"></i>Candidats retenus</a>
+              }
             </div>
             <span class="statut" [attr.data-statut]="offre.statut">{{ statuts[offre.statut] }}</span>
           </li>

@@ -24,6 +24,28 @@ public interface CandidatureMobiliteRepository extends JpaRepository<Candidature
 
     long countByOffre_IdAndStatutNot(UUID offreId, StatutCandidatureMobilite statut);
 
+    long countByOffre_IdAndStatut(UUID offreId, StatutCandidatureMobilite statut);
+
+    /** Dossiers d'une offre, hors candidatures retirées, du plus ancien au plus récent. */
+    @EntityGraph(attributePaths = {"candidat", "candidat.filiere"})
+    List<CandidatureMobilite> findByOffre_IdAndStatutNotOrderBySoumiseLeAsc(UUID offreId, StatutCandidatureMobilite statut);
+
+    @EntityGraph(attributePaths = {"candidat", "candidat.filiere"})
+    List<CandidatureMobilite> findByOffre_IdAndStatutOrderByCandidat_NomAsc(UUID offreId, StatutCandidatureMobilite statut);
+
+    @Query("select coalesce(max(c.rangAttente), 0) from CandidatureMobilite c where c.offre.id = :offreId and c.statut = :statut")
+    int rangMaximal(@Param("offreId") UUID offreId, @Param("statut") StatutCandidatureMobilite statut);
+
+    /** Candidatures retenues de ces candidats sur d'autres offres de la même année universitaire : pour l'avertissement de doublon. */
+    @EntityGraph(attributePaths = {"offre", "offre.organisme"})
+    @Query("""
+        select c from CandidatureMobilite c
+        where c.candidat.id in :candidats and c.offre.id <> :offreId and c.offre.anneeUniversitaire = :annee
+          and c.statut = ept.edu.sn.alumni_backend.mobilite.StatutCandidatureMobilite.RETENUE
+        """)
+    List<CandidatureMobilite> retenuesAilleurs(@Param("candidats") Collection<UUID> candidats, @Param("offreId") UUID offreId,
+            @Param("annee") String annee);
+
     @Query("select c.candidat.id from CandidatureMobilite c where c.offre.id = :offreId and c.statut in :statuts")
     List<UUID> candidatsAuStatut(@Param("offreId") UUID offreId, @Param("statuts") Collection<StatutCandidatureMobilite> statuts);
 }

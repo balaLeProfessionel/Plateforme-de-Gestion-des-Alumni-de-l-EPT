@@ -124,6 +124,13 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./offres-mobilite/offres-mobilite').then((m) => m.OffresMobiliteAdmin),
   },
   {
+    path: 'mobilites/offres/:id/candidatures',
+    title: 'Candidatures à une offre de mobilité | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_MOBILITES' },
+    loadComponent: () => import('./candidatures-mobilite/candidatures-mobilite').then((m) => m.CandidaturesMobilite),
+  },
+  {
     path: 'mobilites/offres/publier',
     title: 'Publier une offre de mobilité | EPT Alumni',
     canActivate: [permissionGuard],

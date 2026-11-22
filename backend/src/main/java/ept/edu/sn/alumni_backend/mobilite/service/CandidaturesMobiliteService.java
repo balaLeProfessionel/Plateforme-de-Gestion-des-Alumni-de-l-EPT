@@ -164,11 +164,16 @@ public class CandidaturesMobiliteService {
         OffreMobilite offre = candidature.getOffre();
         boolean ouvertes = offre.candidaturesOuvertes(aujourdhui());
         StatutCandidatureMobilite statut = candidature.getStatut();
+        // La décision reste interne à l'école jusqu'à la publication de la liste.
+        boolean decisionCachee = offre.getStatut() != ept.edu.sn.alumni_backend.mobilite.StatutOffreMobilite.LISTE_PUBLIEE
+            && (statut == StatutCandidatureMobilite.RETENUE || statut == StatutCandidatureMobilite.LISTE_ATTENTE
+                || statut == StatutCandidatureMobilite.NON_RETENUE);
+        if (decisionCachee) statut = StatutCandidatureMobilite.SOUMISE;
         return new CandidatureMobiliteResponse(candidature.getId(),
             new CandidatureMobiliteResponse.Offre(offre.getId(), offre.getTitre(), offre.getOrganisme().getNom(), offre.getType().name(),
                 offre.getPeriode().name(), offre.getDureeSemaines(), offre.getAnneeUniversitaire(), offre.getDateLimite(), ouvertes,
                 offre.getStatut().name(), offre.getPiecesDemandees().stream().sorted().map(Enum::name).toList()),
-            statut.name(), candidature.getRangAttente(), candidature.getSoumiseLe(), candidature.getRetireeLe(),
+            statut.name(), decisionCachee ? null : candidature.getRangAttente(), candidature.getSoumiseLe(), candidature.getRetireeLe(),
             candidature.getPieces().stream().sorted((a, b) -> a.getType().compareTo(b.getType()))
                 .map(p -> new CandidatureMobiliteResponse.Piece(p.getId(), p.getType().name(), p.getNomFichier(), p.getTaille())).toList(),
             ouvertes && (statut == StatutCandidatureMobilite.SOUMISE || statut == StatutCandidatureMobilite.RETIREE));

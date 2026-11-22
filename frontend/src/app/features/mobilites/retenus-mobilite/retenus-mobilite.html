@@ -1,0 +1,29 @@
+<div class="page-stages">
+  <app-bouton-retour secours="/mobilites/mes-offres" />
+  <header class="entete">
+    <h1>Candidats retenus</h1>
+    <p class="introduction">Les candidats que l’école a retenus pour <a [routerLink]="['/mobilites/offres', offreId]">votre offre</a>, avec leur dossier.</p>
+  </header>
+  @if (erreur()) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-circle" aria-hidden="true"></i><h2>La liste n’a pas pu être chargée</h2></div>
+  } @else if (retenus(); as liste) {
+    @if (liste.length === 0) {
+      <div class="etat"><i class="pi pi-users" aria-hidden="true"></i><h2>Aucun candidat retenu</h2>
+        <p>La liste apparaît ici une fois publiée par l’école.</p></div>
+    } @else {
+      <ul class="liste">
+        @for (d of liste; track d.id) {
+          <li class="ligne">
+            <div class="principal">
+              <h2>{{ d.candidat.prenom }} {{ d.candidat.nom }}</h2>
+              <p class="details">{{ d.candidat.role === 'PERSONNEL' ? 'Enseignant' : (d.candidat.filiere ?? '') }}{{ d.candidat.classe ? ' · ' + d.candidat.classe : '' }}</p>
+              <app-pieces-dossier class="frise" [dossier]="d" />
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement des candidats retenus"></div>
+  }
+</div>

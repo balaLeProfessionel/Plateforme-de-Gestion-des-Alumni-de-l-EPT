@@ -1,4 +1,5 @@
 import { DatePipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
@@ -42,9 +43,30 @@ export class MesCandidaturesMobilite implements OnInit {
   protected readonly frise = etapesCandidature;
   protected readonly candidatures = signal<CandidatureMobilite[] | null>(null);
   protected readonly erreurChargement = signal(false);
+  protected readonly aDesister = signal<string | null>(null);
+  protected readonly erreurDesistement = signal<string | null>(null);
+  protected readonly message = signal('');
+  protected readonly enCours = signal(false);
 
   ngOnInit(): void {
     this.charger();
+  }
+
+  protected desister(c: CandidatureMobilite): void {
+    if (this.enCours()) return;
+    this.enCours.set(true);
+    this.service.desister(c.id).subscribe({
+      next: () => {
+        this.enCours.set(false);
+        this.aDesister.set(null);
+        this.message.set(`Vous vous êtes désisté de « ${c.offre.titre} ». Le service mobilité en est prévenu.`);
+        this.charger();
+      },
+      error: (erreur: HttpErrorResponse) => {
+        this.enCours.set(false);
+        this.erreurDesistement.set(erreur.error?.message ?? 'Le désistement a échoué. Réessayez.');
+      },
+    });
   }
 
   protected charger(): void {

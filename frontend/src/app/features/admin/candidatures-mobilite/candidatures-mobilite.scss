@@ -1,0 +1,24 @@
+@use 'responsive' as *;
+
+.resume { display: grid; gap: 0.6rem; margin-bottom: 1rem; }
+.details { margin: 0; color: var(--ept-text-secondary); font-size: 0.86rem; overflow-wrap: anywhere; }
+.compteurs { display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem; margin: 0; padding: 0; list-style: none; color: var(--ept-primary-dark); font-size: 0.9rem; }
+.publiee { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0; color: var(--ept-success-dark); font-weight: 600; }
+.avertissement { display: flex; align-items: baseline; gap: 0.4rem; margin: 0; padding: 0.5rem 0.75rem; border-radius: 8px;
+  background: var(--ept-gold-light); color: var(--ept-primary-dark); font-size: 0.86rem; }
+.aide { margin: 0; color: var(--ept-text-secondary); font-size: 0.82rem; }
+.liste { display: grid; gap: 0.75rem; margin: 0; padding: 0; list-style: none; }
+.dossier { display: grid; gap: 0.5rem; margin: 0; }
+.entete-dossier { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 0.75rem;
+  h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1rem; overflow-wrap: anywhere; } }
+.statut { padding: 0.15rem 0.6rem; border-radius: 999px; background: var(--ept-bg); color: var(--ept-primary-dark); font-size: 0.75rem; font-weight: 700;
+  &[data-statut='RETENUE'] { background: var(--ept-success-light); color: var(--ept-success-dark); }
+  &[data-statut='LISTE_ATTENTE'] { background: var(--ept-gold-light); color: var(--ept-gold-dark); }
+  &[data-statut='SOUMISE'] { background: var(--ept-primary-light); color: var(--ept-primary); } }
+.choix { display: grid; gap: 0.5rem; align-items: end;
+  @include a-partir-de(tablette) { grid-template-columns: minmax(0, 14rem) minmax(0, 6rem) auto; justify-content: start; } }
+.boutons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.bouton.petit { min-height: 2.25rem; padding: 0.3rem 0.75rem; font-size: 0.82rem; }
+.decision { display: grid; gap: 0.5rem; padding: 0.75rem; border: 1px solid var(--ept-primary); border-radius: 8px; background: var(--ept-primary-light);
+  p { margin: 0; color: var(--ept-primary-dark); } }
+.message[hidden] { display: none; }

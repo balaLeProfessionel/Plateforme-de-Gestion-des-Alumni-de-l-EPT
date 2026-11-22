@@ -146,3 +146,30 @@ export interface CandidatureMobilite {
   /** Le dossier peut encore être retiré, complété ou renvoyé. */
   modifiable: boolean;
 }
+
+/** Un dossier vu par le chef du service mobilité ou, retenu, par l’institut. */
+export interface DossierMobilite {
+  id: string;
+  candidat: { id: string; prenom: string; nom: string; role: string; filiere: string | null; classe: string | null };
+  statut: StatutCandidatureMobilite;
+  rangAttente: number | null;
+  soumiseLe: string;
+  pieces: { id: string; type: TypePiece; nom: string; taille: number }[];
+  /** Autre offre de la même période où le candidat est déjà retenu. */
+  retenuAilleurs: string | null;
+}
+
+/** Miroir de CandidaturesOffreResponse. */
+export interface CandidaturesOffre {
+  offre: {
+    id: string; titre: string; organisme: string; statut: StatutOffreMobilite; nombrePlaces: number; dateLimite: string;
+    anneeUniversitaire: string; periode: PeriodeMobilite; dureeSemaines: number | null; decisionsOuvertes: boolean; listePublieeLe: string | null;
+  };
+  dossiers: DossierMobilite[];
+  retenues: number;
+  enAttente: number;
+  sansDecision: number;
+  blocagePublication: string | null;
+}
+
+export type DecisionMobilite = 'RETENUE' | 'LISTE_ATTENTE' | 'NON_RETENUE';

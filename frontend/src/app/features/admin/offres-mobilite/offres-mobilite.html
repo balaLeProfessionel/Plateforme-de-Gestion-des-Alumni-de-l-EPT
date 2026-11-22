@@ -29,7 +29,11 @@
             </div>
             <p class="details">{{ offre.organisme.nom }} · {{ types[offre.type] }} · {{ periode(offre) }}
               · {{ offre.nombrePlaces }} place{{ offre.nombrePlaces > 1 ? 's' : '' }} · jusqu’au {{ offre.dateLimite | date: 'd MMMM y' }}</p>
-            <p class="details">Publiée le {{ offre.publieeLe | date: 'd MMMM y' }}</p>
+            <p class="details">Publiée le {{ offre.publieeLe | date: 'd MMMM y' }}
+              @if (offre.statut !== 'RETIREE') {
+                · <a [routerLink]="['/admin/mobilites/offres', offre.id, 'candidatures']">{{ offre.statut === 'LISTE_PUBLIEE' ? 'Liste et candidatures' : 'Candidatures' }}</a>
+              }
+            </p>
             @if (offre.motifRetrait) { <p class="motif"><strong>Motif :</strong> {{ offre.motifRetrait }}</p> }
 
             @if (aRetirer() === offre.id) {

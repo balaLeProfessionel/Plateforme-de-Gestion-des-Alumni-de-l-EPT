@@ -1,0 +1,92 @@
+<app-page-admin [titre]="titre()" [parents]="parents"
+  introduction="Décidez de chaque dossier après la date limite. Les candidats ne voient la décision qu’à la publication de la liste.">
+  @if (erreurChargement(); as erreur) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ erreur }}</p></div>
+  } @else if (donnees(); as d) {
+    <section class="resume carte" aria-label="Résumé de l’offre">
+      <p class="details">{{ d.offre.organisme }} · {{ periode(d.offre) }} · candidatures
+        {{ d.offre.decisionsOuvertes || publiee() ? 'closes le' : 'jusqu’au' }} {{ d.offre.dateLimite | date: 'd MMMM y' }}</p>
+      <ul class="compteurs">
+        <li><strong>{{ d.retenues }}/{{ d.offre.nombrePlaces }}</strong> retenus</li>
+        <li><strong>{{ d.enAttente }}</strong> sur liste d’attente</li>
+        @if (!publiee()) { <li><strong>{{ d.sansDecision }}</strong> sans décision</li> }
+      </ul>
+      @if (publiee()) {
+        <p class="publiee"><i class="pi pi-check-circle" aria-hidden="true"></i>Liste publiée le {{ d.offre.listePublieeLe | date: 'd MMMM y' }}.
+          @if (placesLibres() > 0 && d.enAttente > 0) { {{ placesLibres() }} place{{ placesLibres() > 1 ? 's' : '' }} libre{{ placesLibres() > 1 ? 's' : '' }} : faites monter un candidat de la liste d’attente. }
+        </p>
+      } @else if (!d.offre.decisionsOuvertes) {
+        <p class="avertissement">Les décisions se prennent après le {{ d.offre.dateLimite | date: 'd MMMM y' }}, ou une fois l’offre close.</p>
+      } @else if (confirmerPublication()) {
+        <div class="decision" role="group" aria-label="Publier la liste">
+          <p>Publier la liste ? Chaque candidat reçoit la décision, les mobilités des retenus sont créées, et les décisions ne changent plus.</p>
+          <div class="boutons">
+            <button type="button" class="bouton principal" [disabled]="enCours()" (click)="publier()">Publier la liste</button>
+            <button type="button" class="bouton" (click)="confirmerPublication.set(false)">Ne rien changer</button>
+          </div>
+        </div>
+      } @else {
+        <div class="boutons">
+          <button type="button" class="bouton principal" [disabled]="d.blocagePublication !== null" aria-describedby="blocage-publication"
+            (click)="confirmerPublication.set(true)">Publier la liste…</button>
+        </div>
+        @if (d.blocagePublication; as blocage) { <p id="blocage-publication" class="aide">{{ blocage }}</p> }
+      }
+      @if (erreurAction()?.id === 'liste') { <p class="erreur-champ" role="alert">{{ erreurAction()?.message }}</p> }
+      <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
+    </section>
+
+    @if (d.dossiers.length === 0) {
+      <div class="etat"><i class="pi pi-inbox" aria-hidden="true"></i><h2>Aucune candidature</h2></div>
+    } @else {
+      <ul class="liste">
+        @for (dossier of d.dossiers; track dossier.id) {
+          <li class="carte dossier">
+            <div class="entete-dossier">
+              <h2>{{ dossier.candidat.prenom }} {{ dossier.candidat.nom }}</h2>
+              <span class="statut" [attr.data-statut]="dossier.statut">
+                {{ dossier.statut === 'SOUMISE' ? 'Sans décision' : statuts[dossier.statut] }}{{ dossier.rangAttente ? ', rang ' + dossier.rangAttente : '' }}</span>
+            </div>
+            <p class="details">
+              {{ dossier.candidat.role === 'PERSONNEL' ? 'Enseignant' : (dossier.candidat.filiere ?? 'Filière non renseignée') }}
+              @if (dossier.candidat.classe) { · {{ dossier.candidat.classe }} }
+              · envoyée le {{ dossier.soumiseLe | date: 'd MMMM y' }}
+            </p>
+            <app-pieces-dossier [dossier]="dossier" />
+            @if (dossier.retenuAilleurs) {
+              <p class="avertissement" role="note"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                Déjà retenu pour la même période : {{ dossier.retenuAilleurs }}</p>
+            }
+            @if (d.offre.decisionsOuvertes && !publiee()) {
+              <div class="choix">
+                <div class="champ">
+                  <label [for]="'decision-' + dossier.id">Décision</label>
+                  <select [id]="'decision-' + dossier.id" [disabled]="enCours()" (change)="decider(dossier, $event)">
+                    <option value="" [selected]="dossier.statut === 'SOUMISE'" disabled>Sans décision</option>
+                    @for (option of decisions; track option.valeur) {
+                      <option [value]="option.valeur" [selected]="dossier.statut === option.valeur">{{ option.libelle }}</option>
+                    }
+                  </select>
+                </div>
+                @if (dossier.statut === 'LISTE_ATTENTE') {
+                  <div class="champ rang">
+                    <label [for]="'rang-' + dossier.id">Rang</label>
+                    <input #rang [id]="'rang-' + dossier.id" type="number" min="1" [value]="dossier.rangAttente" />
+                  </div>
+                  <button type="button" class="bouton petit" [disabled]="enCours()" (click)="changerRang(dossier, rang)">Changer le rang</button>
+                }
+              </div>
+            } @else if (publiee() && dossier.statut === 'LISTE_ATTENTE' && placesLibres() > 0) {
+              <div class="boutons">
+                <button type="button" class="bouton principal petit" [disabled]="enCours()" (click)="promouvoir(dossier)">Donner la place libre</button>
+              </div>
+            }
+            @if (erreurAction()?.id === dossier.id) { <p class="erreur-champ" role="alert">{{ erreurAction()?.message }}</p> }
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement des candidatures"></div>
+  }
+</app-page-admin>

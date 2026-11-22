@@ -5,6 +5,8 @@
     <p class="introduction">L’école examine les dossiers après la date limite de chaque offre ; vous êtes prévenu de sa décision.</p>
   </header>
 
+  <p class="statut-message" role="status">{{ message() }}</p>
+
   @if (erreurChargement()) {
     <div class="etat" role="alert">
       <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
@@ -31,6 +33,22 @@
                 · candidatures {{ c.offre.candidaturesOuvertes ? 'jusqu’au' : 'closes le' }} {{ c.offre.dateLimite | date: 'd MMMM y' }}
               </p>
               <app-frise class="frise" [etapes]="frise(c)" [libelle]="'Avancement de la candidature ' + c.offre.titre" />
+              @if (c.statut === 'RETENUE' && c.offre.statut === 'LISTE_PUBLIEE') {
+                <div class="desister">
+                  @if (aDesister() === c.id) {
+                    <div role="group" [attr.aria-label]="'Se désister de ' + c.offre.titre">
+                      <p>Renoncer à cette mobilité ? Votre place sera proposée au candidat suivant ; ce choix est définitif.</p>
+                      @if (erreurDesistement(); as e) { <p class="erreur" role="alert">{{ e }}</p> }
+                      <div class="boutons">
+                        <button type="button" class="bouton principal" [disabled]="enCours()" (click)="desister(c)">Me désister</button>
+                        <button type="button" class="bouton" (click)="aDesister.set(null)">Ne rien changer</button>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="boutons"><button type="button" class="bouton" (click)="aDesister.set(c.id); erreurDesistement.set(null)">Me désister…</button></div>
+                  }
+                </div>
+              }
             </div>
             <span class="statut" [attr.data-statut]="c.statut">{{ statuts[c.statut] }}</span>
           </li>
