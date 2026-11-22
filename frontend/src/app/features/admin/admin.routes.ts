@@ -117,6 +117,20 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('../stages/evaluation-stage/evaluation-stage').then((m) => m.EvaluationStagePage),
   },
   {
+    path: 'mobilites/offres',
+    title: 'Offres de mobilité | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_MOBILITES' },
+    loadComponent: () => import('./offres-mobilite/offres-mobilite').then((m) => m.OffresMobiliteAdmin),
+  },
+  {
+    path: 'mobilites/offres/publier',
+    title: 'Publier une offre de mobilité | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_MOBILITES', administration: true },
+    loadComponent: () => import('../mobilites/formulaire-offre-mobilite/formulaire-offre-mobilite').then((m) => m.FormulaireOffreMobilite),
+  },
+  {
     path: 'stages/declarations',
     title: 'Stages déclarés | EPT Alumni',
     canActivate: [permissionGuard],

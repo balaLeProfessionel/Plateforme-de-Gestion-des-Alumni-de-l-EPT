@@ -1,0 +1,42 @@
+<div class="page-stages">
+  <app-fil-ariane [etapes]="etapes" />
+  <header class="entete">
+    <div class="titre">
+      <h1>Mes offres de mobilité</h1>
+      <a class="bouton principal" routerLink="/mobilites/publier"><i class="pi pi-plus" aria-hidden="true"></i>Publier une offre</a>
+    </div>
+    <p class="introduction">Vos offres sont visibles dès leur publication par les étudiants et les enseignants de l’EPT qu’elles visent.</p>
+  </header>
+
+  @if (erreurChargement()) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Vos offres n’ont pas pu être chargées</h2>
+      <button type="button" class="bouton" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (offres(); as liste) {
+    @if (liste.length === 0) {
+      <div class="etat">
+        <i class="pi pi-globe" aria-hidden="true"></i>
+        <h2>Aucune offre pour l’instant</h2>
+        <p>Publiez une première offre d’échange, de double diplôme ou de séjour.</p>
+      </div>
+    } @else {
+      <ul class="liste">
+        @for (offre of liste; track offre.id) {
+          <li class="ligne">
+            <div class="principal">
+              <h2><a [routerLink]="['/mobilites/offres', offre.id]">{{ offre.titre }}</a></h2>
+              <p class="details">{{ types[offre.type] }} · {{ periode(offre) }} · {{ offre.nombrePlaces }} place{{ offre.nombrePlaces > 1 ? 's' : '' }}
+                · candidatures jusqu’au {{ offre.dateLimite | date: 'd MMMM y' }}</p>
+              @if (offre.motifRetrait) { <p class="motif"><strong>Motif de l’école :</strong> {{ offre.motifRetrait }}</p> }
+            </div>
+            <span class="statut" [attr.data-statut]="offre.statut">{{ statuts[offre.statut] }}</span>
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement de vos offres"></div>
+  }
+</div>

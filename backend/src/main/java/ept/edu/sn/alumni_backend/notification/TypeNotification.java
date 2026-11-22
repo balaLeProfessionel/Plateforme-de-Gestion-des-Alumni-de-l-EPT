@@ -4,5 +4,6 @@ package ept.edu.sn.alumni_backend.notification;
 public enum TypeNotification {
     MENTORAT,
     EVENEMENT,
-    COMPTE
+    COMPTE,
+    MOBILITE
 }

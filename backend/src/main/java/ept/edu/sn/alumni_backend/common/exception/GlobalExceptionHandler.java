@@ -25,6 +25,8 @@ import ept.edu.sn.alumni_backend.filiere.exception.ConflitFiliereException;
 import ept.edu.sn.alumni_backend.filiere.exception.FiliereIntrouvableException;
 import ept.edu.sn.alumni_backend.common.stockage.FichierIntrouvableException;
 import ept.edu.sn.alumni_backend.common.stockage.StockageFichierException;
+import ept.edu.sn.alumni_backend.mobilite.exception.ConflitMobiliteException;
+import ept.edu.sn.alumni_backend.mobilite.exception.OffreMobiliteIntrouvableException;
 import ept.edu.sn.alumni_backend.stage.exception.ConflitStageException;
 import ept.edu.sn.alumni_backend.stage.exception.OffreStageIntrouvableException;
 import ept.edu.sn.alumni_backend.evenement.exception.ImageEvenementIntrouvableException;
@@ -213,6 +215,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConflitStageException.class)
     public ResponseEntity<Map<String, String>> gererConflitStage(ConflitStageException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(OffreMobiliteIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> gererOffreMobiliteIntrouvable(OffreMobiliteIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ConflitMobiliteException.class)
+    public ResponseEntity<Map<String, String>> gererConflitMobilite(ConflitMobiliteException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
     }
 

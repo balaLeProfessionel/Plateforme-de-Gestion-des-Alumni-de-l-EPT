@@ -8,6 +8,7 @@ const ICONES: Record<TypeNotification, string> = {
   MENTORAT: 'pi-sitemap',
   EVENEMENT: 'pi-calendar',
   COMPTE: 'pi-user',
+  MOBILITE: 'pi-globe',
 };
 
 /**

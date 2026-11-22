@@ -277,6 +277,11 @@ export const routes: Routes = [
         loadChildren: () => import('./features/stages/stages.routes').then((m) => m.STAGES_ROUTES)
       },
       {
+        path: 'mobilites',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadChildren: () => import('./features/mobilites/mobilites.routes').then((m) => m.MOBILITES_ROUTES)
+      },
+      {
         path: 'admin',
         canActivate: [authGuard, changementInitialRequisGuard],
         loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES)

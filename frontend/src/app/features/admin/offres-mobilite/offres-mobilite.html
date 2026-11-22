@@ -1,0 +1,63 @@
+<app-page-admin titre="Offres de mobilité"
+  introduction="Les offres publiées par les établissements partenaires ou en leur nom. Retirez une offre si besoin : l’établissement reçoit le motif.">
+  <a actionsPage class="bouton principal" routerLink="/admin/mobilites/offres/publier"><i class="pi pi-plus" aria-hidden="true"></i>Publier une offre</a>
+
+  <nav class="onglets" aria-label="Offres par statut">
+    @for (o of onglets; track o.valeur) {
+      <button type="button" [attr.aria-pressed]="onglet() === o.valeur" (click)="choisirOnglet(o.valeur)">{{ o.libelle }}</button>
+    }
+  </nav>
+
+  <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
+
+  @if (erreurChargement(); as erreur) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ erreur }}</p></div>
+  } @else if (page(); as p) {
+    @if (p.contenu.length === 0) {
+      <div class="etat">
+        <i class="pi pi-globe" aria-hidden="true"></i>
+        <h2>Aucune offre</h2>
+        @if (onglet() === 'PUBLIEE') { <p>Les offres publiées par les établissements partenaires arriveront ici.</p> }
+      </div>
+    } @else {
+      <ul class="liste">
+        @for (offre of p.contenu; track offre.id) {
+          <li class="carte offre">
+            <div class="entete-offre">
+              <h2><a [routerLink]="['/mobilites/offres', offre.id]">{{ offre.titre }}</a></h2>
+              <span class="statut" [attr.data-statut]="offre.statut">{{ statuts[offre.statut] }}</span>
+            </div>
+            <p class="details">{{ offre.organisme.nom }} · {{ types[offre.type] }} · {{ periode(offre) }}
+              · {{ offre.nombrePlaces }} place{{ offre.nombrePlaces > 1 ? 's' : '' }} · jusqu’au {{ offre.dateLimite | date: 'd MMMM y' }}</p>
+            <p class="details">Publiée le {{ offre.publieeLe | date: 'd MMMM y' }}</p>
+            @if (offre.motifRetrait) { <p class="motif"><strong>Motif :</strong> {{ offre.motifRetrait }}</p> }
+
+            @if (aRetirer() === offre.id) {
+              <div class="decision" role="group" [attr.aria-label]="'Retirer ' + offre.titre">
+                <div class="champ">
+                  <label [for]="'motif-' + offre.id">Motif, envoyé à l’établissement</label>
+                  <textarea [id]="'motif-' + offre.id" rows="2" maxlength="500" [value]="motif()" (input)="saisirMotif($event)"></textarea>
+                </div>
+                @if (erreurAction(); as erreur) { <p class="erreur-champ" role="alert">{{ erreur }}</p> }
+                <div class="boutons">
+                  <button type="button" class="bouton principal" [disabled]="enCours()" (click)="retirer(offre)">Retirer l’offre</button>
+                  <button type="button" class="bouton" (click)="aRetirer.set(null)">Ne rien changer</button>
+                </div>
+              </div>
+            } @else if (offre.statut === 'PUBLIEE' || offre.statut === 'CLOTUREE') {
+              <div class="boutons">
+                @if (offre.statut === 'PUBLIEE') {
+                  <a class="bouton petit" [routerLink]="['/mobilites/offres', offre.id, 'modifier']">Modifier</a>
+                }
+                <button type="button" class="bouton petit" (click)="ouvrir(offre)">Retirer…</button>
+              </div>
+            }
+          </li>
+        }
+      </ul>
+      <app-pagination-admin [page]="p.page" [totalPages]="p.totalPages" libelle="Pagination des offres" (changer)="changerPage($event)" />
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement des offres"></div>
+  }
+</app-page-admin>

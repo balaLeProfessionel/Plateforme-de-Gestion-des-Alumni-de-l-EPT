@@ -1,0 +1,92 @@
+<div class="page-stages">
+  <app-fil-ariane [etapes]="etapes" />
+
+  <header class="entete">
+    <h1>Offres de mobilité</h1>
+    <p class="introduction">Échanges, doubles diplômes et séjours proposés par les établissements partenaires de l’EPT.</p>
+  </header>
+
+  <section class="filtres" aria-label="Filtrer les offres">
+    <div class="types" role="group" aria-label="Type de mobilité">
+      <button type="button" [attr.aria-pressed]="!criteres().type" (click)="choisirType('')">Tous les types</button>
+      @for (type of types; track type) {
+        <button type="button" [attr.aria-pressed]="criteres().type === type" (click)="choisirType(type)">{{ libellesType[type] }}</button>
+      }
+    </div>
+    <div class="champs">
+      <div class="champ">
+        <label for="filtre-pays">Pays</label>
+        <input id="filtre-pays" type="search" autocomplete="off" placeholder="France, Canada…" [formField]="formulaire.pays"
+          aria-describedby="aide-filtres" (keydown.enter)="$event.preventDefault(); appliquerPays()" />
+      </div>
+      <div class="champ">
+        <label for="filtre-periode">Période</label>
+        <select id="filtre-periode" (change)="choisirPeriode($event)">
+          <option value="" [selected]="!criteres().periode">Toutes les périodes</option>
+          @for (periode of periodes; track periode) {
+            <option [value]="periode" [selected]="criteres().periode === periode">{{ libellesPeriode[periode] }}</option>
+          }
+        </select>
+      </div>
+      <div class="champ">
+        <label for="filtre-annee">Année universitaire</label>
+        <select id="filtre-annee" (change)="choisirAnnee($event)">
+          <option value="" [selected]="!criteres().annee">Toutes les années</option>
+          @for (annee of annees; track annee) {
+            <option [value]="annee" [selected]="criteres().annee === annee">{{ annee }}</option>
+          }
+        </select>
+      </div>
+      <label class="case">
+        <input type="checkbox" [checked]="criteres().eligibles" (change)="basculerEligibles($event)" />
+        Seulement celles où je peux candidater
+      </label>
+    </div>
+    <span id="aide-filtres" class="sr-only">Les résultats se mettent à jour automatiquement.</span>
+  </section>
+
+  <p class="resume" role="status">
+    @if (resultat(); as page) {
+      <strong>{{ page.totalElements }}</strong> {{ page.totalElements > 1 ? 'offres' : 'offre' }}
+      @if (filtresActifs()) { <button type="button" class="lien" (click)="reinitialiser()">Effacer les filtres</button> }
+    } @else if (enChargement()) {
+      Chargement des offres…
+    }
+  </p>
+
+  <div aria-live="polite" [attr.aria-busy]="enChargement()">
+    @if (enChargement() && !resultat()) {
+      <div class="grille" aria-hidden="true">
+        @for (item of [1, 2, 3, 4, 5, 6]; track item) { <div class="squelette"></div> }
+      </div>
+    } @else if (messageErreur(); as message) {
+      <div class="etat" role="alert">
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        <h2>Chargement impossible</h2>
+        <p>{{ message }}</p>
+      </div>
+    } @else if (resultat()?.contenu?.length === 0) {
+      <div class="etat">
+        <i class="pi pi-globe" aria-hidden="true"></i>
+        <h2>Aucune offre ne correspond</h2>
+        <p>
+          @if (filtresActifs()) { Essayez un autre type, un autre pays ou une autre année. }
+          @else { Aucune offre de mobilité n’est publiée pour le moment. }
+        </p>
+      </div>
+    } @else if (resultat(); as page) {
+      <ul class="grille" [class.actualisation]="enChargement()">
+        @for (offre of page.contenu; track offre.id) {
+          <li><app-carte-offre-mobilite [offre]="offre" /></li>
+        }
+      </ul>
+      @if (page.totalPages > 1) {
+        <nav class="pagination" aria-label="Pagination des offres">
+          <button type="button" [disabled]="page.page === 0" (click)="changerPage(page.page - 1)">Précédent</button>
+          <span>Page {{ page.page + 1 }} sur {{ page.totalPages }}</span>
+          <button type="button" [disabled]="page.page + 1 >= page.totalPages" (click)="changerPage(page.page + 1)">Suivant</button>
+        </nav>
+      }
+    }
+  </div>
+</div>

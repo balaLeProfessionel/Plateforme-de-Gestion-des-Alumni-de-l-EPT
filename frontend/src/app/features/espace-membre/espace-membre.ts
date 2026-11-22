@@ -63,6 +63,12 @@ export class EspaceMembre implements OnDestroy {
     TOUTES_LES_PERMISSIONS.some((permission) => this.authService.aPermission(permission)));
   /** Le mentorat ne concerne que les étudiants et les alumni. */
   protected readonly voitMentorat = computed(() => participeAuMentorat(this.authService.utilisateur()?.role));
+  /** Les offres pour les étudiants et les enseignants, ses propres offres pour un institut ; rien pour les autres. */
+  private readonly lienMobilites = computed(() => {
+    const role = this.authService.utilisateur()?.role;
+    if (role === 'ETUDIANT' || role === 'PERSONNEL') return '/mobilites';
+    return role === 'ORGANISME' ? '/mobilites/mes-offres' : null;
+  });
   protected readonly groupesNavigation = computed<readonly GroupeNavigation[]>(() => {
     if (!this.administration()) {
       return [{ titre: 'Navigation', liens: [
@@ -76,6 +82,7 @@ export class EspaceMembre implements OnDestroy {
           compteur: this.compteurMentorat.nombre(), libelleCompteur: 'demandes en attente',
         }] : []),
         { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages', exact: false },
+        ...(this.lienMobilites() ? [{ libelle: 'Mobilités', icone: 'pi-globe', route: this.lienMobilites() ?? '', exact: false }] : []),
       ] }];
     }
     const peut = (permission: PermissionAdmin) => this.authService.aPermission(permission);
@@ -101,6 +108,8 @@ export class EspaceMembre implements OnDestroy {
           compteur: this.compteurDeclarations.nombre(), libelleCompteur: 'stages déclarés à traiter',
         }, { libelle: 'Suivi des stages', icone: 'pi-eye', route: '/admin/stages/suivi', exact: false },
         { libelle: 'Solliciter les organismes', icone: 'pi-envelope', route: '/admin/stages/sollicitations', exact: false }] : [] },
+      { titre: 'Mobilités', liens: peut('GERER_MOBILITES')
+        ? [{ libelle: 'Offres de mobilité', icone: 'pi-globe', route: '/admin/mobilites/offres', exact: false }] : [] },
       { titre: 'Contenus', liens: [
         ...(peut('PUBLIER_ANNONCES')
           ? [{ libelle: 'Annonces et appels', icone: 'pi-megaphone', route: '/admin/publications', exact: false }] : []),
@@ -138,6 +147,7 @@ export class EspaceMembre implements OnDestroy {
       ...(this.mentorat()
         ? [{ libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() }] : []),
       { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages' },
+      ...(this.lienMobilites() ? [{ libelle: 'Mobilités', icone: 'pi-globe', route: this.lienMobilites() ?? '' }] : []),
     ]);
 
   private readonly urlCourante = toSignal(this.router.events.pipe(

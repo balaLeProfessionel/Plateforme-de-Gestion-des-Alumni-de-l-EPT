@@ -166,6 +166,8 @@ describe('Navigation de l’espace membre', () => {
       .toBe('/organisme/parametres');
     expect(racine.querySelector('a[href="/mentorat"]')).toBeNull();
     expect(racine.querySelector('a[href="/stages"]')).not.toBeNull();
+    // Un institut partenaire gère ses offres de mobilité ; il ne voit pas la liste des candidats.
+    expect(racine.querySelector('a[href="/mobilites/mes-offres"]')).not.toBeNull();
     expect(racine.querySelector('.menu-mobile a[aria-label="Paramètres du profil"]')).toBeNull();
     // Un organisme publie, écrit et organise ; le mentorat ne le concerne pas.
     expect(racine.querySelector('a[href="/mentorat"]')).toBeNull();
@@ -235,10 +237,10 @@ describe('Navigation de l’espace membre', () => {
     expect(actualiserSignalements).toHaveBeenCalledOnce();
     expect(actualiserCompteur).not.toHaveBeenCalled();
     expect([...racine.querySelectorAll('.barre-laterale p-sidebar-group-label')].map((titre) => titre.textContent?.trim()))
-      .toEqual(['Pilotage', 'Membres', 'Stages', 'Contenus', 'Système', 'Plateforme', 'À découvrir bientôt']);
+      .toEqual(['Pilotage', 'Membres', 'Stages', 'Mobilités', 'Contenus', 'Système', 'Plateforme', 'À découvrir bientôt']);
     expect([...racine.querySelectorAll('.barre-laterale nav a')].map((lien) => lien.getAttribute('href'))).toEqual([
       '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/passage-classe', '/admin/diplomes', '/admin/filieres',
-      '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations',
+      '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations', '/admin/mobilites/offres',
       '/admin/publications', '/admin/signalements', '/evenements', '/mentorat/gestion-programmes', '/admin/journal', '/annuaire',
     ]);
     expect(racine.querySelector('.barre-laterale a[href="/admin/signalements"]')?.textContent).toContain('2 signalements à examiner');
@@ -251,7 +253,7 @@ describe('Navigation de l’espace membre', () => {
     expect(racine.querySelector('.menu-mobile a[href="/admin/mon-compte"]')?.textContent?.trim()).toBe('Mon compte');
     expect([...racine.querySelectorAll('.menu-mobile a')].map((lien) => lien.getAttribute('href'))).toEqual([
       '/admin/mon-compte', '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/passage-classe', '/admin/diplomes', '/admin/filieres',
-      '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations',
+      '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations', '/admin/mobilites/offres',
       '/admin/publications', '/admin/signalements', '/mentorat/gestion-programmes', '/admin/journal',
     ]);
     expect(racine.querySelector('.menu-mobile a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');

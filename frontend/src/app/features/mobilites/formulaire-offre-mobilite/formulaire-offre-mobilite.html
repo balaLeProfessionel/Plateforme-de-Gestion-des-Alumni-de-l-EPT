@@ -1,0 +1,218 @@
+<div class="page-stages">
+  <app-bouton-retour [secours]="secours" />
+  <header class="entete">
+    <h1>{{ idModifiee ? 'Modifier l’offre de mobilité' : administration ? 'Publier une offre au nom d’un établissement' : 'Publier une offre de mobilité' }}</h1>
+    <p class="introduction">
+      @if (idModifiee) { Les candidats voient les changements dès l’enregistrement. }
+      @else { L’offre est visible dès sa publication par les étudiants et les enseignants qu’elle vise ; ils en sont avertis dans leurs notifications. }
+    </p>
+  </header>
+
+  @if (chargement()) {
+    <div class="squelette" aria-busy="true" aria-label="Chargement de l’offre"></div>
+  } @else if (erreurChargement(); as message) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Modification impossible</h2>
+      <p>{{ message }}</p>
+      <a [routerLink]="secours">Revenir à l’offre</a>
+    </div>
+  } @else if (enregistree(); as offre) {
+    <section #resultat class="carte resultat" tabindex="-1" aria-labelledby="titre-resultat">
+      <h2 id="titre-resultat"><i class="pi pi-check-circle" aria-hidden="true"></i> {{ idModifiee ? 'Offre modifiée' : 'Offre publiée' }}</h2>
+      <p>« {{ offre.titre }} » est visible des {{ libellesPublic[offre.publicVise].toLowerCase() }} concernés.</p>
+      @if (echecsFichiers().length) {
+        <p class="echecs" role="alert">L’offre est enregistrée, mais ces documents n’ont pas pu être joints : {{ echecsFichiers().join(', ') }}.
+          Vous pourrez les ajouter depuis la page de l’offre.</p>
+      }
+      <div class="boutons">
+        <a class="bouton principal" [routerLink]="['/mobilites/offres', offre.id]">Voir l’offre</a>
+        @if (!idModifiee) { <button type="button" class="bouton" (click)="recommencer()">Publier une autre offre</button> }
+      </div>
+    </section>
+  } @else {
+    <form class="carte" (submit)="envoyer($event)" novalidate>
+      @if (messageErreur(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+      <div class="grille">
+        @if (administration && !idModifiee) {
+          <div class="champ large">
+            <label for="offre-organisme">Établissement partenaire</label>
+            <input id="offre-organisme" type="text" autocomplete="off" list="organismes-connus" [formField]="formulaire.organisme"
+              [attr.aria-invalid]="formulaire.organisme().touched() && formulaire.organisme().invalid()" aria-describedby="aide-organisme erreur-organisme" />
+            <datalist id="organismes-connus">
+              @for (suggestion of suggestions(); track suggestion.id) { <option [value]="suggestion.nom"></option> }
+            </datalist>
+            <small id="aide-organisme" class="aide" aria-live="polite">
+              @if (organismeConnu(); as connu) { Établissement connu : {{ connu.nom }}. }
+              @else if (modele().organisme.trim()) { Nouvel établissement : il sera créé sans compte. }
+              @else { Commencez à taper son nom pour retrouver un établissement connu. }
+            </small>
+            @if (formulaire.organisme().touched() && formulaire.organisme().errors()[0]; as erreur) {
+              <small id="erreur-organisme" class="erreur-champ">{{ erreur.message }}</small>
+            }
+          </div>
+        }
+        <div class="champ large">
+          <label for="offre-titre">Titre</label>
+          <input id="offre-titre" type="text" autocomplete="off" placeholder="Semestre d’échange en génie logiciel" [formField]="formulaire.titre"
+            [attr.aria-invalid]="formulaire.titre().touched() && formulaire.titre().invalid()" aria-describedby="erreur-titre" />
+          @if (formulaire.titre().touched() && formulaire.titre().errors()[0]; as erreur) {
+            <small id="erreur-titre" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="offre-type">Type de mobilité</label>
+          <select id="offre-type" [formField]="formulaire.type"
+            [attr.aria-invalid]="formulaire.type().touched() && formulaire.type().invalid()" aria-describedby="erreur-type">
+            <option value="">Choisir…</option>
+            @for (type of types; track type) { <option [value]="type">{{ libellesType[type] }}</option> }
+          </select>
+          @if (formulaire.type().touched() && formulaire.type().errors()[0]; as erreur) {
+            <small id="erreur-type" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="offre-public">Public visé</label>
+          <select id="offre-public" [formField]="formulaire.publicVise"
+            [attr.aria-invalid]="formulaire.publicVise().touched() && formulaire.publicVise().invalid()" aria-describedby="erreur-public">
+            <option value="">Choisir…</option>
+            @for (p of publics; track p) { <option [value]="p">{{ libellesPublic[p] }}</option> }
+          </select>
+          @if (formulaire.publicVise().touched() && formulaire.publicVise().errors()[0]; as erreur) {
+            <small id="erreur-public" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="offre-pays">Pays</label>
+          <input id="offre-pays" type="text" autocomplete="off" [formField]="formulaire.pays"
+            [attr.aria-invalid]="formulaire.pays().touched() && formulaire.pays().invalid()" aria-describedby="erreur-pays" />
+          @if (formulaire.pays().touched() && formulaire.pays().errors()[0]; as erreur) {
+            <small id="erreur-pays" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="offre-ville">Ville (facultatif)</label>
+          <input id="offre-ville" type="text" autocomplete="off" [formField]="formulaire.ville" />
+        </div>
+        <div class="champ">
+          <label for="offre-annee">Année universitaire</label>
+          <select id="offre-annee" [formField]="formulaire.anneeUniversitaire">
+            @for (annee of annees; track annee) { <option [value]="annee">{{ annee }}</option> }
+          </select>
+        </div>
+        <div class="champ">
+          <label for="offre-periode">Période</label>
+          <select id="offre-periode" [formField]="formulaire.periode"
+            [attr.aria-invalid]="formulaire.periode().touched() && formulaire.periode().invalid()" aria-describedby="erreur-periode">
+            <option value="">Choisir…</option>
+            @for (p of periodes; track p) { <option [value]="p">{{ libellesPeriode[p] }}</option> }
+          </select>
+          @if (formulaire.periode().touched() && formulaire.periode().errors()[0]; as erreur) {
+            <small id="erreur-periode" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        @if (modele().periode === 'SEJOUR') {
+          <div class="champ">
+            <label for="offre-duree">Durée du séjour (en semaines)</label>
+            <input id="offre-duree" type="text" inputmode="numeric" autocomplete="off" [formField]="formulaire.dureeSemaines"
+              [attr.aria-invalid]="formulaire.dureeSemaines().touched() && formulaire.dureeSemaines().invalid()" aria-describedby="erreur-duree" />
+            @if (formulaire.dureeSemaines().touched() && formulaire.dureeSemaines().errors()[0]; as erreur) {
+              <small id="erreur-duree" class="erreur-champ">{{ erreur.message }}</small>
+            }
+          </div>
+        }
+        <div class="champ">
+          <label for="offre-places">Nombre de places</label>
+          <input id="offre-places" type="text" inputmode="numeric" autocomplete="off" [formField]="formulaire.nombrePlaces"
+            [attr.aria-invalid]="formulaire.nombrePlaces().touched() && formulaire.nombrePlaces().invalid()" aria-describedby="erreur-places" />
+          @if (formulaire.nombrePlaces().touched() && formulaire.nombrePlaces().errors()[0]; as erreur) {
+            <small id="erreur-places" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="offre-limite">Date limite de candidature</label>
+          <input id="offre-limite" type="date" [formField]="formulaire.dateLimite"
+            [attr.aria-invalid]="formulaire.dateLimite().touched() && formulaire.dateLimite().invalid()" aria-describedby="erreur-limite" />
+          @if (formulaire.dateLimite().touched() && formulaire.dateLimite().errors()[0]; as erreur) {
+            <small id="erreur-limite" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ large">
+          <label for="offre-description">Programme</label>
+          <textarea id="offre-description" rows="6" [formField]="formulaire.description"
+            [attr.aria-invalid]="formulaire.description().touched() && formulaire.description().invalid()" aria-describedby="aide-description erreur-description"></textarea>
+          <small id="aide-description" class="aide">Cours suivis, langue d’enseignement, conditions d’accueil, frais éventuels.</small>
+          @if (formulaire.description().touched() && formulaire.description().errors()[0]; as erreur) {
+            <small id="erreur-description" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+      </div>
+
+      @if (pourEtudiants()) {
+        <fieldset class="cases">
+          <legend>Filières admises <span class="optionnel">aucune cochée : toutes</span></legend>
+          <div class="liste-cases">
+            @for (f of filieres(); track f.id) {
+              <label><input type="checkbox" [checked]="modele().filiereIds.includes(f.id)" (change)="basculerFiliere(f.id)" />{{ f.nom }}</label>
+            }
+          </div>
+        </fieldset>
+        <fieldset class="cases">
+          <legend>Classes admises <span class="optionnel">aucune cochée : toutes</span></legend>
+          @for (cycle of cycles; track cycle.cycle) {
+            <div class="liste-cases" role="group" [attr.aria-label]="cycle.cycle">
+              @for (c of cycle.classes; track c) {
+                <label><input type="checkbox" [checked]="modele().classes.includes(c)" (change)="basculerClasse(c)" />{{ libellesClasse[c] }}</label>
+              }
+            </div>
+          }
+        </fieldset>
+      }
+
+      <fieldset class="cases" aria-describedby="erreur-pieces-demandees">
+        <legend>Pièces à fournir par le candidat</legend>
+        <div class="liste-cases">
+          @for (p of typesPiece; track p) {
+            <label><input type="checkbox" [checked]="modele().piecesDemandees.includes(p)" (change)="basculerPiece(p)" />{{ libellesPiece[p] }}</label>
+          }
+        </div>
+        @if (formulaire.piecesDemandees().touched() && formulaire.piecesDemandees().errors()[0]; as erreur) {
+          <small id="erreur-pieces-demandees" class="erreur-champ" role="alert">{{ erreur.message }}</small>
+        }
+      </fieldset>
+
+      @if (!idModifiee) {
+        <section class="fichiers" aria-labelledby="titre-pieces">
+          <h2 id="titre-pieces">Documents de l’offre <span class="optionnel">facultatifs</span></h2>
+          @if (pieces().length) {
+            <ul class="pieces">
+              @for (piece of pieces(); track $index) {
+                <li>
+                  <i class="pi pi-file-pdf" aria-hidden="true"></i>
+                  <span class="nom">{{ piece.name }}</span><small>{{ piece.size | taille }}</small>
+                  <button type="button" class="retirer" [attr.aria-label]="'Retirer ' + piece.name" (click)="retirerPiece($index)">
+                    <i class="pi pi-times" aria-hidden="true"></i>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+          @if (pieces().length < piecesMax) {
+            <label class="choix-fichier" for="offre-pieces">
+              <i class="pi pi-paperclip" aria-hidden="true"></i>Ajouter des PDF
+              <input id="offre-pieces" class="sr-only" type="file" accept="application/pdf,.pdf" multiple aria-describedby="aide-pieces"
+                (change)="ajouterPieces($event)" />
+            </label>
+          }
+          <small id="aide-pieces" class="aide">Présentation de l’établissement, catalogue de cours… PDF seulement, {{ piecesMax }} fichiers au plus, 5 Mo chacun.</small>
+          @if (erreurPieces(); as erreur) { <small class="erreur-champ" role="alert">{{ erreur }}</small> }
+        </section>
+      }
+
+      <div class="boutons">
+        <button type="submit" class="bouton principal" [disabled]="enCours()">{{ idModifiee ? 'Enregistrer les modifications' : 'Publier l’offre' }}</button>
+        <a class="bouton" [routerLink]="secours">Annuler</a>
+      </div>
+    </form>
+  }
+</div>
