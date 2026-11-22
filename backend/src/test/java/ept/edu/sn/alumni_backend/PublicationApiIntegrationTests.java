@@ -252,6 +252,8 @@ class PublicationApiIntegrationTests {
         membre.setRole(role);
         membre.setStatutCompte(StatutCompte.ACTIF);
         membre.setEmailVerifie(true);
+        // Depuis les responsabilités par domaine, un ADMIN sans permission ne voit que le tableau de bord.
+        if (role == TypeRole.ADMIN) membre.getPermissionsAdmin().add(ept.edu.sn.alumni_backend.admin.PermissionAdmin.GERER_ADMINISTRATEURS);
         return utilisateurs.saveAndFlush(membre);
     }
 

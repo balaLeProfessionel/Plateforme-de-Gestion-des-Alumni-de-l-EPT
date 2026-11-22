@@ -1,0 +1,79 @@
+<app-page-admin titre="Mon compte">
+  <section class="carte" aria-labelledby="titre-identite">
+    <h2 id="titre-identite">Votre nom</h2>
+    <p class="aide adresse">Adresse de connexion : <strong>{{ authService.utilisateur()?.email }}</strong></p>
+    <div role="status">
+      @if (messageIdentite(); as message) { <p class="message" [class.erreur]="message.erreur">{{ message.texte }}</p> }
+    </div>
+    <form id="form-identite" (submit)="enregistrerIdentite($event)" novalidate>
+      <div class="grille-champs">
+        <div class="champ">
+          <label for="mon-prenom">Prénom</label>
+          <input id="mon-prenom" type="text" autocomplete="given-name" [formField]="formulaireIdentite.prenom"
+            [attr.aria-invalid]="formulaireIdentite.prenom().touched() && formulaireIdentite.prenom().invalid()"
+            [attr.aria-describedby]="formulaireIdentite.prenom().touched() && formulaireIdentite.prenom().invalid() ? 'erreur-mon-prenom' : null" />
+          @if (formulaireIdentite.prenom().touched() && formulaireIdentite.prenom().errors()[0]; as erreur) {
+            <small id="erreur-mon-prenom" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="mon-nom">Nom</label>
+          <input id="mon-nom" type="text" autocomplete="family-name" [formField]="formulaireIdentite.nom"
+            [attr.aria-invalid]="formulaireIdentite.nom().touched() && formulaireIdentite.nom().invalid()"
+            [attr.aria-describedby]="formulaireIdentite.nom().touched() && formulaireIdentite.nom().invalid() ? 'erreur-mon-nom' : null" />
+          @if (formulaireIdentite.nom().touched() && formulaireIdentite.nom().errors()[0]; as erreur) {
+            <small id="erreur-mon-nom" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+      </div>
+      <div class="boutons">
+        <button type="submit" class="bouton principal" [disabled]="envoiIdentite()">Enregistrer le nom</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="carte" aria-labelledby="titre-mot-de-passe">
+    <h2 id="titre-mot-de-passe">Mot de passe</h2>
+    <div role="status">
+      @if (messageMotDePasse(); as message) { <p class="message" [class.erreur]="message.erreur">{{ message.texte }}</p> }
+    </div>
+    <form id="form-mot-de-passe" (submit)="changerMotDePasse($event)" novalidate>
+      <div class="grille-champs">
+        <div class="champ large">
+          <label for="mdp-actuel">Mot de passe actuel</label>
+          <input id="mdp-actuel" type="password" autocomplete="current-password" [formField]="formulaireMotDePasse.actuel"
+            [attr.aria-invalid]="formulaireMotDePasse.actuel().touched() && formulaireMotDePasse.actuel().invalid()"
+            [attr.aria-describedby]="formulaireMotDePasse.actuel().touched() && formulaireMotDePasse.actuel().invalid() ? 'erreur-mdp-actuel' : null" />
+          @if (formulaireMotDePasse.actuel().touched() && formulaireMotDePasse.actuel().errors()[0]; as erreur) {
+            <small id="erreur-mdp-actuel" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="mdp-nouveau">Nouveau mot de passe</label>
+          <input id="mdp-nouveau" type="password" autocomplete="new-password" [formField]="formulaireMotDePasse.nouveau"
+            [attr.aria-invalid]="formulaireMotDePasse.nouveau().touched() && formulaireMotDePasse.nouveau().invalid()"
+            [attr.aria-describedby]="formulaireMotDePasse.nouveau().touched() && formulaireMotDePasse.nouveau().invalid()
+              ? 'erreur-mdp-nouveau' : regleVisible() ? 'aide-mdp-nouveau' : null" />
+          <div aria-live="polite">
+            @if (regleVisible()) { <p id="aide-mdp-nouveau" class="aide">Au moins 8 caractères.</p> }
+          </div>
+          @if (formulaireMotDePasse.nouveau().touched() && formulaireMotDePasse.nouveau().errors()[0]; as erreur) {
+            <small id="erreur-mdp-nouveau" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="mdp-confirmation">Confirmer le nouveau mot de passe</label>
+          <input id="mdp-confirmation" type="password" autocomplete="new-password" [formField]="formulaireMotDePasse.confirmation"
+            [attr.aria-invalid]="formulaireMotDePasse.confirmation().touched() && formulaireMotDePasse.confirmation().invalid()"
+            [attr.aria-describedby]="formulaireMotDePasse.confirmation().touched() && formulaireMotDePasse.confirmation().invalid() ? 'erreur-mdp-confirmation' : null" />
+          @if (formulaireMotDePasse.confirmation().touched() && formulaireMotDePasse.confirmation().errors()[0]; as erreur) {
+            <small id="erreur-mdp-confirmation" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+      </div>
+      <div class="boutons">
+        <button type="submit" class="bouton principal" [disabled]="envoiMotDePasse()">Changer le mot de passe</button>
+      </div>
+    </form>
+  </section>
+</app-page-admin>

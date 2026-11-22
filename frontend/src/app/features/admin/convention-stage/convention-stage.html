@@ -1,0 +1,86 @@
+<app-page-admin [titre]="titre()" [parents]="parents"
+  introduction="Convention tripartite signée par l’étudiant, l’organisme et l’école.">
+  @if (erreurChargement(); as message) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ message }}</p></div>
+  } @else if (convention(); as c) {
+    <p class="etat-convention" [attr.data-etat]="c.etat">Convention : <strong>{{ libelles[c.etat] }}</strong>
+      @if (c.modifieLe) { <span>· modifiée le {{ c.modifieLe | date: 'd MMMM y à HH:mm' }}</span> }</p>
+
+    <app-fiche-suivi class="carte" [stage]="c.stage" [niveauTitre]="2" />
+
+    <section class="carte" aria-labelledby="titre-clauses">
+      <h2 id="titre-clauses">Clauses</h2>
+      <p class="aide">Le sujet et les encadrants sont ceux du stage ; ils se modifient dans le suivi.</p>
+      <div class="champ"><label for="assurance">Assurance du stagiaire</label>
+        <input id="assurance" type="text" placeholder="Compagnie et numéro de police" [maxLength]="longueur" [value]="clauses().assurance" (input)="saisirClause('assurance', $event)" /></div>
+      <div class="champ"><label for="indemnite">Indemnité</label>
+        <input id="indemnite" type="text" placeholder="Ex. : 100 000 FCFA par mois, ou aucune" [maxLength]="longueur" [value]="clauses().indemnite" (input)="saisirClause('indemnite', $event)" /></div>
+      <div class="champ"><label for="logement">Logement</label>
+        <input id="logement" type="text" placeholder="Ex. : logement fourni par l’organisme, ou aucun" [maxLength]="longueur" [value]="clauses().logement" (input)="saisirClause('logement', $event)" /></div>
+      <label class="case"><input type="checkbox" [checked]="clauses().clauseConfidentialite" (change)="basculerConfidentialite($event)" />
+        Clause de confidentialité</label>
+      <ng-container *ngTemplateOutlet="retour; context: { $implicit: 'clauses' }" />
+      <div class="boutons"><button type="button" class="bouton principal" [disabled]="enCours()" (click)="enregistrerClauses()">Enregistrer les clauses</button></div>
+    </section>
+
+    <section class="carte" aria-labelledby="titre-document">
+      <h2 id="titre-document">Document à signer</h2>
+      <p class="aide" id="aide-document">Convention pré-remplie à partir du modèle de l’EPT, avec le stage et les clauses enregistrées.
+        Complétez les pointillés (représentant de l’organisme, date) avant l’impression ; le fichier Word reste modifiable.</p>
+      <div class="boutons"><button type="button" class="bouton" aria-describedby="aide-document" [disabled]="generation()"
+        (click)="genererDocument()">{{ generation() ? 'Génération…' : 'Générer la convention (.docx)' }}</button></div>
+      <ng-container *ngTemplateOutlet="retour; context: { $implicit: 'document' }" />
+    </section>
+
+    <section class="carte" aria-labelledby="titre-signatures">
+      <h2 id="titre-signatures">Signatures</h2>
+      <ul class="signatures">
+        @for (p of parties; track p.valeur) {
+          @let signee = c[p.champ];
+          <li>
+            <div class="champ"><label [for]="'signature-' + p.valeur">{{ p.libelle }}</label>
+              <input [id]="'signature-' + p.valeur" type="date" [max]="aujourdhui" [value]="dates()[p.valeur]" (input)="saisirDate(p.valeur, $event)" /></div>
+            <span class="statut" [class.signee]="signee">{{ signee ? 'Signée le ' + (signee | date: 'd MMMM y') : 'Pas encore signée' }}</span>
+            @if (retraitDemande() === p.valeur) {
+              <div class="confirmation" role="group" [attr.aria-label]="'Retirer la signature : ' + p.libelle">
+                <p>Retirer la signature ({{ p.libelle }}) ?@if (c.etat === 'COMPLETE') { La convention ne sera plus complète. }</p>
+                <div class="boutons">
+                  <button type="button" class="bouton petit principal" [disabled]="enCours()" (click)="retirerSignature(p.valeur, p.libelle)">Retirer la signature</button>
+                  <button type="button" class="bouton petit" (click)="retraitDemande.set(null)">Ne rien changer</button>
+                </div>
+              </div>
+            } @else {
+              <div class="boutons">
+                <button type="button" class="bouton petit principal" [disabled]="enCours()" (click)="signer(p.valeur, p.libelle)">Enregistrer</button>
+                @if (signee) {
+                  <button type="button" class="bouton petit" [disabled]="enCours()" (click)="demanderRetrait(p.valeur)"
+                    [attr.aria-label]="'Retirer la signature : ' + p.libelle">Retirer</button>
+                }
+              </div>
+            }
+          </li>
+        }
+      </ul>
+      <ng-container *ngTemplateOutlet="retour; context: { $implicit: 'signatures' }" />
+    </section>
+
+    <section class="carte" aria-labelledby="titre-scan">
+      <h2 id="titre-scan">Convention signée</h2>
+      @if (c.scanNom; as nom) {
+        <p>Convention signée : <button type="button" class="lien" (click)="telechargerScan(nom)">{{ nom }}</button></p>
+      } @else { <p class="aide">Aucune convention signée déposée.</p> }
+      <div class="champ"><label for="scan">{{ c.scanNom ? 'Remplacer la convention signée' : 'Déposer la convention signée' }}</label>
+        <input id="scan" type="file" accept="application/pdf,.pdf" aria-describedby="aide-scan" [disabled]="enCours()" (change)="deposerScan($event)" />
+        <small id="aide-scan" class="aide">PDF de 5 Mo au plus, avec les trois signatures. Un nouveau dépôt remplace le précédent.</small></div>
+      <ng-container *ngTemplateOutlet="retour; context: { $implicit: 'scan' }" />
+    </section>
+  } @else {
+    <p class="aide" role="status" aria-busy="true">Chargement de la convention…</p>
+  }
+</app-page-admin>
+
+<!-- Retour d'une action, dans la section du bouton : la zone status existe toujours pour être annoncée. -->
+<ng-template #retour let-zone>
+  <p class="message" role="status" [hidden]="message()?.zone !== zone">{{ message()?.zone === zone ? message()?.texte : '' }}</p>
+  @if (erreur(); as e) { @if (e.zone === zone) { <p class="message erreur" role="alert">{{ e.texte }}</p> } }
+</ng-template>

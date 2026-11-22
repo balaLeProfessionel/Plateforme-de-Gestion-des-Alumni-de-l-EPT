@@ -18,6 +18,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.util.unit.DataSize;
 
+import ept.edu.sn.alumni_backend.common.stockage.DepotFichiersDisque;
 import ept.edu.sn.alumni_backend.utilisateur.photo.StockagePhotoProfil;
 
 class StockagePhotoProfilTests {
@@ -78,7 +79,7 @@ class StockagePhotoProfilTests {
         MockMultipartFile fichier = new MockMultipartFile(
             "photo", "grande.jpg", "image/jpeg", new byte[1025]
         );
-        StockagePhotoProfil stockage = new StockagePhotoProfil(repertoire.toString(), DataSize.ofBytes(1024));
+        StockagePhotoProfil stockage = new StockagePhotoProfil(new DepotFichiersDisque(repertoire.toString()), DataSize.ofBytes(1024));
 
         assertThrows(IllegalArgumentException.class, () -> stockage.stocker(fichier));
     }
@@ -99,7 +100,7 @@ class StockagePhotoProfilTests {
     }
 
     private StockagePhotoProfil stockage() {
-        return new StockagePhotoProfil(repertoire.toString(), DataSize.ofMegabytes(5));
+        return new StockagePhotoProfil(new DepotFichiersDisque(repertoire.toString()), DataSize.ofMegabytes(5));
     }
 
     private byte[] imagePng(int largeur, int hauteur) throws Exception {

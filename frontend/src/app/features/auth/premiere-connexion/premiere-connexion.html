@@ -3,64 +3,100 @@
     <div class="icone" aria-hidden="true"><i class="pi pi-key"></i></div>
     <h1 id="titre-premiere-connexion">Définissez votre mot de passe</h1>
     <p class="sous-titre">
-      Pour sécuriser votre compte étudiant, remplacez le mot de passe temporaire fourni par l’administration.
+      Choisissez un nouveau mot de passe pour accéder à EPT Alumni.
     </p>
 
-    @if (messageErreur()) {
-      <p-message severity="error" class="message-erreur">{{ messageErreur() }}</p-message>
+    @if (messageErreur(); as message) {
+      <p class="message-erreur" role="alert">{{ message }}</p>
     }
 
-    <div class="champ">
-      <label for="nouveauMotDePasse">Nouveau mot de passe <span class="marque-obligatoire" aria-hidden="true">*</span></label>
-      <div class="champ-mdp">
-        <input
-          pInputText
-          id="nouveauMotDePasse"
-          [type]="afficherNouveau() ? 'text' : 'password'"
-          [formField]="formulaire.nouveauMotDePasse"
-          autocomplete="new-password"
-          fluid />
-        <button
-          type="button"
-          (click)="afficherNouveau.set(!afficherNouveau())"
-          [attr.aria-label]="afficherNouveau() ? 'Masquer le nouveau mot de passe' : 'Afficher le nouveau mot de passe'">
-          <i class="pi" [class.pi-eye]="!afficherNouveau()" [class.pi-eye-slash]="afficherNouveau()"></i>
-        </button>
-      </div>
-      @if (formulaire.nouveauMotDePasse().touched() && formulaire.nouveauMotDePasse().invalid()) {
-        <small class="erreur-champ">{{ formulaire.nouveauMotDePasse().errors()[0]?.message }}</small>
+    <form (submit)="enregistrer($event)" novalidate>
+      @if (estAdmin) {
+        <fieldset class="identite">
+          <legend>Votre nom</legend>
+          <div class="deux-champs">
+            <div class="champ">
+              <label for="premier-prenom">Prénom</label>
+              <input id="premier-prenom" type="text" autocomplete="given-name" [formField]="formulaire.prenom"
+                [attr.aria-invalid]="formulaire.prenom().touched() && formulaire.prenom().invalid()"
+                [attr.aria-describedby]="formulaire.prenom().touched() && formulaire.prenom().invalid() ? 'erreur-premier-prenom' : null" />
+              @if (formulaire.prenom().touched() && formulaire.prenom().errors()[0]; as erreur) {
+                <small id="erreur-premier-prenom" class="erreur-champ">{{ erreur.message }}</small>
+              }
+            </div>
+            <div class="champ">
+              <label for="premier-nom">Nom</label>
+              <input id="premier-nom" type="text" autocomplete="family-name" [formField]="formulaire.nom"
+                [attr.aria-invalid]="formulaire.nom().touched() && formulaire.nom().invalid()"
+                [attr.aria-describedby]="formulaire.nom().touched() && formulaire.nom().invalid() ? 'erreur-premier-nom' : null" />
+              @if (formulaire.nom().touched() && formulaire.nom().errors()[0]; as erreur) {
+                <small id="erreur-premier-nom" class="erreur-champ">{{ erreur.message }}</small>
+              }
+            </div>
+          </div>
+        </fieldset>
       }
-    </div>
 
-    <div class="champ">
-      <label for="confirmation">Confirmer le mot de passe <span class="marque-obligatoire" aria-hidden="true">*</span></label>
-      <div class="champ-mdp">
-        <input
-          pInputText
-          id="confirmation"
-          [type]="afficherConfirmation() ? 'text' : 'password'"
-          [formField]="formulaire.confirmation"
-          autocomplete="new-password"
-          fluid />
-        <button
-          type="button"
-          (click)="afficherConfirmation.set(!afficherConfirmation())"
-          [attr.aria-label]="afficherConfirmation() ? 'Masquer la confirmation' : 'Afficher la confirmation'">
-          <i class="pi" [class.pi-eye]="!afficherConfirmation()" [class.pi-eye-slash]="afficherConfirmation()"></i>
-        </button>
+      <div class="champ">
+        <label for="nouveauMotDePasse">Nouveau mot de passe</label>
+        <div class="champ-mdp">
+          <input
+            id="nouveauMotDePasse"
+            [type]="afficherNouveau() ? 'text' : 'password'"
+            [formField]="formulaire.nouveauMotDePasse"
+            autocomplete="new-password"
+            [attr.aria-invalid]="formulaire.nouveauMotDePasse().touched() && formulaire.nouveauMotDePasse().invalid()"
+            [attr.aria-describedby]="formulaire.nouveauMotDePasse().touched() && formulaire.nouveauMotDePasse().invalid()
+              ? 'erreur-nouveau' : regleVisible() ? 'aide-nouveau' : null" />
+          <button
+            type="button"
+            (click)="afficherNouveau.set(!afficherNouveau())"
+            [attr.aria-pressed]="afficherNouveau()"
+            aria-label="Afficher le nouveau mot de passe">
+            <i class="pi" [class.pi-eye]="!afficherNouveau()" [class.pi-eye-slash]="afficherNouveau()" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div aria-live="polite">
+          @if (regleVisible()) {
+            <small id="aide-nouveau" class="aide">Au moins 8 caractères, différent du mot de passe provisoire.</small>
+          }
+        </div>
+        @if (formulaire.nouveauMotDePasse().touched() && formulaire.nouveauMotDePasse().errors()[0]; as erreur) {
+          <small id="erreur-nouveau" class="erreur-champ">{{ erreur.message }}</small>
+        }
       </div>
-      @if (formulaire.confirmation().touched() && formulaire.confirmation().invalid()) {
-        <small class="erreur-champ">{{ formulaire.confirmation().errors()[0]?.message }}</small>
-      }
-    </div>
 
-    <button
-      type="button"
-      class="btn-ept"
-      [disabled]="enChargement()"
-      [attr.aria-busy]="enChargement()"
-      (click)="enregistrer()">
-      {{ enChargement() ? 'Enregistrement…' : 'Définir mon mot de passe' }}
-    </button>
+      <div class="champ">
+        <label for="confirmation">Confirmer le mot de passe</label>
+        <div class="champ-mdp">
+          <input
+            id="confirmation"
+            [type]="afficherConfirmation() ? 'text' : 'password'"
+            [formField]="formulaire.confirmation"
+            autocomplete="new-password"
+            [attr.aria-invalid]="formulaire.confirmation().touched() && formulaire.confirmation().invalid()"
+            [attr.aria-describedby]="formulaire.confirmation().touched() && formulaire.confirmation().invalid() ? 'erreur-confirmation' : null" />
+          <button
+            type="button"
+            (click)="afficherConfirmation.set(!afficherConfirmation())"
+            [attr.aria-pressed]="afficherConfirmation()"
+            aria-label="Afficher la confirmation">
+            <i class="pi" [class.pi-eye]="!afficherConfirmation()" [class.pi-eye-slash]="afficherConfirmation()" aria-hidden="true"></i>
+          </button>
+        </div>
+        @if (formulaire.confirmation().touched() && formulaire.confirmation().errors()[0]; as erreur) {
+          <small id="erreur-confirmation" class="erreur-champ">{{ erreur.message }}</small>
+        }
+      </div>
+
+      <button type="submit" class="btn-ept" [disabled]="enChargement()" [attr.aria-busy]="enChargement()">
+        {{ enChargement() ? 'Enregistrement…' : 'Définir mon mot de passe' }}
+      </button>
+    </form>
+
+    <p class="sortie">
+      Ce n’est pas votre compte ?
+      <button type="button" class="lien" (click)="seDeconnecter()">Se déconnecter</button>
+    </p>
   </section>
 </main>

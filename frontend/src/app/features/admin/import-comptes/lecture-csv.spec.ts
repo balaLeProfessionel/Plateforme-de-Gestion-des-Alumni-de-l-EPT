@@ -6,7 +6,7 @@ describe('lireCsvComptes', () => {
     expect(lecture.erreur).toBeNull();
     expect(lecture.lignes).toEqual([{
       numero: 1, prenom: 'Awa', nom: 'Diop', email: 'awa.diop@ept.sn', filiere: 'Génie civil; option eau',
-      anneeEntree: 2026, anneeSortie: null, probleme: null,
+      anneeEntree: 2026, anneeSortie: null, classe: null, probleme: null,
     }]);
   });
 
@@ -34,5 +34,10 @@ describe('lireCsvComptes', () => {
   it('refuse un fichier sans les colonnes obligatoires ou vide', () => {
     expect(lireCsvComptes('prenom;filiere\nAwa;GIT').erreur).toBe('Colonnes obligatoires absentes : nom, e-mail.');
     expect(lireCsvComptes('prenom;nom;email').erreur).toContain('au moins un compte');
+  });
+
+  it('lit la colonne classe telle qu’écrite, le serveur l’interprète', () => {
+    const lecture = lireCsvComptes('prenom;nom;email;classe\nAwa;Diop;awa@ept.sn;DIC 2\nBinta;Sow;binta@ept.sn;\n');
+    expect(lecture.lignes.map((ligne) => ligne.classe)).toEqual(['DIC 2', null]);
   });
 });

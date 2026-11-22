@@ -63,8 +63,8 @@ class PremiereConnexionTests {
             mock(AuthenticationManager.class),
             jwtService,
             mock(EmailService.class),
-            refreshTokenService
-        );
+            refreshTokenService,
+            mock(ept.edu.sn.alumni_backend.filiere.service.FiliereService.class));
     }
 
     @Test

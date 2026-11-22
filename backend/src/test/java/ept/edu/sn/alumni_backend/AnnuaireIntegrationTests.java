@@ -55,6 +55,10 @@ class AnnuaireIntegrationTests {
     private NotificationRepository notificationRepository;
 
     @Autowired
+
+    private ept.edu.sn.alumni_backend.filiere.repository.FiliereRepository filiereRepository;
+
+    @Autowired
     private OrganismeRepository organismeRepository;
 
     @Autowired
@@ -291,7 +295,7 @@ class AnnuaireIntegrationTests {
         utilisateur.setStatutCompte(statut);
         utilisateur.setEmailVerifie(emailVerifie);
         utilisateur.setVilleResidence(ville);
-        utilisateur.setFiliere(filiere);
+        utilisateur.setFiliere(filiere == null ? null : FilieresDeTest.filiere(filiereRepository, filiere));
         utilisateur.setAnneeSortie(anneeSortie);
         utilisateur.setTelephone("770000000");
         utilisateur.setDateNaissance(LocalDate.of(2000, 1, 1));

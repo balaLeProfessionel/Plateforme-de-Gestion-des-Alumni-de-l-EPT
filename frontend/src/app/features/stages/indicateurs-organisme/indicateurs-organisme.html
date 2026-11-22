@@ -1,0 +1,72 @@
+<div class="page-stages">
+  <app-fil-ariane [etapes]="etapes" />
+  <header class="entete">
+    <h1>Mes indicateurs</h1>
+    <p class="introduction">Votre collaboration avec l’EPT : offres publiées, candidatures reçues et étudiants accueillis en stage.</p>
+  </header>
+
+  @if (erreur()) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Les indicateurs n’ont pas pu être chargés</h2>
+      <button type="button" class="bouton" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (indicateurs(); as i) {
+    <dl class="chiffres">
+      <div><dt>Offres publiées</dt><dd>{{ i.offresPubliees }}</dd></div>
+      <div><dt>Candidatures reçues</dt><dd>{{ i.candidaturesRecues }}</dd></div>
+      <div><dt>Étudiants accueillis</dt><dd>{{ i.etudiantsAccueillis }}</dd></div>
+    </dl>
+
+    @if (i.offresPubliees === 0 && i.etudiantsAccueillis === 0) {
+      <div class="etat">
+        <i class="pi pi-chart-bar" aria-hidden="true"></i>
+        <h2>Pas encore d’indicateur</h2>
+        <p>Les chiffres apparaissent dès votre première offre publiée.</p>
+        <a class="bouton principal" routerLink="/stages/publier">Publier une offre</a>
+      </div>
+    } @else {
+      <section class="bloc" aria-labelledby="titre-annees">
+        <h2 id="titre-annees">Par année de publication</h2>
+        <table>
+          <thead><tr><th scope="col">Année</th><th scope="col">Offres publiées</th><th scope="col">Candidatures reçues</th></tr></thead>
+          <tbody>
+            @for (a of i.parAnnee; track a.annee) {
+              <tr><th scope="row">{{ a.annee }}</th><td>{{ a.offres }}</td><td>{{ a.candidatures }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </section>
+
+      <div class="repartitions">
+        <section class="bloc" aria-labelledby="titre-types">
+          <h2 id="titre-types">Étudiants accueillis par type de stage</h2>
+          @if (i.accueillisParType.length === 0) { <p class="vide">Aucun étudiant accueilli pour l’instant.</p> }
+          @else {
+            <ul class="barres">
+              @for (r of i.accueillisParType; track r.cle) {
+                <li><span class="libelle">{{ libelleType(r.cle) }}</span><span class="nombre">{{ r.nombre }}</span>
+                  <span class="barre" aria-hidden="true"><span [style.width.%]="part(r.nombre, i.accueillisParType)"></span></span></li>
+              }
+            </ul>
+          }
+        </section>
+        <section class="bloc" aria-labelledby="titre-filieres">
+          <h2 id="titre-filieres">Étudiants accueillis par filière</h2>
+          @if (i.accueillisParFiliere.length === 0) { <p class="vide">Aucun étudiant accueilli pour l’instant.</p> }
+          @else {
+            <ul class="barres">
+              @for (r of i.accueillisParFiliere; track r.cle) {
+                <li><span class="libelle">{{ r.cle }}</span><span class="nombre">{{ r.nombre }}</span>
+                  <span class="barre" aria-hidden="true"><span [style.width.%]="part(r.nombre, i.accueillisParFiliere)"></span></span></li>
+              }
+            </ul>
+          }
+        </section>
+      </div>
+      <p class="note">Une offre compte l’année de sa publication ; les candidatures retirées par les étudiants ne sont pas comptées, ni les stages annulés.</p>
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement des indicateurs"></div>
+  }
+</div>

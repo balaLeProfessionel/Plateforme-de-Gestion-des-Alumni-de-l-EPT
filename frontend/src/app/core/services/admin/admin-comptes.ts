@@ -3,9 +3,10 @@ import { DOCUMENT } from '@angular/common';
 import { inject, Service } from '@angular/core';
 import { AuthService } from '../auth/auth-service';
 import {
-  ActionAdmin, CompteAdmin, CompteCree, CreationCompte, CriteresComptes, EntreeJournal, FicheCompte, LigneImport,
-  PromotionEtudiante, ResultatDiplomation, ResultatImport, ResumeComptes, RoleAttribuable, TableauDeBordAdmin, TypeActionAdmin,
+  ActionAdmin, ClasseEtudiante, CompteAdmin, CompteCree, CreationCompte, CriteresComptes, EntreeJournal, FicheCompte, LigneImport,
+  PermissionAdmin, PromotionEtudiante, ResultatDiplomation, ResultatImport, ResultatPassage, ResumeComptes, RoleAttribuable, TableauDeBordAdmin, TypeActionAdmin,
 } from '../models/admin.model';
+import { Classe } from '../models/classe.model';
 import { Page } from '../models/mentorat.model';
 
 const API = '/api/admin/comptes';
@@ -26,6 +27,8 @@ export class AdminComptesService {
     else if (criteres.anneeEntree) params = params.set('anneeEntree', criteres.anneeEntree);
     if (criteres.sansFiliere) params = params.set('sansFiliere', true);
     else if (criteres.filiere) params = params.set('filiere', criteres.filiere);
+    if (criteres.sansClasse) params = params.set('sansClasse', true);
+    else if (criteres.classe) params = params.set('classe', criteres.classe);
     return this.http.get<Page<CompteAdmin>>(API, { params });
   }
 
@@ -37,12 +40,32 @@ export class AdminComptesService {
     return this.http.post<ResultatImport>(`${API}/import`, { role, lignes });
   }
 
+  /** Classe d’un étudiant (passage en classe supérieure, correction), consignée au journal. */
+  changerClasse(id: string, classe: Classe) {
+    return this.http.patch<CompteAdmin>(`${API}/${encodeURIComponent(id)}/classe`, { classe });
+  }
+
   changerRole(id: string, role: RoleAttribuable, motif: string) {
     return this.http.patch<CompteAdmin>(`${API}/${encodeURIComponent(id)}/role`, { role, motif });
   }
 
+  /** Réservé au super administrateur : la liste remplace les responsabilités du compte. */
+  modifierResponsabilites(id: string, responsabilites: readonly PermissionAdmin[]) {
+    return this.http.patch<FicheCompte>(`${API}/${encodeURIComponent(id)}/responsabilites`, { responsabilites });
+  }
+
   marquerDiplomes(ids: readonly string[], anneeSortie: number) {
     return this.http.post<ResultatDiplomation>(`${API}/diplomation`, { ids, anneeSortie });
+  }
+
+  /** Étudiants par classe et filière, pour le passage annuel. */
+  classes() {
+    return this.http.get<ClasseEtudiante[]>(`${API}/classes`);
+  }
+
+  /** classeDepart null : étudiants sans classe renseignée. */
+  passerEnClasse(ids: readonly string[], classeDepart: Classe | null, classeArrivee: Classe) {
+    return this.http.post<ResultatPassage>(`${API}/passage-classe`, { ids, classeDepart, classeArrivee });
   }
 
   promotions() {
@@ -55,6 +78,11 @@ export class AdminComptesService {
 
   tableauDeBord() {
     return this.http.get<TableauDeBordAdmin>('/api/admin/tableau-de-bord');
+  }
+
+  /** Nom de l’administrateur connecté, tel qu’il apparaît comme auteur au journal. */
+  modifierMonIdentite(prenom: string, nom: string) {
+    return this.http.patch<void>('/api/admin/mon-compte/identite', { prenom, nom });
   }
 
   journal(types: readonly TypeActionAdmin[], page: number, taille = 20) {

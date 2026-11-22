@@ -10,7 +10,7 @@
   input { width: 1.1rem; height: 1.1rem; accent-color: var(--ept-primary); }
   small { color: var(--ept-text-secondary); overflow-wrap: anywhere; }
   a { margin-left: auto; color: var(--ept-primary); font-size: 0.85rem; font-weight: 600; }
-  :is(input, a):focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+  :is(input, a):focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
 }
 
 .annee { max-width: 16rem; }

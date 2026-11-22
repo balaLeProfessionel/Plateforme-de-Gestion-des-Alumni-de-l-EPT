@@ -3,10 +3,6 @@ package ept.edu.sn.alumni_backend.evenement.service;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.AtomicMoveNotSupportedException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
@@ -17,12 +13,12 @@ import javax.imageio.stream.ImageInputStream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
 
 import ept.edu.sn.alumni_backend.common.image.FormatImage;
+import ept.edu.sn.alumni_backend.common.stockage.DepotFichiers;
 import ept.edu.sn.alumni_backend.evenement.exception.ImageEvenementIntrouvableException;
 import ept.edu.sn.alumni_backend.evenement.exception.StockageImageEvenementException;
 
@@ -32,13 +28,15 @@ public class StockageImageEvenement {
     private static final long PIXELS_SOURCE_MAXIMAUX = 20_000_000;
     private static final String PREFIXE_PUBLIC = "/api/evenement-images/";
 
-    private final Path repertoire;
+    private static final String DOSSIER = "evenements";
+
+    private final DepotFichiers depot;
     private final long tailleMaximale;
 
     public StockageImageEvenement(
-            @Value("${app.storage.photos.dir:./data/photos}") String repertoirePhotos,
+            DepotFichiers depot,
             @Value("${app.storage.photos.max-size:5MB}") DataSize tailleMaximale) {
-        this.repertoire = Path.of(repertoirePhotos).toAbsolutePath().normalize().resolve("evenements").normalize();
+        this.depot = depot;
         this.tailleMaximale = tailleMaximale.toBytes();
     }
 
@@ -65,20 +63,8 @@ public class StockageImageEvenement {
             BufferedImage source = decoder(contenu);
             FormatImage.EVENEMENT.verifierTailleMinimale(source);
             String nom = UUID.randomUUID() + ".jpg";
-            Files.createDirectories(repertoire);
-            Path destination = cheminSecurise(nom);
-            Path temporaire = Files.createTempFile(repertoire, "evenement-", ".tmp");
-            try {
-                // Format imposé : 1600 × 900 (16:9), recadré au centre si l'image n'a pas ce rapport.
-                FormatImage.ecrireJpeg(FormatImage.EVENEMENT.appliquer(source), temporaire);
-                try {
-                    Files.move(temporaire, destination, StandardCopyOption.ATOMIC_MOVE);
-                } catch (AtomicMoveNotSupportedException e) {
-                    Files.move(temporaire, destination, StandardCopyOption.REPLACE_EXISTING);
-                }
-            } finally {
-                Files.deleteIfExists(temporaire);
-            }
+            // Format imposé : 1600 × 900 (16:9), recadré au centre si l'image n'a pas ce rapport.
+            depot.ecrire(DepotFichiers.cle(DOSSIER, nom), FormatImage.encoderJpeg(FormatImage.EVENEMENT.appliquer(source)));
             return PREFIXE_PUBLIC + nom;
         } catch (IllegalArgumentException e) {
             throw e;
@@ -91,15 +77,7 @@ public class StockageImageEvenement {
         if (!nom.matches("[0-9a-fA-F-]{36}\\.(jpg|png)")) {
             throw new IllegalArgumentException("Image d’événement invalide.");
         }
-        try {
-            Resource resource = new UrlResource(cheminSecurise(nom).toUri());
-            if (!resource.exists() || !resource.isReadable()) {
-                throw new ImageEvenementIntrouvableException();
-            }
-            return resource;
-        } catch (IOException e) {
-            throw new ImageEvenementIntrouvableException();
-        }
+        return depot.lire(DepotFichiers.cle(DOSSIER, nom)).orElseThrow(ImageEvenementIntrouvableException::new);
     }
 
     public void supprimerSiGeree(String url) {
@@ -107,7 +85,7 @@ public class StockageImageEvenement {
         String nom = url.substring(PREFIXE_PUBLIC.length());
         if (!nom.matches("[0-9a-fA-F-]{36}\\.(jpg|png)")) return;
         try {
-            Files.deleteIfExists(cheminSecurise(nom));
+            depot.supprimer(DepotFichiers.cle(DOSSIER, nom));
         } catch (IOException e) {
             throw new StockageImageEvenementException("Impossible de supprimer une ancienne image.", e);
         }
@@ -134,13 +112,6 @@ public class StockageImageEvenement {
             }
         }
     }
-
-    private Path cheminSecurise(String nom) throws IOException {
-        Path chemin = repertoire.resolve(nom).normalize();
-        if (!chemin.startsWith(repertoire)) throw new IOException("Chemin de stockage invalide.");
-        return chemin;
-    }
-
     private void verifierSignature(byte[] contenu, String type) {
         boolean jpeg = contenu.length >= 3 && (contenu[0] & 0xff) == 0xff
             && (contenu[1] & 0xff) == 0xd8 && (contenu[2] & 0xff) == 0xff;

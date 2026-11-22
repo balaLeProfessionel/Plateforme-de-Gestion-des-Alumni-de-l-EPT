@@ -89,7 +89,7 @@ class ConnexionGoogleIntegrationTests {
         google("Awa.Diop@Example.com", true);
 
         // L'adresse vient du jeton : un champ « email » envoyé par le navigateur serait ignoré.
-        inscription("ALUMNI", ",\"email\":\"autre@example.com\",\"anneeSortie\":2018,\"filiere\":\"Génie informatique\"")
+        inscription("ALUMNI", ",\"email\":\"autre@example.com\",\"anneeSortie\":2018,\"filiere\":\"Génie Informatique et Télécommunications\"")
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.accessToken").isNotEmpty())
             .andExpect(jsonPath("$.email").value("awa.diop@example.com"))

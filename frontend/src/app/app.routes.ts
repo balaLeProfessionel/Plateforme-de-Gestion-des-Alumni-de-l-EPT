@@ -5,7 +5,8 @@ import {
   changementInitialRequisGuard, accueilAdministrationGuard,
   changementInitialSeulementGuard,
   roleGuard,
-  visiteurGuard
+  visiteurGuard,
+  visiteurMatch
 } from './core/guards/auth.guard';
 import { titreProfil } from './features/profil/consultation-profil/titre-profil';
 
@@ -14,7 +15,6 @@ const RUBRIQUES_ROUTES = [
   ['messagerie', 'Messagerie et espace communautaire'],
   ['partenariats', 'Partenariats de l’école'],
   ['conventions', 'Conventions'],
-  ['stages', 'Stages'],
   ['mobilites', 'Mobilités'],
   ['insertion', 'Insertion professionnelle'],
   ['offres-emploi', 'Offres d’emploi'],
@@ -52,6 +52,13 @@ export const routes: Routes = [
     loadComponent: () => import('./features/vitrine/page-bientot/page-bientot').then((m) => m.PageBientot)
   })),
   {
+    // Sans compte : la rubrique invite à se connecter (STA-02). Connecté, la route des membres prend le relais.
+    path: 'stages',
+    title: 'EPT Alumni | Stages',
+    canMatch: [visiteurMatch],
+    loadComponent: () => import('./features/vitrine/page-stages/page-stages').then((m) => m.PageStages)
+  },
+  {
     path: 'connexion',
     loadComponent: () =>
       import('./features/auth/connexion/connexion').then((m) => m.Connexion)
@@ -72,6 +79,7 @@ export const routes: Routes = [
   },
   {
     path: 'premiere-connexion',
+    title: 'Définir votre mot de passe | EPT Alumni',
     canActivate: [authGuard, changementInitialSeulementGuard],
     loadComponent: () =>
       import('./features/auth/premiere-connexion/premiere-connexion').then(
@@ -262,6 +270,11 @@ export const routes: Routes = [
         path: 'mentorat',
         canActivate: [authGuard, changementInitialRequisGuard],
         loadChildren: () => import('./features/mentorat/mentorat.routes').then((m) => m.MENTORAT_ROUTES)
+      },
+      {
+        path: 'stages',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadChildren: () => import('./features/stages/stages.routes').then((m) => m.STAGES_ROUTES)
       },
       {
         path: 'admin',

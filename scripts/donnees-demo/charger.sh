@@ -27,4 +27,18 @@ docker exec -i alumni-db psql -q -U root -d alumni_db < "$dossier/donnees-demo-p
 docker exec -i alumni-db psql -q -U root -d alumni_db < "$dossier/donnees-demo-articles.sql"
 # Images des publications et des événements (rejouable : seuls ceux sans image sont complétés).
 docker exec -i alumni-db psql -q -U root -d alumni_db < "$temporaire/photos-libres.sql"
+# Module stages : PDF de démonstration (CV, conventions signées, rapports) puis données (offres, stages…).
+pdfs="$temporaire/pdf"
+mkdir -p "$pdfs/documents/cv" "$pdfs/documents/conventions" "$pdfs/documents/rapports"
+contenu_pdf() {
+  printf '%%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n'
+  printf '3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj\n'
+  printf '4 0 obj<</Length 60>>stream\nBT /F1 18 Tf 60 760 Td (%s) Tj ET\nendstream endobj\n' "$1"
+  printf '5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj\ntrailer<</Root 1 0 R>>\n%%%%EOF\n'
+}
+for n in 101 102 103 104 105 106 107 108 109; do contenu_pdf "CV de demonstration" > "$pdfs/documents/cv/f0000000-0000-4000-8000-000000000$n.pdf"; done
+for n in 301 302 303; do contenu_pdf "Convention de stage signee - demonstration" > "$pdfs/documents/conventions/f0000000-0000-4000-8000-000000000$n.pdf"; done
+for n in 501 503; do contenu_pdf "Rapport de stage - demonstration" > "$pdfs/documents/rapports/f0000000-0000-4000-8000-000000000$n.pdf"; done
+tar -C "$pdfs" -cf - . | MSYS_NO_PATHCONV=1 docker exec -i alumni-api tar -C /data/alumni/photos -xf -
+docker exec -i alumni-db psql -q -v ON_ERROR_STOP=1 -U root -d alumni_db < "$dossier/donnees-demo-stages.sql"
 echo "Données de démonstration chargées."

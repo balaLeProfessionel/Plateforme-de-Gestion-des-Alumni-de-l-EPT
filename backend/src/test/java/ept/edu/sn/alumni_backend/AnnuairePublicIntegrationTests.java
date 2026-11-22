@@ -39,6 +39,10 @@ class AnnuairePublicIntegrationTests {
     private NotificationRepository notificationRepository;
 
     @Autowired
+
+    private ept.edu.sn.alumni_backend.filiere.repository.FiliereRepository filiereRepository;
+
+    @Autowired
     private EvenementRepository evenementRepository;
 
     @Autowired
@@ -140,7 +144,7 @@ class AnnuairePublicIntegrationTests {
         utilisateur.setStatutCompte(StatutCompte.ACTIF);
         utilisateur.setEmailVerifie(true);
         utilisateur.setAnneeSortie(2020);
-        utilisateur.setFiliere("Génie Civil");
+        utilisateur.setFiliere(FilieresDeTest.filiere(filiereRepository, "Génie Civil"));
         utilisateur.setVilleResidence("Thiès");
         utilisateur.setPosteActuel("Ingénieur");
         ajustement.accept(utilisateur);

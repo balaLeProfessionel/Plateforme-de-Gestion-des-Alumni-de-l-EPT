@@ -187,7 +187,7 @@ export const MENUS_ENTETE: readonly MenuRubrique[] = [
     id: 'carriere',
     libelle: 'Carrière',
     liens: [
-      { libelle: 'Stages', lien: '/stages', precision: 'À venir' },
+      { libelle: 'Stages', lien: '/stages', precision: 'Après connexion' },
       { libelle: 'Mobilités', lien: '/mobilites', precision: 'À venir' },
       { libelle: 'Insertion professionnelle', lien: '/insertion', precision: 'À venir' }
     ]

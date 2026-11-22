@@ -30,12 +30,14 @@
         <button type="button" class="secondaire" data-action="refus" (click)="ouvrir('refus')">Refuser</button>
       }
       @case ('ACTIF') {
-        @if (!estMoi()) {
+        @if (!estMoi() && peutDecider()) {
           <button type="button" class="secondaire alerte" data-action="suspension" (click)="ouvrir('suspension')">Suspendre</button>
         }
       }
       @case ('SUSPENDU') {
-        <button type="button" class="secondaire" data-action="reactivation" (click)="ouvrir('reactivation')">Réactiver</button>
+        @if (peutDecider()) {
+          <button type="button" class="secondaire" data-action="reactivation" (click)="ouvrir('reactivation')">Réactiver</button>
+        }
       }
     }
     <ng-content />

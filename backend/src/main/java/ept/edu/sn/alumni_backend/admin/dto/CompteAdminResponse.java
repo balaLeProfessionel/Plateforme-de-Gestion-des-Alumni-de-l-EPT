@@ -13,6 +13,8 @@ public record CompteAdminResponse(
     String role,
     String statutCompte,
     String filiere,
+    /** Code de la classe (DIC1, MASTER2…), pour un étudiant ; sinon null. */
+    String classe,
     Integer anneeEntree,
     Integer anneeSortie,
     String nomOrganisme,

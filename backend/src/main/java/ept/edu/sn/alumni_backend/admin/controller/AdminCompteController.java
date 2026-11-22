@@ -18,14 +18,21 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ept.edu.sn.alumni_backend.admin.dto.ActionAdminResponse;
 import ept.edu.sn.alumni_backend.admin.dto.ChangementRoleRequest;
+import ept.edu.sn.alumni_backend.admin.dto.ClasseEtudianteResponse;
+import ept.edu.sn.alumni_backend.admin.dto.PassageClasseRequest;
+import ept.edu.sn.alumni_backend.admin.dto.ResultatPassageResponse;
+import ept.edu.sn.alumni_backend.enums.Classe;
+import ept.edu.sn.alumni_backend.admin.dto.ClasseRequest;
 import ept.edu.sn.alumni_backend.admin.dto.CompteAdminResponse;
 import ept.edu.sn.alumni_backend.admin.dto.DiplomationRequest;
 import ept.edu.sn.alumni_backend.admin.dto.ImportComptesRequest;
 import ept.edu.sn.alumni_backend.admin.dto.PromotionResponse;
 import ept.edu.sn.alumni_backend.admin.dto.ResultatDiplomationResponse;
+import ept.edu.sn.alumni_backend.admin.dto.ResponsabilitesRequest;
 import ept.edu.sn.alumni_backend.admin.dto.ResultatImportResponse;
 import ept.edu.sn.alumni_backend.admin.service.CreationComptesService;
 import ept.edu.sn.alumni_backend.admin.service.EvolutionComptesService;
+import ept.edu.sn.alumni_backend.admin.service.ResponsabilitesAdminService;
 import ept.edu.sn.alumni_backend.admin.dto.FicheCompteResponse;
 import ept.edu.sn.alumni_backend.admin.dto.MotifFacultatifRequest;
 import ept.edu.sn.alumni_backend.admin.dto.MotifRequest;
@@ -43,7 +50,10 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 
-/** Gestion des comptes par l'administration ; /api/admin/** est réservé au rôle ADMIN (SecurityConfig). */
+/**
+ * Gestion des comptes par l'administration : la responsabilité Comptes est exigée (SecurityConfig). Toute décision
+ * sur un compte d'administration demande en plus d'être super administrateur (GardeSuperAdministrateur).
+ */
 @RestController
 @RequestMapping("/api/admin/comptes")
 @RequiredArgsConstructor
@@ -53,6 +63,7 @@ public class AdminCompteController {
     private final GestionComptesService gestionComptesService;
     private final CreationComptesService creationComptesService;
     private final EvolutionComptesService evolutionComptesService;
+    private final ResponsabilitesAdminService responsabilitesAdminService;
 
     /** Création d'un compte (étudiant, alumni, personnel…) : le mot de passe provisoire part par e-mail. */
     @PostMapping
@@ -79,11 +90,41 @@ public class AdminCompteController {
         return ResponseEntity.ok(evolutionComptesService.changerRole(id, request.role(), request.motif().trim(), principal));
     }
 
+    @PatchMapping("/{id}/classe")
+    public ResponseEntity<CompteAdminResponse> changerClasse(
+            @PathVariable UUID id,
+            @Valid @RequestBody ClasseRequest request,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(evolutionComptesService.changerClasse(id, request.classe(), principal));
+    }
+
+    /** Réservé au super administrateur (TRA-13) : la liste remplace les responsabilités du compte. */
+    @PatchMapping("/{id}/responsabilites")
+    public ResponseEntity<FicheCompteResponse> modifierResponsabilites(
+            @PathVariable UUID id,
+            @Valid @RequestBody ResponsabilitesRequest request,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(responsabilitesAdminService.modifier(id, request.responsabilites(), principal));
+    }
+
     @PostMapping("/diplomation")
     public ResponseEntity<ResultatDiplomationResponse> marquerDiplomes(
             @Valid @RequestBody DiplomationRequest request,
             @AuthenticationPrincipal UtilisateurPrincipal principal) {
         return ResponseEntity.ok(evolutionComptesService.marquerDiplomes(request.ids(), request.anneeSortie(), principal));
+    }
+
+    /** Passage annuel en masse ; chaque passage est consigné au journal. */
+    @PostMapping("/passage-classe")
+    public ResponseEntity<ResultatPassageResponse> passerEnClasse(
+            @Valid @RequestBody PassageClasseRequest request,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(evolutionComptesService.passerEnClasse(request.ids(), request.classeDepart(), request.classeArrivee(), principal));
+    }
+
+    @GetMapping("/classes")
+    public ResponseEntity<List<ClasseEtudianteResponse>> classes() {
+        return ResponseEntity.ok(evolutionComptesService.classesEtudiantes());
     }
 
     @GetMapping("/promotions")
@@ -100,9 +141,12 @@ public class AdminCompteController {
             @RequestParam(defaultValue = "false") boolean sansAnneeEntree,
             @RequestParam(required = false) @Size(max = 120) String filiere,
             @RequestParam(defaultValue = "false") boolean sansFiliere,
+            @RequestParam(required = false) Classe classe,
+            @RequestParam(defaultValue = "false") boolean sansClasse,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int taille) {
-        return ResponseEntity.ok(gestionComptesService.rechercher(recherche, role, statut, anneeEntree, sansAnneeEntree, filiere, sansFiliere, page, taille));
+        return ResponseEntity.ok(gestionComptesService.rechercher(recherche, role, statut, anneeEntree, sansAnneeEntree, filiere, sansFiliere,
+            classe, sansClasse, page, taille));
     }
 
     @GetMapping("/resume")

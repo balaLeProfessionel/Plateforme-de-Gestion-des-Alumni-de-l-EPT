@@ -1,7 +1,7 @@
 <app-page-admin titre="Diplômés"
   introduction="Choisissez une promotion d’entrée, cochez les étudiants diplômés et indiquez leur année de sortie : ils deviennent alumni, gardent leur parcours et en sont prévenus par e-mail.">
   @if (resultat(); as r) {
-    <p class="message" role="status">
+    <p #messageResultat class="message" role="status" tabindex="-1">
       {{ r.resultat.diplomes }} {{ r.resultat.diplomes > 1 ? 'étudiants sont désormais alumni' : 'étudiant est désormais alumni' }} (promotion {{ r.annee }}).
       @for (ignore of r.resultat.ignores; track ignore.id) { <br />{{ ignore.nom ?? 'Un compte' }} : {{ ignore.raison }} }
     </p>
@@ -69,13 +69,13 @@
             <p>Marquer <strong>{{ selection().size }}</strong> {{ selection().size > 1 ? 'étudiants diplômés' : 'étudiant diplômé' }} de la promotion
               <strong>{{ modele().anneeSortie }}</strong> ? Chacun recevra un e-mail.</p>
             <div class="boutons">
-              <button type="button" class="bouton principal" [disabled]="enCours()" (click)="marquer()">Confirmer</button>
-              <button type="button" class="bouton" (click)="confirmation.set(false)">Annuler</button>
+              <button #boutonConfirmer type="button" class="bouton principal" [disabled]="enCours()" (click)="marquer()">Confirmer</button>
+              <button type="button" class="bouton" (click)="annulerConfirmation()">Annuler</button>
             </div>
           </div>
         } @else {
           <div class="boutons">
-            <button type="button" class="bouton principal" [disabled]="selection().size === 0" (click)="demanderConfirmation()">
+            <button #boutonMarquer type="button" class="bouton principal" [disabled]="selection().size === 0" (click)="demanderConfirmation()">
               <i class="pi pi-graduation-cap" aria-hidden="true"></i>Marquer {{ selection().size }} {{ selection().size > 1 ? 'diplômés' : 'diplômé' }}
             </button>
           </div>

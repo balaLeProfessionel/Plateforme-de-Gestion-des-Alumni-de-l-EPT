@@ -41,9 +41,15 @@ class ProfilPublicIntegrationTests {
     @Autowired
     private UtilisateurRepository utilisateurRepository;
 
-
     @Autowired
 
+    private ept.edu.sn.alumni_backend.filiere.repository.FiliereRepository filiereRepository;
+
+    @Autowired
+    private ept.edu.sn.alumni_backend.filiere.repository.ChefDepartementRepository chefDepartementRepository;
+
+
+    @Autowired
     private NotificationRepository notificationRepository;
 
     @Autowired
@@ -70,6 +76,9 @@ class ProfilPublicIntegrationTests {
         notificationRepository.deleteAll();
         // Les comptes avant les organismes : un compte organisme laissé par une autre classe
         // de tests référence encore son organisme (échec selon l'ordre d'exécution, vu sur la CI).
+        // Filières et chefs de département référencent des comptes (TRA-14) : on les détache avant de vider.
+        chefDepartementRepository.deleteAll();
+        filiereRepository.saveAll(filiereRepository.findAll().stream().peek(filiere -> filiere.setCreeePar(null)).toList());
         utilisateurRepository.deleteAll();
         organismeRepository.deleteAll();
     }
@@ -148,7 +157,7 @@ class ProfilPublicIntegrationTests {
         membre.setTelephone("770000000");
         membre.setDateNaissance(LocalDate.of(2000, 1, 1));
         membre.setVilleResidence("Thiès");
-        membre.setFiliere("Génie Informatique et Télécommunications");
+        membre.setFiliere(FilieresDeTest.filiere(filiereRepository, "Génie Informatique et Télécommunications"));
         membre.setAnneeSortie(2024);
         return utilisateurRepository.save(membre);
     }

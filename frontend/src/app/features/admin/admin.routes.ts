@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { permissionGuard } from '../../core/guards/auth.guard';
+import { permissionGuard, roleGuard } from '../../core/guards/auth.guard';
 
 /** Chaque rubrique exige sa permission ; la navigation par domaine est dans la barre latérale. */
 export const ADMIN_ROUTES: Routes = [
@@ -45,6 +45,97 @@ export const ADMIN_ROUTES: Routes = [
     canActivate: [permissionGuard],
     data: { permission: 'GERER_COMPTES' },
     loadComponent: () => import('./diplomes/diplomes').then((m) => m.Diplomes),
+  },
+  {
+    path: 'passage-classe',
+    title: 'Passage de classe | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_COMPTES' },
+    loadComponent: () => import('./passage-classe/passage-classe').then((m) => m.PassageClasse),
+  },
+  {
+    path: 'filieres',
+    title: 'Filières | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_COMPTES' },
+    loadComponent: () => import('./filieres/filieres').then((m) => m.Filieres),
+  },
+  {
+    path: 'stages/offres',
+    title: 'Offres de stage | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_STAGES' },
+    loadComponent: () => import('./offres-stage/offres-stage').then((m) => m.OffresStage),
+  },
+  {
+    path: 'stages/offres/:id/candidatures',
+    title: 'Candidatures reçues | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_STAGES', administration: true },
+    loadComponent: () => import('../stages/candidatures-recues/candidatures-recues').then((m) => m.CandidaturesRecues),
+  },
+  {
+    path: 'stages/offres/:id/liste',
+    title: 'Liste définitive | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_STAGES' },
+    loadComponent: () => import('./liste-definitive/liste-definitive').then((m) => m.ListeDefinitivePage),
+  },
+  {
+    path: 'stages/suivi',
+    title: 'Suivi des stages | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_STAGES' },
+    loadComponent: () => import('./suivi-stages/suivi-stages').then((m) => m.SuiviStagesPage),
+  },
+  {
+    path: 'stages/suivi/organisme',
+    title: 'Stagiaires de l’organisme | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_STAGES' },
+    loadComponent: () => import('./suivi-stages/suivi-organisme/suivi-organisme').then((m) => m.SuiviOrganismePage),
+  },
+  {
+    path: 'stages/sollicitations',
+    title: 'Solliciter les organismes | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_STAGES' },
+    loadComponent: () => import('./sollicitations/sollicitations').then((m) => m.SollicitationsPage),
+  },
+  {
+    path: 'stages/suivi/:id/convention',
+    title: 'Convention de stage | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_STAGES' },
+    loadComponent: () => import('./convention-stage/convention-stage').then((m) => m.ConventionStagePage),
+  },
+  {
+    path: 'stages/suivi/:id/evaluation',
+    title: 'Évaluation du stagiaire | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_STAGES', ecole: true },
+    loadComponent: () => import('../stages/evaluation-stage/evaluation-stage').then((m) => m.EvaluationStagePage),
+  },
+  {
+    path: 'stages/declarations',
+    title: 'Stages déclarés | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_STAGES' },
+    loadComponent: () => import('./declarations-stage/declarations-stage').then((m) => m.DeclarationsStage),
+  },
+  {
+    path: 'stages/offres/saisir',
+    title: 'Saisir une offre de stage | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_STAGES', administration: true },
+    loadComponent: () => import('../stages/formulaire-offre/formulaire-offre').then((m) => m.FormulaireOffre),
+  },
+  {
+    path: 'mon-compte',
+    title: 'Mon compte | EPT Alumni',
+    canActivate: [roleGuard],
+    data: { roles: ['ADMIN'] },
+    loadComponent: () => import('./mon-compte/mon-compte').then((m) => m.MonCompte),
   },
   {
     path: 'comptes/:id',

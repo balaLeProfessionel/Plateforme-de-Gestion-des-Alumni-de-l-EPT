@@ -1,0 +1,48 @@
+<div class="page-stages">
+  <app-fil-ariane [etapes]="etapes" />
+  <header class="entete">
+    <div class="titre">
+      <h1>Mes candidatures</h1>
+      <a class="bouton" routerLink="/stages/mes-stages"><i class="pi pi-briefcase" aria-hidden="true"></i>Mes stages</a>
+    </div>
+  </header>
+
+  @if (erreur()) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Vos candidatures n’ont pas pu être chargées</h2>
+      <button type="button" class="bouton" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (candidatures(); as liste) {
+    @if (liste.length === 0) {
+      <div class="etat">
+        <i class="pi pi-send" aria-hidden="true"></i>
+        <h2>Aucune candidature pour l’instant</h2>
+        <p>Parcourez les offres de stage et postulez avec votre CV.</p>
+        <a class="bouton principal" routerLink="/stages">Voir les offres</a>
+      </div>
+    } @else {
+      <ul class="liste">
+        @for (c of liste; track c.id) {
+          <li class="ligne carte-cliquable">
+            <div class="principal">
+              <h2><a class="lien-etire" [routerLink]="['/stages/offres', c.offreId]">{{ c.titreOffre }}</a></h2>
+              <p class="details">{{ c.organisme }} · envoyée le {{ c.envoyeeLe | date: 'd MMMM y' }}
+                @if (c.statut === 'RETIREE') { · retirée le {{ c.retireeLe | date: 'd MMMM y' }} }</p>
+              @if (c.statut === 'RETIREE' && c.candidaturesOuvertes) {
+                <p class="details">Vous pouvez la renvoyer jusqu’au {{ c.dateLimiteCandidature | date: 'd MMMM y' }}.</p>
+              }
+            </div>
+            @if (c.resultat; as resultat) {
+              <span class="statut" [attr.data-statut]="resultat">{{ resultats[resultat] }}</span>
+            } @else {
+              <span class="statut" [attr.data-statut]="c.statut">{{ statuts[c.statut] }}</span>
+            }
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement de vos candidatures"></div>
+  }
+</div>

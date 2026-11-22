@@ -53,8 +53,8 @@
           <label for="filiere">Filière</label>
           <select id="filiere" [formField]="formulaire.filiere" aria-describedby="aide-filtres">
             <option value="">Toutes les filières</option>
-            @for (filiere of filieres; track filiere) {
-              <option [value]="filiere">{{ filiere }}</option>
+            @for (filiere of filieres(); track filiere.id) {
+              <option [value]="filiere.nom">{{ filiere.nom }}</option>
             }
           </select>
         </div>

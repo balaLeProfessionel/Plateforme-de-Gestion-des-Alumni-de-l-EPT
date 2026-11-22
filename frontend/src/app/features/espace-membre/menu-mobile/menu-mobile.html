@@ -9,7 +9,7 @@
   </header>
   @if (lienProfil(); as destination) {
     <a [routerLink]="destination" routerLinkActive="actif" [routerLinkActiveOptions]="{ exact: true }"
-      (click)="fermer()"><i class="pi pi-user" aria-hidden="true"></i>Mon profil</a>
+      (click)="fermer()"><i class="pi pi-user" aria-hidden="true"></i>{{ libelleProfil() }}</a>
   }
   @if (liens().length) {
     <p class="titre-panneau">Rubriques</p>

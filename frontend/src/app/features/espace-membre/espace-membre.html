@@ -10,7 +10,7 @@
               <p-sidebar-menu-item>
                 <a pSidebarMenuButton class="marque" routerLink="/accueil" aria-label="EPT Alumni, accueil"
                   pTooltip="EPT Alumni" tooltipPosition="right" [tooltipDisabled]="sidebarOuverte()">
-                  <span class="symbole-marque" aria-hidden="true"><img src="/images/logo-ept.png" alt="" /></span>
+                  <span class="symbole-marque" aria-hidden="true"><img src="/images/logo-reseau-alumni-96.png" alt="" /></span>
                   <span class="texte-marque"><strong>EPT Alumni</strong><small>Excellence & réseau</small></span>
                 </a>
               </p-sidebar-menu-item>
@@ -113,7 +113,7 @@
       </header>
       <header class="entete-mobile">
         <a class="marque" routerLink="/accueil" aria-label="EPT Alumni, accueil">
-          <span class="symbole-marque" aria-hidden="true"><img src="/images/logo-ept.png" alt="" /></span>
+          <span class="symbole-marque" aria-hidden="true"><img src="/images/logo-reseau-alumni-96.png" alt="" /></span>
           <span class="texte-marque"><strong>EPT Alumni</strong></span>
         </a>
         <app-cloche-notifications identifiant="notifications-mobile" mode="lien" />
@@ -123,7 +123,7 @@
     </p-sidebar-main>
   </p-sidebar-layout>
 
-  <app-menu-mobile [(ouvert)]="menuOuvert" [lienProfil]="lienProfil()"
+  <app-menu-mobile [(ouvert)]="menuOuvert" [lienProfil]="lienProfil()" [libelleProfil]="libelleProfil()"
     [liens]="liensMenuMobile()" [rubriques]="rubriquesAVenir()" (deconnexion)="seDeconnecter()" />
   <app-navigation-mobile [(menuOuvert)]="menuOuvert" />
 </div>

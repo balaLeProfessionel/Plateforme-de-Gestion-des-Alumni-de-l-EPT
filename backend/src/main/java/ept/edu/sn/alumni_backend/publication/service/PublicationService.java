@@ -84,7 +84,7 @@ public class PublicationService {
                 && auteur.getStatutCompte() != StatutCompte.EN_ATTENTE)) {
             throw new SecurityException("Compte indisponible.");
         }
-        verifierType(demande, auteur.getRole());
+        verifierType(demande, auteur);
         if (publications.countByAuteur_IdAndPublieLeGreaterThanEqual(
                 auteur.getId(), Instant.now().minus(Duration.ofHours(24))) >= proprietes.limiteCreations24h()) {
             throw new LimiteCreationPublicationAtteinteException();
@@ -129,12 +129,12 @@ public class PublicationService {
      * Annonce officielle et appel à projet sont réservés à l'administration ; ils portent un titre.
      * Seul l'appel à projet a une date limite, qui ne peut pas être déjà passée.
      */
-    private void verifierType(PublicationRequest demande, TypeRole role) {
+    private void verifierType(PublicationRequest demande, Utilisateur auteur) {
         if (demande.type() == TypePublication.ARTICLE) {
             throw new IllegalArgumentException("Un article se publie depuis l'espace Articles.");
         }
         boolean officiel = estOfficiel(demande.type());
-        if (officiel && !PermissionAdmin.pour(role).contains(PermissionAdmin.PUBLIER_ANNONCES)) {
+        if (officiel && !PermissionAdmin.pour(auteur).contains(PermissionAdmin.PUBLIER_ANNONCES)) {
             throw new SecurityException(demande.type() == TypePublication.ANNONCE_OFFICIELLE
                 ? "Seule l'administration peut publier une annonce officielle."
                 : "Seule l'administration peut diffuser un appel à projet.");
@@ -191,7 +191,7 @@ public class PublicationService {
     public Specification<Publication> visiblePar(Utilisateur lecteur) {
         return (racine, requete, cb) -> {
             var publiee = cb.equal(racine.get("statut"), StatutPublication.PUBLIE);
-            if (voitToutesLesAudiences(lecteur.getRole())) return publiee;
+            if (voitToutesLesAudiences(lecteur)) return publiee;
             var tous = cb.equal(racine.get("audience"), AudiencePublication.TOUS);
             var auteur = cb.equal(racine.get("auteur").get("id"), lecteur.getId());
             AudiencePublication role = audienceDuRole(lecteur.getRole());
@@ -210,7 +210,7 @@ public class PublicationService {
     @Transactional(readOnly = true)
     public Resource image(UUID id, UtilisateurPrincipal principal) {
         // La modération revoit l'image d'une publication déjà masquée, que les membres ne voient plus.
-        Publication publication = voitToutesLesAudiences(principal.getUtilisateur().getRole())
+        Publication publication = voitToutesLesAudiences(principal.getUtilisateur())
             ? publications.findById(id).filter(p -> p.getStatut() != StatutPublication.SUPPRIME)
                 .orElseThrow(PublicationIntrouvableException::new)
             : chargerVisible(id, principal);
@@ -224,7 +224,7 @@ public class PublicationService {
         Utilisateur lecteur = principal.getUtilisateur();
         return publications.findById(id)
             .filter(p -> p.getStatut() == StatutPublication.PUBLIE)
-            .filter(p -> voitToutesLesAudiences(lecteur.getRole())
+            .filter(p -> voitToutesLesAudiences(lecteur)
                 || p.getAudience() == AudiencePublication.TOUS
                 || p.getAudience() == audienceDuRole(lecteur.getRole())
                 || p.getAuteur().getId().equals(lecteur.getId()))
@@ -259,8 +259,8 @@ public class PublicationService {
         static final Interactions AUCUNE = new Interactions(0, false, 0, null);
     }
 
-    private boolean voitToutesLesAudiences(TypeRole role) {
-        return PermissionAdmin.pour(role).contains(PermissionAdmin.MODERER_PUBLICATIONS);
+    private boolean voitToutesLesAudiences(Utilisateur utilisateur) {
+        return PermissionAdmin.pour(utilisateur).contains(PermissionAdmin.MODERER_PUBLICATIONS);
     }
 
     private AudiencePublication audienceDuRole(TypeRole role) {

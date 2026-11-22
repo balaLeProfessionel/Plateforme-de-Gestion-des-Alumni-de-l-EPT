@@ -1,0 +1,51 @@
+<fieldset class="filtres">
+  <legend>Ajouter un étudiant, qu’il ait postulé ou non</legend>
+  <div class="champ">
+    <label for="recherche-etudiant">Nom</label>
+    <input id="recherche-etudiant" type="search" autocomplete="off" placeholder="Prénom ou nom"
+      [value]="criteres().texte" (input)="saisirTexte($event)" />
+  </div>
+  <div class="champ">
+    <label for="recherche-classe">Classe</label>
+    <select id="recherche-classe" (change)="choisirClasse($event)">
+      <option value="" [selected]="!criteres().classe">Toutes</option>
+      @for (groupe of classesParCycle; track groupe.cycle) {
+        <optgroup [label]="groupe.cycle">
+          @for (classe of groupe.classes; track classe) { <option [value]="classe" [selected]="classe === criteres().classe">{{ libellesClasse[classe] }}</option> }
+        </optgroup>
+      }
+    </select>
+  </div>
+  <div class="champ">
+    <label for="recherche-filiere">Filière</label>
+    <select id="recherche-filiere" (change)="choisirFiliere($event)">
+      <option value="" [selected]="!criteres().filiere">Toutes</option>
+      @for (f of filieres(); track f.id) { <option [value]="f.id" [selected]="f.id === criteres().filiere">{{ f.nom }}</option> }
+    </select>
+  </div>
+  <p class="aide">Seuls les étudiants au compte actif sont proposés, 30 au plus, par nom.</p>
+</fieldset>
+@if (erreur(); as message) { <p class="erreur-champ" role="alert">{{ message }}</p> }
+<div aria-live="polite">
+  @if (suggestions(); as liste) {
+    @if (liste.length === 0) {
+      <p class="aide">Aucun étudiant actif ne correspond à ces critères.</p>
+    } @else {
+      <ul class="suggestions" aria-label="Étudiants trouvés">
+        @for (e of liste; track e.id) {
+          <li>
+            <app-avatar-membre [urlPhoto]="e.urlPhoto" [prenom]="e.prenom" [nom]="e.nom" roleMembre="ETUDIANT" [taille]="2" />
+            <span class="nom">{{ e.prenom }} {{ e.nom }}
+              <small>{{ libelleClasse(e.classe) ?? 'Classe non renseignée' }} · {{ e.filiere ?? 'Filière non renseignée' }}</small></span>
+            @if (exclus().has(e.id)) {
+              <span class="deja">Déjà sur la liste</span>
+            } @else {
+              <button type="button" class="bouton petit" [disabled]="enCours() === e.id" (click)="ajouter(e)"
+                [attr.aria-label]="'Ajouter ' + e.prenom + ' ' + e.nom + ' à la liste'">Ajouter</button>
+            }
+          </li>
+        }
+      </ul>
+    }
+  }
+</div>

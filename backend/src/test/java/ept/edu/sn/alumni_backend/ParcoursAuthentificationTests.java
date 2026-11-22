@@ -68,8 +68,8 @@ class ParcoursAuthentificationTests {
             authenticationManager,
             jwtService,
             emailService,
-            refreshTokenService
-        );
+            refreshTokenService,
+            mock(ept.edu.sn.alumni_backend.filiere.service.FiliereService.class));
     }
 
     @Test

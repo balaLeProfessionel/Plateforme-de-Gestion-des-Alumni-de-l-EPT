@@ -161,7 +161,7 @@ public class FilService {
         }
         Map<UUID, ProfilAffinite> resultat = new HashMap<>();
         for (Utilisateur u : utilisateurs.findAllById(ids)) {
-            resultat.put(u.getId(), new ProfilAffinite(u.getId(), u.getAnneeSortie(), vide(u.getFiliere()), vide(u.getVilleResidence()),
+            resultat.put(u.getId(), new ProfilAffinite(u.getId(), u.getAnneeSortie(), vide(u.getFiliere() == null ? null : u.getFiliere().getNom()), vide(u.getVilleResidence()),
                 organismes.getOrDefault(u.getId(), Set.of()), secteurs.getOrDefault(u.getId(), Set.of())));
         }
         for (UUID id : ids) resultat.putIfAbsent(id, ProfilAffinite.inconnu(id));

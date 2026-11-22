@@ -12,6 +12,7 @@ public record ImportComptesRequest(
     @NotNull(message = "Choisissez le type des comptes") TypeRole role,
     @NotEmpty(message = "Le fichier ne contient aucune ligne") @Size(max = 300, message = "300 lignes au plus par import") List<@NotNull Ligne> lignes
 ) {
-    public record Ligne(String prenom, String nom, String email, String filiere, Integer anneeEntree, Integer anneeSortie) {
+    /** classe : texte libre du fichier (« DIC1 », « Master 2 »…), facultatif, pour les étudiants seulement. */
+    public record Ligne(String prenom, String nom, String email, String filiere, Integer anneeEntree, Integer anneeSortie, String classe) {
     }
 }

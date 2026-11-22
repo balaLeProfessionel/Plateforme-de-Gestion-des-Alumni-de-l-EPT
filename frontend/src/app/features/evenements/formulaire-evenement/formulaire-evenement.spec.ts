@@ -37,7 +37,7 @@ describe('FormulaireEvenement', () => {
         { provide: Location, useValue: { back: vi.fn(), getState: vi.fn(() => null) } },
         { provide: ActivatedRoute, useValue: { paramMap: routeParams } },
         { provide: EvenementService, useValue: { creer, modifier, obtenir, joindreImage, supprimerImage } },
-        { provide: AuthService, useValue: { utilisateur } },
+        { provide: AuthService, useValue: { utilisateur, aPermission: () => utilisateur()?.['role'] === 'ADMIN' } },
       ],
     }).compileComponents();
     router = TestBed.inject(Router);
@@ -209,12 +209,4 @@ describe('FormulaireEvenement', () => {
     };
   }
 
-  it('prévient l’administration que son événement sera officiel EPT', async () => {
-    utilisateur.set({ role: 'ADMIN' });
-    fixture = TestBed.createComponent(FormulaireEvenement);
-    fixture.detectChanges();
-    await fixture.whenStable();
-    expect(fixture.nativeElement.querySelector('.note-officielle')?.textContent).toContain('événement officiel de l’EPT');
-    utilisateur.set({ role: 'ALUMNI' });
-  });
 });

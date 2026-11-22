@@ -1,0 +1,21 @@
+@use 'responsive' as *;
+
+:host { display: grid; gap: 0.6rem; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: var(--ept-surface); }
+.entete-fiche { display: flex; align-items: flex-start; gap: 0.75rem; min-width: 0; }
+.texte { flex: 1; min-width: 0; }
+h2, h3 { margin: 0; font-size: 1rem; overflow-wrap: anywhere; a { color: var(--ept-primary-dark); } }
+a:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+.details { margin: 0.2rem 0 0; color: var(--ept-text-secondary); font-size: 0.85rem; overflow-wrap: anywhere; a { color: var(--ept-primary); } }
+.deroulement { flex: none; padding: 0.15rem 0.6rem; border-radius: 999px; background: var(--ept-primary-light); color: var(--ept-primary); font-size: 0.75rem; font-weight: 700;
+  &[data-deroulement='EN_COURS'] { background: var(--ept-success-light); color: var(--ept-success-dark); }
+  &[data-deroulement='TERMINE'] { background: var(--ept-bg); color: var(--ept-text-secondary); } }
+dl { display: grid; gap: 0.2rem 0.85rem; margin: 0; font-size: 0.88rem;
+  @include a-partir-de(tablette) { grid-template-columns: minmax(8.5rem, auto) minmax(0, 1fr); } }
+dt { color: var(--ept-text-secondary); }
+dd { margin: 0 0 0.35rem; color: var(--ept-primary-dark); overflow-wrap: anywhere; a { color: var(--ept-primary); }
+  &.vide { color: var(--ept-text-secondary); font-style: italic; }
+  @include a-partir-de(tablette) { margin-bottom: 0; } }
+
+.lien { padding: 0; border: 0; background: none; color: var(--ept-primary); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; overflow-wrap: anywhere;
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+.erreur { display: block; color: var(--ept-error-dark); }

@@ -61,6 +61,8 @@ describe('Formulaire avec Google', () => {
     vi.spyOn(router, 'navigate').mockResolvedValue(true);
     fixture = TestBed.createComponent(Formulaire);
     fixture.detectChanges();
+    // Liste des filières proposées (FilieresService), chargée à l'ouverture du formulaire
+    http.match((r) => r.url.endsWith('/api/public/filieres')).forEach((r) => r.flush([]));
     await fixture.whenStable();
   });
 

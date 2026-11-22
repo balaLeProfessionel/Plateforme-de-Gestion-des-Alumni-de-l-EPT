@@ -1,0 +1,16 @@
+@let o = offre();
+<article class="carte carte-cliquable" [class.close]="!o.candidaturesOuvertes" [class.illustree]="o.urlImage">
+  @if (o.urlImage) { <img class="image" [src]="o.urlImage" alt="" loading="lazy" /> }
+  <div class="haut">
+    <span class="type">{{ types[o.typeStage] }}</span>
+    @if (!o.candidaturesOuvertes) { <span class="etat-candidatures">Candidatures closes</span> }
+  </div>
+  <h2><a class="lien-etire" [routerLink]="['/stages/offres', o.id]">{{ o.titre }}</a></h2>
+  <p class="organisme">{{ o.organisme.nom }}</p>
+  <ul class="infos">
+    @if (o.lieu) { <li><i class="pi pi-map-marker" aria-hidden="true"></i>{{ o.lieu }}</li> }
+    <li><i class="pi pi-clock" aria-hidden="true"></i>{{ o.dureeMois }} mois</li>
+    <li><i class="pi pi-calendar" aria-hidden="true"></i>
+      {{ o.candidaturesOuvertes ? 'Candidatures jusqu’au' : 'Candidatures closes le' }} {{ o.dateLimiteCandidature | date: 'd MMMM y' }}</li>
+  </ul>
+</article>

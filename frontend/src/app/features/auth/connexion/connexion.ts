@@ -50,7 +50,9 @@ export class Connexion {
   protected readonly messageSucces = signal<string | null>(history.state?.message ?? null);
   protected readonly afficherMdp = signal(false);
 
-  seConnecter() {
+  /** Soumission du formulaire : le bouton comme la touche Entrée dans un champ. */
+  seConnecter(evenement?: Event) {
+    evenement?.preventDefault();
     if (this.formulaire().invalid()) {
       this.formulaire().markAsTouched();
       return;

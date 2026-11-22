@@ -1,0 +1,76 @@
+<app-page-admin titre="Offres de stage" [parents]="parents"
+  introduction="Vérifiez les offres des organismes non validés, retirez une offre publiée si besoin, ou saisissez une offre au nom d’un organisme.">
+  <a actionsPage class="bouton principal" routerLink="/admin/stages/offres/saisir"><i class="pi pi-plus" aria-hidden="true"></i>Saisir une offre</a>
+
+  <nav class="onglets" aria-label="Offres par statut">
+    @for (o of onglets; track o.valeur) {
+      <button type="button" [attr.aria-pressed]="onglet() === o.valeur" (click)="choisirOnglet(o.valeur)">{{ o.libelle }}</button>
+    }
+  </nav>
+
+  <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
+
+  @if (erreurChargement(); as erreur) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ erreur }}</p></div>
+  } @else if (page(); as p) {
+    @if (p.contenu.length === 0) {
+      <div class="etat">
+        <i class="pi pi-inbox" aria-hidden="true"></i>
+        <h2>{{ onglet() === 'SOUMISE' ? 'Aucune offre à vérifier' : 'Aucune offre' }}</h2>
+        @if (onglet() === 'SOUMISE') { <p>Les offres des organismes non validés par l’école arriveront ici.</p> }
+      </div>
+    } @else {
+      <ul class="liste">
+        @for (offre of p.contenu; track offre.id) {
+          <li class="carte offre">
+            <div class="entete-offre">
+              <h2><a [routerLink]="['/stages/offres', offre.id]">{{ offre.titre }}</a></h2>
+              <span class="statut" [attr.data-statut]="offre.statut">{{ statuts[offre.statut] }}</span>
+            </div>
+            <p class="details">{{ offre.organisme.nom }} · {{ types[offre.typeStage] }} · {{ offre.dureeMois }} mois
+              · jusqu’au {{ offre.dateLimiteCandidature | date: 'd MMMM y' }}</p>
+            <p class="details">Déposée le {{ offre.creeeLe | date: 'd MMMM y' }}
+              @if (offre.statut === 'PUBLIEE' || offre.statut === 'LISTE_PUBLIEE') {
+                · <a [routerLink]="['/admin/stages/offres', offre.id, 'candidatures']">{{ offre.nombreCandidatures ?? 0 }} candidature{{ (offre.nombreCandidatures ?? 0) > 1 ? 's' : '' }}</a>
+              }
+            </p>
+            @if (offre.motifDecision) { <p class="motif"><strong>Motif :</strong> {{ offre.motifDecision }}</p> }
+
+            @if (decision()?.offreId === offre.id) {
+              <div class="decision" role="group" [attr.aria-label]="(decision()?.action === 'refuser' ? 'Refuser ' : 'Retirer ') + offre.titre">
+                <div class="champ">
+                  <label [for]="'motif-' + offre.id">Motif, envoyé à l’organisme</label>
+                  <textarea [id]="'motif-' + offre.id" rows="2" maxlength="500" [value]="motif()" (input)="saisirMotif($event)"></textarea>
+                </div>
+                @if (erreurAction(); as erreur) { <p class="erreur-champ" role="alert">{{ erreur }}</p> }
+                <div class="boutons">
+                  <button type="button" class="bouton principal" [disabled]="enCours()" (click)="confirmer(offre)">
+                    {{ decision()?.action === 'refuser' ? 'Refuser l’offre' : 'Retirer l’offre' }}</button>
+                  <button type="button" class="bouton" (click)="decision.set(null)">Ne rien changer</button>
+                </div>
+              </div>
+            } @else {
+              <div class="boutons">
+                @if (offre.statut === 'SOUMISE') {
+                  <button type="button" class="bouton principal petit" [disabled]="enCours()" (click)="publier(offre)">Publier</button>
+                  <button type="button" class="bouton petit" (click)="ouvrir(offre, 'refuser')">Refuser…</button>
+                }
+                @if (offre.statut === 'PUBLIEE' || offre.statut === 'LISTE_PUBLIEE') {
+                  <a class="bouton petit" [class.principal]="offre.statut === 'PUBLIEE'" [routerLink]="['/admin/stages/offres', offre.id, 'liste']">
+                    {{ offre.statut === 'PUBLIEE' ? 'Préparer la liste définitive' : 'Liste définitive' }}</a>
+                }
+                @if (offre.statut === 'PUBLIEE') {
+                  <button type="button" class="bouton petit" (click)="ouvrir(offre, 'retirer')">Retirer…</button>
+                }
+              </div>
+              @if (erreurAction() && !decision()) { <p class="erreur-champ" role="alert">{{ erreurAction() }}</p> }
+            }
+          </li>
+        }
+      </ul>
+      <app-pagination-admin [page]="p.page" [totalPages]="p.totalPages" libelle="Pagination des offres" (changer)="changerPage($event)" />
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement des offres"></div>
+  }
+</app-page-admin>

@@ -22,7 +22,7 @@ h2 { margin: 0 0 0.75rem; color: var(--ept-primary-dark); font-size: 1.1rem; }
   &.a-venir { border-style: dashed; color: var(--ept-text-secondary); > .pi:first-child { color: var(--ept-text-secondary); } }
 }
 a.file:hover strong { text-decoration: underline; }
-a.file:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+a.file:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
 
 .indicateurs {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr)); gap: 0.75rem; margin: 0; padding: 0; list-style: none;
@@ -34,7 +34,7 @@ a.file:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
   strong { font-family: var(--ept-font-heading); font-size: 1.6rem; line-height: 1; }
   span { color: var(--ept-text-secondary); font-size: 0.82rem; }
   a:hover span { text-decoration: underline; }
-  a:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
 }
 
 .colonnes { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 0.75rem; }

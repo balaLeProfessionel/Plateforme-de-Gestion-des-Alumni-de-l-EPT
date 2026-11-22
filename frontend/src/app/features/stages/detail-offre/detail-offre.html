@@ -1,0 +1,66 @@
+<div class="page-stages">
+  <app-bouton-retour secours="/stages" />
+
+  @if (erreur(); as message) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Offre introuvable</h2>
+      <p>{{ message }}</p>
+      <a routerLink="/stages">Voir les offres de stage</a>
+    </div>
+  } @else if (offre(); as o) {
+    <article class="offre">
+      @if (o.urlImage) { <img class="image" [src]="o.urlImage" alt="" /> }
+      <header class="entete">
+        <div class="pastilles">
+          <span class="pastille type">{{ types[o.typeStage] }}</span>
+          @if (o.statut !== 'PUBLIEE') { <span class="pastille statut">{{ statuts[o.statut] }}</span> }
+          @if (o.statut === 'PUBLIEE' && !o.candidaturesOuvertes) { <span class="pastille statut">Candidatures closes</span> }
+        </div>
+        <h1>{{ o.titre }}</h1>
+        <p class="organisme"><a [routerLink]="['/organismes', o.organisme.id]">{{ o.organisme.nom }}</a></p>
+      </header>
+
+      @if (o.motifDecision) {
+        <p class="motif" role="note"><strong>Motif de l’école :</strong> {{ o.motifDecision }}</p>
+      }
+
+      <dl class="infos">
+        <div><dt>Durée</dt><dd>{{ o.dureeMois }} mois</dd></div>
+        @if (o.lieu) { <div><dt>Lieu</dt><dd>{{ o.lieu }}</dd></div> }
+        @if (o.dateDebutPrevue) { <div><dt>Début prévu</dt><dd>{{ o.dateDebutPrevue | date: 'd MMMM y' }}</dd></div> }
+        @if (o.nombrePlaces) { <div><dt>Places (indicatif)</dt><dd>{{ o.nombrePlaces }}</dd></div> }
+        <div><dt>Date limite de candidature</dt><dd>{{ o.dateLimiteCandidature | date: 'd MMMM y' }}</dd></div>
+      </dl>
+
+      <section aria-labelledby="titre-description">
+        <h2 id="titre-description">Missions</h2>
+        <p class="texte">{{ o.description }}</p>
+      </section>
+      <section aria-labelledby="titre-competences">
+        <h2 id="titre-competences">Compétences attendues</h2>
+        <p class="texte">{{ o.competences }}</p>
+      </section>
+
+      <app-fichiers-offre [offre]="o" (modifiee)="offre.set($event)" />
+
+      @if (estEtudiant() && o.statut === 'PUBLIEE') {
+        <app-candidature-offre [offre]="o" />
+      } @else if (o.modifiable) {
+        <a class="bouton" [routerLink]="lienCandidatures()">
+          <i class="pi pi-users" aria-hidden="true"></i>Voir les candidatures reçues
+        </a>
+      } @else {
+        <aside class="candidature" aria-label="Candidature">
+          @if (!o.candidaturesOuvertes) {
+            <p>La date limite est passée : cette offre ne reçoit plus de candidatures.</p>
+          } @else {
+            <p>Seuls les étudiants de l’EPT peuvent postuler à une offre de stage.</p>
+          }
+        </aside>
+      }
+    </article>
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement de l’offre"></div>
+  }
+</div>

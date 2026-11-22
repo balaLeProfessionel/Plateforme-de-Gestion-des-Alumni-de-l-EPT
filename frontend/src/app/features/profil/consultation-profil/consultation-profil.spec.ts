@@ -185,7 +185,7 @@ function profilPublic(): ProfilPublic {
     return {
       id: 'membre-1', nom: 'Diop', prenom: 'Awa', role: 'ALUMNI', statutCompte: 'ACTIF',
       bio: null, villeResidence: 'Thiès', posteActuel: null, lienLinkedin: null,
-      lienPortfolio: null, urlPhoto: null, filiere: null, anneeSortie: null,
+      lienPortfolio: null, urlPhoto: null, filiere: null, classe: null, anneeSortie: null,
       experiences: [], formations: []
     };
   }

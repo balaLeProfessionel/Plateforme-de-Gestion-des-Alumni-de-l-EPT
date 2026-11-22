@@ -11,9 +11,11 @@ import {
 } from '../../../core/services/models/admin.model';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
 import { DecisionsCompte } from '../decisions-compte/decisions-compte';
+import { ClasseCompte } from '../classe-compte/classe-compte';
 import { EvolutionCompte } from '../evolution-compte/evolution-compte';
 import { HistoriqueCompte } from '../historique-compte/historique-compte';
 import { PageAdmin } from '../page-admin/page-admin';
+import { ResponsabilitesCompte } from '../responsabilites-compte/responsabilites-compte';
 
 /**
  * Fiche complète d’un compte pour l’administration : champs privés compris, décisions et historique.
@@ -21,7 +23,7 @@ import { PageAdmin } from '../page-admin/page-admin';
  */
 @Component({
   selector: 'app-fiche-compte',
-  imports: [DatePipe, RouterLink, AvatarMembre, DecisionsCompte, EvolutionCompte, HistoriqueCompte, PageAdmin],
+  imports: [DatePipe, RouterLink, AvatarMembre, ClasseCompte, DecisionsCompte, EvolutionCompte, HistoriqueCompte, PageAdmin, ResponsabilitesCompte],
   templateUrl: './fiche-compte.html',
   styleUrls: ['../etats-admin.scss', './fiche-compte.scss'],
 })

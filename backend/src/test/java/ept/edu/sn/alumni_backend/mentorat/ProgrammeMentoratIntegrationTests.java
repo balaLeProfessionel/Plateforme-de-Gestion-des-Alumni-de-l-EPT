@@ -37,7 +37,7 @@ import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 @SpringBootTest
 @AutoConfigureMockMvc
 class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
-    private static final String MESSAGE_ROLE = "Les programmes sont créés et gérés par l'administration.";
+    private static final String MESSAGE_ROLE = "Les programmes sont créés et gérés par l'administration chargée du mentorat.";
 
     /** Administrateur qui crée les programmes des tests. */
     private Utilisateur gestionnaire;
@@ -455,7 +455,7 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
         UUID enCours = demanderDansProgramme(etudiant, profilA, data, id);
         changerStatut(enCours, "accepter", mentorA);
         validerEtape(enCours, etapes.get(0), etudiant);
-        demanderDansProgramme(creerUtilisateur(TypeRole.VISITEUR, "Lyceenne"), profilA, data, id);
+        demanderDansProgramme(creerUtilisateur(TypeRole.ETUDIANT, "Etudiante"), profilA, data, id);
         UUID termine = demanderDansProgramme(creerUtilisateur(TypeRole.ETUDIANT, "Termine"), profilB, data, id);
         changerStatut(termine, "accepter", mentorB);
         validerEtape(termine, etapes.get(0), mentorB);
@@ -573,7 +573,7 @@ class ProgrammeMentoratIntegrationTests extends MentoratTestsBase {
         UUID enAttente = demanderDansProgramme(etudiant, profilId, data, id);
         UUID acceptee = demanderDansProgramme(creerUtilisateur(TypeRole.ETUDIANT, "Acceptee"), profilId, data, id);
         changerStatut(acceptee, "accepter", mentor);
-        UUID libre = demander(creerUtilisateur(TypeRole.VISITEUR, "Libre"), profilId, data);
+        UUID libre = demander(creerUtilisateur(TypeRole.ETUDIANT, "Libre"), profilId, data);
 
         mockMvc.perform(authentifie(delete("/api/mentorat/programmes/{id}/participation", id), mentor))
             .andExpect(status().isOk())

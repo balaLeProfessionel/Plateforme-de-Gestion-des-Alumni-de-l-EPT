@@ -47,8 +47,8 @@ describe('ImportComptes', () => {
     const requete = http.expectOne({ method: 'POST', url: '/api/admin/comptes/import' });
     expect(requete.request.body.role).toBe('ETUDIANT');
     expect(requete.request.body.lignes).toEqual([
-      { prenom: 'Awa', nom: 'Diop', email: 'awa@ept.sn', filiere: 'GIT', anneeEntree: 2026, anneeSortie: null },
-      { prenom: 'Binta', nom: 'Sow', email: 'pas-une-adresse', filiere: 'GIT', anneeEntree: 2026, anneeSortie: null },
+      { prenom: 'Awa', nom: 'Diop', email: 'awa@ept.sn', filiere: 'GIT', anneeEntree: 2026, anneeSortie: null, classe: null },
+      { prenom: 'Binta', nom: 'Sow', email: 'pas-une-adresse', filiere: 'GIT', anneeEntree: 2026, anneeSortie: null, classe: null },
     ]);
     requete.flush({ crees: 1, lignes: [
       { numero: 1, email: 'awa@ept.sn', creee: true, message: null, id: 'c1', motDePasseTemporaire: 'Mdp1' },

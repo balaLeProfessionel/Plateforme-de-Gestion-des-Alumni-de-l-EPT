@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 
 import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurInscriptions } from '../../core/services/admin/compteur-inscriptions';
+import { CompteurOffresAVerifier } from '../../core/services/stages/compteur-offres';
 import { CompteurSignalements } from '../../core/services/publications/moderation';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
 import { NotificationService } from '../../core/services/notifications/notifications';
@@ -25,6 +26,8 @@ describe('Navigation de l’espace membre', () => {
   const signalementsEnAttente = signal(0);
   const actualiserSignalements = vi.fn();
   const notifications = { nonLues: signal(0), demarrer: vi.fn(), arreter: vi.fn() };
+  const offresAVerifier = signal(0);
+  const actualiserOffres = vi.fn();
 
   beforeEach(() => {
     utilisateur.set({ role: 'ALUMNI', nom: 'Diop', prenom: 'Awa' });
@@ -39,6 +42,8 @@ describe('Navigation de l’espace membre', () => {
     notifications.nonLues.set(0);
     notifications.demarrer.mockClear();
     notifications.arreter.mockClear();
+    offresAVerifier.set(0);
+    actualiserOffres.mockClear();
     TestBed.configureTestingModule({
       imports: [EspaceMembre],
       providers: [
@@ -52,6 +57,7 @@ describe('Navigation de l’espace membre', () => {
         },
         { provide: CompteurDemandesMentorat, useValue: { nombre: demandesEnAttente, actualiser: actualiserCompteur } },
         { provide: CompteurInscriptions, useValue: { nombre: inscriptionsEnAttente, actualiser: actualiserInscriptions } },
+        { provide: CompteurOffresAVerifier, useValue: { nombre: offresAVerifier, actualiser: actualiserOffres } },
         { provide: CompteurSignalements, useValue: { nombre: signalementsEnAttente, actualiser: actualiserSignalements } },
         { provide: NotificationService, useValue: notifications }
       ]
@@ -65,7 +71,7 @@ describe('Navigation de l’espace membre', () => {
     const liens = [...racine.querySelectorAll('.barre-laterale nav a')]
       .map((lien) => lien.getAttribute('href'));
 
-    expect(liens).toEqual(['/accueil', '/annuaire', '/evenements', '/articles', '/mentorat']);
+    expect(liens).toEqual(['/accueil', '/annuaire', '/evenements', '/articles', '/mentorat', '/stages']);
     expect(racine.querySelector('.barre-laterale .marque')?.getAttribute('href')).toBe('/accueil');
     expect([...racine.querySelectorAll('.barre-laterale nav button[aria-disabled="true"]')]
       .map((lien) => lien.getAttribute('aria-label')))
@@ -158,6 +164,8 @@ describe('Navigation de l’espace membre', () => {
 
     expect(racine.querySelector('.menu-mobile a')?.getAttribute('href'))
       .toBe('/organisme/parametres');
+    expect(racine.querySelector('a[href="/mentorat"]')).toBeNull();
+    expect(racine.querySelector('a[href="/stages"]')).not.toBeNull();
     expect(racine.querySelector('.menu-mobile a[aria-label="Paramètres du profil"]')).toBeNull();
     // Un organisme publie, écrit et organise ; le mentorat ne le concerne pas.
     expect(racine.querySelector('a[href="/mentorat"]')).toBeNull();
@@ -214,10 +222,11 @@ describe('Navigation de l’espace membre', () => {
     expect(resynchroniser).toHaveBeenCalledOnce();
   });
 
-  it('range la navigation de l’administration par domaine, sans lien de profil indisponible', () => {
+  it('range la navigation de l’administration par domaine, avec « Mon compte » à la place du profil', () => {
     utilisateur.set({ role: 'ADMIN', nom: 'EPT', prenom: 'Admin' });
     inscriptionsEnAttente.set(4);
     signalementsEnAttente.set(2);
+    offresAVerifier.set(2);
     const fixture = TestBed.createComponent(EspaceMembre);
     fixture.detectChanges();
     const racine = fixture.nativeElement as HTMLElement;
@@ -226,17 +235,24 @@ describe('Navigation de l’espace membre', () => {
     expect(actualiserSignalements).toHaveBeenCalledOnce();
     expect(actualiserCompteur).not.toHaveBeenCalled();
     expect([...racine.querySelectorAll('.barre-laterale p-sidebar-group-label')].map((titre) => titre.textContent?.trim()))
-      .toEqual(['Pilotage', 'Membres', 'Contenus', 'Système', 'Plateforme', 'À découvrir bientôt']);
+      .toEqual(['Pilotage', 'Membres', 'Stages', 'Contenus', 'Système', 'Plateforme', 'À découvrir bientôt']);
     expect([...racine.querySelectorAll('.barre-laterale nav a')].map((lien) => lien.getAttribute('href'))).toEqual([
-      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/admin/publications', '/admin/signalements',
-      '/evenements', '/mentorat/gestion-programmes', '/admin/journal', '/annuaire',
+      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/passage-classe', '/admin/diplomes', '/admin/filieres',
+      '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations',
+      '/admin/publications', '/admin/signalements', '/evenements', '/mentorat/gestion-programmes', '/admin/journal', '/annuaire',
     ]);
     expect(racine.querySelector('.barre-laterale a[href="/admin/signalements"]')?.textContent).toContain('2 signalements à examiner');
     expect(racine.querySelector('.barre-laterale a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
+    expect(actualiserOffres).toHaveBeenCalledOnce();
+    expect(racine.querySelector('.barre-laterale a[href="/admin/stages/offres"]')?.textContent).toContain('2 offres à vérifier');
+    // La gestion des rôles existe déjà (Comptes) : elle n’est plus annoncée « à venir ».
+    expect(racine.querySelector('.barre-laterale')?.textContent).not.toContain('Rôles et accès');
     // Le panneau mobile reprend les rubriques d'administration ; Annuaire et Événements sont dans la barre du bas.
+    expect(racine.querySelector('.menu-mobile a[href="/admin/mon-compte"]')?.textContent?.trim()).toBe('Mon compte');
     expect([...racine.querySelectorAll('.menu-mobile a')].map((lien) => lien.getAttribute('href'))).toEqual([
-      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/admin/publications', '/admin/signalements',
-      '/mentorat/gestion-programmes', '/admin/journal',
+      '/admin/mon-compte', '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/passage-classe', '/admin/diplomes', '/admin/filieres',
+      '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations',
+      '/admin/publications', '/admin/signalements', '/mentorat/gestion-programmes', '/admin/journal',
     ]);
     expect(racine.querySelector('.menu-mobile a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
     expect(racine.querySelectorAll('.navigation-mobile a')).toHaveLength(3);

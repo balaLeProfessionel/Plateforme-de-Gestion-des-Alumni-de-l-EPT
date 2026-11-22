@@ -3,7 +3,7 @@
   display: grid; justify-items: center; gap: 0.5rem; padding: 3rem 1rem;
   border: 1px dashed var(--ept-border); border-radius: var(--ept-radius); text-align: center;
 
-  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
   > i { color: var(--ept-primary); font-size: 1.6rem; }
   h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1.1rem; }
   p { max-width: 30rem; margin: 0; color: var(--ept-text-secondary); }

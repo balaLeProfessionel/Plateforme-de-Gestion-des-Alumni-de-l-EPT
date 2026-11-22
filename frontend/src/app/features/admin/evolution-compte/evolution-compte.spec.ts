@@ -1,6 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
@@ -8,7 +7,7 @@ import { vi } from 'vitest';
 import { CompteurInscriptions } from '../../../core/services/admin/compteur-inscriptions';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { CompteAdmin } from '../../../core/services/models/admin.model';
-import { compte } from '../testing/donnees-admin';
+import { authAdmin, compte } from '../testing/donnees-admin';
 import { EvolutionCompte } from './evolution-compte';
 
 describe('EvolutionCompte', () => {
@@ -16,10 +15,10 @@ describe('EvolutionCompte', () => {
   let http: HttpTestingController;
   let messages: string[];
 
-  function demarrer(c: CompteAdmin): void {
+  function demarrer(c: CompteAdmin, auth = authAdmin()): void {
     TestBed.configureTestingModule({
       imports: [EvolutionCompte],
-      providers: [provideHttpClient(), provideHttpClientTesting(), { provide: AuthService, useValue: { utilisateur: signal({ id: 'moi' }) } }],
+      providers: [provideHttpClient(), provideHttpClientTesting(), { provide: AuthService, useValue: auth }],
     });
     http = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(EvolutionCompte);
@@ -41,6 +40,18 @@ describe('EvolutionCompte', () => {
     fixture.detectChanges();
   };
 
+  it('ne propose le rôle Administration, ni le changement de rôle d’un administrateur, qu’au super administrateur', () => {
+    const ordinaire = authAdmin(['CONSULTER_TABLEAU_DE_BORD', 'GERER_COMPTES']);
+    demarrer(compte({ role: 'PERSONNEL' }), ordinaire);
+    bouton('Changer le rôle').click();
+    fixture.detectChanges();
+    expect([...racine().querySelectorAll('#evolution-role option')].map((o) => o.textContent)).not.toContain('Administrateur');
+
+    TestBed.resetTestingModule();
+    demarrer(compte({ role: 'ADMIN' }), ordinaire);
+    expect(racine().querySelector('#titre-evolution')).toBeNull();
+  });
+
   it('change le rôle avec un motif obligatoire, sans proposer le rôle actuel', async () => {
     demarrer(compte({ role: 'PERSONNEL' }));
     bouton('Changer le rôle').click();
@@ -55,14 +66,56 @@ describe('EvolutionCompte', () => {
     expect(racine().querySelector('.erreur-champ')?.textContent).toContain('Choisissez le nouveau rôle.');
 
     saisir('evolution-role', 'ADMIN', 'change');
-    expect(racine().textContent).toContain('accès à toute l’administration');
+    expect(racine().textContent).toContain('Ce compte entrera dans l’administration');
+    expect(racine().querySelector('#evolution-role')?.getAttribute('aria-describedby')).toBe('alerte-evolution-role');
     saisir('evolution-motif', 'Rejoint le service alumni');
+
+    // Le rôle le plus élevé demande une confirmation qui nomme la personne et ses droits.
     bouton('Changer le rôle').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    http.expectNone('/api/admin/comptes/c1/role');
+    expect(racine().querySelector('.question')?.textContent).toContain('Donner le rôle Administrateur à Awa Diop ?');
+    expect(racine().querySelector('.confirmation')?.textContent).toContain('sans autre responsabilité tant que vous');
+    expect(document.activeElement).toBe(bouton('Donner le rôle Administrateur'));
+
+    bouton('Donner le rôle Administrateur').click();
     const requete = http.expectOne({ method: 'PATCH', url: '/api/admin/comptes/c1/role' });
     expect(requete.request.body).toEqual({ role: 'ADMIN', motif: 'Rejoint le service alumni' });
     requete.flush(compte({ role: 'ADMIN' }));
+    fixture.detectChanges();
     await fixture.whenStable();
-    expect(messages).toEqual(['Awa Diop a désormais le rôle « Administration ».']);
+    expect(messages).toEqual(['Awa Diop a désormais le rôle « Administrateur ».']);
+    expect(document.activeElement?.getAttribute('data-action')).toBe('role');
+  });
+
+  it('ne propose pas le rôle Administration à une inscription non validée', async () => {
+    demarrer(compte({ role: 'ALUMNI', statutCompte: 'EN_ATTENTE' }));
+    bouton('Changer le rôle').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect([...racine().querySelectorAll('#evolution-role option')].map((o) => o.textContent)).not.toContain('Administrateur');
+    expect(racine().querySelector('#alerte-evolution-role')?.textContent).toContain('une fois l’inscription validée');
+  });
+
+  it('rend le focus au bouton d’ouverture quand on annule, y compris avec Échap', async () => {
+    demarrer(compte({ role: 'PERSONNEL' }));
+    bouton('Changer le rôle').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    bouton('Annuler').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement?.getAttribute('data-action')).toBe('role');
+
+    bouton('Changer le rôle').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    racine().querySelector('.panneau')?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(racine().querySelector('.panneau')).toBeNull();
+    expect(document.activeElement?.getAttribute('data-action')).toBe('role');
   });
 
   it('marque diplômé un étudiant et remonte la raison d’un refus', async () => {

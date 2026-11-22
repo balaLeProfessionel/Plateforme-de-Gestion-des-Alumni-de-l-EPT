@@ -14,7 +14,7 @@
       <span id="aide-recherche-compte" class="sr-only">Les résultats se mettent à jour automatiquement.</span>
     </div>
 
-    <label for="role-compte" class="sr-only">Type de compte</label>
+    <label for="role-compte" class="sr-only">Rôle</label>
     <select #choixRole id="role-compte" [value]="criteres().role ?? ''" (change)="choisirRole(choixRole.value)">
       <option value="">Tous les types</option>
       @for (role of roles; track role) { <option [value]="role">{{ libellesRole[role] }}</option> }

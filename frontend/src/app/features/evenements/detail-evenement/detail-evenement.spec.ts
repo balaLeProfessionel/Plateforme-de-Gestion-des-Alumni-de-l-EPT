@@ -45,7 +45,7 @@ describe('DetailEvenement', () => {
           annuler: vi.fn().mockReturnValue(of(evenement({ statut: 'ANNULE' }))),
 
         } },
-        { provide: AuthService, useValue: { utilisateur } },
+        { provide: AuthService, useValue: { utilisateur, aPermission: () => (utilisateur() as { role?: string } | null)?.role === 'ADMIN' } },
         { provide: Location, useValue: { back: vi.fn() } }
       ]
     }).compileComponents();

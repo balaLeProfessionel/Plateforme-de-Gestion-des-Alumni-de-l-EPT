@@ -89,7 +89,9 @@ Le fichier contient le code de référence de chaque patron :
   `--ept-success` / `-light` / `-dark` (texte vert sur fond vert clair : toujours `-dark`), `--ept-error*`, `--ept-border`, `--ept-bg`, `--ept-text-secondary`.
 - Couleurs de rôle (bandeau des cartes) : étudiant or, alumni bleu ciel, visiteur gris,
   personnel bleu marine, organisme bleu foncé + liseré ciel.
-- Focus visible partout : `outline: 2px solid var(--ept-sky)`.
+- Focus visible partout : `outline: 2px solid var(--ept-focus-clair)` sur fond clair (le ciel n'y atteint que 1,6:1,
+  sous le 3:1 de WCAG 1.4.11) ; `var(--ept-sky)` seulement sur fond foncé (barre latérale).
+- Bord d'un champ de saisie : `var(--ept-border-champ)` (3,9:1) ; `--ept-border` (1,3:1) reste pour les cartes et séparateurs.
 - Budget : 6 kB d'avertissement, **8 kB d'erreur** par feuille de composant → rester compact,
   découper le composant plutôt que dépasser.
 - Anti-débordement : `minmax(0, 1fr)` au lieu de `1fr`, `min-width: 0` sur les enfants flex/grid,

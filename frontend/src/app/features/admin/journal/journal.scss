@@ -5,14 +5,14 @@
     min-height: 2.5rem; padding: 0.4rem 0.9rem; border: 1px solid var(--ept-border); border-radius: 999px; background: white;
     color: var(--ept-primary-dark); font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer;
     &:hover { border-color: var(--ept-primary); }
-    &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
+    &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 1px; }
     &[aria-pressed='true'] { border-color: var(--ept-primary); background: var(--ept-primary); color: white; }
   }
 }
 
 .resume {
   margin: 0 0 0.75rem; color: var(--ept-text-secondary); font-size: 0.88rem; scroll-margin-top: 5rem;
-  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
 }
 
 .journal {

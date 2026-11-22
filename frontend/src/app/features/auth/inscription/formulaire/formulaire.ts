@@ -7,7 +7,7 @@ import { Message } from 'primeng/message';
 
 import { AuthService } from '../../../../core/services/auth/auth-service';
 import { InscriptionGoogle } from '../../../../core/services/auth/inscription-google';
-import { FILIERES } from '../../../../core/data/filieres';
+import { FilieresService } from '../../../../core/services/filieres/filieres';
 
 @Component({
   selector: 'app-formulaire',
@@ -23,7 +23,7 @@ export class Formulaire {
   // Le rôle vient du paramètre d'URL (/inscription/formulaire/ALUMNI)
   protected readonly role = signal(this.route.snapshot.paramMap.get('role') ?? 'VISITEUR');
 
-  protected readonly filieres = FILIERES.map((f) => ({ label: f, value: f }));
+  protected readonly filieres = inject(FilieresService).proposees();
 
   protected readonly libelleRole = computed(() => {
     switch (this.role()) {

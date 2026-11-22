@@ -35,6 +35,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import com.jayway.jsonpath.JsonPath;
 
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import ept.edu.sn.alumni_backend.admin.repository.ActionAdminRepository;
 import ept.edu.sn.alumni_backend.auth.EmailService;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
@@ -315,9 +316,10 @@ class AdminComptesIntegrationTests {
 
     @Test
     void a13_lAdministrationRecoitSesPermissions() throws Exception {
+        // Un super administrateur (les responsabilités sont testées dans AdministrateursIntegrationTests) les a toutes.
         mockMvc.perform(authentifie(get("/api/auth/me"), admin))
             .andExpect(jsonPath("$.permissions").value(org.hamcrest.Matchers.containsInAnyOrder(
-                "CONSULTER_TABLEAU_DE_BORD", "GERER_COMPTES", "CONSULTER_JOURNAL", "PUBLIER_ANNONCES", "MODERER_PUBLICATIONS")));
+                java.util.Arrays.stream(ept.edu.sn.alumni_backend.admin.PermissionAdmin.values()).map(Enum::name).toArray())));
     }
 
     @Test
@@ -386,6 +388,10 @@ class AdminComptesIntegrationTests {
         utilisateur.setPrenom(prenom);
         utilisateur.setNom(lot);
         utilisateur.setRole(role);
+        if (role == TypeRole.ADMIN) {
+            // Super administrateur, comme les administrateurs existants après la migration (TRA-13).
+            utilisateur.getPermissionsAdmin().add(PermissionAdmin.GERER_ADMINISTRATEURS);
+        }
         utilisateur.setStatutCompte(statut);
         utilisateur.setEmailVerifie(true);
         return utilisateurRepository.saveAndFlush(utilisateur);
