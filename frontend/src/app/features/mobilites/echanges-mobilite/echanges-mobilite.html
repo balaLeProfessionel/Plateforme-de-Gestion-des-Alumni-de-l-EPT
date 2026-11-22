@@ -1,0 +1,74 @@
+<div class="page-stages">
+  <app-fil-ariane [etapes]="etapes" />
+  <header class="entete">
+    <div class="titre">
+      <h1>Échanges avec l’EPT</h1>
+      @if (formulaire() === null) {
+        <button type="button" class="bouton principal" (click)="formulaire.set('nouvelle'); message.set('')">
+          <i class="pi pi-plus" aria-hidden="true"></i>Proposer un étudiant</button>
+      }
+    </div>
+    <p class="introduction">Proposez les étudiants que votre établissement envoie à l’EPT ; l’école accepte ou refuse chaque proposition.</p>
+  </header>
+
+  <p class="statut-message" role="status">{{ message() }}</p>
+
+  @if (formulaire() === 'nouvelle') {
+    <app-formulaire-accueil (enregistree)="enregistree($event)" (annulee)="formulaire.set(null)" />
+  }
+
+  @if (erreurChargement()) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-circle" aria-hidden="true"></i><h2>Les échanges n’ont pas pu être chargés</h2>
+      <button type="button" class="bouton" (click)="charger()">Réessayer</button></div>
+  } @else if (mobilites(); as liste) {
+    <section aria-labelledby="titre-envoyes">
+      <h2 id="titre-envoyes" class="titre-section">Étudiants envoyés à l’EPT</h2>
+      @if (envoyes().length === 0) {
+        <p class="introduction">Aucun étudiant proposé pour l’instant.</p>
+      } @else {
+        <ul class="liste">
+          @for (m of envoyes(); track m.id) {
+            <li class="ligne">
+              <div class="principal">
+                <h3>{{ m.personne.prenom }} {{ m.personne.nom }}</h3>
+                <p class="details">{{ types[m.type] }} · {{ m.programmeOrigine }} · accueil en {{ m.filiereAccueil }} · {{ m.anneeUniversitaire }}</p>
+                @if (m.motif) { <p class="motif"><strong>Motif de l’école :</strong> {{ m.motif }}</p> }
+                <app-frise class="frise" [etapes]="frise(m)" [libelle]="'Avancement de ' + m.personne.prenom + ' ' + m.personne.nom" />
+                @if (m.statut === 'PROPOSEE') {
+                  @if (corrigee()?.id === m.id) {
+                    <div class="frise"><app-formulaire-accueil [initial]="m" (enregistree)="enregistree($event)" (annulee)="formulaire.set(null)" /></div>
+                  } @else if (formulaire() === null) {
+                    <div class="desister"><div class="boutons"><button type="button" class="bouton" (click)="formulaire.set(m); message.set('')">Corriger</button></div></div>
+                  }
+                }
+              </div>
+              <span class="statut" [attr.data-statut]="m.statut">{{ statuts[m.statut] }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section aria-labelledby="titre-accueillis">
+      <h2 id="titre-accueillis" class="titre-section">Membres de l’EPT accueillis</h2>
+      @if (accueillis().length === 0) {
+        <p class="introduction">Les candidats retenus sur <a routerLink="/mobilites/mes-offres">vos offres</a> apparaîtront ici.</p>
+      } @else {
+        <ul class="liste">
+          @for (m of accueillis(); track m.id) {
+            <li class="ligne">
+              <div class="principal">
+                <h3>{{ m.personne.prenom }} {{ m.personne.nom }}</h3>
+                <p class="details">{{ m.offre?.titre }} · {{ m.anneeUniversitaire }}
+                  @if (m.dateDebut) { · depuis le {{ m.dateDebut | date: 'd MMMM y' }} }</p>
+              </div>
+              <span class="statut" [attr.data-statut]="m.statut">{{ statuts[m.statut] }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement des échanges"></div>
+  }
+</div>

@@ -1,0 +1,42 @@
+@let m = mobilite();
+<app-page-admin [titre]="m ? m.personne.prenom + ' ' + m.personne.nom : 'Mobilité'" [parents]="parents">
+  @if (erreur(); as e) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ e }}</p></div>
+  } @else if (m) {
+    <section class="carte fiche" aria-label="Mobilité">
+      <app-frise [etapes]="frise(m)" libelle="Avancement de la mobilité" />
+      <dl class="infos">
+        <div><dt>Sens</dt><dd>{{ sens[m.sens] }}</dd></div>
+        <div><dt>Statut</dt><dd>{{ statuts[m.statut] }}</dd></div>
+        <div><dt>Établissement</dt><dd><a [routerLink]="['/organismes', m.organisme.id]">{{ m.organisme.nom }}</a></dd></div>
+        <div><dt>Type</dt><dd>{{ types[m.type] }} · {{ m.anneeUniversitaire }}</dd></div>
+        @if (m.offre) { <div><dt>Offre</dt><dd><a [routerLink]="['/mobilites/offres', m.offre.id]">{{ m.offre.titre }}</a></dd></div> }
+        @if (m.programmeOrigine) { <div><dt>Programme d’origine</dt><dd>{{ m.programmeOrigine }}</dd></div> }
+        @if (m.filiereAccueil) { <div><dt>Filière d’accueil</dt><dd>{{ m.filiereAccueil }}</dd></div> }
+        @if (m.personne.email) { <div><dt>E-mail</dt><dd>{{ m.personne.email }}</dd></div> }
+        @if (m.dateDebut) { <div><dt>Début</dt><dd>{{ m.dateDebut | date: 'd MMMM y' }}</dd></div> }
+        @if (m.dateFin) { <div><dt>Fin</dt><dd>{{ m.dateFin | date: 'd MMMM y' }}</dd></div> }
+        @if (m.motif) { <div class="large"><dt>Motif</dt><dd>{{ m.motif }}</dd></div> }
+      </dl>
+    </section>
+
+    <section class="carte" aria-labelledby="titre-historique">
+      <h2 id="titre-historique">Historique</h2>
+      @if (historique().length === 0) {
+        <p class="vide">Aucune opération enregistrée.</p>
+      } @else {
+        <ol class="historique">
+          @for (h of historique(); track $index) {
+            <li>
+              <time [attr.datetime]="h.date">{{ h.date | date: 'd MMM y, HH:mm' }}</time>
+              <span><strong>{{ actions[h.action] ?? h.action }}</strong>@if (h.details) { — {{ h.details }} }, par {{ h.auteur }}
+                @if (h.motif) { <span class="motif">Motif : {{ h.motif }}</span> }</span>
+            </li>
+          }
+        </ol>
+      }
+    </section>
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement de la mobilité"></div>
+  }
+</app-page-admin>

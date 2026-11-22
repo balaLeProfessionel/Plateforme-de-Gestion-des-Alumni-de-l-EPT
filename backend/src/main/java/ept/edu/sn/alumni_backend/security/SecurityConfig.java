@@ -99,6 +99,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/stages/mes-offres", "/api/stages/mes-offres/**").hasRole("ORGANISME")
                 .requestMatchers("/api/mobilites/mes-offres", "/api/mobilites/mes-offres/**").hasRole("ORGANISME")
+                .requestMatchers("/api/mobilites/accueils", "/api/mobilites/accueils/**", "/api/mobilites/mes-mobilites").hasRole("ORGANISME")
                 .requestMatchers("/api/organisme/me").hasRole("ORGANISME")
                 .requestMatchers("/api/formations/**", "/api/experiences/**")
                     .hasAnyRole("ETUDIANT", "ALUMNI", "PERSONNEL", "VISITEUR")

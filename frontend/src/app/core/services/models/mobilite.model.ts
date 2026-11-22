@@ -173,3 +173,92 @@ export interface CandidaturesOffre {
 }
 
 export type DecisionMobilite = 'RETENUE' | 'LISTE_ATTENTE' | 'NON_RETENUE';
+
+export type SensMobilite = 'SORTANTE' | 'ENTRANTE';
+export type StatutMobilite = 'PROPOSEE' | 'REFUSEE' | 'PREVUE' | 'EN_COURS' | 'TERMINEE' | 'ANNULEE';
+export const STATUTS_MOBILITE: readonly StatutMobilite[] = ['PROPOSEE', 'PREVUE', 'EN_COURS', 'TERMINEE', 'ANNULEE', 'REFUSEE'];
+
+export const LIBELLES_SENS: Record<SensMobilite, string> = { SORTANTE: 'Sortante', ENTRANTE: 'Entrante' };
+export const LIBELLES_STATUT_MOBILITE: Record<StatutMobilite, string> = {
+  PROPOSEE: 'Proposée',
+  REFUSEE: 'Refusée',
+  PREVUE: 'Prévue',
+  EN_COURS: 'En cours',
+  TERMINEE: 'Terminée',
+  ANNULEE: 'Annulée',
+};
+/** Statuts que le chef peut donner ensuite, comme le serveur les autorise. */
+export const SUITES_STATUT: Record<StatutMobilite, readonly StatutMobilite[]> = {
+  PROPOSEE: [], REFUSEE: [], PREVUE: ['EN_COURS', 'ANNULEE'], EN_COURS: ['TERMINEE', 'ANNULEE'], TERMINEE: [], ANNULEE: [],
+};
+
+/** Miroir de MobiliteResponse. */
+export interface Mobilite {
+  id: string;
+  sens: SensMobilite;
+  statut: StatutMobilite;
+  type: TypeMobilite;
+  anneeUniversitaire: string;
+  dateDebut: string | null;
+  dateFin: string | null;
+  organisme: { id: string; nom: string };
+  personne: { id: string | null; prenom: string; nom: string; email: string | null };
+  programmeOrigine: string | null;
+  filiereAccueil: string | null;
+  filiereAccueilId: string | null;
+  offre: { id: string; titre: string; periode: PeriodeMobilite } | null;
+  motif: string | null;
+  creeeLe: string;
+}
+
+/** Miroir de AccueilRequest : un étudiant accueilli à l’EPT. */
+export interface AccueilRequete {
+  prenom: string;
+  nom: string;
+  email: string | null;
+  programmeOrigine: string;
+  filiereAccueilId: string;
+  type: TypeMobilite;
+  anneeUniversitaire: string;
+  dateDebut: string | null;
+  dateFin: string | null;
+}
+
+export interface EvenementHistorique {
+  objet: 'OFFRE' | 'CANDIDATURE' | 'MOBILITE';
+  action: string;
+  details: string | null;
+  motif: string | null;
+  auteur: string;
+  date: string;
+}
+
+export const LIBELLES_ACTION: Record<string, string> = {
+  PUBLICATION_OFFRE: 'Offre publiée', MODIFICATION_OFFRE: 'Offre modifiée', CLOTURE_OFFRE: 'Offre close', RETRAIT_OFFRE: 'Offre retirée',
+  SOUMISSION_CANDIDATURE: 'Candidature envoyée', RETRAIT_CANDIDATURE: 'Candidature retirée', DECISION_CANDIDATURE: 'Décision',
+  PUBLICATION_LISTE: 'Liste publiée', DESISTEMENT: 'Désistement', PROMOTION_LISTE_ATTENTE: 'Place donnée depuis la liste d’attente',
+  CREATION_MOBILITE: 'Mobilité créée', CHANGEMENT_STATUT_MOBILITE: 'Statut changé', PROPOSITION_ACCUEIL: 'Étudiant proposé',
+  MODIFICATION_ACCUEIL: 'Proposition corrigée', ACCEPTATION_ACCUEIL: 'Proposition acceptée', REFUS_ACCUEIL: 'Proposition refusée',
+};
+
+/** Miroir de FluxResponse. */
+export interface FluxMobilites {
+  anneeUniversitaire: string;
+  annees: string[];
+  lignes: { organismeId: string; organisme: string; sortantes: number; entrantes: number }[];
+  sortantes: number;
+  entrantes: number;
+}
+
+/** Étapes d’une mobilité acceptée, de prévue à terminée. */
+export function etapesMobilite(m: Pick<Mobilite, 'statut'>): { titre: string; etat: string; avancement: 'fait' | 'en-cours' | 'a-venir' | 'refuse' }[] {
+  if (m.statut === 'PROPOSEE') return [{ titre: 'Proposition', etat: 'à examiner par l’école', avancement: 'en-cours' }];
+  if (m.statut === 'REFUSEE') return [{ titre: 'Proposition', etat: 'refusée', avancement: 'refuse' }];
+  const rang = { PREVUE: 0, EN_COURS: 1, TERMINEE: 2, ANNULEE: -1 }[m.statut];
+  if (rang === -1) return [{ titre: 'Mobilité', etat: 'annulée', avancement: 'refuse' }];
+  return [
+    { titre: 'Prévue', etat: '', avancement: rang > 0 ? 'fait' : 'en-cours' },
+    { titre: 'En cours', etat: '', avancement: rang > 1 ? 'fait' : rang === 1 ? 'en-cours' : 'a-venir' },
+    { titre: 'Terminée', etat: '', avancement: rang === 2 ? 'fait' : 'a-venir' },
+  ];
+}

@@ -1,0 +1,42 @@
+<app-page-admin titre="Flux de mobilité"
+  introduction="Mobilités prévues, en cours ou terminées entre l’EPT et chaque établissement partenaire, pour une année universitaire.">
+  @if (erreur(); as e) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ e }}</p></div>
+  } @else if (flux(); as f) {
+    @if (f.annees.length === 0) {
+      <div class="etat"><i class="pi pi-arrow-right-arrow-left" aria-hidden="true"></i><h2>Aucune mobilité enregistrée</h2>
+        <p>Les flux apparaissent dès la publication d’une liste définitive ou l’acceptation d’un étudiant accueilli.</p></div>
+    } @else {
+      <div class="champ annee">
+        <label for="flux-annee">Année universitaire</label>
+        <select id="flux-annee" (change)="choisirAnnee($event)">
+          @for (a of f.annees; track a) { <option [value]="a" [selected]="a === f.anneeUniversitaire">{{ a }}</option> }
+        </select>
+      </div>
+      @if (f.lignes.length === 0) {
+        <div class="etat"><h2>Aucune mobilité en {{ f.anneeUniversitaire }}</h2></div>
+      } @else {
+        <div class="tableau">
+          <table>
+            <caption class="sr-only">Mobilités par établissement en {{ f.anneeUniversitaire }}</caption>
+            <thead><tr><th scope="col">Établissement</th><th scope="col">Sortantes</th><th scope="col">Entrantes</th></tr></thead>
+            <tbody>
+              @for (l of f.lignes; track l.organismeId) {
+                <tr>
+                  <th scope="row">{{ l.organisme }}</th>
+                  <td><a [routerLink]="['/admin/mobilites/suivi']" [queryParams]="{ sens: 'SORTANTE', annee: f.anneeUniversitaire, organisme: l.organismeId }"
+                    [attr.aria-label]="l.sortantes + ' mobilités sortantes vers ' + l.organisme">{{ l.sortantes }}</a></td>
+                  <td><a [routerLink]="['/admin/mobilites/suivi']" [queryParams]="{ sens: 'ENTRANTE', annee: f.anneeUniversitaire, organisme: l.organismeId }"
+                    [attr.aria-label]="l.entrantes + ' mobilités entrantes depuis ' + l.organisme">{{ l.entrantes }}</a></td>
+                </tr>
+              }
+            </tbody>
+            <tfoot><tr><th scope="row">Total</th><td>{{ f.sortantes }}</td><td>{{ f.entrantes }}</td></tr></tfoot>
+          </table>
+        </div>
+      }
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement des flux"></div>
+  }
+</app-page-admin>

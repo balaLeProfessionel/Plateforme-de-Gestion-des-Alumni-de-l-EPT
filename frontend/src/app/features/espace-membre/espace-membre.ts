@@ -109,7 +109,9 @@ export class EspaceMembre implements OnDestroy {
         }, { libelle: 'Suivi des stages', icone: 'pi-eye', route: '/admin/stages/suivi', exact: false },
         { libelle: 'Solliciter les organismes', icone: 'pi-envelope', route: '/admin/stages/sollicitations', exact: false }] : [] },
       { titre: 'Mobilités', liens: peut('GERER_MOBILITES')
-        ? [{ libelle: 'Offres de mobilité', icone: 'pi-globe', route: '/admin/mobilites/offres', exact: false }] : [] },
+        ? [{ libelle: 'Offres de mobilité', icone: 'pi-globe', route: '/admin/mobilites/offres', exact: false },
+          { libelle: 'Suivi des mobilités', icone: 'pi-eye', route: '/admin/mobilites/suivi', exact: false },
+          { libelle: 'Flux', icone: 'pi-arrow-right-arrow-left', route: '/admin/mobilites/flux', exact: false }] : [] },
       { titre: 'Contenus', liens: [
         ...(peut('PUBLIER_ANNONCES')
           ? [{ libelle: 'Annonces et appels', icone: 'pi-megaphone', route: '/admin/publications', exact: false }] : []),

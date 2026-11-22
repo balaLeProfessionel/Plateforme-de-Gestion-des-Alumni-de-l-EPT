@@ -48,6 +48,13 @@ export const MOBILITES_ROUTES: Routes = [
     loadComponent: () => import('./retenus-mobilite/retenus-mobilite').then((m) => m.RetenusMobilite),
   },
   {
+    path: 'echanges',
+    title: 'Échanges avec l’EPT | EPT Alumni',
+    canActivate: [roleGuard],
+    data: { roles: ['ORGANISME'] },
+    loadComponent: () => import('./echanges-mobilite/echanges-mobilite').then((m) => m.EchangesMobilite),
+  },
+  {
     path: 'publier',
     title: 'Publier une offre de mobilité | EPT Alumni',
     canActivate: [roleGuard],

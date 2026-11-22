@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { Page } from '../models/mentorat.model';
 import {
-  CandidatureMobilite, CandidaturesOffre, CriteresOffresMobilite, DecisionMobilite, DossierMobilite, OffreMobilite, OffreMobiliteRequete, StatutOffreMobilite, TypePiece,
+  AccueilRequete, CandidatureMobilite, CandidaturesOffre, EvenementHistorique, FluxMobilites, Mobilite, SensMobilite, StatutMobilite, CriteresOffresMobilite, DecisionMobilite, DossierMobilite, OffreMobilite, OffreMobiliteRequete, StatutOffreMobilite, TypePiece,
 } from '../models/mobilite.model';
 
 const API = '/api/mobilites';
@@ -105,6 +105,56 @@ export class OffresMobiliteService {
 
   promouvoir(candidatureId: string) {
     return this.http.patch<CandidaturesOffre>(`/api/admin/mobilites/candidatures/${candidatureId}/promouvoir`, {});
+  }
+
+  mesMobilites() {
+    return this.http.get<Mobilite[]>(`${API}/mes-mobilites`);
+  }
+
+  proposerAccueil(accueil: AccueilRequete) {
+    return this.http.post<Mobilite>(`${API}/accueils`, accueil);
+  }
+
+  modifierAccueil(id: string, accueil: AccueilRequete) {
+    return this.http.put<Mobilite>(`${API}/accueils/${id}`, accueil);
+  }
+
+  mobilites(filtres: { sens: SensMobilite | ''; statut: StatutMobilite | ''; annee: string; organisme?: string }, page: number, taille = 20) {
+    let params = new HttpParams().set('page', page).set('taille', taille);
+    if (filtres.sens) params = params.set('sens', filtres.sens);
+    if (filtres.statut) params = params.set('statut', filtres.statut);
+    if (filtres.annee) params = params.set('annee', filtres.annee);
+    if (filtres.organisme) params = params.set('organisme', filtres.organisme);
+    return this.http.get<Page<Mobilite>>('/api/admin/mobilites/mobilites', { params });
+  }
+
+  mobilite(id: string) {
+    return this.http.get<Mobilite>(`/api/admin/mobilites/mobilites/${id}`);
+  }
+
+  historique(id: string) {
+    return this.http.get<EvenementHistorique[]>(`/api/admin/mobilites/mobilites/${id}/historique`);
+  }
+
+  changerStatut(id: string, statut: StatutMobilite, motif: string | null = null) {
+    return this.http.patch<Mobilite>(`/api/admin/mobilites/mobilites/${id}/statut`, { statut, motif });
+  }
+
+  saisirEntrante(accueil: AccueilRequete, organisme: { organismeId: string } | { nomNouvelOrganisme: string }) {
+    return this.http.post<Mobilite>('/api/admin/mobilites/mobilites/entrantes', { accueil, ...organisme });
+  }
+
+  accepterAccueil(id: string) {
+    return this.http.patch<Mobilite>(`/api/admin/mobilites/mobilites/${id}/accepter`, {});
+  }
+
+  refuserAccueil(id: string, motif: string) {
+    return this.http.patch<Mobilite>(`/api/admin/mobilites/mobilites/${id}/refuser`, { motif });
+  }
+
+  flux(annee: string) {
+    const params = annee ? new HttpParams().set('annee', annee) : undefined;
+    return this.http.get<FluxMobilites>('/api/admin/mobilites/flux', { params });
   }
 
   listerPourChef(statut: StatutOffreMobilite | '', page: number, taille = 20) {

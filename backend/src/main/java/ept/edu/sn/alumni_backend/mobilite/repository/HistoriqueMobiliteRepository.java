@@ -11,4 +11,7 @@ import ept.edu.sn.alumni_backend.mobilite.entity.HistoriqueMobilite;
 public interface HistoriqueMobiliteRepository extends JpaRepository<HistoriqueMobilite, UUID> {
     @EntityGraph(attributePaths = "auteur")
     List<HistoriqueMobilite> findByObjetIdOrderByDateActionAsc(UUID objetId);
+
+    @EntityGraph(attributePaths = "auteur")
+    List<HistoriqueMobilite> findByObjetIdInOrderByDateActionAsc(java.util.Collection<UUID> objetIds);
 }

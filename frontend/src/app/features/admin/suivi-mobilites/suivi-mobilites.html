@@ -1,0 +1,89 @@
+<app-page-admin titre="Suivi des mobilités"
+  introduction="Toutes les mobilités, sortantes et entrantes. Acceptez les étudiants proposés par les établissements et faites avancer chaque mobilité.">
+  <a actionsPage class="bouton principal" routerLink="/admin/mobilites/entrantes/saisir"><i class="pi pi-plus" aria-hidden="true"></i>Saisir une mobilité entrante</a>
+
+  <section class="filtres" aria-label="Filtrer les mobilités">
+    <div class="champ">
+      <label for="filtre-sens">Sens</label>
+      <select id="filtre-sens" (change)="filtrer('sens', $event)">
+        <option value="" [selected]="!filtres().sens">Tous</option>
+        <option value="SORTANTE" [selected]="filtres().sens === 'SORTANTE'">Sortantes</option>
+        <option value="ENTRANTE" [selected]="filtres().sens === 'ENTRANTE'">Entrantes</option>
+      </select>
+    </div>
+    <div class="champ">
+      <label for="filtre-statut">Statut</label>
+      <select id="filtre-statut" (change)="filtrer('statut', $event)">
+        <option value="" [selected]="!filtres().statut">Tous</option>
+        @for (s of listeStatuts; track s) { <option [value]="s" [selected]="filtres().statut === s">{{ statuts[s] }}</option> }
+      </select>
+    </div>
+    <div class="champ">
+      <label for="filtre-annee">Année universitaire</label>
+      <select id="filtre-annee" (change)="filtrer('annee', $event)">
+        <option value="" [selected]="!filtres().annee">Toutes</option>
+        @for (a of annees; track a) { <option [value]="a" [selected]="filtres().annee === a">{{ a }}</option> }
+      </select>
+    </div>
+  </section>
+
+  @if (filtres().organisme) {
+    <p class="filtre-organisme">Un seul établissement affiché.
+      <a routerLink="/admin/mobilites/suivi" [queryParams]="{ sens: filtres().sens || null, annee: filtres().annee || null }">Voir tous les établissements</a></p>
+  }
+  <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
+
+  @if (erreurChargement(); as erreur) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ erreur }}</p></div>
+  } @else if (page(); as p) {
+    @if (p.contenu.length === 0) {
+      <div class="etat"><i class="pi pi-globe" aria-hidden="true"></i><h2>Aucune mobilité</h2></div>
+    } @else {
+      <ul class="liste">
+        @for (m of p.contenu; track m.id) {
+          <li class="carte offre">
+            <div class="entete-offre">
+              <h2><a [routerLink]="['/admin/mobilites/suivi', m.id]">{{ nom(m) }}</a></h2>
+              <span class="statut" [attr.data-statut]="m.statut">{{ statuts[m.statut] }}</span>
+            </div>
+            <p class="details">{{ sens[m.sens] }} · {{ m.organisme.nom }} · {{ m.anneeUniversitaire }}
+              @if (m.offre) { · {{ m.offre.titre }} } @else if (m.filiereAccueil) { · accueil en {{ m.filiereAccueil }} }</p>
+            @if (m.motif) { <p class="motif"><strong>Motif :</strong> {{ m.motif }}</p> }
+
+            @if (action()?.id === m.id) {
+              <div class="decision" role="group" [attr.aria-label]="(action()?.type === 'refuser' ? 'Refuser ' : 'Annuler ') + nom(m)">
+                <div class="champ">
+                  <label [for]="'motif-' + m.id">{{ action()?.type === 'refuser' ? 'Motif, envoyé à l’établissement' : 'Motif de l’annulation' }}</label>
+                  <textarea [id]="'motif-' + m.id" rows="2" maxlength="500" [value]="motif()" (input)="saisirMotif($event)"></textarea>
+                </div>
+                @if (erreurAction(); as e) { <p class="erreur-champ" role="alert">{{ e }}</p> }
+                <div class="boutons">
+                  <button type="button" class="bouton principal" [disabled]="enCours()" (click)="confirmer(m)">
+                    {{ action()?.type === 'refuser' ? 'Refuser la proposition' : 'Annuler la mobilité' }}</button>
+                  <button type="button" class="bouton" (click)="action.set(null)">Ne rien changer</button>
+                </div>
+              </div>
+            } @else if (m.statut === 'PROPOSEE') {
+              <div class="boutons">
+                <button type="button" class="bouton principal petit" [disabled]="enCours()" (click)="accepter(m)">Accepter</button>
+                <button type="button" class="bouton petit" (click)="ouvrir(m, 'refuser')">Refuser…</button>
+              </div>
+            } @else if (suites[m.statut].length) {
+              <div class="choix-statut champ">
+                <label [for]="'statut-' + m.id">Faire passer à</label>
+                <select [id]="'statut-' + m.id" [disabled]="enCours()" (change)="choisirStatut(m, $event)">
+                  <option value="">Choisir…</option>
+                  @for (s of suites[m.statut]; track s) { <option [value]="s">{{ statuts[s] }}</option> }
+                </select>
+              </div>
+            }
+          </li>
+        }
+      </ul>
+      @if (erreurAction() && !action()) { <p class="erreur-champ" role="alert">{{ erreurAction() }}</p> }
+      <app-pagination-admin [page]="p.page" [totalPages]="p.totalPages" libelle="Pagination des mobilités" (changer)="changerPage($event)" />
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement des mobilités"></div>
+  }
+</app-page-admin>

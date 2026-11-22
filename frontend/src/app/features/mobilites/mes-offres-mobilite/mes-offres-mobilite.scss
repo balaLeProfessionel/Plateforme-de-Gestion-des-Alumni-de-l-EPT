@@ -29,3 +29,8 @@ h2 { margin: 0; font-size: 1rem; overflow-wrap: anywhere;
 .desister .erreur { color: var(--ept-error-dark); font-weight: 600; }
 .statut-message:empty { display: none; }
 .statut-message { margin: 0 0 1rem; padding: 0.65rem 0.9rem; border-radius: 8px; background: var(--ept-success-light); color: var(--ept-success-dark); font-weight: 600; }
+h3 { margin: 0; color: var(--ept-primary-dark); font-size: 1rem; overflow-wrap: anywhere; }
+.titre-section { margin: 1.5rem 0 0.75rem; color: var(--ept-primary-dark); font-size: 1.1rem; }
+.statut[data-statut='PREVUE'], .statut[data-statut='EN_COURS'] { background: var(--ept-success-light); color: var(--ept-success-dark); }
+.statut[data-statut='PROPOSEE'] { background: var(--ept-gold-light); color: var(--ept-gold-dark); }
+.statut[data-statut='REFUSEE'], .statut[data-statut='ANNULEE'] { background: var(--ept-error-light); color: var(--ept-error-dark); }

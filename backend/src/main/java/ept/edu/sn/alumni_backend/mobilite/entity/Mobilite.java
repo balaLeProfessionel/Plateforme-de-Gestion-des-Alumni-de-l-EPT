@@ -97,6 +97,10 @@ public class Mobilite {
     @Column(nullable = false, length = 20)
     private StatutMobilite statut;
 
+    /** Motif d'un refus de proposition ou d'une annulation. */
+    @Column(length = 500)
+    private String motif;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "creee_par_id", nullable = false)
     private Utilisateur creeePar;
