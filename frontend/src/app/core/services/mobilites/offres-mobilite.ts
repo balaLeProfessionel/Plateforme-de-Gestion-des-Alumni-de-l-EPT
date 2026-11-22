@@ -1,7 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { Page } from '../models/mentorat.model';
-import { CriteresOffresMobilite, OffreMobilite, OffreMobiliteRequete, StatutOffreMobilite } from '../models/mobilite.model';
+import {
+  CandidatureMobilite, CriteresOffresMobilite, OffreMobilite, OffreMobiliteRequete, StatutOffreMobilite, TypePiece,
+} from '../models/mobilite.model';
 
 const API = '/api/mobilites';
 const API_ADMIN = '/api/admin/mobilites/offres';
@@ -53,6 +55,32 @@ export class OffresMobiliteService {
   /** Le PDF passe par HttpClient : la requête porte le jeton, qu’un simple lien n’enverrait pas. */
   telechargerPiece(id: string, pieceId: string) {
     return this.http.get(`${API}/offres/${id}/pieces-jointes/${pieceId}`, { responseType: 'blob' });
+  }
+
+  /** Sa candidature à l’offre, ou null (réponse 204) s’il n’en a pas. */
+  maCandidature(id: string) {
+    return this.http.get<CandidatureMobilite | null>(`${API}/offres/${id}/ma-candidature`);
+  }
+
+  /** Dépôt ou renvoi du dossier : une partie par pièce, nommée d’après son type ; une pièce absente garde le fichier déjà déposé. */
+  soumettre(id: string, pieces: Partial<Record<TypePiece, File>>) {
+    const contenu = new FormData();
+    for (const [type, fichier] of Object.entries(pieces)) {
+      if (fichier) contenu.append(type, fichier);
+    }
+    return this.http.post<CandidatureMobilite>(`${API}/offres/${id}/candidature`, contenu);
+  }
+
+  retirerCandidature(id: string) {
+    return this.http.patch<CandidatureMobilite>(`${API}/offres/${id}/candidature/retirer`, {});
+  }
+
+  mesCandidatures() {
+    return this.http.get<CandidatureMobilite[]>(`${API}/mes-candidatures`);
+  }
+
+  telechargerPieceCandidature(candidatureId: string, pieceId: string) {
+    return this.http.get(`${API}/candidatures/${candidatureId}/pieces/${pieceId}`, { responseType: 'blob' });
   }
 
   listerPourChef(statut: StatutOffreMobilite | '', page: number, taille = 20) {

@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormField, form } from '@angular/forms/signals';
-import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, map, of, skip, switchMap, tap } from 'rxjs';
 import { Page } from '../../../core/services/models/mentorat.model';
 import {
@@ -18,7 +18,7 @@ const DELAI_SAISIE_MS = 300;
 /** Offres de mobilité visibles d’un étudiant ou d’un enseignant, filtrables ; les critères sont dans l’URL. */
 @Component({
   selector: 'app-liste-offres-mobilite',
-  imports: [FormField, FilAriane, CarteOffreMobilite],
+  imports: [FormField, RouterLink, FilAriane, CarteOffreMobilite],
   templateUrl: './liste-offres-mobilite.html',
   styleUrl: './liste-offres-mobilite.scss',
 })

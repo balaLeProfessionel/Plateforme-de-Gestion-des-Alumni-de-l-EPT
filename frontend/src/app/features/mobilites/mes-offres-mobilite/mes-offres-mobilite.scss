@@ -19,3 +19,5 @@ h2 { margin: 0; font-size: 1rem; overflow-wrap: anywhere;
   &[data-statut='RETIREE'] { background: var(--ept-error-light); color: var(--ept-error-dark); }
 }
 .squelette { min-height: 12rem; border-radius: 12px; background: var(--ept-squelette); }
+.frise { display: block; margin-top: 0.75rem; }
+.etat a { color: var(--ept-primary); font-weight: 600; }

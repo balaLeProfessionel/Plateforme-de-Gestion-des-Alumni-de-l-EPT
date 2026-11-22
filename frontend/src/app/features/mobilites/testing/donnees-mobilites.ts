@@ -8,7 +8,7 @@ export function uneOffreMobilite(changement: Partial<OffreMobilite> = {}): Offre
     pays: 'Canada', ville: 'Québec', anneeUniversitaire: '2027-2028', periode: 'SEMESTRE_1', dureeSemaines: null, nombrePlaces: 3,
     dateLimite: '2027-03-15', candidaturesOuvertes: true, statut: 'PUBLIEE', motifRetrait: null, publieeLe: '2026-11-01T10:00:00Z',
     organisme: { id: 'u1', nom: 'Université Laval', logoUrl: null, pays: 'Canada' }, filieres: [], classes: [],
-    piecesDemandees: ['LETTRE_MOTIVATION'], piecesJointes: [], modifiable: false, eligibilite: { eligible: true, raison: null },
+    piecesDemandees: ['LETTRE_MOTIVATION'], piecesJointes: [], modifiable: false, eligibilite: { eligible: true, raison: null }, nombreCandidatures: null,
     ...changement,
   };
 }

@@ -70,15 +70,11 @@
           </div>
         }
       } @else if (o.eligibilite) {
-        <aside class="candidature" aria-label="Candidature">
-          @if (!o.eligibilite.eligible) {
-            <p>{{ o.eligibilite.raison }}</p>
-          } @else if (!o.candidaturesOuvertes) {
-            <p>Cette offre ne reçoit plus de candidatures.</p>
-          } @else {
-            <p>Vous pouvez candidater à cette offre. Le dépôt du dossier en ligne ouvrira prochainement.</p>
-          }
-        </aside>
+        @if (o.eligibilite.eligible) {
+          <app-candidature-offre-mobilite [offre]="o" />
+        } @else {
+          <aside class="candidature" aria-label="Candidature"><p>{{ o.eligibilite.raison }}</p></aside>
+        }
       }
     </article>
   } @else {

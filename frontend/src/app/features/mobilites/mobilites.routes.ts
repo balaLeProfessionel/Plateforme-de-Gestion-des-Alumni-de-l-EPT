@@ -27,6 +27,13 @@ export const MOBILITES_ROUTES: Routes = [
     loadComponent: () => import('./formulaire-offre-mobilite/formulaire-offre-mobilite').then((m) => m.FormulaireOffreMobilite),
   },
   {
+    path: 'mes-candidatures',
+    title: 'Mes candidatures de mobilité | EPT Alumni',
+    canActivate: [roleGuard],
+    data: { roles: ['ETUDIANT', 'PERSONNEL'] },
+    loadComponent: () => import('./mes-candidatures-mobilite/mes-candidatures-mobilite').then((m) => m.MesCandidaturesMobilite),
+  },
+  {
     path: 'mes-offres',
     title: 'Mes offres de mobilité | EPT Alumni',
     canActivate: [roleGuard],

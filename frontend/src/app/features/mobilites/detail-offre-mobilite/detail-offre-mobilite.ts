@@ -9,12 +9,13 @@ import {
 } from '../../../core/services/models/mobilite.model';
 import { OffresMobiliteService } from '../../../core/services/mobilites/offres-mobilite';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
+import { CandidatureOffreMobilite } from '../candidature-offre-mobilite/candidature-offre-mobilite';
 import { FichiersOffreMobilite } from '../fichiers-offre-mobilite/fichiers-offre-mobilite';
 
 /** Détail d’une offre de mobilité : conditions, pièces demandées, documents ; modification et clôture pour qui la gère. */
 @Component({
   selector: 'app-detail-offre-mobilite',
-  imports: [DatePipe, RouterLink, BoutonRetour, FichiersOffreMobilite],
+  imports: [DatePipe, RouterLink, BoutonRetour, FichiersOffreMobilite, CandidatureOffreMobilite],
   templateUrl: './detail-offre-mobilite.html',
   styleUrl: './detail-offre-mobilite.scss',
 })

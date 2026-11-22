@@ -75,6 +75,8 @@ export interface OffreMobilite {
   modifiable: boolean;
   /** Rempli pour un étudiant ou un enseignant. */
   eligibilite: { eligible: boolean; raison: string | null } | null;
+  /** Candidatures non retirées, pour qui gère l’offre ; au-delà de zéro, seules la date limite et les places changent. */
+  nombreCandidatures: number | null;
 }
 
 /** Miroir de OffreMobiliteRequest. */
@@ -116,4 +118,31 @@ export function periodeLisible(offre: Pick<OffreMobilite, 'periode' | 'dureeSema
     ? `Séjour de ${offre.dureeSemaines} semaine${offre.dureeSemaines > 1 ? 's' : ''}`
     : LIBELLES_PERIODE[offre.periode];
   return `${periode} · ${offre.anneeUniversitaire}`;
+}
+
+export type StatutCandidatureMobilite = 'SOUMISE' | 'RETIREE' | 'RETENUE' | 'LISTE_ATTENTE' | 'NON_RETENUE' | 'DESISTEE';
+
+export const LIBELLES_STATUT_CANDIDATURE_MOBILITE: Record<StatutCandidatureMobilite, string> = {
+  SOUMISE: 'Envoyée',
+  RETIREE: 'Retirée',
+  RETENUE: 'Retenue',
+  LISTE_ATTENTE: 'Sur liste d’attente',
+  NON_RETENUE: 'Non retenue',
+  DESISTEE: 'Désistée',
+};
+
+/** Miroir de CandidatureMobiliteResponse. */
+export interface CandidatureMobilite {
+  id: string;
+  offre: {
+    id: string; titre: string; organisme: string; type: TypeMobilite; periode: PeriodeMobilite; dureeSemaines: number | null;
+    anneeUniversitaire: string; dateLimite: string; candidaturesOuvertes: boolean; statut: StatutOffreMobilite; piecesDemandees: TypePiece[];
+  };
+  statut: StatutCandidatureMobilite;
+  rangAttente: number | null;
+  soumiseLe: string;
+  retireeLe: string | null;
+  pieces: { id: string; type: TypePiece; nom: string; taille: number }[];
+  /** Le dossier peut encore être retiré, complété ou renvoyé. */
+  modifiable: boolean;
 }

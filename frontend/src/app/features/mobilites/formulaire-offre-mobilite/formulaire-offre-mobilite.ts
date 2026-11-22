@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { afterNextRender, Component, computed, ElementRef, inject, Injector, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { FormField, form, maxLength, required, validate } from '@angular/forms/signals';
+import { disabled, FormField, form, maxLength, required, validate } from '@angular/forms/signals';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, firstValueFrom, map, of, switchMap } from 'rxjs';
 import { Classe, CLASSES_PAR_CYCLE, LIBELLES_CLASSE } from '../../../core/services/models/classe.model';
@@ -131,7 +131,20 @@ export class FormulaireOffreMobilite {
     maxLength(champ.description, 5000, { message: '5000 caractères au maximum.' });
     validate(champ.piecesDemandees, ({ value }) => value().length === 0
       ? { kind: 'pieces', message: 'Indiquez au moins une pièce à fournir.' } : undefined);
+    // Des candidats ont postulé à ces conditions : seules la date limite (prolongée) et les places (ajoutées) changent.
+    for (const fige of [champ.titre, champ.type, champ.publicVise, champ.pays, champ.ville, champ.anneeUniversitaire, champ.periode,
+      champ.dureeSemaines, champ.description]) {
+      disabled(fige, () => this.verrouillee());
+    }
+    validate(champ.nombrePlaces, ({ value }) => this.verrouillee() && (entier(value()) ?? 0) < this.placesInitiales
+      ? { kind: 'moins', message: `Des candidatures sont arrivées : ${this.placesInitiales} places au moins.` } : undefined);
+    validate(champ.dateLimite, ({ value }) => this.verrouillee() && value() && value() < this.dateLimiteInitiale
+      ? { kind: 'avancee', message: 'Des candidatures sont arrivées : la date limite peut seulement être prolongée.' } : undefined);
   });
+
+  /** L’offre a reçu des candidatures : ses conditions sont figées. */
+  protected readonly verrouillee = signal(false);
+  private placesInitiales = 0;
 
   /** Filières et classes ne concernent que les offres ouvertes aux étudiants. */
   protected readonly pourEtudiants = computed(() => ['ETUDIANTS', 'TOUS'].includes(this.modele().publicVise));
@@ -157,6 +170,8 @@ export class FormulaireOffreMobilite {
       this.service.detail(this.idModifiee).pipe(takeUntilDestroyed()).subscribe({
         next: (offre) => {
           this.dateLimiteInitiale = offre.dateLimite;
+          this.placesInitiales = offre.nombrePlaces;
+          this.verrouillee.set((offre.nombreCandidatures ?? 0) > 0);
           this.modele.set({
             organisme: offre.organisme.nom, titre: offre.titre, type: offre.type, publicVise: offre.publicVise, pays: offre.pays,
             ville: offre.ville ?? '', anneeUniversitaire: offre.anneeUniversitaire, periode: offre.periode,

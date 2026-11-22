@@ -55,3 +55,5 @@ textarea { resize: vertical; line-height: 1.5; }
   input { width: 1.05rem; height: 1.05rem; accent-color: var(--ept-primary); }
 }
 .squelette { min-height: 20rem; margin-top: 0.75rem; border-radius: 12px; background: var(--ept-squelette); }
+.message.verrou { background: var(--ept-gold-light); color: var(--ept-primary-dark); font-weight: 400; }
+:is(input, select, textarea):disabled { background: var(--ept-bg); color: var(--ept-text-secondary); cursor: not-allowed; }

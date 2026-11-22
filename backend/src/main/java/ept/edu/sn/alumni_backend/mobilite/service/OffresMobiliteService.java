@@ -32,6 +32,7 @@ import ept.edu.sn.alumni_backend.mobilite.ActionHistorique;
 import ept.edu.sn.alumni_backend.mobilite.ObjetHistorique;
 import ept.edu.sn.alumni_backend.mobilite.PeriodeMobilite;
 import ept.edu.sn.alumni_backend.mobilite.PublicVise;
+import ept.edu.sn.alumni_backend.mobilite.StatutCandidatureMobilite;
 import ept.edu.sn.alumni_backend.mobilite.StatutOffreMobilite;
 import ept.edu.sn.alumni_backend.mobilite.TypeMobilite;
 import ept.edu.sn.alumni_backend.mobilite.dto.OffreMobiliteRequest;
@@ -39,6 +40,7 @@ import ept.edu.sn.alumni_backend.mobilite.dto.OffreMobiliteResponse;
 import ept.edu.sn.alumni_backend.mobilite.entity.OffreMobilite;
 import ept.edu.sn.alumni_backend.mobilite.exception.ConflitMobiliteException;
 import ept.edu.sn.alumni_backend.mobilite.exception.OffreMobiliteIntrouvableException;
+import ept.edu.sn.alumni_backend.mobilite.repository.CandidatureMobiliteRepository;
 import ept.edu.sn.alumni_backend.mobilite.repository.OffreMobiliteRepository;
 import ept.edu.sn.alumni_backend.notification.NouvelleNotification;
 import ept.edu.sn.alumni_backend.notification.TypeNotification;
@@ -54,7 +56,8 @@ import lombok.RequiredArgsConstructor;
  * Offres de mobilité.
  * - Un établissement d'enseignement partenaire, au compte validé, publie directement ses offres.
  * - Le chef du service mobilité publie au nom d'un partenaire, même sans compte, et retire une offre avec un motif.
- * - L'institut et le chef modifient ou clôturent une offre publiée.
+ * - L'institut et le chef modifient ou clôturent une offre publiée. Dès qu'elle a des candidatures, seules la date
+ *   limite (prolongée) et les places (ajoutées) changent : les candidats ont postulé à ces conditions.
  * - Étudiants et enseignants voient les offres de leur public ; l'annonce d'une offre leur parvient dans la cloche.
  */
 @Service
@@ -64,6 +67,7 @@ public class OffresMobiliteService {
     private static final DateTimeFormatter FORMAT_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final OffreMobiliteRepository offreRepository;
+    private final CandidatureMobiliteRepository candidatureRepository;
     private final OrganismeRepository organismeRepository;
     private final OrganismeService organismeService;
     private final FiliereRepository filiereRepository;
@@ -111,6 +115,17 @@ public class OffresMobiliteService {
         if (offre.getStatut() != StatutOffreMobilite.PUBLIEE) {
             throw new ConflitMobiliteException("Seule une offre publiée se modifie.");
         }
+        if (nombreCandidatures(offre) > 0) {
+            OffreMobiliteRequest conditions = new OffreMobiliteRequest(request.titre(), request.description(), request.type(),
+                request.publicVise(), request.pays(), request.ville(), request.anneeUniversitaire(), request.periode(), request.dureeSemaines(),
+                offre.getNombrePlaces(), offre.getDateLimite(), request.filiereIds(), request.classes(), request.piecesDemandees());
+            boolean villeChangee = !Objects.equals(offre.getVille(), request.ville() == null || request.ville().isBlank() ? null : request.ville().trim());
+            if (!changements(offre, conditions).isEmpty() || villeChangee
+                    || request.nombrePlaces() < offre.getNombrePlaces() || request.dateLimite().isBefore(offre.getDateLimite())) {
+                throw new ConflitMobiliteException("Des candidatures sont arrivées : seules la date limite (prolongée) et les places (ajoutées) "
+                    + "se modifient encore. Pour changer les conditions, retirez l'offre et publiez-en une nouvelle.");
+            }
+        }
         String changements = changements(offre, request);
         remplir(offre, request, false);
         if (!changements.isEmpty()) {
@@ -149,6 +164,12 @@ public class OffresMobiliteService {
             evenements.publishEvent(new NotificationCompte(contact.getId(), contact.getEmail(), "Votre offre de mobilité a été retirée",
                 "Bonjour, l'école a retiré votre offre « " + offre.getTitre() + " », qui n'est plus visible. Motif : " + texte));
         }
+        String message = "L'offre « " + offre.getTitre() + " » de " + offre.getOrganisme().getNom()
+            + " a été retirée par l'école : votre candidature ne sera pas examinée. Motif : " + texte;
+        candidatureRepository.candidatsAuStatut(offre.getId(), List.of(StatutCandidatureMobilite.SOUMISE, StatutCandidatureMobilite.RETENUE,
+                StatutCandidatureMobilite.LISTE_ATTENTE))
+            .forEach(candidat -> evenements.publishEvent(
+                new NouvelleNotification(candidat, TypeNotification.MOBILITE, "Offre de mobilité retirée", message, "/mobilites/mes-candidatures")));
         return reponseComplete(offre, auteur);
     }
 
@@ -191,7 +212,7 @@ public class OffresMobiliteService {
             ? Sort.by(Sort.Order.asc("dateLimite"), Sort.Order.desc("publieeLe"))
             : Sort.by(Sort.Order.desc("dateLimite"), Sort.Order.desc("publieeLe"));
         return PageResponse.depuis(offreRepository.findAll(specification, PageRequest.of(page, taille, tri))
-            .map(offre -> versReponse(offre, lecteur, false)));
+            .map(offre -> versReponse(offre, lecteur, false, null)));
     }
 
     @Transactional(readOnly = true)
@@ -235,7 +256,7 @@ public class OffresMobiliteService {
         UUID organismeId = lecteur.getOrganisme().getId();
         Specification<OffreMobilite> deLInstitut = (racine, requete, cb) -> cb.equal(racine.get("organisme").get("id"), organismeId);
         return offreRepository.findAll(deLInstitut, PageRequest.of(0, 200, Sort.by(Sort.Order.desc("creeeLe"))))
-            .map(offre -> versReponse(offre, lecteur, false)).getContent();
+            .map(offre -> versReponse(offre, lecteur, false, null)).getContent();
     }
 
     @Transactional(readOnly = true)
@@ -254,12 +275,18 @@ public class OffresMobiliteService {
             specification = specification.and((racine, requete, cb) -> cb.equal(racine.get("anneeUniversitaire"), valeur));
         }
         return PageResponse.depuis(offreRepository.findAll(specification, PageRequest.of(page, taille, Sort.by(Sort.Order.desc("creeeLe"))))
-            .map(offre -> versReponse(offre, lecteur, false)));
+            .map(offre -> versReponse(offre, lecteur, false, null)));
     }
 
-    /** Réponse avec les documents joints : détail et modifications. */
+    /** Réponse avec les documents joints, et le nombre de candidatures pour qui gère l'offre : détail et modifications. */
     public OffreMobiliteResponse reponseComplete(OffreMobilite offre, Utilisateur lecteur) {
-        return versReponse(offre, lecteur, true);
+        Long nombre = AccesMobilite.peutGerer(offre, lecteur) && offre.getId() != null ? nombreCandidatures(offre) : null;
+        return versReponse(offre, lecteur, true, nombre);
+    }
+
+    /** Candidatures en cours ou décidées : une candidature retirée ne compte pas. */
+    private long nombreCandidatures(OffreMobilite offre) {
+        return candidatureRepository.countByOffre_IdAndStatutNot(offre.getId(), StatutCandidatureMobilite.RETIREE);
     }
 
     private OffreMobiliteResponse publier(OffreMobiliteRequest request, Organisme organisme, Utilisateur auteur) {
@@ -401,7 +428,7 @@ public class OffresMobiliteService {
         return LocalDate.now(FUSEAU);
     }
 
-    private static OffreMobiliteResponse versReponse(OffreMobilite offre, Utilisateur lecteur, boolean avecPieces) {
+    private static OffreMobiliteResponse versReponse(OffreMobilite offre, Utilisateur lecteur, boolean avecPieces, Long nombreCandidatures) {
         Organisme organisme = offre.getOrganisme();
         boolean gestion = AccesMobilite.peutGerer(offre, lecteur);
         OffreMobiliteResponse.Eligibilite eligibilite = null;
@@ -424,6 +451,7 @@ public class OffresMobiliteService {
             offre.getPiecesDemandees().stream().sorted().map(Enum::name).toList(),
             pieces,
             gestion && offre.getStatut() != StatutOffreMobilite.RETIREE,
-            eligibilite);
+            eligibilite,
+            nombreCandidatures);
     }
 }

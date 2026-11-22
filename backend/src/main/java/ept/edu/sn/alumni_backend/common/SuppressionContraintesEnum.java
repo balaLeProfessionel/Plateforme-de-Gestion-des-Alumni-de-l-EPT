@@ -32,7 +32,9 @@ public class SuppressionContraintesEnum implements ApplicationRunner {
         "offre_mobilite.offre_mobilite_type_mobilite_check",
         "offre_mobilite_classe.offre_mobilite_classe_classe_check",
         "offre_mobilite_piece_demandee.offre_mobilite_piece_demandee_type_piece_check",
-        "historique_mobilite.historique_mobilite_action_check");
+        "historique_mobilite.historique_mobilite_action_check",
+        "candidature_mobilite.candidature_mobilite_statut_check",
+        "piece_candidature_mobilite.piece_candidature_mobilite_type_piece_check");
 
     /**
      * Colonnes devenues facultatives : ddl-auto=update ne relâche jamais un NOT NULL déjà posé.

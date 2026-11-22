@@ -33,6 +33,10 @@
   } @else {
     <form class="carte" (submit)="envoyer($event)" novalidate>
       @if (messageErreur(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+      @if (verrouillee()) {
+        <p class="message verrou" role="note">Des candidatures sont arrivées : les candidats ont postulé à ces conditions. Vous pouvez encore
+          prolonger la date limite et ajouter des places ; pour changer le reste, retirez l’offre et publiez-en une nouvelle.</p>
+      }
       <div class="grille">
         @if (administration && !idModifiee) {
           <div class="champ large">
@@ -153,7 +157,7 @@
           <legend>Filières admises <span class="optionnel">aucune cochée : toutes</span></legend>
           <div class="liste-cases">
             @for (f of filieres(); track f.id) {
-              <label><input type="checkbox" [checked]="modele().filiereIds.includes(f.id)" (change)="basculerFiliere(f.id)" />{{ f.nom }}</label>
+              <label><input type="checkbox" [checked]="modele().filiereIds.includes(f.id)" [disabled]="verrouillee()" (change)="basculerFiliere(f.id)" />{{ f.nom }}</label>
             }
           </div>
         </fieldset>
@@ -162,7 +166,7 @@
           @for (cycle of cycles; track cycle.cycle) {
             <div class="liste-cases" role="group" [attr.aria-label]="cycle.cycle">
               @for (c of cycle.classes; track c) {
-                <label><input type="checkbox" [checked]="modele().classes.includes(c)" (change)="basculerClasse(c)" />{{ libellesClasse[c] }}</label>
+                <label><input type="checkbox" [checked]="modele().classes.includes(c)" [disabled]="verrouillee()" (change)="basculerClasse(c)" />{{ libellesClasse[c] }}</label>
               }
             </div>
           }
@@ -173,7 +177,7 @@
         <legend>Pièces à fournir par le candidat</legend>
         <div class="liste-cases">
           @for (p of typesPiece; track p) {
-            <label><input type="checkbox" [checked]="modele().piecesDemandees.includes(p)" (change)="basculerPiece(p)" />{{ libellesPiece[p] }}</label>
+            <label><input type="checkbox" [checked]="modele().piecesDemandees.includes(p)" [disabled]="verrouillee()" (change)="basculerPiece(p)" />{{ libellesPiece[p] }}</label>
           }
         </div>
         @if (formulaire.piecesDemandees().touched() && formulaire.piecesDemandees().errors()[0]; as erreur) {

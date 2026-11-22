@@ -34,7 +34,9 @@ public record OffreMobiliteResponse(
     List<PieceJointe> piecesJointes,
     /** Le lecteur peut modifier l'offre et ses documents : son institut ou le chef du service mobilité. */
     boolean modifiable,
-    Eligibilite eligibilite
+    Eligibilite eligibilite,
+    /** Candidatures non retirées, pour l'institut et le chef dans le détail ; au-delà de zéro, les conditions sont figées. */
+    Long nombreCandidatures
 ) {
     public record Organisme(UUID id, String nom, String logoUrl, String pays) {
     }
