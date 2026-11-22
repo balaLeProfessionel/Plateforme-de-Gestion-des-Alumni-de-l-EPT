@@ -128,3 +128,15 @@
     &:hover { text-decoration: underline; }
   }
 }
+
+.aide-champ {
+  color: var(--ept-text-secondary);
+  font-size: 0.8rem;
+  margin-top: 0.35rem;
+}
+
+/* Adresse imposée par Google : lisible mais visiblement non modifiable. */
+input[readonly] {
+  background: var(--ept-bg);
+  color: var(--ept-text-secondary);
+}

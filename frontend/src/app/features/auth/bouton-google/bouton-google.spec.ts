@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { vi } from 'vitest';
 
+import { InscriptionGoogle } from '../../../core/services/auth/inscription-google';
 import { BoutonGoogle } from './bouton-google';
 import { ChargeurGoogle, IdentiteGoogle, ReponseGoogle } from './chargeur-google';
 
@@ -65,10 +66,12 @@ describe('BoutonGoogle', () => {
     expect(connecte).toHaveBeenCalledWith(expect.objectContaining({ email: 'awa@example.com' }));
   });
 
-  it("transmet le message du serveur quand aucun compte n'utilise l'adresse", async () => {
+  it("retient l'identité Google pour l'inscription quand aucun compte n'utilise l'adresse", async () => {
     const fixture = await creer();
     const erreur = vi.fn();
+    const inscription = vi.fn();
     fixture.componentInstance.erreur.subscribe(erreur);
+    fixture.componentInstance.inscriptionRequise.subscribe(inscription);
     http.expectOne('/api/auth/google/configuration').flush({ clientId: 'client.apps.googleusercontent.com' });
     await fixture.whenStable();
     fixture.detectChanges();
@@ -76,10 +79,13 @@ describe('BoutonGoogle', () => {
 
     rappel?.({ credential: 'jeton-google' });
     http.expectOne('/api/auth/google').flush(
-      { code: 'COMPTE_INCONNU', message: "Aucun compte EPT Alumni n'utilise cette adresse Google." },
+      { code: 'COMPTE_INCONNU', message: 'Aucun compte.', email: 'awa.diop@gmail.com', prenom: 'Awa', nom: 'Diop' },
       { status: 404, statusText: 'Not Found' },
     );
-    expect(erreur).toHaveBeenCalledWith("Aucun compte EPT Alumni n'utilise cette adresse Google.");
+    expect(inscription).toHaveBeenCalled();
+    expect(erreur).not.toHaveBeenCalled();
+    expect(TestBed.inject(InscriptionGoogle).enAttente())
+      .toEqual({ credential: 'jeton-google', email: 'awa.diop@gmail.com', prenom: 'Awa', nom: 'Diop' });
   });
 
   it('reste masqué quand la bibliothèque Google ne se charge pas', async () => {

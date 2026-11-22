@@ -80,6 +80,11 @@ export class Connexion {
     this.router.navigate([utilisateur.doitChangerMotDePasse ? '/premiere-connexion' : '/accueil']);
   }
 
+  /** Adresse Google sans compte : on poursuit par l’inscription, pré-remplie avec ce que Google sait. */
+  protected inscrireAvecGoogle() {
+    void this.router.navigate(['/inscription']);
+  }
+
   protected erreurGoogle(message: string) {
     this.messageSucces.set(null);
     this.messageErreur.set(message);

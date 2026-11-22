@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -44,7 +45,9 @@ class ConnexionGoogleIntegrationTests {
     void nettoyer() {
         refreshTokenRepository.deleteAll();
         notificationRepository.deleteAll();
-        utilisateurRepository.findByEmail("awa.diop@example.com").ifPresent(utilisateurRepository::delete);
+        for (String email : new String[] {"awa.diop@example.com", "awa.diop@ept.sn", "autre@example.com"}) {
+            utilisateurRepository.findByEmail(email).ifPresent(utilisateurRepository::delete);
+        }
     }
 
     @Test
@@ -73,7 +76,64 @@ class ConnexionGoogleIntegrationTests {
 
         connexion("jeton-google")
             .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.code").value("COMPTE_INCONNU"));
+            .andExpect(jsonPath("$.code").value("COMPTE_INCONNU"))
+            .andExpect(jsonPath("$.email").value("awa.diop@example.com"))
+            .andExpect(jsonPath("$.prenom").value("Awa"))
+            .andExpect(jsonPath("$.nom").value("Diop"));
+    }
+
+    // --- Inscription avec Google ---
+
+    @Test
+    void inscritAvecLAdresseDuJetonVerifieeEtEnAttenteDeValidation() throws Exception {
+        google("Awa.Diop@Example.com", true);
+
+        // L'adresse vient du jeton : un champ « email » envoyé par le navigateur serait ignoré.
+        inscription("ALUMNI", ",\"email\":\"autre@example.com\",\"anneeSortie\":2018,\"filiere\":\"Génie informatique\"")
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.accessToken").isNotEmpty())
+            .andExpect(jsonPath("$.email").value("awa.diop@example.com"))
+            .andExpect(jsonPath("$.statutCompte").value("EN_ATTENTE"));
+
+        Utilisateur awa = utilisateurRepository.findByEmail("awa.diop@example.com").orElseThrow();
+        assertThat(awa.isEmailVerifie()).isTrue();
+        assertThat(awa.getAnneeSortie()).isEqualTo(2018);
+        assertThat(utilisateurRepository.findByEmail("autre@example.com")).isEmpty();
+    }
+
+    @Test
+    void lePersonnelALAdresseOfficielleEptEstActifToutDeSuite() throws Exception {
+        google("awa.diop@ept.sn", true);
+
+        inscription("PERSONNEL", "").andExpect(status().isCreated())
+            .andExpect(jsonPath("$.statutCompte").value("ACTIF"));
+    }
+
+    @Test
+    void lInscriptionGoogleGardeLesReglesDeLInscription() throws Exception {
+        google("awa.diop@example.com", true);
+        inscription("ETUDIANT", "").andExpect(status().isForbidden());
+
+        compte(StatutCompte.ACTIF, true);
+        inscription("ALUMNI", "").andExpect(status().isConflict());
+
+        google("awa.diop@ept.sn", false);
+        inscription("ALUMNI", "").andExpect(status().isUnauthorized());
+        assertThat(utilisateurRepository.findByEmail("awa.diop@ept.sn")).isEmpty();
+    }
+
+    @Test
+    void unCompteJamaisVerifieEstVerifieParGoogleEtSonMotDePasseRemplace() throws Exception {
+        // Quelqu'un a pu s'inscrire avec l'adresse d'Awa sans jamais valider le code : il ne doit plus pouvoir entrer.
+        compte(StatutCompte.EN_ATTENTE, false);
+        google("awa.diop@example.com", true);
+
+        connexion("jeton-google").andExpect(status().isOk()).andExpect(jsonPath("$.accessToken").isNotEmpty());
+
+        Utilisateur awa = utilisateurRepository.findByEmail("awa.diop@example.com").orElseThrow();
+        assertThat(awa.isEmailVerifie()).isTrue();
+        assertThat(awa.getPassword()).isNotEqualTo("mot-de-passe-hache");
+        assertThat(awa.getStatutCompte()).isEqualTo(StatutCompte.EN_ATTENTE);
     }
 
     @Test
@@ -95,16 +155,17 @@ class ConnexionGoogleIntegrationTests {
     }
 
     @Test
-    void refuseUnCompteSuspenduOuDontLAdresseNEstPasVerifiee() throws Exception {
-        Utilisateur awa = compte(StatutCompte.SUSPENDU, true);
+    void refuseUnCompteSuspendu() throws Exception {
+        compte(StatutCompte.SUSPENDU, true);
         google("awa.diop@example.com", true);
         connexion("jeton-google").andExpect(status().isForbidden())
             .andExpect(jsonPath("$.message").value("Votre compte a été suspendu. Contactez l'administration."));
+    }
 
-        awa.setStatutCompte(StatutCompte.EN_ATTENTE);
-        awa.setEmailVerifie(false);
-        utilisateurRepository.saveAndFlush(awa);
-        connexion("jeton-google").andExpect(status().isForbidden());
+    private ResultActions inscription(String role, String complement) throws Exception {
+        return mvc.perform(post("/api/auth/google/inscription").contentType(MediaType.APPLICATION_JSON)
+            .content("{\"credential\":\"jeton-google\",\"prenom\":\"Awa\",\"nom\":\"Diop\",\"role\":\"" + role + "\""
+                + complement + "}"));
     }
 
     private ResultActions connexion(String jeton) throws Exception {

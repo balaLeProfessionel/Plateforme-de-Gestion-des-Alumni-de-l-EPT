@@ -3,6 +3,7 @@ package ept.edu.sn.alumni_backend.auth;
 import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -59,51 +60,45 @@ public class AuthService {
     @Transactional
     public InscriptionResponse inscrire(RegisterRequest request) {
         String email = normaliser(request.email());
-
-        if (!ROLES_INSCRIPTION_LIBRE.contains(request.role())) {
-            throw new RoleNonAutoriseException(
-                "L'inscription n'est pas ouverte pour ce type de compte. "
-                + "Les comptes étudiants sont créés par l'administration de l'EPT.");
-        }
-        utilisateurRepository.findByEmail(email).ifPresent(existant -> {
-            throw new EmailDejaUtiliseException(existant.getStatutCompte() == StatutCompte.SUSPENDU
-                ? "Un compte suspendu existe déjà avec cet email. Contactez l'administration de l'EPT pour le réactiver."
-                : "Cet email est déjà utilisé");
-        });
-        if (request.role() == TypeRole.ORGANISME
-                && (request.nomOrganisme() == null || request.nomOrganisme().isBlank())) {
-            throw new NomOrganismeManquantException("Le nom de l'organisme est obligatoire");
-        }
-
-        Utilisateur utilisateur = new Utilisateur();
-        utilisateur.setNom(request.nom());
-        utilisateur.setPrenom(request.prenom());
-        utilisateur.setEmail(email);
-        utilisateur.setPassword(passwordEncoder.encode(request.password()));
-        utilisateur.setRole(request.role());
-        utilisateur.setEmailVerifie(false);
-        utilisateur.setStatutCompte(StatutCompte.EN_ATTENTE);
-        utilisateur.setTelephone(request.telephone());
-        utilisateur.setAnneeSortie(request.anneeSortie());
-        utilisateur.setFiliere(request.filiere());
-
-        if (request.role() == TypeRole.ORGANISME) {
-            Organisme organisme = new Organisme();
-            organisme.setNom(request.nomOrganisme());
-            organisme.setEmail(email);
-            organisme.setTelephone(request.telephone());
-            organisme.setStatutValidation(StatutCompte.EN_ATTENTE);
-            organisme = organismeRepository.save(organisme);
-            
-            utilisateur.setOrganisme(organisme);
-        }
-
-        utilisateur = utilisateurRepository.save(utilisateur);
-    
+        Utilisateur utilisateur = creerCompte(email, passwordEncoder.encode(request.password()), new ProfilInscription(
+            request.nom(), request.prenom(), request.role(), request.telephone(),
+            request.anneeSortie(), request.filiere(), request.nomOrganisme()));
         genererEtEnvoyerCode(utilisateur);
 
         return new InscriptionResponse(email,
             "Un code de vérification à 6 chiffres a été envoyé à votre adresse email.");
+    }
+
+    /**
+     * Inscription avec Google : l'adresse vient du jeton Google, qui en prouve la propriété ; elle est donc
+     * vérifiée d'emblée, sans code par e-mail. La validation par l'administration ne change pas : seuls les
+     * alumni et le personnel à l'adresse officielle EPT sont actifs tout de suite.
+     * Le mot de passe est aléatoire et inconnu : la personne en choisit un plus tard par « Mot de passe oublié ».
+     */
+    @Transactional
+    public AuthResponse inscrireAvecGoogle(String emailGoogle, ProfilInscription profil) {
+        Utilisateur utilisateur = creerCompte(normaliser(emailGoogle), motDePasseInutilisable(), profil);
+        utilisateur.setEmailVerifie(true);
+        utilisateur.setStatutCompte(statutApresVerification(utilisateur));
+        utilisateur = utilisateurRepository.save(utilisateur);
+        return construireReponse(jwtService.genererToken(new UtilisateurPrincipal(utilisateur)),
+            refreshTokenService.creerRefreshToken(utilisateur), utilisateur, "Compte créé avec Google. Bienvenue !");
+    }
+
+    /**
+     * Google prouve que la personne possède l'adresse d'un compte jamais vérifié. Ce compte a pu être créé
+     * par quelqu'un d'autre avec cette adresse : son mot de passe est remplacé pour lui couper l'accès.
+     */
+    @Transactional
+    public void verifierAdresseParGoogle(Utilisateur utilisateur) {
+        if (utilisateur.isEmailVerifie()) return;
+        utilisateur.setEmailVerifie(true);
+        utilisateur.setPassword(motDePasseInutilisable());
+        if (utilisateur.getStatutCompte() == StatutCompte.EN_ATTENTE) {
+            utilisateur.setStatutCompte(statutApresVerification(utilisateur));
+        }
+        codeVerificationRepository.deleteByUtilisateur(utilisateur);
+        utilisateurRepository.save(utilisateur);
     }
 
     // ==================== VÉRIFICATION OTP ====================
@@ -142,12 +137,7 @@ public class AuthService {
         utilisateur.setEmailVerifie(true);
 
         // Le badge institutionnel ne se décide qu'ici, après preuve de propriété
-        if ((utilisateur.getRole() == TypeRole.ALUMNI
-                || utilisateur.getRole() == TypeRole.PERSONNEL)
-                && estEmailOfficielEpt(email)) {
-            utilisateur.setStatutCompte(StatutCompte.ACTIF);
-        }
-        // sinon reste EN_ATTENTE : accès complet, mais badge en attente de vérif admin
+        utilisateur.setStatutCompte(statutApresVerification(utilisateur));
 
         utilisateurRepository.save(utilisateur);
         codeVerificationRepository.delete(cv);
@@ -356,6 +346,68 @@ public class AuthService {
     }
 
     // ==================== OUTILS ====================
+
+    /** Ce que la personne déclare à l'inscription, hors adresse et mot de passe. */
+    public record ProfilInscription(String nom, String prenom, TypeRole role, String telephone,
+                                    Integer anneeSortie, String filiere, String nomOrganisme) {}
+
+    /** Règles communes aux deux inscriptions : rôle ouvert, adresse libre, nom d'organisme. */
+    private Utilisateur creerCompte(String email, String motDePasseChiffre, ProfilInscription profil) {
+        if (!ROLES_INSCRIPTION_LIBRE.contains(profil.role())) {
+            throw new RoleNonAutoriseException(
+                "L'inscription n'est pas ouverte pour ce type de compte. "
+                + "Les comptes étudiants sont créés par l'administration de l'EPT.");
+        }
+        utilisateurRepository.findByEmail(email).ifPresent(existant -> {
+            throw new EmailDejaUtiliseException(existant.getStatutCompte() == StatutCompte.SUSPENDU
+                ? "Un compte suspendu existe déjà avec cet email. Contactez l'administration de l'EPT pour le réactiver."
+                : "Cet email est déjà utilisé");
+        });
+        if (profil.role() == TypeRole.ORGANISME
+                && (profil.nomOrganisme() == null || profil.nomOrganisme().isBlank())) {
+            throw new NomOrganismeManquantException("Le nom de l'organisme est obligatoire");
+        }
+
+        Utilisateur utilisateur = new Utilisateur();
+        utilisateur.setNom(profil.nom());
+        utilisateur.setPrenom(profil.prenom());
+        utilisateur.setEmail(email);
+        utilisateur.setPassword(motDePasseChiffre);
+        utilisateur.setRole(profil.role());
+        utilisateur.setEmailVerifie(false);
+        utilisateur.setStatutCompte(StatutCompte.EN_ATTENTE);
+        utilisateur.setTelephone(profil.telephone());
+        utilisateur.setAnneeSortie(profil.anneeSortie());
+        utilisateur.setFiliere(profil.filiere());
+
+        if (profil.role() == TypeRole.ORGANISME) {
+            Organisme organisme = new Organisme();
+            organisme.setNom(profil.nomOrganisme());
+            organisme.setEmail(email);
+            organisme.setTelephone(profil.telephone());
+            organisme.setStatutValidation(StatutCompte.EN_ATTENTE);
+            organisme = organismeRepository.save(organisme);
+            utilisateur.setOrganisme(organisme);
+        }
+        return utilisateurRepository.save(utilisateur);
+    }
+
+    /**
+     * Une fois l'adresse prouvée : alumni et personnel à l'adresse officielle EPT sont actifs tout de suite ;
+     * les autres restent EN_ATTENTE (accès complet, badge en attente de vérification par l'administration).
+     */
+    private StatutCompte statutApresVerification(Utilisateur utilisateur) {
+        boolean institutionnel = (utilisateur.getRole() == TypeRole.ALUMNI || utilisateur.getRole() == TypeRole.PERSONNEL)
+            && estEmailOfficielEpt(utilisateur.getEmail());
+        return institutionnel ? StatutCompte.ACTIF : StatutCompte.EN_ATTENTE;
+    }
+
+    /** Mot de passe aléatoire que personne ne connaît : la colonne est obligatoire, la connexion passe par Google. */
+    private String motDePasseInutilisable() {
+        byte[] octets = new byte[32];
+        new SecureRandom().nextBytes(octets);
+        return passwordEncoder.encode(Base64.getEncoder().encodeToString(octets));
+    }
 
     private void genererEtEnvoyerCode(Utilisateur utilisateur) {
         String code = genererCode();

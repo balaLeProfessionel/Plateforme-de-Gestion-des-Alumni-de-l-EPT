@@ -55,7 +55,14 @@ export class AuthService {
       .pipe(tap((response) => this.stocker(response)));
   }
 
-  /** Connexion avec le jeton d'identité renvoyé par le bouton Google (compte existant uniquement). */
+  /** Inscription avec Google : l'adresse vient du jeton, le serveur ouvre directement la session. */
+  inscriptionGoogle(donnees: Record<string, unknown>) {
+    return this.http
+      .post<AuthResponse>('/api/auth/google/inscription', donnees)
+      .pipe(tap((response) => this.stocker(response)));
+  }
+
+  /** Connexion avec le jeton d'identité renvoyé par le bouton Google (404 « COMPTE_INCONNU » sans compte). */
   connexionGoogle(credential: string) {
     return this.http
       .post<AuthResponse>('/api/auth/google', { credential })

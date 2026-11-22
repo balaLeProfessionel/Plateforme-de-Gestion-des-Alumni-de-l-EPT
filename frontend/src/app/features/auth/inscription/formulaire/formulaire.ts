@@ -1,10 +1,12 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { email, form, minLength, required, FormField } from '@angular/forms/signals';
+import { HttpErrorResponse } from '@angular/common/http';
+import { email, form, minLength, readonly, required, FormField } from '@angular/forms/signals';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 
 import { AuthService } from '../../../../core/services/auth/auth-service';
+import { InscriptionGoogle } from '../../../../core/services/auth/inscription-google';
 import { FILIERES } from '../../../../core/data/filieres';
 
 @Component({
@@ -39,12 +41,17 @@ export class Formulaire {
 
   protected readonly montreAnnee = computed(() => this.role() === 'ALUMNI');
 
-  // Le modèle contient tous les champs possibles ; on n'utilise que ceux qui servent
+  /** Inscription avec Google : adresse imposée par Google, pas de mot de passe. */
+  private readonly inscriptionGoogle = inject(InscriptionGoogle);
+  protected readonly google = this.inscriptionGoogle.enAttente;
+
+  // Le modèle contient tous les champs possibles ; on n'utilise que ceux qui servent.
+  // Avec Google, l'adresse, le prénom et le nom sont pré-remplis.
   protected readonly modele = signal({
-    nom: '',
-    prenom: '',
+    nom: this.google()?.nom ?? '',
+    prenom: this.google()?.prenom ?? '',
     nomOrganisme: '',
-    email: '',
+    email: this.google()?.email ?? '',
     password: '',
     filiere: '',
     anneeSortie: '',
@@ -56,7 +63,8 @@ export class Formulaire {
     required(champ.prenom, { message: 'Le prénom est obligatoire' });
     required(champ.email, { message: "L'email est obligatoire" });
     email(champ.email, { message: "Format d'email invalide" });
-    required(champ.password, { message: 'Le mot de passe est obligatoire' });
+    readonly(champ.email, () => this.google() !== null);
+    required(champ.password, { message: 'Le mot de passe est obligatoire', when: () => this.google() === null });
     minLength(champ.password, 8, { message: 'Au moins 8 caractères' });
     required(champ.nomOrganisme, {
       message: "Le nom de l'organisme est obligatoire",
@@ -102,6 +110,12 @@ export class Formulaire {
       corps['nomOrganisme'] = m.nomOrganisme;
     }
 
+    const google = this.google();
+    if (google) {
+      this.inscrireAvecGoogle(google.credential, corps);
+      return;
+    }
+
     this.authService.inscrire(corps).subscribe({
       next: (res) => {
         this.enChargement.set(false);
@@ -112,6 +126,31 @@ export class Formulaire {
       },
       error: (err) => {
         this.enChargement.set(false);
+        this.messageErreur.set(err?.error?.message ?? "L'inscription a échoué. Réessayez.");
+      }
+    });
+  }
+
+  /**
+   * L’adresse vient du jeton Google (le serveur ignore toute autre adresse) : pas de mot de passe
+   * ni de code par e-mail, la session s’ouvre tout de suite.
+   */
+  private inscrireAvecGoogle(credential: string, corps: Record<string, unknown>): void {
+    const { email: _adresse, password: _motDePasse, ...profil } = corps;
+    this.authService.inscriptionGoogle({ ...profil, credential }).subscribe({
+      next: () => {
+        this.enChargement.set(false);
+        this.inscriptionGoogle.oublier();
+        void this.router.navigate(['/accueil']);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.enChargement.set(false);
+        // Jeton Google expiré ou refusé : il faut repasser par le bouton Google.
+        if (err.status === 401) {
+          this.inscriptionGoogle.oublier();
+          this.messageErreur.set('La validation par Google a expiré. Revenez à l’étape précédente et cliquez à nouveau sur « Continuer avec Google ».');
+          return;
+        }
         this.messageErreur.set(err?.error?.message ?? "L'inscription a échoué. Réessayez.");
       }
     });

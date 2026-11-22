@@ -6,6 +6,13 @@
       <p class="sous-titre">Choisissez le profil qui vous correspond</p>
     </header>
 
+    @if (google(); as compte) {
+      <div class="bandeau-google" role="status">
+        <p>Inscription avec le compte Google <strong>{{ compte.email }}</strong>. Choisissez votre profil pour continuer.</p>
+        <button type="button" class="lien-annuler" (click)="abandonnerGoogle()">Utiliser une autre adresse</button>
+      </div>
+    }
+
     <div class="grille-roles">
       @for (role of roles; track role.cle) {
         <button
@@ -21,6 +28,14 @@
         </button>
       }
     </div>
+
+    @if (!google()) {
+      <div class="google">
+        <app-bouton-google (connecte)="connecte($event)" (erreur)="erreurGoogle.set($event)"
+          (inscriptionRequise)="erreurGoogle.set(null)" />
+        @if (erreurGoogle()) { <p class="erreur-google" role="alert">{{ erreurGoogle() }}</p> }
+      </div>
+    }
 
     <p class="note-etudiant">Vous êtes étudiant à l’EPT ? Votre compte est créé par l’administration de l’école.</p>
 

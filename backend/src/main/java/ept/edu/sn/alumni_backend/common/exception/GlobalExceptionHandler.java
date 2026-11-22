@@ -123,8 +123,14 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ept.edu.sn.alumni_backend.auth.google.CompteGoogleInconnuException.class)
-    public ResponseEntity<Map<String, String>> handleCompteGoogleInconnu(RuntimeException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("code", "COMPTE_INCONNU", "message", e.getMessage()));
+    public ResponseEntity<Map<String, String>> handleCompteGoogleInconnu(
+            ept.edu.sn.alumni_backend.auth.google.CompteGoogleInconnuException e) {
+        // Ce que Google sait de la personne, pour pré-remplir l'inscription (prénom ou nom peuvent manquer).
+        ept.edu.sn.alumni_backend.auth.google.IdentiteGoogle identite = e.identite();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+            "code", "COMPTE_INCONNU", "message", e.getMessage(), "email", identite.email(),
+            "prenom", identite.prenom() == null ? "" : identite.prenom(),
+            "nom", identite.nom() == null ? "" : identite.nom()));
     }
 
     @ExceptionHandler(ept.edu.sn.alumni_backend.auth.google.ConnexionGoogleIndisponibleException.class)

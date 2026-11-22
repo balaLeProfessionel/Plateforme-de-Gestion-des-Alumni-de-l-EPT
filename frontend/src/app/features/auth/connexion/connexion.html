@@ -86,7 +86,8 @@
         {{ enChargement() ? 'Connexion…' : 'Se connecter' }}
       </button>
 
-      <app-bouton-google (connecte)="ouvrirEspace($event)" (erreur)="erreurGoogle($event)" />
+      <app-bouton-google (connecte)="ouvrirEspace($event)" (erreur)="erreurGoogle($event)"
+        (inscriptionRequise)="inscrireAvecGoogle()" />
 
       <p class="lien-inscription">
         Pas encore de compte ? <a routerLink="/inscription">Créer un compte</a>

@@ -16,6 +16,7 @@ import ept.edu.sn.alumni_backend.auth.dto.ChangerMotDePasseRequest;
 import ept.edu.sn.alumni_backend.auth.dto.ConfigurationGoogleResponse;
 import ept.edu.sn.alumni_backend.auth.dto.ConnexionGoogleRequest;
 import ept.edu.sn.alumni_backend.auth.google.ConnexionGoogleService;
+import ept.edu.sn.alumni_backend.auth.dto.InscriptionGoogleRequest;
 import ept.edu.sn.alumni_backend.auth.dto.InscriptionResponse;
 import ept.edu.sn.alumni_backend.auth.dto.LoginRequest;
 import ept.edu.sn.alumni_backend.auth.dto.MessageResponse;
@@ -58,10 +59,19 @@ public class AuthController {
         return ResponseEntity.ok(authService.connecter(request));
     }
 
-    /** Connexion avec le jeton d'identité du bouton Google, pour un compte qui existe déjà. */
+    /**
+     * Connexion avec le jeton d'identité du bouton Google. Adresse sans compte : 404 « COMPTE_INCONNU »
+     * avec l'adresse, le prénom et le nom donnés par Google, pour pré-remplir l'inscription.
+     */
     @PostMapping("/google")
     public ResponseEntity<AuthResponse> connexionGoogle(@Valid @RequestBody ConnexionGoogleRequest request) {
         return ResponseEntity.ok(connexionGoogleService.connecter(request.credential()));
+    }
+
+    /** Inscription avec Google : compte créé avec l'adresse vérifiée par Google, session ouverte. */
+    @PostMapping("/google/inscription")
+    public ResponseEntity<AuthResponse> inscriptionGoogle(@Valid @RequestBody InscriptionGoogleRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(connexionGoogleService.inscrire(request));
     }
 
     /** Identifiant client public du bouton Google ; absent quand la connexion Google n'est pas configurée. */

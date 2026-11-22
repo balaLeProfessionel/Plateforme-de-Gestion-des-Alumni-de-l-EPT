@@ -50,7 +50,10 @@ Seul le frontend est exposé sur la machine hôte. Il transmet les appels `/api`
 
 ### Connexion avec Google
 
-Le bouton « Continuer avec Google » de la page de connexion ouvre la session d'un compte **qui existe déjà** avec la même adresse ; il ne crée pas de compte (le rôle et la validation par l'administration passent par l'inscription). Les règles sont celles du mot de passe : compte suspendu ou adresse non vérifiée refusés.
+Le bouton « Continuer avec Google » (pages de connexion et de création de compte) :
+
+- **adresse connue** : ouvre la session du compte ; un compte suspendu reste refusé. Un compte dont l'adresse n'avait jamais été vérifiée l'est alors, et son mot de passe est remplacé (il a pu être créé par quelqu'un d'autre avec cette adresse) ;
+- **adresse inconnue** : mène à l'inscription, pré-remplie avec le prénom, le nom et l'adresse donnés par Google. La personne choisit son profil (pas « étudiant », ces comptes sont créés par l'administration) ; l'adresse est vérifiée par Google, donc pas de code par e-mail ni de mot de passe (il pourra être choisi plus tard par « Mot de passe oublié »). La validation par l'administration est inchangée : seuls les alumni et le personnel à l'adresse EPT sont actifs tout de suite.
 
 1. Dans la console Google Cloud, créer un identifiant OAuth de type « Application Web ».
 2. Ajouter dans « Origines JavaScript autorisées » chaque adresse du frontend, par exemple `http://localhost:4200` en développement et l'adresse publique en production. Aucune URI de redirection n'est nécessaire.

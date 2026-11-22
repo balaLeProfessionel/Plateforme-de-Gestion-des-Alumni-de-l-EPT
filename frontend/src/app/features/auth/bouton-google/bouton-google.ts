@@ -4,7 +4,22 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { AuthResponse } from '../../../core/services/models/auth-response.model';
+import { IdentiteInscriptionGoogle, InscriptionGoogle } from '../../../core/services/auth/inscription-google';
 import { ChargeurGoogle, IdentiteGoogle } from './chargeur-google';
+
+/** Réponse 404 « COMPTE_INCONNU » : ce que Google sait de la personne, pour pré-remplir l’inscription. */
+function identiteInconnue(err: HttpErrorResponse, credential: string): IdentiteInscriptionGoogle | null {
+  const corps: unknown = err?.error;
+  if (err?.status !== 404 || typeof corps !== 'object' || corps === null) return null;
+  const { code, email, prenom, nom } = corps as Record<string, unknown>;
+  if (code !== 'COMPTE_INCONNU' || typeof email !== 'string' || !email) return null;
+  return {
+    credential,
+    email,
+    prenom: typeof prenom === 'string' ? prenom : '',
+    nom: typeof nom === 'string' ? nom : '',
+  };
+}
 
 /**
  * Bouton officiel « Continuer avec Google ». Absent tant que le serveur n'a pas d'identifiant
@@ -47,8 +62,11 @@ export class BoutonGoogle {
 
   /** Session ouverte : le parent choisit la page suivante. */
   readonly connecte = output<AuthResponse>();
-  /** Message à afficher (compte inconnu, suspendu, échec de Google…). */
+  /** Message à afficher (compte suspendu, échec de Google…). */
   readonly erreur = output<string>();
+  /** Aucun compte n’utilise cette adresse : l’identité est retenue, l’inscription peut continuer. */
+  readonly inscriptionRequise = output();
+  private readonly inscriptionGoogle = inject(InscriptionGoogle);
 
   private readonly emplacement = viewChild<ElementRef<HTMLElement>>('emplacement');
   private readonly clientId = signal<string | null>(null);
@@ -106,6 +124,12 @@ export class BoutonGoogle {
       },
       error: (err: HttpErrorResponse) => {
         this.enCours.set(false);
+        const identite = identiteInconnue(err, credential);
+        if (identite) {
+          this.inscriptionGoogle.retenir(identite);
+          this.inscriptionRequise.emit();
+          return;
+        }
         const message: unknown = err?.error?.message;
         this.erreur.emit(typeof message === 'string' && message ? message : 'La connexion avec Google a échoué. Réessayez.');
       },

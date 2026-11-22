@@ -9,15 +9,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ept.edu.sn.alumni_backend.auth.AuthService;
 import ept.edu.sn.alumni_backend.auth.dto.AuthResponse;
+import ept.edu.sn.alumni_backend.auth.dto.InscriptionGoogleRequest;
+import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 
 /**
- * Connexion avec un compte Google : Google prouve que la personne possède l'adresse, le compte
- * EPT Alumni doit déjà exister avec cette adresse. Les règles d'accès sont celles de la connexion
- * par mot de passe (compte suspendu ou adresse non vérifiée refusés). Aucune inscription ici :
- * le rôle et la validation par l'administration passent toujours par le parcours d'inscription.
+ * Connexion et inscription avec un compte Google : Google prouve que la personne possède l'adresse.
+ * <ul>
+ *   <li>Adresse connue : session ouverte, avec les refus de la connexion par mot de passe (compte suspendu).</li>
+ *   <li>Adresse inconnue : ce que Google sait de la personne est renvoyé pour pré-remplir l'inscription,
+ *       qui garde le choix du rôle et la validation par l'administration.</li>
+ * </ul>
  */
 @Service
 public class ConnexionGoogleService {
@@ -43,6 +47,28 @@ public class ConnexionGoogleService {
 
     @Transactional
     public AuthResponse connecter(String jeton) {
+        IdentiteGoogle identite = identiteVerifiee(jeton);
+        Utilisateur utilisateur = utilisateurRepository.findByEmail(identite.email())
+            .orElseThrow(() -> new CompteGoogleInconnuException(identite));
+        // Google vient de prouver la propriété de l'adresse : un compte jamais vérifié l'est maintenant.
+        if (utilisateur.getStatutCompte() != StatutCompte.SUSPENDU) {
+            authService.verifierAdresseParGoogle(utilisateur);
+        }
+        // Mêmes refus que la connexion par mot de passe : LockedException (suspendu).
+        verificationStatut.check(new UtilisateurPrincipal(utilisateur));
+        return authService.ouvrirSession(utilisateur);
+    }
+
+    /** Crée le compte avec l'adresse du jeton (jamais une adresse envoyée par le navigateur) et ouvre la session. */
+    @Transactional
+    public AuthResponse inscrire(InscriptionGoogleRequest requete) {
+        IdentiteGoogle identite = identiteVerifiee(requete.credential());
+        return authService.inscrireAvecGoogle(identite.email(), new AuthService.ProfilInscription(
+            requete.nom().trim(), requete.prenom().trim(), requete.role(), requete.telephone(),
+            requete.anneeSortie(), requete.filiere(), requete.nomOrganisme()));
+    }
+
+    private IdentiteGoogle identiteVerifiee(String jeton) {
         if (clientId.isEmpty()) {
             throw new ConnexionGoogleIndisponibleException();
         }
@@ -50,10 +76,6 @@ public class ConnexionGoogleService {
         if (!identite.emailVerifie() || identite.email() == null || identite.email().isBlank()) {
             throw new JetonGoogleInvalideException("Votre adresse Google n'est pas vérifiée par Google.");
         }
-        Utilisateur utilisateur = utilisateurRepository.findByEmail(identite.email().trim().toLowerCase(Locale.ROOT))
-            .orElseThrow(CompteGoogleInconnuException::new);
-        // Mêmes refus que la connexion par mot de passe : LockedException (suspendu), DisabledException (non vérifié).
-        verificationStatut.check(new UtilisateurPrincipal(utilisateur));
-        return authService.ouvrirSession(utilisateur);
+        return new IdentiteGoogle(identite.email().trim().toLowerCase(Locale.ROOT), true, identite.prenom(), identite.nom());
     }
 }
