@@ -31,7 +31,7 @@ public class MessagerieMapper {
         Utilisateur auteur = message.getAuteur();
         return new MessageResponse(message.getId(), auteur.getId(), nomAffiche(auteur), auteur.getUrlPhoto(),
             message.estSupprime() ? null : message.getContenu(), message.estSupprime(), message.getEnvoyeLe(),
-            auteur.getId().equals(moi), versPieceJointe(message));
+            auteur.getId().equals(moi), versPieceJointe(message), message.isSysteme());
     }
 
     public ApercuMessageResponse versApercu(Message message) {
@@ -40,7 +40,7 @@ public class MessagerieMapper {
         if (texte.isBlank() && message.aPieceJointe()) texte = "Pièce jointe : " + message.getPieceJointe().getNom();
         String contenu = message.estSupprime() ? null : tronquer(texte);
         return new ApercuMessageResponse(message.getAuteur().getId(), nomAffiche(message.getAuteur()), contenu,
-            message.estSupprime(), message.getEnvoyeLe());
+            message.estSupprime(), message.getEnvoyeLe(), message.isSysteme());
     }
 
     private static PieceJointeResponse versPieceJointe(Message message) {

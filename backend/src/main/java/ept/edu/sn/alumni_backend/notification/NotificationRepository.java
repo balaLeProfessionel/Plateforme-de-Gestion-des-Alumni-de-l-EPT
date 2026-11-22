@@ -28,6 +28,14 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     int toutMarquerLu(@Param("destinataireId") UUID destinataireId);
 
     @Modifying
+    @Query("""
+        update Notification n set n.lue = true
+        where n.destinataire.id = :destinataireId and n.lue = false and n.type = :type and n.lien = :lien
+        """)
+    int marquerLuesVers(@Param("destinataireId") UUID destinataireId, @Param("type") TypeNotification type,
+                        @Param("lien") String lien);
+
+    @Modifying
     @Query("delete from Notification n where n.creeLe < :limite")
     int supprimerAnterieuresA(@Param("limite") Instant limite);
 }

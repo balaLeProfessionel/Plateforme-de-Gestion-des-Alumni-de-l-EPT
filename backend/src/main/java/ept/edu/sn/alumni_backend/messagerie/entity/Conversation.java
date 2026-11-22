@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import org.hibernate.annotations.Check;
 
+import ept.edu.sn.alumni_backend.messagerie.AccesCommunaute;
+import ept.edu.sn.alumni_backend.messagerie.CategorieCommunaute;
 import ept.edu.sn.alumni_backend.messagerie.TypeConversation;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,10 +26,10 @@ import lombok.Setter;
  * Les membres sont dans {@link Participant}, les messages dans {@link Message}.
  */
 @Entity
-@Table(name = "conversations", uniqueConstraints = @UniqueConstraint(
-    name = "uk_conversation_cle_directe",
-    columnNames = "cle_directe"
-))
+@Table(name = "conversations", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_conversation_cle_directe", columnNames = "cle_directe"),
+    @UniqueConstraint(name = "uk_conversation_cle_communaute", columnNames = "cle_communaute"),
+})
 @Check(name = "ck_conversation_type", constraints =
     "(type = 'DIRECTE' and cle_directe is not null and nom is null)"
     + " or (type = 'GROUPE' and nom is not null and cle_directe is null)")
@@ -71,6 +73,23 @@ public class Conversation {
     @Column(nullable = false)
     private Instant dernierMessageLe;
 
+    /** Remplie pour une communauté (un groupe ouvert à tout un public) ; absente pour un groupe privé ou une directe. */
+    @Enumerated(EnumType.STRING)
+    @Column(length = 15)
+    private CategorieCommunaute categorie;
+
+    /** Comment on entre dans la communauté ; absent hors communauté. */
+    @Enumerated(EnumType.STRING)
+    @Column(length = 12)
+    private AccesCommunaute acces;
+
+    /**
+     * Identifie une communauté automatique (« PROMO:2015 », « FILIERE:genie civil ») : unique, elle garantit qu'une
+     * promo n'a qu'une communauté même si deux membres la créent au même instant.
+     */
+    @Column(name = "cle_communaute", length = 120)
+    private String cleCommunaute;
+
     @PrePersist
     void avantCreation() {
         if (creeLe == null) creeLe = Instant.now();
@@ -89,6 +108,23 @@ public class Conversation {
         conversation.setType(TypeConversation.GROUPE);
         conversation.setNom(nom);
         return conversation;
+    }
+
+    public static Conversation communaute(String nom, CategorieCommunaute categorie, AccesCommunaute acces, String cle) {
+        Conversation conversation = groupe(nom);
+        conversation.setCategorie(categorie);
+        conversation.setAcces(acces);
+        conversation.setCleCommunaute(cle);
+        return conversation;
+    }
+
+    public boolean estCommunaute() {
+        return categorie != null;
+    }
+
+    /** Communauté dont on fait partie par son profil : on ne la quitte pas. */
+    public boolean estCommunauteAutomatique() {
+        return categorie != null && categorie.automatique();
     }
 
     /** L'autre personne d'une conversation directe, lue dans sa clé. */

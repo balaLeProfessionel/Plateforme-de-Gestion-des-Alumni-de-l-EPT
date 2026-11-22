@@ -15,7 +15,7 @@ export function initialesGroupe(nom: string): string {
 
 /**
  * Photo d’un groupe, ou à défaut ses initiales dans un carré arrondi (un membre a un rond) ; l’icône des
- * groupes si le nom n’a pas de lettre. Décorative sauf si `libelle` est donné.
+ * groupes si le nom n’a pas de lettre, ou l’icône donnée. Décorative sauf si `libelle` est donné.
  */
 @Component({
   selector: 'app-avatar-groupe',
@@ -25,7 +25,8 @@ export function initialesGroupe(nom: string): string {
       <app-avatar-membre [urlPhoto]="urlPhoto()" [taille]="taille()" [libelle]="libelle()" />
     } @else {
       <span class="carre" aria-hidden="true">
-        @if (initiales()) { {{ initiales() }} } @else { <i class="pi pi-users"></i> }
+        @if (icone(); as icone) { <i class="pi" [class]="icone"></i> }
+        @else if (initiales()) { {{ initiales() }} } @else { <i class="pi pi-users"></i> }
       </span>
     }
   `,
@@ -54,6 +55,8 @@ export class AvatarGroupe {
   /** Diamètre en rem. */
   readonly taille = input(2.5);
   readonly libelle = input<string | null>(null);
+  /** Classe PrimeIcons (`pi-…`) à montrer sans photo, à la place des initiales (catégorie d’une communauté). */
+  readonly icone = input<string | null>(null);
 
   protected readonly initiales = computed(() => initialesGroupe(this.nom()));
 }

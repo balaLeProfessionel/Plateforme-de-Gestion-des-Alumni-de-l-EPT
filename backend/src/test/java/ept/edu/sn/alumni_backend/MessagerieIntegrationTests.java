@@ -192,7 +192,14 @@ class MessagerieIntegrationTests {
         assertThat(notifications.countByDestinataire_IdAndLueFalse(moussa.getId())).isEqualTo(1);
         assertThat(notifications.countByDestinataire_IdAndLueFalse(awa.getId())).isZero();
 
+        // Une autre conversation non lue garde sa notification quand Moussa lit celle d'Awa.
+        Utilisateur fatou = membre("Fatou", TypeRole.ALUMNI);
+        envoyer(fatou, idDe(ouvrirDirecte(fatou, moussa)), "Salut").andExpect(status().isCreated());
+        assertThat(notifications.countByDestinataire_IdAndLueFalse(moussa.getId())).isEqualTo(2);
+
+        // Lire la conversation éteint sa notification : la cloche ne réannonce pas ce qui a été lu.
         mockMvc.perform(authentifie(patch(API + "/conversations/{id}/lu", id), moussa)).andExpect(status().isNoContent());
+        assertThat(notifications.countByDestinataire_IdAndLueFalse(moussa.getId())).isEqualTo(1);
         envoyer(awa, id, "Trois").andExpect(status().isCreated());
         assertThat(notifications.countByDestinataire_IdAndLueFalse(moussa.getId())).isEqualTo(2);
     }

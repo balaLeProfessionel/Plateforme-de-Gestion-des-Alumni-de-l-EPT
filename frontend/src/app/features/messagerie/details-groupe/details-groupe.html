@@ -3,7 +3,7 @@
     <button type="button" class="fermer" aria-label="Fermer" (click)="dialogue.close()">
       <i class="pi pi-times" aria-hidden="true"></i>
     </button>
-    <h2 id="titre-details" tabindex="-1">Infos du groupe</h2>
+    <h2 id="titre-details" tabindex="-1">{{ detail()?.categorie ? 'Infos de la communauté' : 'Infos du groupe' }}</h2>
   </header>
 
   @if (detail(); as detail) {
@@ -54,7 +54,13 @@
               </button>
             }
           </div>
-          <p class="sous-titre">Groupe · {{ nombre }} participant{{ nombre > 1 ? 's' : '' }}</p>
+          <p class="sous-titre">
+            @if (detail.categorie) {
+              Communauté · {{ nombre }} membre{{ nombre > 1 ? 's' : '' }}
+            } @else {
+              Groupe · {{ nombre }} participant{{ nombre > 1 ? 's' : '' }}
+            }
+          </p>
         }
       </section>
 
@@ -70,7 +76,7 @@
       }
 
       <section class="carte" aria-labelledby="titre-participants">
-        <h3 id="titre-participants">{{ nombre }} participant{{ nombre > 1 ? 's' : '' }}</h3>
+        <h3 id="titre-participants">{{ nombre }} {{ detail.categorie ? 'membre' : 'participant' }}{{ nombre > 1 ? 's' : '' }}</h3>
         <ul class="participants">
           @if (administrateur()) {
             <li>
@@ -153,7 +159,13 @@
         </ul>
       </section>
 
-      <section class="carte sortie" aria-label="Quitter ou supprimer le groupe">
+      @if (automatique()) {
+        <p class="carte note-automatique">
+          <i class="pi pi-id-card" aria-hidden="true"></i>
+          Vous faites partie de cette communauté par votre profil : elle suit votre promo et votre filière.
+        </p>
+      }
+      <section class="carte sortie" [attr.aria-label]="detail.categorie ? libelleQuitter() : 'Quitter ou supprimer le groupe'">
         @if (confirmerSuppression()) {
           <div class="confirmer" role="group" aria-label="Supprimer le groupe">
             <span>Le groupe et tous ses messages seront supprimés pour tous les participants.</span>
@@ -161,14 +173,14 @@
             <button type="button" class="danger plein" [disabled]="enCours()" (click)="supprimer()">Supprimer définitivement</button>
           </div>
         } @else if (confirmerDepart()) {
-          <div class="confirmer" role="group" aria-label="Quitter le groupe">
-            <span>Vous ne verrez plus cette conversation.</span>
+          <div class="confirmer" role="group" [attr.aria-label]="libelleQuitter()">
+            <span>{{ texteDepart() }}</span>
             <button type="button" class="secondaire" [disabled]="enCours()" (click)="confirmerDepart.set(false)">Annuler</button>
-            <button type="button" class="danger plein" [disabled]="enCours()" (click)="quitter()">Quitter le groupe</button>
+            <button type="button" class="danger plein" [disabled]="enCours()" (click)="quitter()">{{ libelleQuitter() }}</button>
           </div>
         } @else {
           <button type="button" class="ligne-action danger-texte quitter" (click)="confirmerDepart.set(true)">
-            <i class="pi pi-sign-out" aria-hidden="true"></i> Quitter le groupe
+            <i class="pi pi-sign-out" aria-hidden="true"></i> {{ libelleQuitter() }}
           </button>
           @if (administrateur()) {
             <button type="button" class="ligne-action danger-texte supprimer-groupe" (click)="confirmerSuppression.set(true)">

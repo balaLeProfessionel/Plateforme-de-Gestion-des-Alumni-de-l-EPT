@@ -3,6 +3,7 @@ package ept.edu.sn.alumni_backend.messagerie.repository;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Limit;
@@ -16,7 +17,8 @@ import ept.edu.sn.alumni_backend.messagerie.entity.Message;
 
 /**
  * Un message est non lu pour un participant s'il a été écrit par un autre, n'est pas supprimé et a été envoyé
- * après le {@code dernierLuLe} de ce participant (ou si celui-ci n'a jamais ouvert la conversation).
+ * après le {@code dernierLuLe} de ce participant (ou si celui-ci n'a jamais ouvert la conversation). Un message de
+ * la plateforme ({@code systeme}, « … a rejoint la communauté ») n'est jamais un non-lu.
  */
 public interface MessageRepository extends JpaRepository<Message, UUID> {
     long countByConversationId(UUID conversationId);
@@ -32,6 +34,10 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
     @Modifying
     @Query("delete from Message message where message.conversation.id = :conversationId")
     void supprimerDeConversation(@Param("conversationId") UUID conversationId);
+
+    /** Dernier message du système (arrivée, départ) d'une personne dans une communauté. */
+    Optional<Message> findFirstByConversationIdAndAuteurIdAndSystemeTrueOrderByEnvoyeLeDesc(UUID conversationId,
+                                                                                         UUID auteurId);
 
     /** Derniers messages, du plus récent au plus ancien. */
     @EntityGraph(attributePaths = "auteur")
@@ -59,6 +65,7 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
           and message.conversation.id in :conversationIds
           and message.auteur.id <> :utilisateurId
           and message.supprimeLe is null
+          and message.systeme = false
           and (participant.dernierLuLe is null or message.envoyeLe > participant.dernierLuLe)
         group by message.conversation.id
         """)
@@ -73,6 +80,7 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
           and participant.utilisateur.id = :utilisateurId
           and message.auteur.id <> :utilisateurId
           and message.supprimeLe is null
+          and message.systeme = false
           and (participant.dernierLuLe is null or message.envoyeLe > participant.dernierLuLe)
         """)
     long compterNonLus(@Param("utilisateurId") UUID utilisateurId);
@@ -85,6 +93,7 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
           and message.conversation = participant.conversation
           and message.auteur.id <> participant.utilisateur.id
           and message.supprimeLe is null
+          and message.systeme = false
           and (participant.dernierLuLe is null or message.envoyeLe > participant.dernierLuLe)
         group by participant.utilisateur.id
         """)

@@ -1,0 +1,109 @@
+/* Lignes de la colonne de gauche, partagées par la liste des conversations et celle des communautés. */
+.conversations, .squelettes { display: grid; gap: 0.125rem; margin: 0; padding: 0; list-style: none; }
+
+.conversations a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.6rem;
+  border-radius: var(--ept-radius-sm);
+  color: var(--ept-text);
+  text-decoration: none;
+
+  &:hover { background: var(--ept-bg); }
+  &.active { background: var(--ept-primary-light); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: -2px; }
+}
+
+/* Sur la ligne active (fond bleu clair), le carré du groupe passe en blanc pour rester visible. */
+.active app-avatar-groupe { --fond-avatar-groupe: var(--ept-surface); }
+
+.texte { display: grid; min-width: 0; flex: 1; gap: 0.15rem; }
+
+.ligne-haut, .ligne-bas { display: flex; min-width: 0; align-items: baseline; gap: 0.5rem; }
+
+.nom {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+time { flex: 0 0 auto; color: var(--ept-text-secondary); font-size: 0.75rem; }
+
+.apercu {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: var(--ept-text-secondary);
+  font-size: 0.85rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &.supprime { font-style: italic; }
+}
+
+/* Non lue : le nom et l’aperçu passent au premier plan, la pastille donne le nombre. */
+.non-lue {
+  .nom { font-weight: 700; }
+  .apercu { color: var(--ept-text); font-weight: 600; }
+  time { color: var(--ept-primary); font-weight: 600; }
+}
+
+.pastille {
+  min-width: 1.25rem;
+  flex: 0 0 auto;
+  align-self: center;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--ept-primary);
+  color: var(--ept-text-on-dark);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.25rem;
+  text-align: center;
+}
+
+.etat {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  color: var(--ept-text-secondary);
+  text-align: center;
+
+  p { max-width: 18rem; margin: 0; font-size: 0.9rem; line-height: 1.5; }
+  > i { color: var(--ept-primary); font-size: 1.75rem; }
+}
+
+.lien-action {
+  min-height: 2.5rem;
+  padding: 0 0.75rem;
+  border: 0;
+  border-radius: var(--ept-radius-sm);
+  background: transparent;
+  color: var(--ept-primary);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { background: var(--ept-primary-light); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+}
+
+.squelettes li { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 0.6rem; }
+.squelettes .rond { width: 2.75rem; height: 2.75rem; flex: 0 0 auto; border-radius: 50%; }
+.squelettes .barres { display: grid; flex: 1; gap: 0.4rem; }
+.squelettes .barres span { height: 0.7rem; border-radius: 999px; }
+.squelettes .barres span:last-child { width: 70%; }
+.squelettes .rond, .squelettes .barres span { background: var(--ept-primary-light); animation: pulsation 1.4s ease-in-out infinite; }
+
+@keyframes pulsation { 50% { opacity: 0.5; } }
+@media (prefers-reduced-motion: reduce) { .squelettes .rond, .squelettes .barres span { animation: none; } }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+

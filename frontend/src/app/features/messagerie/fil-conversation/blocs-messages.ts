@@ -50,7 +50,9 @@ export function lignesDuFil(messages: readonly Message[], maintenant: Date, loca
     lignes.push({
       message,
       jour: nouveauJour ? libelleJour(date, maintenant, locale) : null,
+      // Un message du système (arrivée dans une communauté) coupe la suite : il n’a pas de bulle.
       suite: !nouveauJour && precedent !== null && precedent.auteurId === message.auteurId
+        && !precedent.systeme && !message.systeme
         && date.getTime() - (datePrecedente?.getTime() ?? 0) < ECART_SUITE_MS,
       supprimes: message.supprime ? 1 : 0,
     });

@@ -12,6 +12,11 @@ export const MESSAGERIE_ROUTES: Routes = [
         loadComponent: () => import('./aucune-conversation').then((m) => m.AucuneConversation),
       },
       {
+        path: ':id/membres',
+        title: 'Membres de la communauté | EPT Alumni',
+        loadComponent: () => import('./annuaire-communaute/annuaire-communaute').then((m) => m.AnnuaireCommunaute),
+      },
+      {
         path: ':id',
         title: 'Conversation | EPT Alumni',
         loadComponent: () => import('./fil-conversation/fil-conversation').then((m) => m.FilConversation),

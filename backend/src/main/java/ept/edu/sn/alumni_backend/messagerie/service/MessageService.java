@@ -32,6 +32,7 @@ import ept.edu.sn.alumni_backend.messagerie.exception.MessagerieIntrouvableExcep
 import ept.edu.sn.alumni_backend.messagerie.repository.MessageRepository;
 import ept.edu.sn.alumni_backend.messagerie.repository.ParticipantRepository;
 import ept.edu.sn.alumni_backend.messagerie.tempsreel.EvenementMessagerie;
+import ept.edu.sn.alumni_backend.notification.NotificationService;
 import ept.edu.sn.alumni_backend.notification.NouvelleNotification;
 import ept.edu.sn.alumni_backend.notification.TypeNotification;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +48,7 @@ public class MessageService {
     private final ApplicationEventPublisher evenements;
     private final StockagePieceJointe stockage;
     private final MessagerieProperties proprietes;
+    private final NotificationService notifications;
 
     /** Page de l'historique : les {@code taille} messages avant {@code avant} (ou les derniers), du plus ancien au plus récent. */
     @Transactional(readOnly = true)
@@ -154,6 +156,8 @@ public class MessageService {
     @Transactional
     public void marquerLu(UUID conversationId, UUID moi) {
         acces.chargerParticipant(conversationId, moi).setDernierLuLe(Instant.now());
+        // La notification « X vous a écrit » de cette conversation n'a plus lieu d'être : la cloche suit.
+        notifications.marquerLuesVers(moi, TypeNotification.MESSAGE, lienConversation(conversationId));
         // Mes autres onglets effacent la pastille de cette conversation.
         evenements.publishEvent(new EvenementMessagerie(Set.of(moi), EvenementMessagerie.Type.LU, conversationId));
     }
@@ -168,8 +172,13 @@ public class MessageService {
         evenements.publishEvent(new EvenementMessagerie(participants.findUtilisateurIds(conversationId), type, conversationId));
     }
 
-    /** Une notification par conversation tant qu'elle reste non lue : seulement pour qui n'a que ce message à lire. */
+    /**
+     * Une notification par conversation tant qu'elle reste non lue : seulement pour qui n'a que ce message à lire.
+     * Pas de notification pour une communauté.
+     */
     private void notifierPremierNonLu(Conversation conversation, Message message) {
+        // Une communauté réunit des centaines de membres : sa pastille suffit, sans notification à chacun.
+        if (conversation.estCommunaute()) return;
         UUID auteurId = message.getAuteur().getId();
         String auteurNom = MessagerieMapper.nomAffiche(message.getAuteur());
         String texte = conversation.getType() == TypeConversation.GROUPE
@@ -178,6 +187,10 @@ public class MessageService {
         messages.compterNonLusParParticipant(conversation.getId()).stream()
             .filter(nonLus -> !nonLus.getUtilisateurId().equals(auteurId) && nonLus.getNombre() == 1)
             .forEach(nonLus -> evenements.publishEvent(new NouvelleNotification(nonLus.getUtilisateurId(),
-                TypeNotification.MESSAGE, "Nouveau message", texte, "/messagerie/" + conversation.getId())));
+                TypeNotification.MESSAGE, "Nouveau message", texte, lienConversation(conversation.getId()))));
+    }
+
+    private static String lienConversation(UUID conversationId) {
+        return "/messagerie/" + conversationId;
     }
 }

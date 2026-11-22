@@ -13,15 +13,22 @@ import { CompteurMessages } from '../../../core/services/messagerie/compteur-mes
 import { FluxMessagerie } from '../../../core/services/messagerie/flux-messagerie';
 import { MessagerieService } from '../../../core/services/messagerie/messagerie';
 import { LIBELLES_ROLE_COMPTE, RoleCompte } from '../../../core/services/models/admin.model';
-import { ConversationDetail, Message } from '../../../core/services/models/messagerie.model';
+import {
+  ConversationDetail, ICONES_CATEGORIE, Message, NATURES_COMMUNAUTE,
+} from '../../../core/services/models/messagerie.model';
+import { AccueilCommunaute } from './accueil-communaute';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
 import { AvatarGroupe } from '../avatar-groupe';
 import { BandeauBlocage } from '../bandeau-blocage/bandeau-blocage';
 import { DetailsGroupe } from '../details-groupe/details-groupe';
+import { NotificationService } from '../../../core/services/notifications/notifications';
+import { EtatCommunautes } from '../etat-communautes';
 import { EtatConversations } from '../etat-conversations';
+import { MessageSysteme } from '../message-fil/message-systeme';
 import { MessageFil } from '../message-fil/message-fil';
 import { ZoneSaisie } from '../zone-saisie/zone-saisie';
 import { fusionnerMessages, lignesDuFil } from './blocs-messages';
+import { messageServeur } from '../message-erreur';
 
 /** Relève de secours des nouveaux messages quand le flux temps réel est coupé. */
 export const INTERVALLE_FIL = 8_000;
@@ -31,7 +38,10 @@ const MARGE_BAS_PX = 120;
 /** Fil d’une conversation : en-tête, historique par pages, nouveaux messages et zone de saisie. */
 @Component({
   selector: 'app-fil-conversation',
-  imports: [RouterLink, AvatarMembre, AvatarGroupe, BandeauBlocage, MessageFil, ZoneSaisie, DetailsGroupe],
+  imports: [
+    RouterLink, AvatarMembre, AvatarGroupe, BandeauBlocage, MessageFil, MessageSysteme, ZoneSaisie, DetailsGroupe,
+    AccueilCommunaute,
+  ],
   templateUrl: './fil-conversation.html',
   styleUrl: './fil-conversation.scss',
 })
@@ -40,6 +50,8 @@ export class FilConversation {
   private readonly router = inject(Router);
   private readonly messagerie = inject(MessagerieService);
   private readonly etat = inject(EtatConversations);
+  private readonly communautes = inject(EtatCommunautes);
+  private readonly notifications = inject(NotificationService);
   private readonly compteur = inject(CompteurMessages);
   private readonly authService = inject(AuthService);
   private readonly document = inject(DOCUMENT);
@@ -67,6 +79,17 @@ export class FilConversation {
 
   protected readonly lignes = computed(() => lignesDuFil(this.messages(), new Date(), this.locale));
   protected readonly estGroupe = computed(() => this.detail()?.type === 'GROUPE');
+  protected readonly iconeCommunaute = computed(() => {
+    const categorie = this.detail()?.categorie;
+    return categorie ? ICONES_CATEGORIE[categorie] : null;
+  });
+  /** La communauté à présenter en tête du fil tant qu’aucun membre n’y a écrit (les arrivées ne comptent pas). */
+  protected readonly accueilCommunaute = computed(() => {
+    const detail = this.detail();
+    const personneNaEcrit = !this.plusAnciens() && this.messages().every((message) => message.systeme);
+    return detail?.categorie && personneNaEcrit ? detail : null;
+  });
+  protected readonly libelleInfos = computed(() => this.detail()?.categorie ?'Infos de la communauté' : 'Infos du groupe');
   protected readonly ecriture = computed(() => this.detail()?.ecriture ?? 'OUVERTE');
   /** L’autre personne d’une conversation directe. */
   protected readonly interlocuteur = computed(() => {
@@ -81,6 +104,10 @@ export class FilConversation {
   protected readonly sousTitre = computed(() => {
     const detail = this.detail();
     if (!detail) return '';
+    if (detail.categorie) {
+      const nombre = detail.participants.length;
+      return `${NATURES_COMMUNAUTE[detail.categorie]} · ${nombre} membre${nombre > 1 ? 's' : ''}`;
+    }
     if (detail.type === 'GROUPE') {
       const nombre = detail.participants.length;
       // Même forme que le sous-titre d’une conversation privée (« Étudiant », « Organisme ») : le type d’abord.
@@ -113,7 +140,7 @@ export class FilConversation {
           resultat: null,
           erreur: erreur.status === 404
             ? 'Cette conversation est introuvable, ou vous n’en faites plus partie.'
-            : erreur.error?.message ?? 'Impossible de charger la conversation. Vérifiez votre connexion.',
+            : messageServeur(erreur, 'Impossible de charger la conversation. Vérifiez votre connexion.'),
         })))),
       takeUntilDestroyed(destroyRef),
     ).subscribe(({ resultat, erreur }) => {
@@ -219,6 +246,7 @@ export class FilConversation {
   protected groupeModifie(detail: ConversationDetail): void {
     this.detail.set(detail);
     this.etat.actualiser();
+    this.communautes.actualiser();
   }
 
   /** Bloqué ou débloqué : la zone de saisie s’ouvre ou se ferme, la liste se met à jour. */
@@ -278,6 +306,7 @@ export class FilConversation {
   protected groupeQuitte(): void {
     this.detailsOuverts.set(false);
     this.etat.actualiser();
+    this.communautes.actualiser();
     void this.router.navigate(['/messagerie']);
   }
 
@@ -310,6 +339,9 @@ export class FilConversation {
     const id = this.conversationId();
     this.messagerie.marquerLu(id).pipe(catchError(() => EMPTY)).subscribe(() => {
       this.etat.marquerLue(id);
+      this.communautes.marquerLue(id);
+      // Le serveur a aussi marqué lue la notification « … vous a écrit » : la cloche suit.
+      this.notifications.actualiser();
       // Flux ouvert : le signal « lu » recompte déjà le badge.
       if (!this.flux.connecte()) this.compteur.actualiser();
     });

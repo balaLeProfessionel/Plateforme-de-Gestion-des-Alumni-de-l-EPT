@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   afterNextRender, Component, computed, effect, ElementRef, inject, Injector, input, output, signal, viewChild,
 } from '@angular/core';
@@ -8,12 +7,13 @@ import { firstValueFrom, Observable } from 'rxjs';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { MessagerieService } from '../../../core/services/messagerie/messagerie';
 import {
-  ConversationDetail, LONGUEUR_MAX_DESCRIPTION_GROUPE, LONGUEUR_MAX_NOM_GROUPE, MembreChoisi, MembreConversation,
+  ConversationDetail, estCommunauteAutomatique, LONGUEUR_MAX_DESCRIPTION_GROUPE, LONGUEUR_MAX_NOM_GROUPE, MembreChoisi, MembreConversation,
   MEMBRES_MAX_PAR_AJOUT,
 } from '../../../core/services/models/messagerie.model';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
 import { PhotoGroupe } from '../photo-groupe/photo-groupe';
 import { SelectionMembres } from '../selection-membres/selection-membres';
+import { messageServeur } from '../message-erreur';
 
 /** Action en attente de confirmation sur la ligne d’un membre. */
 interface ActionMembre {
@@ -48,6 +48,18 @@ export class DetailsGroupe {
   protected readonly longueurDescription = LONGUEUR_MAX_DESCRIPTION_GROUPE;
   protected readonly moiId = computed(() => this.authService.utilisateur()?.id);
   protected readonly administrateur = computed(() => this.detail()?.monRole === 'ADMINISTRATEUR');
+  /** Promo ou filière : on n’en sort qu’en changeant son profil. */
+  protected readonly libelleQuitter = computed(() => this.detail()?.categorie ? 'Quitter la communauté' : 'Quitter le groupe');
+  protected readonly automatique = computed(() => estCommunauteAutomatique(this.detail()?.categorie));
+  /** Ce que change le départ, dit avant de confirmer. */
+  protected readonly texteDepart = computed(() => {
+    if (this.automatique()) {
+      return 'Votre profil ne vous y remettra plus. Vous pourrez revenir quand vous voudrez depuis « À découvrir ».';
+    }
+    return this.detail()?.categorie
+      ? 'Vous pourrez la rejoindre de nouveau depuis « À découvrir ».'
+      : 'Vous ne verrez plus cette conversation.';
+  });
   protected readonly participantIds = computed(() => this.detail()?.participants.map((membre) => membre.id) ?? []);
   protected readonly nombreAdministrateurs = computed(() =>
     this.detail()?.participants.filter((membre) => membre.roleParticipant === 'ADMINISTRATEUR').length ?? 0);
@@ -257,8 +269,7 @@ export class DetailsGroupe {
   }
 
   private messageErreur(erreur: unknown): string {
-    return erreur instanceof HttpErrorResponse && erreur.error?.message
-      ? erreur.error.message : 'L’opération a échoué. Réessayez.';
+    return messageServeur(erreur, 'L’opération a échoué. Réessayez.');
   }
 
   private reinitialiser(): void {

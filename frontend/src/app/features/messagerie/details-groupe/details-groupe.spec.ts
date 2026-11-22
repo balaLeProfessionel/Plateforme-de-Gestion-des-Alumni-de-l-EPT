@@ -15,7 +15,7 @@ const membre = (id: string, prenom: string, roleParticipant: RoleParticipant): M
 });
 const groupe = (monRole: RoleParticipant, participants: MembreConversation[]): ConversationDetail => ({
   id: 'g-1', type: 'GROUPE', nom: 'Club IA', description: 'Veille et projets', urlPhoto: null, monRole,
-  ecriture: 'OUVERTE', creeLe: '2026-11-14T09:00:00Z', participants,
+  ecriture: 'OUVERTE', creeLe: '2026-11-14T09:00:00Z', categorie: null, acces: null, participants,
 });
 
 describe('DetailsGroupe', () => {
@@ -104,6 +104,26 @@ describe('DetailsGroupe', () => {
     expect(requete.request.method).toBe('PATCH');
     expect(requete.request.body).toEqual({ nom: 'Club IA', description: 'Projets du jeudi' });
     requete.flush({ ...groupe('ADMINISTRATEUR', [membre(MOI, 'Awa', 'ADMINISTRATEUR')]), description: 'Projets du jeudi' });
+  });
+
+  it('laisse quitter sa communauté de promo, en disant comment y revenir', async () => {
+    const promo = { ...groupe('MEMBRE', [membre(MOI, 'Awa', 'MEMBRE')]), nom: 'Promo 2015', categorie: 'PROMO' as const };
+    const racine = ouvrir(promo);
+    const quitte = vi.fn();
+    fixture.componentInstance.quitte.subscribe(quitte);
+
+    expect(racine.querySelector('.note-automatique')).not.toBeNull();
+    bouton(racine, 'Quitter la communauté')?.click();
+    fixture.detectChanges();
+    expect(racine.textContent).toContain('Votre profil ne vous y remettra plus');
+    expect(racine.textContent).toContain('depuis « À découvrir »');
+    bouton(racine, 'Quitter la communauté')?.click();
+
+    const requete = http.expectOne(`/api/messagerie/conversations/g-1/participants/${MOI}`);
+    expect(requete.request.method).toBe('DELETE');
+    requete.flush(null);
+    await fixture.whenStable();
+    expect(quitte).toHaveBeenCalled();
   });
 
   it('supprime le groupe après confirmation puis prévient le fil', async () => {

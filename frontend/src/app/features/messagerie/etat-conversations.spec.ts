@@ -12,7 +12,7 @@ import { EtatConversations, TAILLE_PAGE_CONVERSATIONS } from './etat-conversatio
 
 const conversation = (id: string): Conversation => ({
   id, type: 'GROUPE', nom: id, interlocuteur: null, urlPhoto: null, nombreParticipants: 2, monRole: 'MEMBRE',
-  ecriture: 'OUVERTE', nombreNonLus: 0, dernierMessageLe: '2026-11-14T10:00:00Z', dernierMessage: null,
+  ecriture: 'OUVERTE', nombreNonLus: 0, dernierMessageLe: '2026-11-14T10:00:00Z', dernierMessage: null, categorie: null,
 });
 const page = (numero: number, ids: string[], totalPages: number, totalElements = 25): PageConversations => ({
   contenu: ids.map(conversation), page: numero, taille: TAILLE_PAGE_CONVERSATIONS, totalElements, totalPages,

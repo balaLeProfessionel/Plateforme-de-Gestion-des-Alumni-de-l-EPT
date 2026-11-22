@@ -3,6 +3,8 @@ package ept.edu.sn.alumni_backend.messagerie.entity;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.hibernate.annotations.ColumnDefault;
+
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -53,6 +55,14 @@ public class Message {
     private Instant envoyeLe;
 
     private Instant supprimeLe;
+
+    /**
+     * Message écrit par la plateforme (« … a rejoint la communauté ») : l'auteur est la personne concernée. Il ne
+     * compte pas dans les non-lus et ne remonte pas la conversation en tête de liste.
+     */
+    @ColumnDefault("false")
+    @Column(nullable = false)
+    private boolean systeme;
 
     /** Absente pour un message sans fichier, et effacée avec le message. */
     @Embedded

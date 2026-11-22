@@ -37,4 +37,23 @@ public interface ParticipantRepository extends JpaRepository<Participant, UUID> 
     /** Les personnes à prévenir en temps réel d'un changement dans la conversation. */
     @Query("select participant.utilisateur.id from Participant participant where participant.conversation.id = :conversationId")
     Set<UUID> findUtilisateurIds(@Param("conversationId") UUID conversationId);
+
+    /** Nombre de membres de chaque communauté demandée, en une requête. */
+    @Query("""
+        select participant.conversation.id as conversationId, count(participant.id) as nombre
+        from Participant participant where participant.conversation.id in :conversationIds
+        group by participant.conversation.id
+        """)
+    List<MessageRepository.NombreParConversation> compterParConversation(
+        @Param("conversationIds") Collection<UUID> conversationIds);
+
+    /** Membres d'une promo donnée dans chaque communauté demandée (« 23 de votre promo »). */
+    @Query("""
+        select participant.conversation.id as conversationId, count(participant.id) as nombre
+        from Participant participant
+        where participant.conversation.id in :conversationIds and participant.utilisateur.anneeSortie = :anneeSortie
+        group by participant.conversation.id
+        """)
+    List<MessageRepository.NombreParConversation> compterDeLaPromoParConversation(
+        @Param("conversationIds") Collection<UUID> conversationIds, @Param("anneeSortie") int anneeSortie);
 }

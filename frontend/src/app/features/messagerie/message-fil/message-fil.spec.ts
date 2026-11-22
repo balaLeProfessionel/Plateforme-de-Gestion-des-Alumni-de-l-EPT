@@ -14,7 +14,7 @@ registerLocaleData(localeFr);
 
 const monMessage: Message = {
   id: 'm-1', auteurId: 'u-moi', auteurNom: 'Awa Diop', auteurPhoto: null, contenu: 'Bonjour',
-  supprime: false, envoyeLe: '2026-11-14T09:30:00Z', deMoi: true, pieceJointe: null,
+  supprime: false, envoyeLe: '2026-11-14T09:30:00Z', deMoi: true, pieceJointe: null, systeme: false,
 };
 
 describe('MessageFil', () => {

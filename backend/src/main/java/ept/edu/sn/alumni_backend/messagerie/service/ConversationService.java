@@ -86,8 +86,15 @@ public class ConversationService {
         Page<Conversation> resultat = recherche == null || recherche.isBlank()
             ? conversations.findDeParticipant(moi, pagination)
             : conversations.rechercherDeParticipant(moi, motifRecherche(recherche), pagination);
-        List<UUID> ids = resultat.getContent().stream().map(Conversation::getId).toList();
-        if (ids.isEmpty()) return PageResponse.depuis(resultat.map(c -> (ConversationResponse) null));
+        Map<UUID, ConversationResponse> lignes = versLignes(resultat.getContent(), moi).stream()
+            .collect(Collectors.toMap(ConversationResponse::id, Function.identity()));
+        return PageResponse.depuis(resultat.map(conversation -> lignes.get(conversation.getId())));
+    }
+
+    /** Lignes de liste d'un lot de conversations, en quelques requêtes groupées (jamais une par conversation). */
+    List<ConversationResponse> versLignes(List<Conversation> lot, UUID moi) {
+        List<UUID> ids = lot.stream().map(Conversation::getId).toList();
+        if (ids.isEmpty()) return List.of();
 
         Map<UUID, List<Participant>> membres = participants.findByConversationIdInOrderByRejointLeAsc(ids).stream()
             .collect(Collectors.groupingBy(p -> p.getConversation().getId()));
@@ -99,9 +106,9 @@ public class ConversationService {
                 MessageRepository.NombreParConversation::getNombre));
         List<BlocageRepository.Paire> paires = blocages.findPairesImpliquant(moi);
 
-        return PageResponse.depuis(resultat.map(conversation -> versLigne(conversation, moi,
+        return lot.stream().map(conversation -> versLigne(conversation, moi,
             membres.getOrDefault(conversation.getId(), List.of()), derniers.get(conversation.getId()),
-            nonLus.getOrDefault(conversation.getId(), 0L), paires)));
+            nonLus.getOrDefault(conversation.getId(), 0L), paires)).toList();
     }
 
     /**
@@ -287,8 +294,14 @@ public class ConversationService {
     @Transactional
     public void retirerParticipant(UUID conversationId, UUID moi, UUID utilisateurId) {
         Participant demandeur = acces.chargerParticipant(conversationId, moi);
-        acces.exigerGroupe(demandeur.getConversation(), "On ne quitte pas une conversation directe.");
-        if (!utilisateurId.equals(moi)) {
+        Conversation conversation = demandeur.getConversation();
+        acces.exigerGroupe(conversation, "On ne quitte pas une conversation directe.");
+        boolean depart = utilisateurId.equals(moi);
+        // Une communauté de promo ou de filière n'a pas d'administrateur : chacun peut seulement en partir.
+        if (!depart && conversation.estCommunauteAutomatique()) {
+            throw new SecurityException("Personne ne retire un membre d'une communauté de promo ou de filière.");
+        }
+        if (!depart) {
             acces.exigerAdministrateur(demandeur, "Seul un administrateur du groupe peut retirer un membre.");
         }
         verrouiller(conversationId);
@@ -296,10 +309,17 @@ public class ConversationService {
             .orElseThrow(() -> new MessagerieIntrouvableException("Ce membre ne fait pas partie du groupe."));
         Set<UUID> aPrevenir = participants.findUtilisateurIds(conversationId);
         participants.delete(retire);
+        if (depart && conversation.estCommunaute()) {
+            // Le départ s'affiche dans le fil, et sert de trace : la synchronisation ne remettra pas ce membre.
+            messages.save(MessagesSysteme.creer(conversation, retire.getUtilisateur(), MessagesSysteme.DEPART));
+            evenements.publishEvent(new EvenementMessagerie(aPrevenir, EvenementMessagerie.Type.MESSAGE, conversationId));
+        }
         participants.flush();
         signaler(conversationId, aPrevenir);
 
-        if (participants.countByConversationIdAndRole(conversationId, RoleParticipant.ADMINISTRATEUR) == 0) {
+        // Une communauté automatique reste sans administrateur ; un groupe en garde toujours un.
+        if (!conversation.estCommunauteAutomatique()
+            && participants.countByConversationIdAndRole(conversationId, RoleParticipant.ADMINISTRATEUR) == 0) {
             participants.findByConversationIdOrderByRejointLeAsc(conversationId).stream().findFirst()
                 .ifPresent(plusAncien -> plusAncien.setRole(RoleParticipant.ADMINISTRATEUR));
         }
@@ -350,7 +370,7 @@ public class ConversationService {
             .orElseThrow(() -> new MessagerieIntrouvableException(AccesConversation.CONVERSATION_INTROUVABLE));
     }
 
-    private ConversationResponse ligne(Conversation conversation, UUID moi) {
+    ConversationResponse ligne(Conversation conversation, UUID moi) {
         UUID id = conversation.getId();
         List<Participant> membres = participants.findByConversationIdOrderByRejointLeAsc(id);
         Message dernier = messages.findDerniersMessages(List.of(id)).stream()
@@ -373,10 +393,11 @@ public class ConversationService {
             : (autre == null ? "Conversation" : autre.nomAffiche());
         return new ConversationResponse(conversation.getId(), conversation.getType(), nom, autre, conversation.getUrlPhoto(),
             membres.size(), monRole, ecriture(conversation, moi, membres, paires),
-            dernier == null ? null : mapper.versApercu(dernier), nonLus, conversation.getDernierMessageLe());
+            dernier == null ? null : mapper.versApercu(dernier), nonLus, conversation.getDernierMessageLe(),
+            conversation.getCategorie());
     }
 
-    private ConversationDetailResponse detail(Conversation conversation, UUID moi) {
+    ConversationDetailResponse detail(Conversation conversation, UUID moi) {
         List<Participant> membres = participants.findByConversationIdOrderByRejointLeAsc(conversation.getId());
         List<MembreConversationResponse> liste = membres.stream().map(mapper::versMembre).toList();
         RoleParticipant monRole = membres.stream().filter(p -> p.getUtilisateur().getId().equals(moi))
@@ -388,6 +409,7 @@ public class ConversationService {
                 .findFirst().orElse("Conversation");
         return new ConversationDetailResponse(conversation.getId(), conversation.getType(), nom,
             conversation.getDescription(), conversation.getUrlPhoto(), monRole,
-            ecriture(conversation, moi, membres, blocages.findPairesImpliquant(moi)), conversation.getCreeLe(), liste);
+            ecriture(conversation, moi, membres, blocages.findPairesImpliquant(moi)), conversation.getCreeLe(), liste,
+            conversation.getCategorie(), conversation.getAcces());
     }
 }

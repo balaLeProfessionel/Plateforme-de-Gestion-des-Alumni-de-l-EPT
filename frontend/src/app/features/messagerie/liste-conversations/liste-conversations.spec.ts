@@ -50,9 +50,9 @@ describe('ListeConversations', () => {
 
   it('affiche chaque conversation avec son aperçu et ses non-lus', () => {
     conversations.set([{
-      id: 'c-1', type: 'GROUPE', nom: 'Promo 2018', interlocuteur: null, urlPhoto: null, nombreParticipants: 4, monRole: 'MEMBRE', ecriture: 'OUVERTE',
+      id: 'c-1', type: 'GROUPE', nom: 'Promo 2018', interlocuteur: null, urlPhoto: null, nombreParticipants: 4, monRole: 'MEMBRE', ecriture: 'OUVERTE', categorie: null,
       nombreNonLus: 3, dernierMessageLe: '2026-11-14T10:00:00Z',
-      dernierMessage: { auteurId: 'x', auteurNom: 'Awa Diop', contenu: 'On se voit samedi ?', supprime: false, envoyeLe: '2026-11-14T10:00:00Z' },
+      dernierMessage: { auteurId: 'x', auteurNom: 'Awa Diop', contenu: 'On se voit samedi ?', supprime: false, envoyeLe: '2026-11-14T10:00:00Z', systeme: false },
     }]);
     const racine = rendu();
     const lien = racine.querySelector('a[href="/messagerie/c-1"]') as HTMLAnchorElement;
@@ -86,7 +86,7 @@ describe('ListeConversations', () => {
 
   const conversation = (id: string, nom: string): Conversation => ({
     id, type: 'GROUPE', nom, interlocuteur: null, urlPhoto: null, nombreParticipants: 3, monRole: 'MEMBRE',
-    ecriture: 'OUVERTE', nombreNonLus: 0, dernierMessageLe: '2026-11-14T10:00:00Z', dernierMessage: null,
+    ecriture: 'OUVERTE', nombreNonLus: 0, dernierMessageLe: '2026-11-14T10:00:00Z', dernierMessage: null, categorie: null,
   });
 
   it('cherche une conversation par son nom après une courte pause de frappe', async () => {

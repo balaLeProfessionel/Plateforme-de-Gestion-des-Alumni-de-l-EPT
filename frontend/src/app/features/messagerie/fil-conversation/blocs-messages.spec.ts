@@ -6,7 +6,7 @@ import { fusionnerMessages, libelleJour, lignesDuFil } from './blocs-messages';
 registerLocaleData(localeFr);
 
 const message = (id: string, envoyeLe: string, auteurId = 'a', deMoi = false): Message => ({
-  id, auteurId, auteurNom: 'Awa Diop', auteurPhoto: null, contenu: id, supprime: false, envoyeLe, deMoi, pieceJointe: null,
+  id, auteurId, auteurNom: 'Awa Diop', auteurPhoto: null, contenu: id, supprime: false, envoyeLe, deMoi, pieceJointe: null, systeme: false,
 });
 
 describe('Blocs du fil de messages', () => {
@@ -60,5 +60,16 @@ describe('Blocs du fil de messages', () => {
       ['m0', 1], ['m1', 3], ['m4', 1], ['m5', 0], ['m6', 1],
     ]);
     expect(lignes.map((l) => l.jour)).toEqual(['Hier', 'Aujourd’hui', null, null, null]);
+  });
+
+  it('ne colle pas une bulle à un message d’arrivée dans une communauté, ni l’inverse', () => {
+    const arrivee: Message = { ...message('m2', new Date(2026, 10, 14, 9, 1).toISOString()), systeme: true };
+    const lignes = lignesDuFil([
+      message('m1', new Date(2026, 10, 14, 9, 0).toISOString()),
+      arrivee,
+      message('m3', new Date(2026, 10, 14, 9, 2).toISOString()),
+    ], maintenant);
+
+    expect(lignes.map((l) => l.suite)).toEqual([false, false, false]);
   });
 });

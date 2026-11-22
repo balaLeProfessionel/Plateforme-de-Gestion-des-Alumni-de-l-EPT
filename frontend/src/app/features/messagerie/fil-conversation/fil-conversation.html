@@ -19,7 +19,7 @@
           <app-avatar-membre [urlPhoto]="autre.urlPhoto" [prenom]="autre.prenom" [nom]="autre.nom"
             [roleMembre]="autre.role" [taille]="2.5" />
         } @else {
-          <app-avatar-groupe [urlPhoto]="detail.urlPhoto" [nom]="detail.nom" [taille]="2.5" />
+          <app-avatar-groupe [urlPhoto]="detail.urlPhoto" [nom]="detail.nom" [taille]="2.5" [icone]="iconeCommunaute()" />
         }
         <div class="titre">
           <h2 id="titre-fil">
@@ -27,7 +27,7 @@
               <a [routerLink]="lien" title="Voir le profil">{{ detail.nom }}</a>
             } @else if (estGroupe()) {
               <!-- Comme dans les messageries : toucher le nom du groupe ouvre ses infos. -->
-              <button type="button" class="nom-groupe" aria-haspopup="dialog" title="Infos du groupe"
+              <button type="button" class="nom-groupe" aria-haspopup="dialog" [title]="libelleInfos()"
                 (click)="ouvrirDetails()">{{ detail.nom }}</button>
             } @else {
               {{ detail.nom }}
@@ -48,8 +48,15 @@
                 @if (estGroupe()) {
                   <li>
                     <button type="button" aria-haspopup="dialog" (click)="ouvrirDetails()">
-                      <i class="pi pi-info-circle" aria-hidden="true"></i>Infos du groupe
+                      <i class="pi pi-info-circle" aria-hidden="true"></i>{{ libelleInfos() }}
                     </button>
+                  </li>
+                }
+                @if (detail.categorie) {
+                  <li>
+                    <a [routerLink]="['/messagerie', detail.id, 'membres']">
+                      <i class="pi pi-users" aria-hidden="true"></i>Annuaire des membres
+                    </a>
                   </li>
                 }
                 @if (lienProfil(); as lien) {
@@ -85,18 +92,28 @@
             @if (erreurAnciens()) { <p class="erreur" role="alert">{{ erreurAnciens() }}</p> }
           </div>
         }
+        <!-- Communauté où personne n’a encore écrit (au plus des arrivées) : on présente le lieu avant le fil. -->
+        @if (accueilCommunaute(); as communaute) {
+          <app-accueil-communaute [detail]="communaute" />
+        }
         @if (lignes().length === 0) {
+          @if (!accueilCommunaute()) {
           <div class="etat vide">
             <i class="pi pi-comments" aria-hidden="true"></i>
             <p>Aucun message pour l’instant. Écrivez le premier.</p>
           </div>
+          }
         } @else {
           <ol class="messages">
             @for (ligne of lignes(); track ligne.message.id) {
               <li>
                 @if (ligne.jour) { <h3 class="jour"><span>{{ ligne.jour }}</span></h3> }
-                <app-message-fil [message]="ligne.message" [conversationId]="conversationId()" [groupe]="estGroupe()"
-                  [suite]="ligne.suite" [supprimes]="ligne.supprimes" (supprime)="messageSupprime($event)" />
+                @if (ligne.message.systeme) {
+                  <app-message-systeme [message]="ligne.message" />
+                } @else {
+                  <app-message-fil [message]="ligne.message" [conversationId]="conversationId()" [groupe]="estGroupe()"
+                    [suite]="ligne.suite" [supprimes]="ligne.supprimes" (supprime)="messageSupprime($event)" />
+                }
               </li>
             }
           </ol>

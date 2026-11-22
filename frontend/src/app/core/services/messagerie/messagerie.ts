@@ -1,9 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import {
-  Conversation, ConversationDetail, MembreBloque, Message, ModificationGroupe, PageConversations, PageMessages,
+  Communautes, Conversation, ConversationDetail, MembreBloque, Message, ModificationGroupe, PageConversations, PageMessages,
   RoleParticipant,
 } from '../models/messagerie.model';
+import { PageAnnuaire } from '../models/annuaire.model';
 
 const API = '/api/messagerie';
 
@@ -16,6 +17,22 @@ export class MessagerieService {
     let params = new HttpParams().set('page', page).set('taille', taille);
     if (recherche.trim()) params = params.set('recherche', recherche.trim());
     return this.http.get<PageConversations>(`${API}/conversations`, { params });
+  }
+
+  /** Mes communautés (promo, filière… : le serveur m’y range d’abord) et celles que je peux rejoindre. */
+  listerCommunautes() {
+    return this.http.get<Communautes>(`${API}/communautes`);
+  }
+
+  /** Annuaire d’une communauté dont je fais partie : ses membres, triés par nom, au format de l’annuaire. */
+  listerMembresCommunaute(id: string, page = 0, recherche = '', taille = 24) {
+    let params = new HttpParams().set('page', page).set('taille', taille);
+    if (recherche.trim()) params = params.set('recherche', recherche.trim());
+    return this.http.get<PageAnnuaire>(`${API}/communautes/${encodeURIComponent(id)}/membres`, { params });
+  }
+
+  rejoindreCommunaute(id: string) {
+    return this.http.post<ConversationDetail>(`${API}/communautes/${encodeURIComponent(id)}/rejoindre`, null);
   }
 
   /** Renvoie la conversation existante avec ce membre, ou la crée. */

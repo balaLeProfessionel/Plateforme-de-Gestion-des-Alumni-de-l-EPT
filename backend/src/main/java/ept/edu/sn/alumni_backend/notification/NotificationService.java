@@ -74,6 +74,12 @@ public class NotificationService {
         notificationRepository.toutMarquerLu(destinataireId);
     }
 
+    /** Ce que la notification annonçait a été vu ailleurs (une conversation lue) : elle n'est plus à lire. */
+    @Transactional
+    public void marquerLuesVers(UUID destinataireId, TypeNotification type, String lien) {
+        notificationRepository.marquerLuesVers(destinataireId, type, lien);
+    }
+
     @Transactional
     public int supprimerAnciennes() {
         return notificationRepository.supprimerAnterieuresA(Instant.now().minus(CONSERVATION));

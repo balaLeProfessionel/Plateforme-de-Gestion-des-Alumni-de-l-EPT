@@ -12,6 +12,8 @@ import { AuthService } from '../../../core/services/auth/auth-service';
 import { CompteurMessages } from '../../../core/services/messagerie/compteur-messages';
 import { EvenementMessagerie, FluxMessagerie } from '../../../core/services/messagerie/flux-messagerie';
 import { ConversationDetail, Message } from '../../../core/services/models/messagerie.model';
+import { NotificationService } from '../../../core/services/notifications/notifications';
+import { EtatCommunautes } from '../etat-communautes';
 import { EtatConversations } from '../etat-conversations';
 import { FilConversation } from './fil-conversation';
 
@@ -20,7 +22,7 @@ registerLocaleData(localeFr);
 const MOI = 'u-moi';
 const detailDirect: ConversationDetail = {
   id: 'c-1', type: 'DIRECTE', nom: 'Moussa Ndiaye', description: null, urlPhoto: null, monRole: 'MEMBRE',
-  ecriture: 'OUVERTE', creeLe: '2026-11-14T09:00:00Z',
+  ecriture: 'OUVERTE', creeLe: '2026-11-14T09:00:00Z', categorie: null, acces: null,
   participants: [
     { id: MOI, prenom: 'Awa', nom: 'Diop', nomAffiche: 'Awa Diop', urlPhoto: null, role: 'ALUMNI', roleParticipant: 'MEMBRE' },
     { id: 'u-2', prenom: 'Moussa', nom: 'Ndiaye', nomAffiche: 'Moussa Ndiaye', urlPhoto: null, role: 'ETUDIANT', roleParticipant: 'MEMBRE' },
@@ -28,7 +30,7 @@ const detailDirect: ConversationDetail = {
 };
 const message = (id: string, contenu: string, deMoi: boolean, envoyeLe = '2026-11-14T09:30:00Z'): Message => ({
   id, auteurId: deMoi ? MOI : 'u-2', auteurNom: deMoi ? 'Awa Diop' : 'Moussa Ndiaye', auteurPhoto: null,
-  contenu, supprime: false, envoyeLe, deMoi, pieceJointe: null,
+  contenu, supprime: false, envoyeLe, deMoi, pieceJointe: null, systeme: false,
 });
 
 describe('FilConversation', () => {
@@ -39,6 +41,8 @@ describe('FilConversation', () => {
   const compteur = { actualiser: vi.fn() };
   let signaux: Subject<EvenementMessagerie>;
   const connecte = signal(true);
+  const communautes = { marquerLue: vi.fn(), actualiser: vi.fn() };
+  const cloche = { actualiser: vi.fn() };
 
   beforeEach(async () => {
     connecte.set(true);
@@ -54,6 +58,8 @@ describe('FilConversation', () => {
         { provide: LOCALE_ID, useValue: 'fr' },
         { provide: ActivatedRoute, useValue: { paramMap: parametres } },
         { provide: EtatConversations, useValue: etat },
+        { provide: EtatCommunautes, useValue: communautes },
+        { provide: NotificationService, useValue: cloche },
         { provide: CompteurMessages, useValue: compteur },
         { provide: FluxMessagerie, useValue: { evenements: signaux, connecte } },
         { provide: AuthService, useValue: { utilisateur: signal({ id: MOI }) } },
@@ -66,12 +72,60 @@ describe('FilConversation', () => {
 
   afterEach(() => http.verify());
 
+  it('affiche l’arrivée dans une communauté comme une pastille centrée, et le nombre de membres', async () => {
+    const promo: ConversationDetail = { ...detailDirect, type: 'GROUPE', nom: 'Promo 2015', categorie: 'PROMO', acces: 'OUVERTE' };
+    await charger([
+      message('m-1', 'Bienvenue', false),
+      { ...message('m-2', 'a rejoint la communauté.', false, '2026-11-14T09:31:00Z'), systeme: true },
+    ], false, promo);
+    const racine = fixture.nativeElement as HTMLElement;
+
+    expect(racine.querySelector('.titre p')?.textContent).toBe('Communauté de promo · 2 membres');
+    expect(racine.querySelector('.entete-fil app-avatar-groupe .pi-graduation-cap')).not.toBeNull();
+    // Un membre a écrit : plus d’accueil, le fil suffit.
+    expect(racine.querySelector('app-accueil-communaute')).toBeNull();
+    (racine.querySelector('.bouton-plus') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(racine.querySelector('#menu-fil a[href="/messagerie/c-1/membres"]')?.textContent).toContain('Annuaire des membres');
+    expect(racine.querySelectorAll('app-message-fil')).toHaveLength(1);
+    expect(racine.querySelector('app-message-systeme')?.textContent).toContain('Moussa Ndiaye a rejoint la communauté.');
+    http.expectOne('/api/messagerie/conversations/c-1/lu').flush(null);
+    expect(communautes.marquerLue).toHaveBeenCalledWith('c-1');
+    expect(cloche.actualiser).toHaveBeenCalled();
+  });
+
   async function charger(messages: Message[], plusAnciens = false, detail = detailDirect): Promise<void> {
     http.expectOne('/api/messagerie/conversations/c-1').flush(detail);
     http.expectOne((req) => req.url === '/api/messagerie/conversations/c-1/messages').flush({ messages, plusAnciens });
     await fixture.whenStable();
     fixture.detectChanges();
   }
+
+  it('présente une communauté où personne n’a écrit : pourquoi j’en fais partie, au-dessus des arrivées', async () => {
+    const promo: ConversationDetail = {
+      ...detailDirect, type: 'GROUPE', nom: 'Promo 2015', categorie: 'PROMO', acces: 'OUVERTE', description: 'Les X2015.',
+    };
+    await charger([{ ...message('m-1', 'a rejoint la communauté.', false), systeme: true }], false, promo);
+    http.match('/api/messagerie/conversations/c-1/lu').forEach((requete) => requete.flush(null));
+    const accueil = (fixture.nativeElement as HTMLElement).querySelector('app-accueil-communaute') as HTMLElement;
+
+    expect(accueil.querySelector('h3')?.textContent).toBe('Bienvenue dans Promo 2015');
+    expect(accueil.querySelector('.nature')?.textContent).toBe('Communauté de promo');
+    expect(accueil.querySelector('.description')?.textContent).toBe('Les X2015.');
+    expect(accueil.querySelector('.entree')?.textContent).toContain('par votre promo, renseignée dans votre profil');
+    expect(accueil.textContent).toContain('2 membres');
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-message-systeme')).not.toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.etat.vide')).toBeNull();
+  });
+
+  it('garde l’état vide habituel pour un groupe privé sans message', async () => {
+    await charger([], false, { ...detailDirect, type: 'GROUPE', nom: 'Projet' });
+    http.match('/api/messagerie/conversations/c-1/lu').forEach((requete) => requete.flush(null));
+    const racine = fixture.nativeElement as HTMLElement;
+
+    expect(racine.querySelector('app-accueil-communaute')).toBeNull();
+    expect(racine.querySelector('.etat.vide')?.textContent).toContain('Aucun message pour l’instant');
+  });
 
   it('affiche l’interlocuteur et ses messages, puis marque la conversation comme lue', async () => {
     await charger([message('m1', 'Bonjour Awa', false), message('m2', 'Bonjour Moussa', true, '2026-11-14T09:31:00Z')]);
