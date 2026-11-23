@@ -45,4 +45,11 @@ public interface ConventionPartenariatRepository extends JpaRepository<Conventio
           and c.alerteExpirationEnvoyee = false and c.dateFin >= :aujourdhui and c.dateFin <= :limite
         """)
     List<ConventionPartenariat> aAlerter(@Param("aujourdhui") LocalDate aujourdhui, @Param("limite") LocalDate limite);
+
+    /** Résiliations dont le préavis est écoulé. */
+    @Query("""
+        select c from ConventionPartenariat c join fetch c.organisme
+        where c.statut = ept.edu.sn.alumni_backend.partenariat.StatutConvention.ACTIVE and c.dateEffetResiliation <= :aujourdhui
+        """)
+    List<ConventionPartenariat> resiliationsEchues(@Param("aujourdhui") LocalDate aujourdhui);
 }

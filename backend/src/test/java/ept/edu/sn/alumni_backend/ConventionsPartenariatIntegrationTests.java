@@ -148,16 +148,49 @@ class ConventionsPartenariatIntegrationTests {
 
         envoyer(patch(ADMIN + "/{id}/resilier", id), chef, "{\"motif\":\"\"}").andExpect(status().isBadRequest());
         envoyer(patch(ADMIN + "/{id}/resilier", id), chef, "{\"motif\":\"Fin de la coopération\"}")
-            .andExpect(jsonPath("$.statut").value("RESILIEE")).andExpect(jsonPath("$.motifDecision").value("Fin de la coopération"));
+            .andExpect(jsonPath("$.statut").value("ACTIVE")).andExpect(jsonPath("$.motifDecision").value("Fin de la coopération"))
+            .andExpect(jsonPath("$.dateEffetResiliation").value(aujourdhui().plusMonths(3).toString()))
+            .andExpect(jsonPath("$.resiliationAnnulable").value(true));
+        mockMvc.perform(authentifie(get(ORGANISME + "/{id}", id), organisme)).andExpect(jsonPath("$.resiliationAnnulable").value(false))
+            .andExpect(jsonPath("$.resiliable").value(false));
+        mockMvc.perform(authentifie(patch(ORGANISME + "/{id}/annuler-resiliation", id), organisme)).andExpect(status().isConflict());
+        ConventionPartenariat signee = conventionRepository.findById(UUID.fromString(id)).orElseThrow();
+        signee.setDateEffetResiliation(aujourdhui());
+        conventionRepository.saveAndFlush(signee);
+        conventionsService.actualiserEcheances();
+        mockMvc.perform(authentifie(get(ORGANISME + "/{id}", id), organisme)).andExpect(jsonPath("$.statut").value("RESILIEE"));
         mockMvc.perform(authentifie(patch(ADMIN + "/{id}/examiner", id), chef)).andExpect(status().isConflict());
         envoyer(put(ADMIN + "/{id}", id), chef, modification(null, null)).andExpect(status().isConflict());
 
         mockMvc.perform(authentifie(get(ORGANISME + "/{id}/historique", id), organisme))
             .andExpect(jsonPath("$[*].action", hasItem("DEMANDE")))
             .andExpect(jsonPath("$[*].action", hasItem("ACTIVATION")))
-            .andExpect(jsonPath("$[*].motif", hasItem("Fin de la coopération")));
+            .andExpect(jsonPath("$[*].motif", hasItem("Fin de la coopération")))
+            .andExpect(jsonPath("$[*].action", hasItem("RESILIATION_EFFECTIVE")));
+        assertThat(notificationRepository.findAll()).anyMatch(n -> n.getDestinataire().getId().equals(organisme.getId())
+            && n.getTitre().equals("Résiliation de la convention") && n.getMessage().contains("préavis de 3 mois"));
         assertThat(notificationRepository.findAll()).anyMatch(n -> n.getDestinataire().getId().equals(organisme.getId())
             && n.getTitre().equals("Convention de partenariat résiliée"));
+    }
+
+    @Test
+    void c08_lOrganismeResilieSaConventionPuisYRenonce() throws Exception {
+        String id = conventionActive(aujourdhui().plusYears(2));
+        envoyer(patch(ORGANISME + "/{id}/resilier", id), autreOrganisme, "{\"motif\":\"Intrusion\"}").andExpect(status().isNotFound());
+        envoyer(patch(ORGANISME + "/{id}/resilier", id), organisme, "{\"motif\":\"Changement de stratégie\"}")
+            .andExpect(jsonPath("$.statut").value("ACTIVE")).andExpect(jsonPath("$.resiliationDemandeePar").value("ORGANISME"));
+        envoyer(patch(ADMIN + "/{id}/resilier", id), chef, "{\"motif\":\"Doublon\"}").andExpect(status().isConflict());
+        mockMvc.perform(authentifie(patch(ADMIN + "/{id}/annuler-resiliation", id), chef)).andExpect(status().isConflict());
+        assertThat(notificationRepository.findAll()).anyMatch(n -> n.getDestinataire().getId().equals(chef.getId())
+            && n.getTitre().equals("Résiliation d'une convention"));
+
+        mockMvc.perform(authentifie(patch(ORGANISME + "/{id}/annuler-resiliation", id), organisme))
+            .andExpect(jsonPath("$.dateEffetResiliation").doesNotExist()).andExpect(jsonPath("$.resiliable").value(true));
+        assertThat(notificationRepository.findAll()).anyMatch(n -> n.getDestinataire().getId().equals(chef.getId())
+            && n.getTitre().equals("Résiliation annulée"));
+
+        String courte = conventionActiveAutre(aujourdhui().plusMonths(2));
+        envoyer(patch(ORGANISME + "/{id}/resilier", courte), autreOrganisme, "{\"motif\":\"Fin\"}").andExpect(status().isConflict());
     }
 
     @Test

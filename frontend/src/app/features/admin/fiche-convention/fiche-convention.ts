@@ -6,13 +6,14 @@ import { ConventionsPartenariatService } from '../../../core/services/partenaria
 import { HistoriqueConventionListe } from '../../partenariats/historique-convention/historique-convention';
 import { InfosConvention } from '../../partenariats/infos-convention/infos-convention';
 import { PiecesConvention } from '../../partenariats/pieces-convention/pieces-convention';
+import { ResiliationConvention } from '../../partenariats/resiliation-convention/resiliation-convention';
 import { ActionsConvention } from '../actions-convention/actions-convention';
 import { PageAdmin } from '../page-admin/page-admin';
 
 /** Fiche d’une convention pour le service des Relations extérieures : décisions, documents et historique. */
 @Component({
   selector: 'app-fiche-convention',
-  imports: [PageAdmin, InfosConvention, PiecesConvention, HistoriqueConventionListe, ActionsConvention],
+  imports: [PageAdmin, InfosConvention, PiecesConvention, HistoriqueConventionListe, ActionsConvention, ResiliationConvention],
   templateUrl: './fiche-convention.html',
   styleUrls: ['../formulaire-admin.scss', '../etats-admin.scss'],
 })

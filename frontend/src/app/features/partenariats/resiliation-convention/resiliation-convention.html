@@ -1,0 +1,29 @@
+@let c = convention();
+@if (visible()) {
+  <section class="decision" aria-labelledby="titre-resiliation-convention">
+    <h2 id="titre-resiliation-convention">Résiliation</h2>
+    @if (c.resiliationAnnulable) {
+      <p>Vous avez signalé la résiliation le {{ c.resiliationDemandeeLe | date: 'd MMMM y' }}. Elle prendra effet le
+        {{ c.dateEffetResiliation | date: 'd MMMM y' }} ; vous pouvez y renoncer d’ici là.</p>
+      <div class="boutons">
+        <button type="button" class="bouton" [disabled]="enCours()" (click)="annuler()">Annuler la résiliation</button>
+      </div>
+    } @else if (!ouverte()) {
+      <p>Chaque partie peut résilier la convention avec un préavis de {{ preavis }} mois.</p>
+      <div class="boutons"><button type="button" class="bouton" (click)="ouvrir()">Résilier…</button></div>
+    } @else {
+      <div class="confirmation" role="group" aria-label="Résilier la convention">
+        <p>La résiliation prend effet {{ preavis }} mois après ce signalement ; d’ici là, la convention reste active.</p>
+        <div class="champ">
+          <label for="motif-resiliation-convention">Motif de la résiliation, communiqué à l’autre partie</label>
+          <textarea id="motif-resiliation-convention" rows="3" maxlength="500" [value]="motif()" (input)="saisirMotif($event)"></textarea>
+        </div>
+        <div class="boutons">
+          <button type="button" class="bouton principal" [disabled]="enCours()" (click)="signaler()">Signaler la résiliation</button>
+          <button type="button" class="bouton" (click)="ouverte.set(false)">Ne rien changer</button>
+        </div>
+      </div>
+    }
+    @if (erreur(); as e) { <p class="erreur" role="alert">{{ e }}</p> }
+  </section>
+}

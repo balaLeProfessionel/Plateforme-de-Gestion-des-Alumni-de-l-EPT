@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import ept.edu.sn.alumni_backend.admin.dto.MotifRequest;
 import ept.edu.sn.alumni_backend.partenariat.dto.ConventionResponse;
 import ept.edu.sn.alumni_backend.partenariat.dto.DemandeConventionRequest;
 import ept.edu.sn.alumni_backend.partenariat.dto.HistoriqueConventionResponse;
@@ -64,6 +65,19 @@ public class ConventionPartenariatController {
     @PatchMapping("/{id}/annuler")
     public ResponseEntity<ConventionResponse> annuler(@PathVariable UUID id, @AuthenticationPrincipal UtilisateurPrincipal principal) {
         return ResponseEntity.ok(conventionsService.annuler(id, principal));
+    }
+
+    /** Résiliation avec préavis de trois mois ; l'école en reçoit le motif. */
+    @PatchMapping("/{id}/resilier")
+    public ResponseEntity<ConventionResponse> resilier(@PathVariable UUID id, @Valid @RequestBody MotifRequest request,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(conventionsService.resilier(id, request.motif(), principal));
+    }
+
+    /** La partie qui a signalé la résiliation y renonce avant sa date d'effet. */
+    @PatchMapping("/{id}/annuler-resiliation")
+    public ResponseEntity<ConventionResponse> annulerResiliation(@PathVariable UUID id, @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(conventionsService.annulerResiliation(id, principal));
     }
 
     @GetMapping("/{id}/historique")

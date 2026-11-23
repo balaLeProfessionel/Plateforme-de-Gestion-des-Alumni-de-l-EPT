@@ -4,7 +4,8 @@ export type StatutConvention = 'DEMANDEE' | 'EN_EXAMEN' | 'EN_NEGOCIATION' | 'AC
 export type OrigineConvention = 'ORGANISME' | 'ECOLE';
 export type ActionConvention =
   | 'DEMANDE' | 'MODIFICATION_DEMANDE' | 'ANNULATION' | 'SAISIE' | 'MODIFICATION' | 'EXAMEN' | 'NEGOCIATION'
-  | 'ACTIVATION' | 'REFUS' | 'RESILIATION' | 'EXPIRATION' | 'AJOUT_PIECE' | 'RETRAIT_PIECE';
+  | 'ACTIVATION' | 'REFUS' | 'RESILIATION' | 'ANNULATION_RESILIATION' | 'RESILIATION_EFFECTIVE' | 'EXPIRATION'
+  | 'AJOUT_PIECE' | 'RETRAIT_PIECE';
 
 export interface PieceConvention {
   id: string;
@@ -32,6 +33,14 @@ export interface Convention {
   joursRestants: number | null;
   expireBientot: boolean;
   motifDecision: string | null;
+  /** Résiliation signalée par l’une des parties : la convention reste active jusqu’à `dateEffetResiliation`. */
+  resiliationDemandeePar: OrigineConvention | null;
+  resiliationDemandeeLe: string | null;
+  dateEffetResiliation: string | null;
+  /** Active, sans résiliation en cours : la personne connectée peut la signaler. */
+  resiliable: boolean;
+  /** La personne connectée a signalé la résiliation et peut y renoncer avant la date d’effet. */
+  resiliationAnnulable: boolean;
   creeeLe: string;
   modifieeLe: string;
   pieces: PieceConvention[];
@@ -101,7 +110,9 @@ export const LIBELLES_ACTION_CONVENTION: Record<ActionConvention, string> = {
   NEGOCIATION: 'Passage en négociation',
   ACTIVATION: 'Signature',
   REFUS: 'Refus',
-  RESILIATION: 'Résiliation',
+  RESILIATION: 'Résiliation signalée',
+  ANNULATION_RESILIATION: 'Résiliation annulée',
+  RESILIATION_EFFECTIVE: 'Résiliation effective',
   EXPIRATION: 'Expiration',
   AJOUT_PIECE: 'Document ajouté',
   RETRAIT_PIECE: 'Document retiré',
@@ -138,7 +149,8 @@ export function etapesConvention(c: Pick<Convention, 'statut' | 'origine'>): Eta
 export type TypeAccord = 'STAGE' | 'MOBILITE';
 export type StatutAccord = 'PROPOSE' | 'REFUSE' | 'RETIRE' | 'A_VENIR' | 'ACTIF' | 'TERMINE' | 'RESILIE';
 export type ActionAccord =
-  | 'PROPOSITION' | 'MODIFICATION' | 'RETRAIT' | 'ACCEPTATION' | 'REFUS' | 'DEBUT' | 'FIN' | 'RESILIATION' | 'RESILIATION_EFFECTIVE'
+  | 'PROPOSITION' | 'MODIFICATION' | 'RETRAIT' | 'ACCEPTATION' | 'REFUS' | 'DEBUT' | 'FIN' | 'RESILIATION' | 'ANNULATION_RESILIATION'
+  | 'RESILIATION_EFFECTIVE'
   | 'AJOUT_PIECE' | 'RETRAIT_PIECE';
 
 export interface Accord {
@@ -168,12 +180,14 @@ export interface Accord {
   modifiable: boolean;
   /** En vigueur ou à venir, sans résiliation en cours : la personne connectée peut la signaler. */
   resiliable: boolean;
+  /** La personne connectée a signalé la résiliation et peut y renoncer avant la date d’effet. */
+  resiliationAnnulable: boolean;
   creeLe: string;
   modifieLe: string;
   pieces: PieceConvention[];
 }
 
-/** Préavis de résiliation d’un accord, pour chacune des parties. */
+/** Préavis de résiliation d’une convention ou d’un accord, pour chacune des parties. */
 export const PREAVIS_RESILIATION_MOIS = 3;
 
 export interface HistoriqueAccord {
@@ -227,6 +241,7 @@ export const LIBELLES_ACTION_ACCORD: Record<ActionAccord, string> = {
   DEBUT: 'Entrée en vigueur',
   FIN: 'Fin de l’accord',
   RESILIATION: 'Résiliation signalée',
+  ANNULATION_RESILIATION: 'Résiliation annulée',
   RESILIATION_EFFECTIVE: 'Résiliation effective',
   AJOUT_PIECE: 'Document ajouté',
   RETRAIT_PIECE: 'Document retiré',

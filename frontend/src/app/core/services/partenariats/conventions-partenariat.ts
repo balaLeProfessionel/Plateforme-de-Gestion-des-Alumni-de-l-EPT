@@ -70,8 +70,14 @@ export class ConventionsPartenariatService {
     return this.http.patch<Convention>(`${API_ADMIN}/${id}/refuser`, { motif });
   }
 
-  resilier(id: string, motif: string) {
-    return this.http.patch<Convention>(`${API_ADMIN}/${id}/resilier`, { motif });
+  // ----- Résiliation, par l’une ou l’autre partie, avec préavis -----
+
+  resilier(id: string, motif: string, admin: boolean) {
+    return this.http.patch<Convention>(`${admin ? API_ADMIN : API}/${id}/resilier`, { motif });
+  }
+
+  annulerResiliation(id: string, admin: boolean) {
+    return this.http.patch<Convention>(`${admin ? API_ADMIN : API}/${id}/annuler-resiliation`, {});
   }
 
   // ----- Communs -----

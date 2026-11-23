@@ -8,6 +8,7 @@ import { FormulaireDemandeConvention } from '../formulaire-demande-convention/fo
 import { HistoriqueConventionListe } from '../historique-convention/historique-convention';
 import { InfosConvention } from '../infos-convention/infos-convention';
 import { PiecesConvention } from '../pieces-convention/pieces-convention';
+import { ResiliationConvention } from '../resiliation-convention/resiliation-convention';
 
 /**
  * Une convention vue par son organisme : avancement, documents, historique. La demande se corrige tant que l’école ne
@@ -15,7 +16,7 @@ import { PiecesConvention } from '../pieces-convention/pieces-convention';
  */
 @Component({
   selector: 'app-detail-convention',
-  imports: [FilAriane, InfosConvention, PiecesConvention, HistoriqueConventionListe, FormulaireDemandeConvention],
+  imports: [FilAriane, InfosConvention, PiecesConvention, HistoriqueConventionListe, FormulaireDemandeConvention, ResiliationConvention],
   templateUrl: './detail-convention.html',
   styleUrl: './detail-convention.scss',
 })

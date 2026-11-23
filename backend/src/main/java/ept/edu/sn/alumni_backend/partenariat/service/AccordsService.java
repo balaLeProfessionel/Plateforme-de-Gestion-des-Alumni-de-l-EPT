@@ -140,9 +140,6 @@ public class AccordsService {
         return reponse(accord, auteur, true);
     }
 
-    /** Préavis de résiliation d'un accord, pour l'une comme pour l'autre partie. */
-    public static final int PREAVIS_MOIS = 3;
-
     /**
      * Une partie signale la résiliation d'un accord en vigueur ou à venir ; l'autre est prévenue et reçoit le motif.
      * L'accord reste en vigueur jusqu'à la fin du préavis de trois mois, sauf s'il se termine avant : la résiliation
@@ -156,29 +153,40 @@ public class AccordsService {
         if (!accord.getStatut().estEnVigueur()) {
             throw new ConflitConventionException("Seul un accord en vigueur ou à venir peut être résilié.");
         }
-        if (accord.getDateEffetResiliation() != null) {
-            throw new ConflitConventionException("La résiliation de cet accord est déjà signalée : elle prend effet le "
-                + FORMAT_DATE.format(accord.getDateEffetResiliation()) + ".");
-        }
         LocalDate jour = ConventionsPartenariatService.aujourdhui();
-        LocalDate effet = jour.plusMonths(PREAVIS_MOIS);
-        if (!effet.isBefore(accord.getDateFin())) {
-            throw new ConflitConventionException("L'accord prend fin le " + FORMAT_DATE.format(accord.getDateFin())
-                + ", avant la fin du préavis de " + PREAVIS_MOIS + " mois : il s'achèvera de lui-même à cette date.");
-        }
+        LocalDate effet = PreavisResiliation.dateEffet(accord.getDateFin(), accord.getDateEffetResiliation());
         accord.setResiliationDemandeePar(partie);
         accord.setResiliationDemandeeLe(jour);
         accord.setDateEffetResiliation(effet);
         accord.setMotifDecision(motif.strip());
         consigner(accord, ActionAccord.RESILIATION, "effet le " + FORMAT_DATE.format(effet), motif.strip(), auteur);
-        String message = (partie == OrigineConvention.ORGANISME ? accord.getOrganisme().getNom() : "L'EPT") + " résilie l'accord « "
-            + accord.getObjet() + " » : " + motif.strip() + " La résiliation prend effet le " + FORMAT_DATE.format(effet) + ", après le préavis de "
-            + PREAVIS_MOIS + " mois.";
+        String message = PreavisResiliation.annonce(partie == OrigineConvention.ORGANISME ? accord.getOrganisme().getNom() : "L'EPT",
+            "l'accord « " + accord.getObjet() + " »", motif.strip(), effet);
         if (partie == OrigineConvention.ORGANISME) {
             avis.auxRelationsExterieures("Résiliation d'un accord", message, lienEcole(accord));
         } else {
             avis.aLOrganisme(accord.getOrganisme(), "Résiliation d'un accord", message, lienOrganisme(accord));
         }
+        return reponse(accord, auteur, true);
+    }
+
+    /** La partie qui a signalé la résiliation y renonce avant la date d'effet ; l'accord continue. */
+    @Transactional
+    public AccordResponse annulerResiliation(UUID id, UtilisateurPrincipal principal) {
+        Utilisateur auteur = principal.getUtilisateur();
+        AccordCollaboration accord = chargerPourGestion(id, auteur);
+        if (!peutAnnulerResiliation(accord, auteur)) {
+            throw new ConflitConventionException("Seule la partie qui a signalé la résiliation peut y renoncer, avant sa date d'effet.");
+        }
+        OrigineConvention partie = accord.getResiliationDemandeePar();
+        accord.setResiliationDemandeePar(null);
+        accord.setResiliationDemandeeLe(null);
+        accord.setDateEffetResiliation(null);
+        accord.setMotifDecision(null);
+        consigner(accord, ActionAccord.ANNULATION_RESILIATION, null, null, auteur);
+        String message = "La résiliation de l'accord « " + accord.getObjet() + " » est annulée : l'accord continue.";
+        if (partie == OrigineConvention.ORGANISME) avis.auxRelationsExterieures("Résiliation annulée", message, lienEcole(accord));
+        else avis.aLOrganisme(accord.getOrganisme(), "Résiliation annulée", message, lienOrganisme(accord));
         return reponse(accord, auteur, true);
     }
 
@@ -294,6 +302,7 @@ public class AccordsService {
             accord.getResiliationDemandeePar(), accord.getResiliationDemandeeLe(), accord.getDateEffetResiliation(),
             propose && !proposant, propose && proposant,
             accord.getStatut().estEnVigueur() && accord.getDateEffetResiliation() == null && (AccesPartenariat.estChef(lecteur) || estDeLOrganisme(accord, lecteur)),
+            peutAnnulerResiliation(accord, lecteur),
             accord.getCreeLe(), accord.getModifieLe(), pieces);
     }
 
@@ -302,6 +311,12 @@ public class AccordsService {
         StatutAccord statut = accord.getStatut();
         if (AccesPartenariat.estChef(utilisateur)) return statut == StatutAccord.PROPOSE || statut.estEnVigueur();
         return piece.isDeposeeParOrganisme() && statut == StatutAccord.PROPOSE && estDeLOrganisme(accord, utilisateur);
+    }
+
+    /** Résiliation en cours, signalée par la partie de cet utilisateur. */
+    static boolean peutAnnulerResiliation(AccordCollaboration accord, Utilisateur utilisateur) {
+        if (!accord.getStatut().estEnVigueur() || accord.getDateEffetResiliation() == null) return false;
+        return accord.getResiliationDemandeePar() == OrigineConvention.ECOLE ? AccesPartenariat.estChef(utilisateur) : estDeLOrganisme(accord, utilisateur);
     }
 
     static boolean estDeLOrganisme(AccordCollaboration accord, Utilisateur utilisateur) {

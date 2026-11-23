@@ -35,6 +35,7 @@
     @if (edition()) {
       <app-formulaire-demande-convention [initial]="c" (enregistree)="miseAJour($event, 'Votre demande est corrigée.')" (annulee)="edition.set(false)" />
     } @else {
+      <app-resiliation-convention [convention]="c" (modifiee)="miseAJour($event.convention, $event.message)" />
       <section class="carte" aria-label="Convention"><app-infos-convention [convention]="c" /></section>
     }
     <div class="carte"><app-pieces-convention [dossier]="c" [ajoutable]="enTraitement()" (modifiee)="miseAJour($event)" /></div>

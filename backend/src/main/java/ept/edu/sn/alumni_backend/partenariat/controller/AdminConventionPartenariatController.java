@@ -109,6 +109,12 @@ public class AdminConventionPartenariatController {
         return ResponseEntity.ok(conventionsService.resilier(id, request.motif(), principal));
     }
 
+    /** La partie qui a signalé la résiliation y renonce avant sa date d'effet. */
+    @PatchMapping("/{id}/annuler-resiliation")
+    public ResponseEntity<ConventionResponse> annulerResiliation(@PathVariable UUID id, @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(conventionsService.annulerResiliation(id, principal));
+    }
+
     @PostMapping("/{id}/pieces")
     public ResponseEntity<ConventionResponse> ajouterPiece(@PathVariable UUID id, @RequestParam("fichier") MultipartFile fichier,
             @AuthenticationPrincipal UtilisateurPrincipal principal) {

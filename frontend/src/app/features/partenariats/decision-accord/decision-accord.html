@@ -15,6 +15,9 @@
         @if (resiliable()) {
           <button type="button" class="bouton" (click)="ouvrir('resiliation')">Résilier…</button>
         }
+        @if (a.resiliationAnnulable) {
+          <button type="button" class="bouton" [disabled]="enCours()" (click)="annulerResiliation()">Annuler la résiliation</button>
+        }
       </div>
     } @else {
       <div class="confirmation" role="group" [attr.aria-label]="confirmation() === 'retrait' ? 'Retirer la proposition' : confirmation() === 'refus' ? 'Refuser l’accord' : 'Résilier l’accord'">

@@ -11,7 +11,10 @@ public enum ActionConvention {
     NEGOCIATION,
     ACTIVATION,
     REFUS,
+    /** Résiliation signalée : elle prend effet à la fin du préavis. */
     RESILIATION,
+    ANNULATION_RESILIATION,
+    RESILIATION_EFFECTIVE,
     EXPIRATION,
     AJOUT_PIECE,
     RETRAIT_PIECE

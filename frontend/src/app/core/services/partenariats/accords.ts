@@ -59,4 +59,8 @@ export class AccordsService {
   resilier(id: string, motif: string, admin: boolean) {
     return this.http.patch<Accord>(`${admin ? API_ADMIN : API}/${id}/resilier`, { motif });
   }
+
+  annulerResiliation(id: string, admin: boolean) {
+    return this.http.patch<Accord>(`${admin ? API_ADMIN : API}/${id}/annuler-resiliation`, {});
+  }
 }

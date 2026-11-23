@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { Convention, STATUTS_EN_COURS } from '../../../core/services/models/partenariat.model';
 import { ConventionsPartenariatService } from '../../../core/services/partenariats/conventions-partenariat';
 
-type Panneau = 'signature' | 'refus' | 'resiliation' | 'modification' | null;
+type Panneau = 'signature' | 'refus' | 'modification' | null;
 interface Saisie { objet: string; domaines: string; dateSignature: string; dateDebut: string; dateFin: string; motif: string }
 
 /** Aujourd’hui au format des champs date, à Thiès comme le serveur. */
@@ -14,7 +14,8 @@ function aujourdhui(): string {
 
 /**
  * Décisions du service des Relations extérieures sur une convention, selon son statut : examen, négociation,
- * signature (dates de validité), refus ou résiliation (motif communiqué à l’organisme), correction.
+ * signature (dates de validité), refus (motif communiqué à l’organisme), correction. La résiliation, ouverte aux deux
+ * parties, a son propre bloc (ResiliationConvention).
  */
 @Component({
   selector: 'app-actions-convention',
@@ -71,12 +72,10 @@ export class ActionsConvention {
           'La convention est active : l’organisme est partenaire de l’EPT.');
         return;
       }
-      case 'refus':
-      case 'resiliation': {
+      case 'refus': {
         const motif = s.motif.trim();
         if (!motif) { this.erreur.set('Le motif est obligatoire : il est communiqué à l’organisme.'); return; }
-        this.executer(this.panneau() === 'refus' ? this.service.refuser(id, motif) : this.service.resilier(id, motif),
-          this.panneau() === 'refus' ? 'La demande est refusée ; l’organisme reçoit le motif.' : 'La convention est résiliée ; l’organisme reçoit le motif.');
+        this.executer(this.service.refuser(id, motif), 'La demande est refusée ; l’organisme reçoit le motif.');
         return;
       }
       case 'modification': {

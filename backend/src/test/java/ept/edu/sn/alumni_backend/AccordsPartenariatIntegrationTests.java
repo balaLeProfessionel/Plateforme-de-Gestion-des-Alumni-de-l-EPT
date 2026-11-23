@@ -215,6 +215,23 @@ class AccordsPartenariatIntegrationTests {
     }
 
     @Test
+    void a08_laPartieQuiAResilieYRenonceAvantLaDateDEffet() throws Exception {
+        String id = proposer(organisme, accord(null, null, aujourdhui(), aujourdhui().plusYears(1)));
+        mockMvc.perform(authentifie(patch(ADMIN + "/{id}/accepter", id), chef)).andExpect(status().isOk());
+        envoyer(patch(ADMIN + "/{id}/resilier", id), chef, "{\"motif\":\"Fin du programme\"}").andExpect(jsonPath("$.resiliationAnnulable").value(true));
+        mockMvc.perform(authentifie(patch(ORGANISME + "/{id}/annuler-resiliation", id), organisme)).andExpect(status().isConflict());
+        mockMvc.perform(authentifie(patch(ADMIN + "/{id}/annuler-resiliation", id), chef))
+            .andExpect(jsonPath("$.statut").value("ACTIF")).andExpect(jsonPath("$.dateEffetResiliation").doesNotExist())
+            .andExpect(jsonPath("$.motifDecision").doesNotExist());
+        assertThat(notificationRepository.findAll()).anyMatch(n -> n.getDestinataire().getId().equals(organisme.getId())
+            && n.getTitre().equals("Résiliation annulée"));
+        accordsService.actualiserEcheances();
+        assertThat(accordRepository.findById(UUID.fromString(id)).orElseThrow().getStatut()).isEqualTo(StatutAccord.ACTIF);
+        mockMvc.perform(authentifie(get(ORGANISME + "/{id}/historique", id), organisme))
+            .andExpect(jsonPath("$[*].action", hasItem("ANNULATION_RESILIATION")));
+    }
+
+    @Test
     void a05_laConventionCadreEstFacultativeMaisDoitEtreActiveEtALOrganisme() throws Exception {
         String convention = conventionActive(organisme);
         String autre = conventionActive(autreOrganisme);

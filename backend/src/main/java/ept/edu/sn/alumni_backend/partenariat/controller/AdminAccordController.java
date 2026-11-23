@@ -97,6 +97,12 @@ public class AdminAccordController {
         return ResponseEntity.ok(accordsService.resilier(id, request.motif(), principal));
     }
 
+    /** La partie qui a signalé la résiliation y renonce avant sa date d'effet. */
+    @PatchMapping("/{id}/annuler-resiliation")
+    public ResponseEntity<AccordResponse> annulerResiliation(@PathVariable UUID id, @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(accordsService.annulerResiliation(id, principal));
+    }
+
     @GetMapping("/{id}/historique")
     public ResponseEntity<List<HistoriqueAccordResponse>> historique(@PathVariable UUID id, @AuthenticationPrincipal UtilisateurPrincipal principal) {
         return ResponseEntity.ok(accordsService.historique(id, principal));

@@ -262,11 +262,45 @@ public class ConventionsPartenariatService {
         return reponse(convention, principal.getUtilisateur(), true);
     }
 
+    /**
+     * L'organisme ou l'école signale la résiliation d'une convention active ; l'autre partie reçoit le motif.
+     * L'organisme reste partenaire jusqu'à la fin du préavis de trois mois.
+     */
     @Transactional
     public ConventionResponse resilier(UUID id, String motif, UtilisateurPrincipal principal) {
-        ConventionPartenariat convention = transition(id, StatutConvention.RESILIEE, ActionConvention.RESILIATION, motif, principal);
-        notifierOrganisme(convention, "Convention de partenariat résiliée", "La convention « " + convention.getObjet() + " » est résiliée : " + motif.strip());
-        return reponse(convention, principal.getUtilisateur(), true);
+        Utilisateur auteur = principal.getUtilisateur();
+        ConventionPartenariat convention = chargerPourGestion(id, auteur);
+        if (convention.getStatut() != StatutConvention.ACTIVE) {
+            throw new ConflitConventionException("Seule une convention active peut être résiliée.");
+        }
+        LocalDate effet = PreavisResiliation.dateEffet(convention.getDateFin(), convention.getDateEffetResiliation());
+        OrigineConvention partie = AccesPartenariat.estChef(auteur) ? OrigineConvention.ECOLE : OrigineConvention.ORGANISME;
+        convention.setResiliationDemandeePar(partie);
+        convention.setResiliationDemandeeLe(aujourdhui());
+        convention.setDateEffetResiliation(effet);
+        convention.setMotifDecision(motif.strip());
+        consigner(convention, ActionConvention.RESILIATION, "effet le " + FORMAT_DATE.format(effet), motif.strip(), auteur);
+        String message = PreavisResiliation.annonce(partie == OrigineConvention.ECOLE ? "L'EPT" : convention.getOrganisme().getNom(),
+            "la convention « " + convention.getObjet() + " »", motif.strip(), effet);
+        if (partie == OrigineConvention.ECOLE) notifierOrganisme(convention, "Résiliation de la convention", message);
+        else notifierChefs("Résiliation d'une convention", message, convention);
+        return reponse(convention, auteur, true);
+    }
+
+    /** La partie qui a signalé la résiliation y renonce avant la date d'effet ; la convention continue. */
+    @Transactional
+    public ConventionResponse annulerResiliation(UUID id, UtilisateurPrincipal principal) {
+        Utilisateur auteur = principal.getUtilisateur();
+        ConventionPartenariat convention = chargerPourGestion(id, auteur);
+        if (!peutAnnulerResiliation(convention, auteur)) {
+            throw new ConflitConventionException("Seule la partie qui a signalé la résiliation peut y renoncer, avant sa date d'effet.");
+        }
+        effacerResiliation(convention);
+        consigner(convention, ActionConvention.ANNULATION_RESILIATION, null, null, auteur);
+        String message = "La résiliation de la convention « " + convention.getObjet() + " » est annulée : la convention continue.";
+        if (AccesPartenariat.estChef(auteur)) notifierOrganisme(convention, "Résiliation annulée", message);
+        else notifierChefs("Résiliation annulée", message, convention);
+        return reponse(convention, auteur, true);
     }
 
     // ----- Échéances (plateforme) -----
@@ -275,6 +309,14 @@ public class ConventionsPartenariatService {
     @Transactional
     public void actualiserEcheances() {
         LocalDate jour = aujourdhui();
+        for (ConventionPartenariat convention : conventionRepository.resiliationsEchues(jour)) {
+            convention.setStatut(StatutConvention.RESILIEE);
+            consigner(convention, ActionConvention.RESILIATION_EFFECTIVE, "ACTIVE → RESILIEE", null, null);
+            String message = "La résiliation de la convention « " + convention.getObjet() + " » avec " + convention.getOrganisme().getNom()
+                + " prend effet aujourd'hui.";
+            notifierOrganisme(convention, "Convention de partenariat résiliée", message);
+            notifierChefs("Convention résiliée", message, convention);
+        }
         for (ConventionPartenariat convention : conventionRepository.echues(jour)) {
             convention.setStatut(StatutConvention.EXPIREE);
             consigner(convention, ActionConvention.EXPIRATION, "fin le " + FORMAT_DATE.format(convention.getDateFin()), null, null);
@@ -330,7 +372,10 @@ public class ConventionsPartenariatService {
         return new ConventionResponse(convention.getId(), organisme.getId(), organisme.getNom(), organisme.getLogoUrl(),
             convention.getObjet(), convention.getDomaines(), convention.getMessage(), convention.getStatut(), convention.getOrigine(),
             convention.getDateSignature(), convention.getDateDebut(), convention.getDateFin(), joursRestants, expireBientot,
-            convention.getMotifDecision(), convention.getCreeeLe(), convention.getModifieeLe(), pieces);
+            convention.getMotifDecision(), convention.getResiliationDemandeePar(), convention.getResiliationDemandeeLe(),
+            convention.getDateEffetResiliation(),
+            convention.getStatut() == StatutConvention.ACTIVE && convention.getDateEffetResiliation() == null && estPartie(convention, lecteur),
+            peutAnnulerResiliation(convention, lecteur), convention.getCreeeLe(), convention.getModifieeLe(), pieces);
     }
 
     /** Le chef retire un document tant que la convention vit ; l'organisme, ceux qu'il a déposés pendant la demande. */
@@ -338,6 +383,24 @@ public class ConventionsPartenariatService {
         StatutConvention statut = convention.getStatut();
         if (AccesPartenariat.estChef(utilisateur)) return statut.estEnCours() || statut == StatutConvention.ACTIVE;
         return piece.isDeposeeParOrganisme() && statut.estEnCours() && AccesPartenariat.estDeLOrganisme(convention, utilisateur);
+    }
+
+    static boolean estPartie(ConventionPartenariat convention, Utilisateur utilisateur) {
+        return AccesPartenariat.estChef(utilisateur) || AccesPartenariat.estDeLOrganisme(convention, utilisateur);
+    }
+
+    /** Résiliation en cours, signalée par la partie de cet utilisateur. */
+    static boolean peutAnnulerResiliation(ConventionPartenariat convention, Utilisateur utilisateur) {
+        if (convention.getStatut() != StatutConvention.ACTIVE || convention.getDateEffetResiliation() == null) return false;
+        return convention.getResiliationDemandeePar() == OrigineConvention.ECOLE
+            ? AccesPartenariat.estChef(utilisateur) : AccesPartenariat.estDeLOrganisme(convention, utilisateur);
+    }
+
+    private static void effacerResiliation(ConventionPartenariat convention) {
+        convention.setResiliationDemandeePar(null);
+        convention.setResiliationDemandeeLe(null);
+        convention.setDateEffetResiliation(null);
+        convention.setMotifDecision(null);
     }
 
     static LocalDate aujourdhui() {

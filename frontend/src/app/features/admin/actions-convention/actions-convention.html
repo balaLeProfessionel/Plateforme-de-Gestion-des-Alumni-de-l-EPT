@@ -15,9 +15,6 @@
           @case ('EN_NEGOCIATION') {
             <button type="button" class="bouton principal" (click)="ouvrir('signature')">Enregistrer la signature…</button>
           }
-          @case ('ACTIVE') {
-            <button type="button" class="bouton" (click)="ouvrir('resiliation')">Résilier…</button>
-          }
         }
         @if (statut() === 'DEMANDEE' || statut() === 'EN_EXAMEN' || statut() === 'EN_NEGOCIATION') {
           <button type="button" class="bouton" (click)="ouvrir('refus')">Refuser…</button>
@@ -53,9 +50,9 @@
             </div>
           </div>
         }
-        @if (panneau() === 'refus' || panneau() === 'resiliation') {
+        @if (panneau() === 'refus') {
           <div class="champ">
-            <label for="action-motif">{{ panneau() === 'refus' ? 'Motif du refus' : 'Motif de la résiliation' }}, envoyé à l’organisme</label>
+            <label for="action-motif">Motif du refus, envoyé à l’organisme</label>
             <textarea id="action-motif" rows="3" maxlength="500" [value]="s.motif" (input)="champ('motif', $event)"></textarea>
           </div>
         }
@@ -65,7 +62,6 @@
             @switch (panneau()) {
               @case ('signature') { Activer la convention }
               @case ('refus') { Refuser la demande }
-              @case ('resiliation') { Résilier la convention }
               @default { Enregistrer }
             }
           </button>

@@ -36,6 +36,8 @@ public record AccordResponse(
     boolean aRepondre,
     boolean modifiable,
     boolean resiliable,
+    /** La personne connectée a signalé la résiliation et peut y renoncer avant la date d'effet. */
+    boolean resiliationAnnulable,
     Instant creeLe,
     Instant modifieLe,
     List<PieceConventionResponse> pieces

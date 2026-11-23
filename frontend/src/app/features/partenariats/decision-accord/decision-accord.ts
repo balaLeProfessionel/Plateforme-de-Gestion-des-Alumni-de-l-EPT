@@ -30,7 +30,7 @@ export class DecisionAccord {
   protected readonly erreur = signal<string | null>(null);
   protected readonly preavis = PREAVIS_RESILIATION_MOIS;
   protected readonly resiliable = computed(() => this.accord().resiliable);
-  protected readonly visible = computed(() => this.accord().aRepondre || this.accord().modifiable || this.resiliable());
+  protected readonly visible = computed(() => this.accord().aRepondre || this.accord().modifiable || this.resiliable() || this.accord().resiliationAnnulable);
 
   protected ouvrir(confirmation: Confirmation): void {
     this.motif.set('');
@@ -44,6 +44,10 @@ export class DecisionAccord {
 
   protected accepter(): void {
     this.executer(this.service.accepter(this.accord().id, this.admin()), 'L’accord est accepté ; l’autre partie en est prévenue.');
+  }
+
+  protected annulerResiliation(): void {
+    this.executer(this.service.annulerResiliation(this.accord().id, this.admin()), 'La résiliation est annulée : l’accord continue.');
   }
 
   protected confirmer(): void {

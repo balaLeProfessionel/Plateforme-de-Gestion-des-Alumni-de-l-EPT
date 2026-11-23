@@ -59,17 +59,9 @@ describe('ActionsConvention', () => {
     expect(emis[0].message).toContain('partenaire de l’EPT');
   });
 
-  it('ne résilie qu’avec un motif et n’affiche rien pour une convention close', () => {
+  it('n’affiche rien pour une convention close ; la résiliation a son propre bloc', () => {
     const racine = afficher(uneConvention({ statut: 'ACTIVE', dateSignature: '2026-01-10', dateDebut: '2026-01-10', dateFin: '2030-01-09' }));
-    bouton(racine, 'Résilier…').click();
-    fixture.detectChanges();
-    bouton(racine, 'Résilier la convention').click();
-    fixture.detectChanges();
-    expect(racine.querySelector('[role="alert"]')?.textContent).toContain('Le motif est obligatoire');
-    saisir(racine, '#action-motif', 'Fin de la coopération');
-    bouton(racine, 'Résilier la convention').click();
-    http.expectOne('/api/admin/partenariats/conventions/c1/resilier').flush(uneConvention({ statut: 'RESILIEE' }));
-
+    expect(bouton(racine, 'Résilier…')).toBeUndefined();
     fixture.componentRef.setInput('convention', uneConvention({ statut: 'RESILIEE' }));
     fixture.detectChanges();
     expect(racine.querySelector('section')).toBeNull();

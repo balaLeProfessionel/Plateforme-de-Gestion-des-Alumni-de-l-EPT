@@ -15,5 +15,9 @@
   }
   @if (c.domaines) { <div class="large"><dt>Domaines de coopération</dt><dd>{{ c.domaines }}</dd></div> }
   @if (c.message) { <div class="large"><dt>Présentation de la demande</dt><dd class="texte">{{ c.message }}</dd></div> }
+  @if (c.dateEffetResiliation && c.statut === 'ACTIVE') {
+    <div class="large"><dt>Résiliation en cours</dt><dd class="alerte">Signalée par {{ c.resiliationDemandeePar === 'ECOLE' ? 'l’EPT' : c.organismeNom }}
+      le {{ c.resiliationDemandeeLe | date: 'd MMMM y' }}, effective le {{ c.dateEffetResiliation | date: 'd MMMM y' }}</dd></div>
+  }
   @if (c.motifDecision) { <div class="large"><dt>Motif de l’école</dt><dd>{{ c.motifDecision }}</dd></div> }
 </dl>

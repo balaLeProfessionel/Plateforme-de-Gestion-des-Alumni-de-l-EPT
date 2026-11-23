@@ -10,7 +10,8 @@ import ept.edu.sn.alumni_backend.partenariat.StatutConvention;
 
 /**
  * Une convention-cadre. joursRestants n'est renseigné que pour une convention active ; expireBientot signale les
- * 60 derniers jours. Les pièces ne sont remplies que dans le détail.
+ * 60 derniers jours. Une résiliation signalée prend effet à dateEffetResiliation ; resiliable et resiliationAnnulable
+ * disent ce que la personne connectée peut faire. Les pièces ne sont remplies que dans le détail.
  */
 public record ConventionResponse(
     UUID id,
@@ -28,6 +29,11 @@ public record ConventionResponse(
     Long joursRestants,
     boolean expireBientot,
     String motifDecision,
+    OrigineConvention resiliationDemandeePar,
+    LocalDate resiliationDemandeeLe,
+    LocalDate dateEffetResiliation,
+    boolean resiliable,
+    boolean resiliationAnnulable,
     Instant creeeLe,
     Instant modifieeLe,
     List<PieceConventionResponse> pieces

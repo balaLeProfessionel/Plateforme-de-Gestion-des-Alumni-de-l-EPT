@@ -82,7 +82,19 @@ public class ConventionPartenariat {
     @Column(name = "date_fin")
     private LocalDate dateFin;
 
-    /** Motif du dernier refus ou de la résiliation, communiqué à l'organisme. */
+    /** Partie qui a signalé la résiliation ; elle prend effet après un préavis de trois mois. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "resiliation_demandee_par", length = 20)
+    private OrigineConvention resiliationDemandeePar;
+
+    @Column(name = "resiliation_demandee_le")
+    private LocalDate resiliationDemandeeLe;
+
+    /** Fin du préavis : la convention passe alors à RESILIEE et l'organisme cesse d'être partenaire. */
+    @Column(name = "date_effet_resiliation")
+    private LocalDate dateEffetResiliation;
+
+    /** Motif du dernier refus ou de la résiliation, communiqué à l'autre partie. */
     @Column(name = "motif_decision", length = 500)
     private String motifDecision;
 
