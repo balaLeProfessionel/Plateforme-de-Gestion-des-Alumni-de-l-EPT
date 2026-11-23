@@ -378,6 +378,14 @@ class MessagerieCommunautesIntegrationTests {
         mockMvc.perform(authentifie(post(ADMIN), admin).contentType(MediaType.APPLICATION_XML).content("<nom>x</nom>"))
             .andExpect(status().isUnsupportedMediaType());
         mockMvc.perform(authentifie(delete(ADMIN), admin)).andExpect(status().isMethodNotAllowed());
+        // Bornes des paramètres et paramètre manquant : le paramètre est nommé, jamais la méthode Java.
+        mockMvc.perform(authentifie(get(ADMIN).param("taille", "49"), admin)).andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Le paramètre « taille » est invalide."));
+        Utilisateur awa = alumni("Awa", 1990, null);
+        mockMvc.perform(authentifie(get(API + "/communautes/decouvrir"), awa)).andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Le paramètre « recherche » est obligatoire."));
+        decouvrir(awa, "a".repeat(101)).andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Le paramètre « recherche » est invalide."));
     }
 
     @Test

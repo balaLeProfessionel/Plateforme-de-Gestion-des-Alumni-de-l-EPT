@@ -108,7 +108,26 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Map<String, String>> handleConstraintViolation(ConstraintViolationException e) {
-        return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        // Le message brut (« lister.taille: must be… ») donnait le nom de la méthode Java, en anglais : on nomme
+        // seulement le paramètre, avec le message écrit pour lui s'il y en a un.
+        String message = e.getConstraintViolations().stream()
+            .sorted(java.util.Comparator.comparing(v -> v.getPropertyPath().toString()))
+            .map(violation -> {
+                String parametre = null;
+                for (jakarta.validation.Path.Node noeud : violation.getPropertyPath()) parametre = noeud.getName();
+                boolean messageParDefaut = violation.getMessageTemplate().startsWith("{jakarta.validation");
+                return messageParDefaut ? "Le paramètre « " + parametre + " » est invalide." : violation.getMessage();
+            })
+            .distinct()
+            .collect(java.util.stream.Collectors.joining(" "));
+        return ResponseEntity.badRequest().body(Map.of("message", message.isBlank() ? "Requête invalide." : message));
+    }
+
+    /** Paramètre obligatoire absent : sans ce gestionnaire, la page /error de Spring répondait un 403 trompeur. */
+    @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
+    public ResponseEntity<Map<String, String>> handleParametreManquant(
+            org.springframework.web.bind.MissingServletRequestParameterException e) {
+        return ResponseEntity.badRequest().body(Map.of("message", "Le paramètre « " + e.getParameterName() + " » est obligatoire."));
     }
 
     @ExceptionHandler(TokenInvalideException.class)
