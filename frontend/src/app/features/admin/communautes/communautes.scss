@@ -58,7 +58,8 @@
 }
 
 @media (max-width: 640px) {
-  .categories { flex-wrap: nowrap; overflow-x: auto; margin-inline: -.25rem; padding: .25rem; scrollbar-width: thin; }
+  .categories { flex-wrap: nowrap; overflow-x: auto; margin-inline: -.25rem; padding: .25rem; scrollbar-width: none; }
+  .categories::-webkit-scrollbar { display: none; }
   /* Avatar et texte en haut ; accès et bouton côte à côte en dessous, sans bouton pleine largeur. */
   .ligne { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "avatar identite identite" ". acces modifier";
     gap: .5rem .75rem; padding: .75rem; }
