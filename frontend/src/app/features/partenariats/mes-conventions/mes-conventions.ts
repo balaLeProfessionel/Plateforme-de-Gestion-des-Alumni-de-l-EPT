@@ -4,12 +4,13 @@ import { RouterLink } from '@angular/router';
 import { Convention, STATUTS_EN_COURS } from '../../../core/services/models/partenariat.model';
 import { ConventionsPartenariatService } from '../../../core/services/partenariats/conventions-partenariat';
 import { FilAriane } from '../../../shared/fil-ariane/fil-ariane';
+import { MesAccords } from '../mes-accords/mes-accords';
 import { StatutConventionPastille } from '../statut-convention/statut-convention';
 
-/** Conventions de l’organisme connecté, de la plus récente à la plus ancienne ; une seule demande en cours à la fois. */
+/** Partenariat de l’organisme connecté : ses conventions-cadres puis ses accords. Conventions de la plus récente à la plus ancienne ; une seule demande en cours à la fois. */
 @Component({
   selector: 'app-mes-conventions',
-  imports: [DatePipe, RouterLink, FilAriane, StatutConventionPastille],
+  imports: [DatePipe, RouterLink, FilAriane, StatutConventionPastille, MesAccords],
   templateUrl: './mes-conventions.html',
   styleUrl: './mes-conventions.scss',
 })

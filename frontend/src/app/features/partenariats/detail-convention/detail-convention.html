@@ -37,7 +37,7 @@
     } @else {
       <section class="carte" aria-label="Convention"><app-infos-convention [convention]="c" /></section>
     }
-    <div class="carte"><app-pieces-convention [convention]="c" [ajoutable]="enTraitement()" (modifiee)="miseAJour($event)" /></div>
+    <div class="carte"><app-pieces-convention [dossier]="c" [ajoutable]="enTraitement()" (modifiee)="miseAJour($event)" /></div>
     <div class="carte"><app-historique-convention [lignes]="historique()" /></div>
   } @else {
     <div class="squelette" aria-busy="true" aria-label="Chargement de la convention"></div>

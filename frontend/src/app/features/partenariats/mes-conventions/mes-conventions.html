@@ -8,7 +8,7 @@
       }
     </div>
     <p class="introduction">Votre organisme devient partenaire de l’EPT en signant une convention-cadre de partenariat.
-      Suivez ici vos demandes, vos conventions et leurs dates de validité.</p>
+      Suivez ici vos demandes, vos conventions et leurs dates de validité, ainsi que vos accords de stage et de mobilité.</p>
   </header>
 
   @if (erreurChargement()) {
@@ -49,4 +49,6 @@
   } @else {
     <div class="squelette" aria-busy="true" aria-label="Chargement de vos conventions"></div>
   }
+
+  <app-mes-accords />
 </div>

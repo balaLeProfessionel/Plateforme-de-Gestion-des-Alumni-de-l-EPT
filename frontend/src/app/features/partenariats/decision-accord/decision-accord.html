@@ -1,0 +1,42 @@
+@let a = accord();
+@if (visible()) {
+  <section class="decision" aria-labelledby="titre-decision-accord">
+    <h2 id="titre-decision-accord">{{ a.aRepondre ? 'Votre réponse est attendue' : 'Actions' }}</h2>
+    @if (confirmation() === null) {
+      <div class="boutons" role="group" aria-label="Actions sur l’accord">
+        @if (a.aRepondre) {
+          <button type="button" class="bouton principal" [disabled]="enCours()" (click)="accepter()">Accepter l’accord</button>
+          <button type="button" class="bouton" (click)="ouvrir('refus')">Refuser…</button>
+        }
+        @if (a.modifiable) {
+          <button type="button" class="bouton" (click)="corriger.emit()"><i class="pi pi-pencil" aria-hidden="true"></i>Corriger la proposition</button>
+          <button type="button" class="bouton" (click)="ouvrir('retrait')">Retirer la proposition…</button>
+        }
+        @if (resiliable()) {
+          <button type="button" class="bouton" (click)="ouvrir('resiliation')">Résilier…</button>
+        }
+      </div>
+    } @else {
+      <div class="confirmation" role="group" [attr.aria-label]="confirmation() === 'retrait' ? 'Retirer la proposition' : confirmation() === 'refus' ? 'Refuser l’accord' : 'Résilier l’accord'">
+        @if (confirmation() === 'retrait') {
+          <p>L’autre partie ne pourra plus y répondre. La proposition restera dans l’historique.</p>
+        } @else {
+          @if (confirmation() === 'resiliation') {
+            <p>La résiliation prend effet {{ preavis }} mois après ce signalement ; d’ici là, l’accord reste en vigueur.</p>
+          }
+          <div class="champ">
+            <label for="motif-accord">{{ confirmation() === 'refus' ? 'Motif du refus' : 'Motif de la résiliation' }}, communiqué à l’autre partie</label>
+            <textarea id="motif-accord" rows="3" maxlength="500" [value]="motif()" (input)="saisirMotif($event)"></textarea>
+          </div>
+        }
+        <div class="boutons">
+          <button type="button" class="bouton principal" [disabled]="enCours()" (click)="confirmer()">
+            @switch (confirmation()) { @case ('retrait') { Retirer la proposition } @case ('refus') { Refuser l’accord } @default { Signaler la résiliation } }
+          </button>
+          <button type="button" class="bouton" (click)="confirmation.set(null)">Ne rien changer</button>
+        </div>
+      </div>
+    }
+    @if (erreur(); as e) { <p class="erreur" role="alert">{{ e }}</p> }
+  </section>
+}

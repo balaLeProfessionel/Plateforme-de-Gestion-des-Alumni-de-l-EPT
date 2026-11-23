@@ -1,0 +1,37 @@
+<section aria-labelledby="titre-accords">
+  <div class="titre-section-ligne">
+    <h2 id="titre-accords" class="titre-section">Accords de stage et de mobilité</h2>
+    <a class="bouton" routerLink="/partenariats/accords/proposer"><i class="pi pi-plus" aria-hidden="true"></i>Proposer un accord</a>
+  </div>
+  @if (erreurChargement()) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h3>Vos accords n’ont pas pu être chargés</h3>
+      <button type="button" class="bouton" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (accords(); as liste) {
+    @if (liste.length === 0) {
+      <div class="etat">
+        <i class="pi pi-file-edit" aria-hidden="true"></i>
+        <h3>Aucun accord pour l’instant</h3>
+        <p>Un accord précise l’accueil de stagiaires ou les échanges d’étudiants avec l’EPT. Une convention-cadre n’est pas exigée.</p>
+      </div>
+    } @else {
+      <ul class="liste">
+        @for (a of liste; track a.id) {
+          <li class="ligne carte-cliquable">
+            <div class="principal">
+              <h3><a class="lien-etire" [routerLink]="['/partenariats/accords', a.id]">{{ a.objet }}</a></h3>
+              <p class="details">Accord de {{ types[a.type].toLowerCase() }} · du {{ a.dateDebut | date: 'd MMM y' }} au {{ a.dateFin | date: 'd MMM y' }}
+                @if (a.nombrePlaces) { · {{ a.nombrePlaces }} place{{ a.nombrePlaces > 1 ? 's' : '' }} }</p>
+              @if (a.aRepondre) { <p class="alerte">L’EPT vous propose cet accord : votre réponse est attendue.</p> }
+            </div>
+            <app-statut-accord [statut]="a.statut" />
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement de vos accords"></div>
+  }
+</section>

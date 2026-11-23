@@ -1,8 +1,17 @@
 import { DatePipe } from '@angular/common';
 import { Component, input } from '@angular/core';
-import { HistoriqueConvention as LigneHistorique, LIBELLES_ACTION_CONVENTION } from '../../../core/services/models/partenariat.model';
+import { LIBELLES_ACTION_CONVENTION } from '../../../core/services/models/partenariat.model';
 
-/** Historique d’une convention, du plus ancien au plus récent : quoi, qui, quand, pourquoi. */
+/** Une ligne d’historique : l’action est traduite par les libellés de la page (convention ou accord). */
+export interface LigneHistorique {
+  action: string;
+  details: string | null;
+  motif: string | null;
+  auteur: string;
+  date: string;
+}
+
+/** Historique d’une convention ou d’un accord, du plus ancien au plus récent : quoi, qui, quand, pourquoi. */
 @Component({
   selector: 'app-historique-convention',
   imports: [DatePipe],
@@ -16,7 +25,7 @@ import { HistoriqueConvention as LigneHistorique, LIBELLES_ACTION_CONVENTION } f
           @for (h of lignes(); track $index) {
             <li>
               <time [attr.datetime]="h.date">{{ h.date | date: 'd MMM y, HH:mm' }}</time>
-              <span><strong>{{ actions[h.action] }}</strong>@if (h.details) { — {{ h.details }} }, par {{ h.auteur }}
+              <span><strong>{{ libelles()[h.action] ?? h.action }}</strong>@if (h.details) { — {{ h.details }} }, par {{ h.auteur }}
                 @if (h.motif) { <span class="motif">Motif : {{ h.motif }}</span> }</span>
             </li>
           }
@@ -38,5 +47,5 @@ import { HistoriqueConvention as LigneHistorique, LIBELLES_ACTION_CONVENTION } f
 })
 export class HistoriqueConventionListe {
   readonly lignes = input.required<readonly LigneHistorique[]>();
-  protected readonly actions = LIBELLES_ACTION_CONVENTION;
+  readonly libelles = input<Readonly<Record<string, string>>>(LIBELLES_ACTION_CONVENTION);
 }

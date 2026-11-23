@@ -5,3 +5,4 @@
 .bascule { justify-self: start; &[aria-pressed='true'] { background: var(--ept-primary); color: white; } }
 .echeance { margin: 0.4rem 0 0; color: var(--ept-gold-dark); font-size: 0.85rem; font-weight: 700; }
 .attente { opacity: 0.6; }
+.filtres-accords { @include a-partir-de(tablette) { grid-template-columns: minmax(0, 16rem) minmax(0, 9rem) minmax(0, 10rem) auto; } }

@@ -102,7 +102,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/mobilites/mes-offres", "/api/mobilites/mes-offres/**").hasRole("ORGANISME")
                 .requestMatchers("/api/mobilites/accueils", "/api/mobilites/accueils/**", "/api/mobilites/mes-mobilites").hasRole("ORGANISME")
                 .requestMatchers("/api/organisme/me").hasRole("ORGANISME")
-                .requestMatchers("/api/partenariats/conventions", "/api/partenariats/conventions/**").hasRole("ORGANISME")
+                .requestMatchers("/api/partenariats/conventions", "/api/partenariats/conventions/**", "/api/partenariats/accords", "/api/partenariats/accords/**").hasRole("ORGANISME")
                 .requestMatchers("/api/formations/**", "/api/experiences/**")
                     .hasAnyRole("ETUDIANT", "ALUMNI", "PERSONNEL", "VISITEUR")
                 .anyRequest().authenticated()

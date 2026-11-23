@@ -10,7 +10,6 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -18,12 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ept.edu.sn.alumni_backend.admin.NomCompte;
-import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
-import ept.edu.sn.alumni_backend.notification.NouvelleNotification;
-import ept.edu.sn.alumni_backend.notification.TypeNotification;
 import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
 import ept.edu.sn.alumni_backend.organisme.exception.OrganismeIntrouvableException;
 import ept.edu.sn.alumni_backend.organisme.repository.OrganismeRepository;
@@ -65,7 +61,7 @@ public class ConventionsPartenariatService {
     private final HistoriqueConventionRepository historiqueRepository;
     private final OrganismeRepository organismeRepository;
     private final UtilisateurRepository utilisateurRepository;
-    private final ApplicationEventPublisher evenements;
+    private final AvisPartenariat avis;
 
     // ----- Organisme -----
 
@@ -440,15 +436,10 @@ public class ConventionsPartenariatService {
     }
 
     private void notifierChefs(String titre, String message, ConventionPartenariat convention) {
-        utilisateurRepository.administrateursActifsAvecUneDe(List.of(PermissionAdmin.GERER_PARTENARIATS, PermissionAdmin.GERER_ADMINISTRATEURS))
-            .forEach(chef -> evenements.publishEvent(new NouvelleNotification(chef.getId(), TypeNotification.PARTENARIAT, titre, message,
-                "/admin/partenariats/conventions/" + convention.getId())));
+        avis.auxRelationsExterieures(titre, message, "/admin/partenariats/conventions/" + convention.getId());
     }
 
     private void notifierOrganisme(ConventionPartenariat convention, String titre, String message) {
-        Utilisateur contact = convention.getOrganisme().getContact();
-        if (contact == null) return;
-        evenements.publishEvent(new NouvelleNotification(contact.getId(), TypeNotification.PARTENARIAT, titre, message,
-            "/partenariats/conventions/" + convention.getId()));
+        avis.aLOrganisme(convention.getOrganisme(), titre, message, "/partenariats/conventions/" + convention.getId());
     }
 }

@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 
 import ept.edu.sn.alumni_backend.partenariat.service.PiecesConventionService;
 
-/** Réponse de téléchargement d'un PDF de convention, commune à l'organisme et à l'administration. */
+/** Réponse de téléchargement d'un PDF de convention ou d'accord, commune à l'organisme et à l'administration. */
 final class TelechargementPiece {
     private TelechargementPiece() {
     }

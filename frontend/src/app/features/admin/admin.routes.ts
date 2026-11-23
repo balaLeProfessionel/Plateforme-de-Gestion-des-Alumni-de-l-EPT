@@ -138,6 +138,27 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./fiche-convention/fiche-convention').then((m) => m.FicheConvention),
   },
   {
+    path: 'partenariats/accords',
+    title: 'Accords de stage et de mobilité | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_PARTENARIATS' },
+    loadComponent: () => import('./accords-partenariat/accords-partenariat').then((m) => m.AccordsPartenariat),
+  },
+  {
+    path: 'partenariats/accords/proposer',
+    title: 'Proposer un accord | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_PARTENARIATS' },
+    loadComponent: () => import('./proposition-accord-admin/proposition-accord-admin').then((m) => m.PropositionAccordAdmin),
+  },
+  {
+    path: 'partenariats/accords/:id',
+    title: 'Accord | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_PARTENARIATS' },
+    loadComponent: () => import('./fiche-accord/fiche-accord').then((m) => m.FicheAccord),
+  },
+  {
     path: 'mobilites/offres',
     title: 'Offres de mobilité | EPT Alumni',
     canActivate: [permissionGuard],

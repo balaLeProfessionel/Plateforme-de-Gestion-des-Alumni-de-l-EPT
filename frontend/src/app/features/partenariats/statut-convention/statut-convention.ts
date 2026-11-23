@@ -6,13 +6,7 @@ import { LIBELLES_STATUT_CONVENTION, StatutConvention } from '../../../core/serv
   selector: 'app-statut-convention',
   template: `{{ libelle() }}`,
   host: { '[attr.data-ton]': 'ton()' },
-  styles: `
-    :host { display: inline-block; justify-self: start; padding: 0.15rem 0.6rem; border-radius: 999px; background: var(--ept-bg);
-      color: var(--ept-primary-dark); font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
-    :host([data-ton='actif']) { background: var(--ept-success-light); color: var(--ept-success-dark); }
-    :host([data-ton='en-cours']) { background: var(--ept-gold-light); color: var(--ept-gold-dark); }
-    :host([data-ton='clos']) { background: var(--ept-error-light); color: var(--ept-error-dark); }
-  `,
+  styleUrl: './statut-pastille.scss',
 })
 export class StatutConventionPastille {
   readonly statut = input.required<StatutConvention>();

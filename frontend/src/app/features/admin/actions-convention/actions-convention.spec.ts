@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Convention } from '../../../core/services/models/partenariat.model';
-import { uneConvention } from '../../partenariats/mes-conventions/mes-conventions.spec';
+import { uneConvention } from '../../partenariats/testing/donnees-partenariat';
 import { ActionsConvention } from './actions-convention';
 
 describe('ActionsConvention', () => {

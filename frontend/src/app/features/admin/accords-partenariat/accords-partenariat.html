@@ -1,0 +1,57 @@
+<app-page-admin titre="Accords de stage et de mobilité"
+  introduction="Accords proposés par les organismes ou par l’école. Une convention-cadre n’est pas exigée ; un accord ne crée pas d’offre.">
+  <a actionsPage class="bouton principal" routerLink="/admin/partenariats/accords/proposer"><i class="pi pi-plus" aria-hidden="true"></i>Proposer un accord</a>
+
+  <section class="filtres filtres-accords" aria-label="Filtrer les accords">
+    <div class="champ">
+      <label for="recherche-accord">Organisme ou objet</label>
+      <input id="recherche-accord" type="search" autocomplete="off" [value]="criteres().recherche" (input)="saisir($event)" (keydown.enter)="appliquer($event)" />
+    </div>
+    <div class="champ">
+      <label for="filtre-type-accord">Type</label>
+      <select id="filtre-type-accord" (change)="choisir('type', $event)">
+        <option value="" [selected]="!criteres().type">Tous</option>
+        <option value="STAGE" [selected]="criteres().type === 'STAGE'">Stage</option>
+        <option value="MOBILITE" [selected]="criteres().type === 'MOBILITE'">Mobilité</option>
+      </select>
+    </div>
+    <div class="champ">
+      <label for="filtre-statut-accord">Statut</label>
+      <select id="filtre-statut-accord" (change)="choisir('statut', $event)">
+        <option value="" [selected]="!criteres().statut">Tous</option>
+        @for (s of listeStatuts; track s) { <option [value]="s" [selected]="criteres().statut === s">{{ statuts[s] }}</option> }
+      </select>
+    </div>
+    <button type="button" class="bouton bascule" [attr.aria-pressed]="criteres().aRepondre" (click)="basculerReponse()">
+      <i class="pi pi-inbox" aria-hidden="true"></i>À examiner</button>
+  </section>
+
+  <div aria-live="polite" [attr.aria-busy]="chargement()">
+    @if (erreur(); as e) {
+      <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ e }}</p></div>
+    } @else if (page(); as p) {
+      @if (p.contenu.length === 0) {
+        <div class="etat"><i class="pi pi-file-edit" aria-hidden="true"></i><h2>Aucun accord</h2>
+          <p>{{ criteres().type || criteres().statut || criteres().recherche || criteres().aRepondre ? 'Aucun accord ne correspond à ces critères.' : 'Les accords proposés apparaîtront ici.' }}</p></div>
+      } @else {
+        <ul class="liste" [class.attente]="chargement()">
+          @for (a of p.contenu; track a.id) {
+            <li class="carte offre carte-cliquable">
+              <div class="entete-offre">
+                <h2><a class="lien-etire" [routerLink]="['/admin/partenariats/accords', a.id]">{{ a.organismeNom }}</a></h2>
+                <app-statut-accord [statut]="a.statut" />
+              </div>
+              <p class="details">{{ types[a.type] }} · {{ a.objet }}</p>
+              <p class="details">Du {{ a.dateDebut | date: 'd MMM y' }} au {{ a.dateFin | date: 'd MMM y' }}
+                · proposé par {{ a.proposePar === 'ECOLE' ? 'l’EPT' : 'l’organisme' }}</p>
+              @if (a.aRepondre) { <p class="echeance">Réponse attendue de l’école</p> }
+            </li>
+          }
+        </ul>
+        <app-pagination-admin [page]="p.page" [totalPages]="p.totalPages" libelle="Pagination des accords" (changer)="changerPage($event)" />
+      }
+    } @else {
+      <div class="squelette" aria-label="Chargement des accords"></div>
+    }
+  </div>
+</app-page-admin>

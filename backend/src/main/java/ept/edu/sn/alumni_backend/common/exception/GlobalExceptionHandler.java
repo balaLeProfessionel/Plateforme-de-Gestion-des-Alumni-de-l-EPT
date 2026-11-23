@@ -26,6 +26,7 @@ import ept.edu.sn.alumni_backend.filiere.exception.FiliereIntrouvableException;
 import ept.edu.sn.alumni_backend.common.stockage.FichierIntrouvableException;
 import ept.edu.sn.alumni_backend.common.stockage.StockageFichierException;
 import ept.edu.sn.alumni_backend.mobilite.exception.ConflitMobiliteException;
+import ept.edu.sn.alumni_backend.partenariat.exception.AccordIntrouvableException;
 import ept.edu.sn.alumni_backend.partenariat.exception.ConflitConventionException;
 import ept.edu.sn.alumni_backend.partenariat.exception.ConventionIntrouvableException;
 import ept.edu.sn.alumni_backend.mobilite.exception.OffreMobiliteIntrouvableException;
@@ -227,6 +228,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConventionIntrouvableException.class)
     public ResponseEntity<Map<String, String>> gererConventionIntrouvable(ConventionIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(AccordIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> gererAccordIntrouvable(AccordIntrouvableException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
     }
 

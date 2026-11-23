@@ -1,4 +1,4 @@
-@let c = convention();
+@let c = dossier();
 <section class="fichiers" aria-labelledby="titre-pieces-convention">
   <h2 id="titre-pieces-convention">Documents</h2>
   @if (c.pieces.length) {
@@ -26,8 +26,8 @@
         <input id="ajout-piece-convention" class="sr-only" type="file" accept="application/pdf,.pdf" [disabled]="enCours()" (change)="ajouter($event)" />
       </label>
     </div>
-    <small class="aide">{{ admin() ? 'Exemplaire signé, avenant, projet de convention…' : 'Présentation de l’organisme, projet de convention…' }}
-      PDF de 5 Mo au plus, {{ piecesMax }} documents par convention.</small>
+    <small class="aide">{{ admin() ? 'Exemplaire signé, avenant, annexe…' : 'Présentation de l’organisme, projet de texte…' }}
+      PDF de 5 Mo au plus, {{ piecesMax }} documents par dossier.</small>
   }
   @if (erreur(); as texte) { <p class="erreur" role="alert">{{ texte }}</p> }
   <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>

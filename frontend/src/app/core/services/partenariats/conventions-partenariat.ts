@@ -11,7 +11,7 @@ const API_ADMIN = '/api/admin/partenariats/conventions';
 
 /**
  * Conventions-cadres de partenariat : l’organisme demande et suit les siennes, le service des Relations extérieures
- * les traite toutes. `admin` choisit l’API : les deux espaces partagent les composants des documents et de l’historique.
+ * les traite toutes. `admin` choisit l’API.
  */
 @Service()
 export class ConventionsPartenariatService {
@@ -37,8 +37,9 @@ export class ConventionsPartenariatService {
 
   // ----- Service des Relations extérieures -----
 
-  lister(criteres: CriteresConventions, taille = 20) {
+  lister(criteres: CriteresConventions, taille = 20, organismeId: string | null = null) {
     let params = new HttpParams().set('page', criteres.page).set('taille', taille);
+    if (organismeId) params = params.set('organisme', organismeId);
     if (criteres.statut) params = params.set('statut', criteres.statut);
     if (criteres.recherche.trim()) params = params.set('recherche', criteres.recherche.trim());
     if (criteres.expireBientot) params = params.set('expireBientot', true);
@@ -81,20 +82,5 @@ export class ConventionsPartenariatService {
 
   historique(id: string, admin: boolean) {
     return this.http.get<HistoriqueConvention[]>(`${admin ? API_ADMIN : API}/${id}/historique`);
-  }
-
-  ajouterPiece(id: string, fichier: File, admin: boolean) {
-    const contenu = new FormData();
-    contenu.append('fichier', fichier);
-    return this.http.post<Convention>(`${admin ? API_ADMIN : API}/${id}/pieces`, contenu);
-  }
-
-  supprimerPiece(id: string, pieceId: string, admin: boolean) {
-    return this.http.delete<Convention>(`${admin ? API_ADMIN : API}/${id}/pieces/${pieceId}`);
-  }
-
-  /** Le PDF passe par HttpClient : la requête porte le jeton, qu’un simple lien n’enverrait pas. */
-  telechargerPiece(id: string, pieceId: string, admin: boolean) {
-    return this.http.get(`${admin ? API_ADMIN : API}/${id}/pieces/${pieceId}`, { responseType: 'blob' });
   }
 }

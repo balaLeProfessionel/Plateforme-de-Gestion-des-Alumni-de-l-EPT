@@ -4,16 +4,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
 import { Convention } from '../../../core/services/models/partenariat.model';
+import { uneConvention } from '../testing/donnees-partenariat';
 import { MesConventions } from './mes-conventions';
-
-export function uneConvention(changement: Partial<Convention> = {}): Convention {
-  return {
-    id: 'c1', organismeId: 'o1', organismeNom: 'Sonatel', organismeLogoUrl: null, objet: 'Coopération en formation', domaines: 'Stages',
-    message: 'Nous souhaitons accueillir des étudiants.', statut: 'DEMANDEE', origine: 'ORGANISME', dateSignature: null, dateDebut: null,
-    dateFin: null, joursRestants: null, expireBientot: false, motifDecision: null, creeeLe: '2026-11-01T10:00:00Z',
-    modifieeLe: '2026-11-01T10:00:00Z', pieces: [], ...changement,
-  };
-}
 
 describe('MesConventions', () => {
   let http: HttpTestingController;
@@ -27,6 +19,7 @@ describe('MesConventions', () => {
     const fixture = TestBed.createComponent(MesConventions);
     fixture.detectChanges();
     http.expectOne('/api/partenariats/conventions').flush(conventions);
+    http.expectOne('/api/partenariats/accords').flush([]);
     fixture.detectChanges();
     return fixture.nativeElement as HTMLElement;
   };

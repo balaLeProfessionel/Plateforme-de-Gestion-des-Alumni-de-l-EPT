@@ -1,0 +1,16 @@
+@let a = accord();
+@if (erreurChargement(); as e) {
+  <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ e }}</p></div>
+} @else if (a) {
+  <p class="statut-message" role="status">{{ message() }}</p>
+  @if (edition()) {
+    <app-formulaire-accord [initial]="a" [administration]="admin()" (enregistre)="miseAJour($event, 'La proposition est corrigée.')" (annule)="edition.set(false)" />
+  } @else {
+    <app-decision-accord [accord]="a" [admin]="admin()" (modifie)="miseAJour($event.accord, $event.message)" (corriger)="edition.set(true)" />
+    <section class="carte" aria-label="Accord"><app-infos-accord [accord]="a" [lienOrganisme]="admin()" /></section>
+  }
+  <div class="carte"><app-pieces-convention [dossier]="a" ressource="accords" [admin]="admin()" [ajoutable]="ajoutable()" (modifiee)="miseAJour($event)" /></div>
+  <div class="carte"><app-historique-convention [lignes]="historique()" [libelles]="libelles" /></div>
+} @else {
+  <div class="squelette" aria-busy="true" aria-label="Chargement de l’accord"></div>
+}
