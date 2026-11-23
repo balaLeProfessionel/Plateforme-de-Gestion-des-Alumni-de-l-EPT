@@ -1,0 +1,8 @@
+@use '../lignes';
+
+:host { display: block; min-height: 0; flex: 1; overflow-y: auto; }
+
+.zone { padding: 0 0.5rem 1rem; }
+
+.plus { display: block; margin: 0.5rem auto 0; }
+.plus:disabled { cursor: wait; opacity: 0.6; }

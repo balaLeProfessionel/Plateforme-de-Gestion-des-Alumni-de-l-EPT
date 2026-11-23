@@ -208,6 +208,13 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./signalements/signalements').then((m) => m.Signalements),
   },
   {
+    path: 'communautes',
+    title: 'Communautés | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_COMMUNAUTES' },
+    loadComponent: () => import('./communautes/communautes').then((m) => m.CommunautesAdmin),
+  },
+  {
     path: 'journal',
     title: 'Journal des décisions | EPT Alumni',
     canActivate: [permissionGuard],

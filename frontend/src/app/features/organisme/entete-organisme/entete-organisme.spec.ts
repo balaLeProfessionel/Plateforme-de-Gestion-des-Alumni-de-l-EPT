@@ -49,6 +49,29 @@ describe('En-tête de la fiche organisme', () => {
     expect(racine.querySelector('.reseau')).toBeNull();
   });
 
+  it('met « Écrire » en avant quand on peut écrire à l’organisme, et signale l’échec', () => {
+    const fixture = TestBed.createComponent(EnteteOrganisme);
+    fixture.componentRef.setInput('fiche', FICHE);
+    fixture.componentRef.setInput('siteWeb', 'https://www.exemple.sn/');
+    fixture.componentRef.setInput('peutEcrire', true);
+    let demandes = 0;
+    fixture.componentInstance.ecrire.subscribe(() => demandes++);
+    fixture.detectChanges();
+    const racine = fixture.nativeElement as HTMLElement;
+
+    const ecrire = racine.querySelector<HTMLButtonElement>('button.bouton.principal');
+    expect(ecrire?.textContent?.replace(/\s+/g, ' ').trim()).toBe('Écrire à Société Exemple');
+    expect(racine.querySelector('a.bouton')?.classList).not.toContain('principal');
+    ecrire?.click();
+    expect(demandes).toBe(1);
+
+    fixture.componentRef.setInput('ecritureEnCours', true);
+    fixture.componentRef.setInput('erreurEcriture', 'Cet organisme ne peut pas être contacté pour l’instant.');
+    fixture.detectChanges();
+    expect(ecrire?.disabled).toBe(true);
+    expect(racine.querySelector('[role="alert"]')?.textContent).toContain('ne peut pas être contacté');
+  });
+
   it('accorde la phrase quand personne n’y travaille plus', () => {
     const racine = creer({ reseau: { actuels: 0, anciens: 1, apercu: [membre('a')] } });
     expect(racine.querySelector('.reseau p')?.textContent).toBe('1 membre de la communauté y est passé.');

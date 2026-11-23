@@ -1,0 +1,43 @@
+<form (submit)="envoyer($event)" novalidate>
+  <!-- Une ligne discrète au-dessus du champ ; le texte reste en place pour un nouvel envoi. -->
+  @if (erreur()) {
+    <p class="erreur" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <span>{{ erreur() }}</span>
+    </p>
+  }
+  @if (fichier(); as choisi) {
+    <div class="fichier-choisi">
+      <i class="pi pi-paperclip" aria-hidden="true"></i>
+      <span class="nom">{{ choisi.name }}</span>
+      <span class="taille">{{ tailleFichier() }}</span>
+      <button type="button" class="retirer" [attr.aria-label]="'Retirer le fichier ' + choisi.name" title="Retirer le fichier"
+        [disabled]="formulaire().submitting()" (click)="retirerFichier()">
+        <i class="pi pi-times" aria-hidden="true"></i>
+      </button>
+    </div>
+  }
+  <div class="ligne">
+    <input #selecteur type="file" class="selecteur fichier-cache" tabindex="-1" aria-hidden="true" [accept]="accept"
+      (change)="fichierChoisi($event)" />
+    <button #joindre type="button" class="joindre" aria-label="Joindre un fichier (10 Mo au plus)" title="Joindre un fichier"
+      [disabled]="formulaire().submitting()" (click)="ouvrirSelecteur()">
+      <i class="pi pi-paperclip" aria-hidden="true"></i>
+    </button>
+    <label for="saisie-message" class="sr-only">Votre message</label>
+    <textarea #champ id="saisie-message" rows="1" placeholder="Écrire un message…" [formField]="formulaire.contenu"
+      [attr.aria-invalid]="tropLong()" aria-describedby="aide-saisie"
+      (keydown.enter)="toucheEntree($event)"></textarea>
+    <button type="submit" class="envoyer" aria-label="Envoyer le message" title="Envoyer"
+      [disabled]="vide() || tropLong() || formulaire().submitting()">
+      <i class="pi" [class.pi-send]="!formulaire().submitting()" [class.pi-spin]="formulaire().submitting()"
+        [class.pi-spinner]="formulaire().submitting()" aria-hidden="true"></i>
+    </button>
+  </div>
+  <p id="aide-saisie" class="aide">
+    <span class="raccourci">Entrée pour envoyer, Maj + Entrée pour aller à la ligne.</span>
+    @if (afficherCompteur()) {
+      <span class="compteur" [class.depasse]="tropLong()">{{ longueur() }} / {{ maximum }} caractères</span>
+    }
+  </p>
+</form>

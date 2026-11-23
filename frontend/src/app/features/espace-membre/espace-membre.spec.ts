@@ -9,6 +9,7 @@ import { CompteurOffresAVerifier } from '../../core/services/stages/compteur-off
 import { CompteurSignalements } from '../../core/services/publications/moderation';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
 import { NotificationService } from '../../core/services/notifications/notifications';
+import { CompteurMessages } from '../../core/services/messagerie/compteur-messages';
 import { EspaceMembre } from './espace-membre';
 
 // Le premier rendu de la barre latérale PrimeNG charge tout le module : seul, il prend
@@ -26,6 +27,8 @@ describe('Navigation de l’espace membre', () => {
   const signalementsEnAttente = signal(0);
   const actualiserSignalements = vi.fn();
   const notifications = { nonLues: signal(0), demarrer: vi.fn(), arreter: vi.fn() };
+  const messagesNonLus = signal(0);
+  const compteurMessages = { nombre: messagesNonLus, demarrer: vi.fn(), arreter: vi.fn(), actualiser: vi.fn() };
   const offresAVerifier = signal(0);
   const actualiserOffres = vi.fn();
 
@@ -40,6 +43,8 @@ describe('Navigation de l’espace membre', () => {
     signalementsEnAttente.set(0);
     actualiserSignalements.mockClear();
     notifications.nonLues.set(0);
+    messagesNonLus.set(0);
+    compteurMessages.demarrer.mockClear();
     notifications.demarrer.mockClear();
     notifications.arreter.mockClear();
     offresAVerifier.set(0);
@@ -59,7 +64,8 @@ describe('Navigation de l’espace membre', () => {
         { provide: CompteurInscriptions, useValue: { nombre: inscriptionsEnAttente, actualiser: actualiserInscriptions } },
         { provide: CompteurOffresAVerifier, useValue: { nombre: offresAVerifier, actualiser: actualiserOffres } },
         { provide: CompteurSignalements, useValue: { nombre: signalementsEnAttente, actualiser: actualiserSignalements } },
-        { provide: NotificationService, useValue: notifications }
+        { provide: NotificationService, useValue: notifications },
+        { provide: CompteurMessages, useValue: compteurMessages }
       ]
     });
   });
@@ -71,7 +77,7 @@ describe('Navigation de l’espace membre', () => {
     const liens = [...racine.querySelectorAll('.barre-laterale nav a')]
       .map((lien) => lien.getAttribute('href'));
 
-    expect(liens).toEqual(['/accueil', '/annuaire', '/evenements', '/articles', '/mentorat', '/stages']);
+    expect(liens).toEqual(['/accueil', '/annuaire', '/messagerie', '/evenements', '/articles', '/mentorat', '/stages']);
     expect(racine.querySelector('.barre-laterale .marque')?.getAttribute('href')).toBe('/accueil');
     expect([...racine.querySelectorAll('.barre-laterale nav button[aria-disabled="true"]')]
       .map((lien) => lien.getAttribute('aria-label')))
@@ -194,6 +200,19 @@ describe('Navigation de l’espace membre', () => {
     expect(racine.querySelector('.menu-mobile a[href="/mentorat"] .compteur')?.textContent?.trim()).toBe('3');
   });
 
+  it('relève les messages non lus et les affiche sur la messagerie', () => {
+    messagesNonLus.set(4);
+    const fixture = TestBed.createComponent(EspaceMembre);
+    fixture.detectChanges();
+    const racine = fixture.nativeElement as HTMLElement;
+
+    expect(compteurMessages.demarrer).toHaveBeenCalledOnce();
+    expect(racine.querySelector('.barre-laterale a[href="/messagerie"]')?.textContent).toContain('4 messages non lus');
+    expect(racine.querySelector('.menu-mobile a[href="/messagerie"] .compteur')?.textContent?.trim()).toBe('4');
+    fixture.destroy();
+    expect(compteurMessages.arreter).toHaveBeenCalled();
+  });
+
   it('n’allume qu’une rubrique du panneau mobile : le tableau de bord ne reste pas actif sur ses sous-pages', async () => {
     utilisateur.set({ role: 'ADMIN', nom: 'EPT', prenom: 'Admin' });
     const fixture = TestBed.createComponent(EspaceMembre);
@@ -241,7 +260,7 @@ describe('Navigation de l’espace membre', () => {
     expect([...racine.querySelectorAll('.barre-laterale nav a')].map((lien) => lien.getAttribute('href'))).toEqual([
       '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/passage-classe', '/admin/diplomes', '/admin/filieres',
       '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations', '/admin/mobilites/offres', '/admin/mobilites/suivi', '/admin/mobilites/flux',
-      '/admin/publications', '/admin/signalements', '/evenements', '/mentorat/gestion-programmes', '/admin/journal', '/annuaire',
+      '/admin/publications', '/admin/signalements', '/admin/communautes', '/evenements', '/mentorat/gestion-programmes', '/admin/journal', '/annuaire',
     ]);
     expect(racine.querySelector('.barre-laterale a[href="/admin/signalements"]')?.textContent).toContain('2 signalements à examiner');
     expect(racine.querySelector('.barre-laterale a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
@@ -254,7 +273,7 @@ describe('Navigation de l’espace membre', () => {
     expect([...racine.querySelectorAll('.menu-mobile a')].map((lien) => lien.getAttribute('href'))).toEqual([
       '/admin/mon-compte', '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/passage-classe', '/admin/diplomes', '/admin/filieres',
       '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations', '/admin/mobilites/offres', '/admin/mobilites/suivi', '/admin/mobilites/flux',
-      '/admin/publications', '/admin/signalements', '/mentorat/gestion-programmes', '/admin/journal',
+      '/admin/publications', '/admin/signalements', '/admin/communautes', '/mentorat/gestion-programmes', '/admin/journal',
     ]);
     expect(racine.querySelector('.menu-mobile a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
     expect(racine.querySelectorAll('.navigation-mobile a')).toHaveLength(3);

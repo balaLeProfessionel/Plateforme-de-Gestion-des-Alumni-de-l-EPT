@@ -1,0 +1,141 @@
+:host {
+  display: block;
+  padding: 0.6rem 1rem 0.5rem;
+  border-top: 1px solid var(--ept-border);
+  background: var(--ept-surface);
+}
+
+/* Un seul bloc : trombone, champ et envoi dans le même cadre (bord à 3:1 sur blanc, WCAG 1.4.11). */
+.ligne {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid color-mix(in srgb, var(--ept-text-secondary) 80%, white);
+  border-radius: 1.25rem;
+  background: var(--ept-surface);
+
+  /* Un seul anneau de 2 px (bord + ombre accolée) plutôt qu’un bord doublé d’un contour décalé. */
+  &:has(textarea:focus-visible) { border-color: var(--ept-primary); box-shadow: 0 0 0 1px var(--ept-primary); }
+  &:has(textarea[aria-invalid='true']) { border-color: var(--ept-error); }
+}
+
+textarea {
+  min-width: 0;
+  min-height: 2.75rem;
+  max-height: 9rem;
+  flex: 1;
+  padding: 0.6rem 0.25rem;
+  border: 0;
+  background: transparent;
+  color: var(--ept-text);
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  resize: none;
+  field-sizing: content;
+
+  &::placeholder { color: var(--ept-text-secondary); }
+  &:focus-visible { outline: none; }
+}
+
+.envoyer {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 0.9rem;
+  background: var(--ept-primary);
+  color: var(--ept-text-on-dark);
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: var(--ept-primary-dark); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+  &:disabled { background: var(--ept-primary-light); color: var(--ept-text-secondary); cursor: default; }
+}
+
+.aide {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin: 0.3rem 0.25rem 0;
+  color: var(--ept-text-secondary);
+  font-size: 0.75rem;
+}
+
+.compteur.depasse { color: var(--ept-error-dark); font-weight: 600; }
+/* Échec : une seule ligne rouge, sans cadre, le texte saisi reste dans le champ. */
+.erreur {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.4rem;
+  margin: 0 0.4rem 0.35rem;
+  color: var(--ept-error-dark);
+  font-size: 0.8rem;
+
+  i { font-size: 0.85rem; }
+}
+
+/* Le rappel du clavier n’apparaît que pendant la saisie ; sur mobile (pas de Maj + Entrée évident), jamais. */
+.raccourci { display: none; }
+:host(:focus-within) .raccourci { display: inline; }
+@media (hover: none) { :host(:focus-within) .raccourci { display: none; } }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Le sélecteur natif reste caché : le bouton trombone l’ouvre. */
+.selecteur { display: none; }
+
+.joindre {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 0.9rem;
+  background: transparent;
+  color: var(--ept-primary);
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: var(--ept-primary-light); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+  &:disabled { color: var(--ept-text-secondary); cursor: default; }
+}
+
+.fichier-choisi {
+  display: flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.45rem;
+  padding: 0.3rem 0.3rem 0.3rem 0.75rem;
+  border: 1px solid var(--ept-border);
+  border-radius: var(--ept-radius-sm);
+  background: var(--ept-bg);
+  color: var(--ept-text);
+  font-size: 0.85rem;
+
+  .nom { min-width: 0; flex: 1 1 auto; overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+  .taille { flex: 0 0 auto; color: var(--ept-text-secondary); font-size: 0.78rem; }
+}
+
+.retirer {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: var(--ept-radius-sm);
+  background: transparent;
+  color: var(--ept-text-secondary);
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: var(--ept-primary-light); color: var(--ept-error-dark); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 1px; }
+}

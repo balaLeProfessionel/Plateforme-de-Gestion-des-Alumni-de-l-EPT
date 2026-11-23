@@ -41,6 +41,10 @@
             <a class="action principale modifier" routerLink="/profil/parametres">
               <i class="pi pi-pencil" aria-hidden="true"></i>Modifier mon profil
             </a>
+          } @else {
+            <button type="button" class="action principale" [disabled]="ouvertureMessagerie()" (click)="ecrire(membre.id)">
+              <i class="pi pi-comments" aria-hidden="true"></i>Envoyer un message
+            </button>
           }
           @if (membre.lienLinkedin) {
             <a class="action" [href]="membre.lienLinkedin" target="_blank" rel="noopener noreferrer">
@@ -57,6 +61,7 @@
             {{ lienCopie() ? 'Lien copié' : 'Copier le lien' }}
           </button>
           <span class="sr-only" role="status">{{ lienCopie() ? 'Le lien du profil a été copié.' : '' }}</span>
+          @if (erreurMessagerie()) { <p class="erreur-messagerie" role="alert">{{ erreurMessagerie() }}</p> }
         </div>
       </div>
 

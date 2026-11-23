@@ -1,0 +1,88 @@
+/* Une ligne entière de la bulle, au-dessus du texte et de l’heure. */
+:host { display: block; min-width: 0; flex: 1 0 100%; margin-bottom: 0.35rem; }
+
+/* La miniature est un bouton : un clic l’ouvre en grand. */
+.apercu {
+  display: block;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 1rem;
+  background: none;
+  cursor: zoom-in;
+
+  &:hover img { filter: brightness(0.94); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+}
+
+img { display: block; width: 100%; max-width: 20rem; max-height: 18rem; object-fit: cover; }
+
+.attente { display: block; padding: 2rem 1rem; font-size: 0.8rem; opacity: 0.8; }
+
+/* Carte de fichier : gris clair dans une bulle blanche, blanc translucide dans ma bulle bleu ciel. */
+.fichier {
+  display: flex;
+  width: 100%;
+  min-width: 12rem;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.75rem 0.55rem 0.55rem;
+  border: 0;
+  border-radius: 0.85rem;
+  background: rgba(1, 67, 101, 0.05);
+  color: var(--ept-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: var(--ept-primary-light); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+  &:disabled { cursor: wait; opacity: 0.7; }
+}
+
+/* Pastille du type : l’extension en petites capitales sur une couleur propre à chaque famille. */
+.type {
+  display: grid;
+  width: 2.6rem;
+  height: 2.6rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.6rem;
+  background: var(--ept-primary);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.type.pdf { background: #b3261e; }
+.type.tableur { background: #1f6447; }
+.type.presentation { background: #9a4a12; }
+.type.autre { background: #536c7d; }
+
+.infos { display: grid; min-width: 0; flex: 1; gap: 0.1rem; }
+
+/* Deux lignes au plus ; un nom se coupe d’abord aux tirets ou espaces. */
+.nom {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: break-word;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* Un gris plus foncé que le secondaire : il reste à 4,5:1 sur la carte posée sur le bleu ciel. */
+.taille { color: #3f5a6b; font-size: 0.75rem; }
+.telecharger { flex: 0 0 auto; color: var(--ept-primary); font-size: 1rem; }
+
+.erreur {
+  margin: 0.3rem 0 0;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--ept-radius-sm);
+  background: var(--ept-error-light);
+  color: var(--ept-error-dark);
+  font-size: 0.8rem;
+}

@@ -90,6 +90,6 @@ describe('ResponsabilitesCompte', () => {
       .flush({ message: 'Seul un super administrateur peut gérer les administrateurs.' }, { status: 403, statusText: 'Forbidden' });
     fixture.detectChanges();
     expect(racine.querySelector('[role="alert"]')?.textContent).toContain('Seul un super administrateur');
-    expect(cases(racine).length).toBe(8);
+    expect(cases(racine).length).toBe(9);
   });
 });
