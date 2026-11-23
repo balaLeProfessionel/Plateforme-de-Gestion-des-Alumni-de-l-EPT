@@ -190,9 +190,12 @@ export class DetailsGroupe {
     this.focaliser('.modifier');
   }
 
-  /** Peut-on changer le rôle de ce membre ? Le dernier administrateur ne peut pas redevenir simple membre. */
+  /**
+   * Peut-on changer le rôle de ce membre ? Le dernier administrateur ne peut pas redevenir simple membre. Dans une
+   * communauté, les administrateurs sont désignés par l'administration de la plateforme.
+   */
   protected roleModifiable(membre: MembreConversation): boolean {
-    return this.administrateur()
+    return this.gereLeGroupe()
       && (membre.roleParticipant === 'MEMBRE' || this.nombreAdministrateurs() > 1);
   }
 

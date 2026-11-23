@@ -78,7 +78,8 @@
       <section class="carte" aria-labelledby="titre-participants">
         <h3 id="titre-participants">{{ nombre }} {{ detail.categorie ? 'membre' : 'participant' }}{{ nombre > 1 ? 's' : '' }}</h3>
         <ul class="participants">
-          @if (administrateur()) {
+          <!-- Dans une communauté, on entre en la rejoignant soi-même : personne n'y ajoute de membres. -->
+          @if (gereLeGroupe()) {
             <li>
               <button type="button" class="ligne-action ajouter" [attr.aria-expanded]="ajoutOuvert()"
                 aria-controls="zone-ajout" (click)="ajoutOuvert.set(!ajoutOuvert())">
@@ -132,7 +133,7 @@
                   }
                   @if (administrateur() && !estMoi) {
                     <button type="button" class="danger-texte" [disabled]="enCours()" (click)="demander('retirer', membre.id)">
-                      <i class="pi pi-user-minus" aria-hidden="true"></i>Retirer du groupe
+                      <i class="pi pi-user-minus" aria-hidden="true"></i>{{ detail.categorie ? 'Retirer de la communauté' : 'Retirer du groupe' }}
                     </button>
                   }
                 </div>
@@ -142,7 +143,7 @@
                 @if (action.membreId === membre.id) {
                   <div class="confirmer" role="group" [attr.aria-label]="'Confirmer pour ' + membre.nomAffiche">
                     @if (action.type === 'retirer') {
-                      <span>Retirer {{ membre.nomAffiche }} du groupe ?</span>
+                      <span>Retirer {{ membre.nomAffiche }} {{ detail.categorie ? 'de la communauté' : 'du groupe' }} ?</span>
                       <button type="button" class="secondaire" [disabled]="enCours()" (click)="actionMembre.set(null)">Annuler</button>
                       <button type="button" class="danger plein" [disabled]="enCours()" (click)="retirer(membre.id)">Retirer</button>
                     } @else {

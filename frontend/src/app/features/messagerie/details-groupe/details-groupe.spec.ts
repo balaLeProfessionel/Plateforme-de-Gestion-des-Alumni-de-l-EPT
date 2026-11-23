@@ -61,12 +61,18 @@ describe('DetailsGroupe', () => {
     expect(racine.querySelector('label[for="photo-groupe"]')).toBeNull();
   });
 
-  it('ne propose ni de renommer ni de supprimer une communauté, même à son administrateur', () => {
-    const ville = { ...groupe('ADMINISTRATEUR', [membre(MOI, 'Awa', 'ADMINISTRATEUR')]), nom: 'EPT à Dakar', categorie: 'VILLE' as const };
+  it('laisse l’administrateur d’une communauté modérer, sans renommer, supprimer, ajouter ni nommer d’administrateur', () => {
+    const ville = { ...groupe('ADMINISTRATEUR', [membre(MOI, 'Awa', 'ADMINISTRATEUR'), membre('u-2', 'Binta', 'MEMBRE')]),
+      nom: 'EPT à Dakar', categorie: 'VILLE' as const };
     const racine = ouvrir(ville);
 
     expect(parLibelle(racine, 'Modifier le nom et la description')).toBeNull();
     expect(racine.querySelector('.supprimer-groupe')).toBeNull();
+    expect(racine.querySelector('.ajouter')).toBeNull();
+    parLibelle(racine, 'Actions pour Binta Diop')?.click();
+    fixture.detectChanges();
+    expect(bouton(racine, 'Nommer admin')).toBeUndefined();
+    expect(bouton(racine, 'Retirer de la communauté')).toBeDefined();
     expect(racine.querySelector('.quitter')?.textContent).toContain('Quitter la communauté');
   });
 

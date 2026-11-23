@@ -242,19 +242,28 @@ class MessagerieCommunautesIntegrationTests {
         rejoindre(personnel, dakar).andExpect(status().isForbidden())
             .andExpect(jsonPath("$.message").value("Les communautés sont réservées aux alumni et aux étudiants."));
 
-        // L'administrateur de la communauté (un alumni) n'y ajoute pas non plus du personnel ; un étudiant, si.
+        // L'administrateur d'une communauté modère, mais n'y fait entrer personne et ne nomme pas d'autre administrateur :
+        // on la rejoint soi-même, selon son mode d'accès.
         Utilisateur responsable = alumni("Awa", 1990, null);
         rejoindre(responsable, dakar).andExpect(status().isOk());
         participants.findByConversationIdAndUtilisateurId(UUID.fromString(dakar), responsable.getId()).ifPresent(p -> {
             p.setRole(ept.edu.sn.alumni_backend.messagerie.RoleParticipant.ADMINISTRATEUR);
             participants.saveAndFlush(p);
         });
-        mockMvc.perform(authentifie(post(API + "/conversations/{id}/participants", dakar), responsable)
-            .contentType(MediaType.APPLICATION_JSON).content("{\"membreIds\":[\"" + personnel.getId() + "\"]}"))
-            .andExpect(status().isConflict());
-        mockMvc.perform(authentifie(post(API + "/conversations/{id}/participants", dakar), responsable)
-            .contentType(MediaType.APPLICATION_JSON).content("{\"membreIds\":[\"" + etudiant.getId() + "\"]}"))
-            .andExpect(status().isOk());
+        for (Utilisateur ajoute : List.of(personnel, etudiant)) {
+            mockMvc.perform(authentifie(post(API + "/conversations/{id}/participants", dakar), responsable)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"membreIds\":[\"" + ajoute.getId() + "\"]}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("On rejoint une communauté soi-même, depuis « À découvrir »."));
+        }
+        rejoindre(etudiant, dakar).andExpect(status().isOk());
+        mockMvc.perform(authentifie(patch(API + "/conversations/{id}/participants/{membre}", dakar, etudiant.getId()), responsable)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"role\":\"ADMINISTRATEUR\"}"))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.message").value("Les administrateurs d'une communauté sont désignés par l'administration de la plateforme."));
+        // Modérer reste possible : retirer un membre.
+        mockMvc.perform(authentifie(delete(API + "/conversations/{id}/participants/{membre}", dakar, etudiant.getId()), responsable))
+            .andExpect(status().isNoContent());
         rejoindre(etudiant, dakar).andExpect(status().isOk());
 
         // Un groupe privé, lui, reste ouvert à tous les rôles.

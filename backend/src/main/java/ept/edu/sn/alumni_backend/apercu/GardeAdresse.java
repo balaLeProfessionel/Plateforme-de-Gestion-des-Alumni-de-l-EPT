@@ -89,7 +89,20 @@ public final class GardeAdresse {
                     return true;
                 }
             }
-            return (o[0] & 0xfe) == 0xfc;                     // fc00::/7, adresses locales uniques
+            // Seul l'unicast global (2000::/3) est accepté : NAT64 (64:ff9b::/96), adresses « IPv4-compatibles »,
+            // fc00::/7… en sont exclues. Dedans, Teredo et la documentation sont refusés, et 6to4 (2002::/16) est
+            // jugé sur l'adresse IPv4 qu'il transporte.
+            if ((o[0] & 0xe0) != 0x20) return true;
+            if (o[0] == 0x20 && o[1] == 0x01 && o[2] == 0 && o[3] == 0) return true;                    // 2001::/32, Teredo
+            if (o[0] == 0x20 && o[1] == 0x01 && o[2] == 0x0d && (o[3] & 0xff) == 0xb8) return true;     // 2001:db8::/32
+            if (o[0] == 0x20 && o[1] == 0x02) {                                                          // 2002::/16, 6to4
+                try {
+                    return interdite(InetAddress.getByAddress(new byte[] {o[2], o[3], o[4], o[5]}));
+                } catch (UnknownHostException e) {
+                    return true;
+                }
+            }
+            return false;
         }
         return true;
     }

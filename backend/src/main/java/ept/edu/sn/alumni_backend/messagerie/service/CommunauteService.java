@@ -170,6 +170,8 @@ public class CommunauteService {
             UUID id = idDeLaCommunaute(cible);
             if (participants.existsByConversationIdAndUtilisateurId(id, utilisateur.getId())) continue;
             Conversation communaute = conversations.findByIdForUpdate(id).orElseThrow();
+            // Revérifié sous le verrou : deux onglets ouverts au même moment ne m'ajoutent pas deux fois.
+            if (participants.existsByConversationIdAndUtilisateurId(id, utilisateur.getId())) continue;
             // Partie d'elle-même : on ne la remet pas d'office ; elle peut revenir depuis « À découvrir ».
             if (!aQuitte(id, utilisateur.getId())) {
                 accueillir(communaute, utilisateur, annoncer);

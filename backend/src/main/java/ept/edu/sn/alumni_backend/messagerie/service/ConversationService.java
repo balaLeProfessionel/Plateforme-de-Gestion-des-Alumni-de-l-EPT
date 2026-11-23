@@ -236,7 +236,8 @@ public class ConversationService {
     /** Nomme un membre administrateur ou lui retire ce rôle ; le groupe garde toujours au moins un administrateur. */
     @Transactional
     public ConversationDetailResponse changerRole(UUID conversationId, UUID moi, UUID utilisateurId, RoleParticipant role) {
-        groupeAdministre(conversationId, moi, "Seul un administrateur du groupe peut changer les rôles.");
+        exigerHorsCommunaute(groupeAdministre(conversationId, moi, "Seul un administrateur du groupe peut changer les rôles."),
+            "Les administrateurs d'une communauté sont désignés par l'administration de la plateforme.");
         Conversation groupe = verrouiller(conversationId);
         Participant cible = participants.findByConversationIdAndUtilisateurId(conversationId, utilisateurId)
             .orElseThrow(() -> new MessagerieIntrouvableException("Ce membre ne fait pas partie du groupe."));
@@ -281,14 +282,13 @@ public class ConversationService {
         Participant participant = acces.chargerParticipant(conversationId, moi);
         acces.exigerGroupe(participant.getConversation(), "Une conversation directe réunit deux personnes seulement.");
         acces.exigerAdministrateur(participant, "Seul un administrateur du groupe peut ajouter des membres.");
+        // On entre dans une communauté en la rejoignant soi-même, selon son mode d'accès, jamais ajouté par un membre.
+        exigerHorsCommunaute(participant.getConversation(), "On rejoint une communauté soi-même, depuis « À découvrir ».");
         Conversation groupe = verrouiller(conversationId);
 
         for (UUID membreId : membreIds) {
             if (participants.existsByConversationIdAndUtilisateurId(conversationId, membreId)) continue;
             Utilisateur membre = acces.chargerJoignable(membreId);
-            if (groupe.estCommunaute() && !AccesConversation.ROLES_COMMUNAUTES.contains(membre.getRole())) {
-                throw new ConflitMessagerieException(AccesConversation.COMMUNAUTES_RESERVEES);
-            }
             participants.save(Participant.de(groupe, membre, RoleParticipant.MEMBRE));
         }
         participants.flush();

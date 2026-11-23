@@ -35,6 +35,7 @@ import ept.edu.sn.alumni_backend.messagerie.tempsreel.EvenementMessagerie;
 import ept.edu.sn.alumni_backend.notification.NotificationService;
 import ept.edu.sn.alumni_backend.notification.NouvelleNotification;
 import ept.edu.sn.alumni_backend.notification.TypeNotification;
+import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
 
 /** Messages d'une conversation : historique, envoi, suppression, lecture et non-lus. */
@@ -49,6 +50,7 @@ public class MessageService {
     private final StockagePieceJointe stockage;
     private final MessagerieProperties proprietes;
     private final NotificationService notifications;
+    private final UtilisateurRepository utilisateurs;
 
     /** Page de l'historique : les {@code taille} messages avant {@code avant} (ou les derniers), du plus ancien au plus récent. */
     @Transactional(readOnly = true)
@@ -78,6 +80,8 @@ public class MessageService {
         Participant auteur = acces.chargerParticipant(conversationId, moi);
         Conversation conversation = auteur.getConversation();
         acces.exigerEcriture(conversation, moi);
+        // Mes envois passent un par un (verrou sur ma ligne) : des envois simultanés ne contournent pas la limite.
+        utilisateurs.findByIdForUpdate(moi);
         if (messages.countByAuteurIdAndEnvoyeLeGreaterThanEqual(moi, Instant.now().minus(Duration.ofMinutes(1)))
                 >= proprietes.limiteEnvoisParMinute()) {
             throw new LimiteEnvoisAtteinteException();
