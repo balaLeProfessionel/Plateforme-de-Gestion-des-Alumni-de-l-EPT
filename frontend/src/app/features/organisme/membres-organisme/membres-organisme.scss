@@ -3,8 +3,10 @@
 h2 { margin: 0; font-size: 1.25rem; scroll-margin-top: 5rem; }
 h2:focus { outline: none; }
 
-.onglets { display: flex; gap: 0.4rem; margin-top: 0.9rem; }
-.onglets button { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 2.5rem; padding: 0.4rem 0.95rem; border: 1px solid var(--ept-border);
+/* Les onglets passent à la ligne plutôt que de sortir de la carte (écran étroit, texte agrandi). */
+.onglets { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.9rem; }
+.onglets button { display: inline-flex; align-items: center; gap: 0.45rem; max-width: 100%; min-height: 2.5rem; padding: 0.4rem 0.95rem;
+  border: 1px solid var(--ept-border); overflow-wrap: anywhere; text-align: center;
   border-radius: 999px; background: white; color: var(--ept-primary); font: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
 .onglets button:hover:not([aria-pressed='true']) { background: #f1f7fa; }
 .onglets button[aria-pressed='true'] { border-color: var(--ept-primary); background: var(--ept-primary); color: white; }
@@ -40,7 +42,7 @@ h2:focus { outline: none; }
 /* Mobile : une bande de vignettes qui défile horizontalement. */
 @media (max-width: 560px) {
   .section-membres { padding: 1.2rem; }
-  .onglets button { flex: 1; justify-content: center; }
+  .onglets button { flex: 1 1 auto; justify-content: center; }
   .vignettes { display: flex; overflow-x: auto; margin-inline: -1.2rem; padding: 0.25rem 1.2rem 0.5rem; scroll-snap-type: x mandatory;
     scroll-padding-inline: 1.2rem; }
   .vignettes li { flex: 0 0 9.5rem; scroll-snap-align: start; }
