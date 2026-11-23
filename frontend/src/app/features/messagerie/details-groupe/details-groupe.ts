@@ -51,6 +51,8 @@ export class DetailsGroupe {
   protected readonly longueurDescription = LONGUEUR_MAX_DESCRIPTION_GROUPE;
   protected readonly moiId = computed(() => this.authService.utilisateur()?.id);
   protected readonly administrateur = computed(() => this.detail()?.monRole === 'ADMINISTRATEUR');
+  /** Nom, description et suppression : ceux d’un groupe ; ceux d’une communauté relèvent de l’administration. */
+  protected readonly gereLeGroupe = computed(() => this.administrateur() && !this.detail()?.categorie);
   /** Promo ou filière : on n’en sort qu’en changeant son profil. */
   protected readonly libelleQuitter = computed(() => this.detail()?.categorie ? 'Quitter la communauté' : 'Quitter le groupe');
   protected readonly automatique = computed(() => estCommunauteAutomatique(this.detail()?.categorie));

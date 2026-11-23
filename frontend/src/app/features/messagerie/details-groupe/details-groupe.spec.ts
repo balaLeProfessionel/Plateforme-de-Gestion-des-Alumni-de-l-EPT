@@ -61,6 +61,15 @@ describe('DetailsGroupe', () => {
     expect(racine.querySelector('label[for="photo-groupe"]')).toBeNull();
   });
 
+  it('ne propose ni de renommer ni de supprimer une communauté, même à son administrateur', () => {
+    const ville = { ...groupe('ADMINISTRATEUR', [membre(MOI, 'Awa', 'ADMINISTRATEUR')]), nom: 'EPT à Dakar', categorie: 'VILLE' as const };
+    const racine = ouvrir(ville);
+
+    expect(parLibelle(racine, 'Modifier le nom et la description')).toBeNull();
+    expect(racine.querySelector('.supprimer-groupe')).toBeNull();
+    expect(racine.querySelector('.quitter')?.textContent).toContain('Quitter la communauté');
+  });
+
   it('place les administrateurs en tête, puis montre les membres dix par dix', async () => {
     const autres = Array.from({ length: 13 }, (_, i) => membre(`u-${i}`, `Membre${i}`, 'MEMBRE'));
     const racine = ouvrir(groupe('MEMBRE', [...autres.slice(0, 5), membre(MOI, 'Awa', 'MEMBRE'),

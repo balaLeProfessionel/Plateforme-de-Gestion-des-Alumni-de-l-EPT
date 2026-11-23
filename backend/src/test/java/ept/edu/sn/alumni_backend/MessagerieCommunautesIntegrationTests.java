@@ -333,6 +333,53 @@ class MessagerieCommunautesIntegrationTests {
         modifier(admin, prive, "{\"nom\":\"Autre\"}").andExpect(status().isNotFound());
     }
 
+    @Test
+    void c09_unMembreNeDevientPasAdministrateurDUneCommunauteNiNeLaRenommeOuLaSupprime() throws Exception {
+        Utilisateur admin = membre("Admin", TypeRole.ADMIN, null, null);
+        Utilisateur awa = alumni("Awa", 1990, null);
+        Utilisateur moussa = alumni("Moussa", 2005, null);
+        String kaolack = JsonPath.read(creer(admin, "{\"nom\":\"EPT à Kaolack\",\"categorie\":\"VILLE\"}")
+            .andReturn().getResponse().getContentAsString(), "$.id");
+        rejoindre(awa, kaolack).andExpect(status().isOk());
+        rejoindre(moussa, kaolack).andExpect(status().isOk());
+
+        // Un départ ne fait pas du plus ancien membre restant l'administrateur de la communauté.
+        mockMvc.perform(authentifie(delete(API + "/conversations/{id}/participants/{membre}", kaolack, awa.getId()), awa))
+            .andExpect(status().isNoContent());
+        org.assertj.core.api.Assertions.assertThat(participants.findByConversationIdAndUtilisateurId(
+            UUID.fromString(kaolack), moussa.getId()).orElseThrow().getRole())
+            .isEqualTo(ept.edu.sn.alumni_backend.messagerie.RoleParticipant.MEMBRE);
+        mockMvc.perform(authentifie(patch(API + "/conversations/{id}", kaolack), moussa)
+            .contentType(MediaType.APPLICATION_JSON).content("{\"nom\":\"Pris\"}")).andExpect(status().isForbidden());
+        mockMvc.perform(authentifie(delete(API + "/conversations/{id}", kaolack), moussa)).andExpect(status().isForbidden());
+
+        // Même nommé administrateur de la communauté, un membre ne la renomme ni ne la supprime : c'est l'administration.
+        participants.findByConversationIdAndUtilisateurId(UUID.fromString(kaolack), moussa.getId()).ifPresent(p -> {
+            p.setRole(ept.edu.sn.alumni_backend.messagerie.RoleParticipant.ADMINISTRATEUR);
+            participants.saveAndFlush(p);
+        });
+        mockMvc.perform(authentifie(patch(API + "/conversations/{id}", kaolack), moussa)
+            .contentType(MediaType.APPLICATION_JSON).content("{\"nom\":\"Pris\"}")).andExpect(status().isForbidden());
+        mockMvc.perform(authentifie(delete(API + "/conversations/{id}", kaolack), moussa)).andExpect(status().isForbidden());
+        org.assertj.core.api.Assertions.assertThat(conversations.findById(UUID.fromString(kaolack)).orElseThrow().getNom())
+            .isEqualTo("EPT à Kaolack");
+    }
+
+    @Test
+    void c10_uneRequeteMalFormeeEstRefuseeClairementSansDetailInterne() throws Exception {
+        Utilisateur admin = membre("Admin", TypeRole.ADMIN, null, null);
+        mockMvc.perform(authentifie(get(ADMIN).param("categorie", "PIRATE"), admin)).andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Le paramètre « categorie » est invalide."));
+        modifier(admin, "abc", "{\"description\":\"x\"}").andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Le paramètre « id » est invalide."));
+        creer(admin, "{\"nom\":\"x\",\"categorie\":").andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Le contenu de la requête est illisible ou mal formé."));
+        creer(admin, "{\"nom\":\"x\",\"categorie\":\"VILLE\",\"acces\":\"PUBLIQUE\"}").andExpect(status().isBadRequest());
+        mockMvc.perform(authentifie(post(ADMIN), admin).contentType(MediaType.APPLICATION_XML).content("<nom>x</nom>"))
+            .andExpect(status().isUnsupportedMediaType());
+        mockMvc.perform(authentifie(delete(ADMIN), admin)).andExpect(status().isMethodNotAllowed());
+    }
+
     private Utilisateur alumni(String prenom, Integer anneeSortie, String filiere) {
         return membre(prenom, TypeRole.ALUMNI, anneeSortie, filiere);
     }

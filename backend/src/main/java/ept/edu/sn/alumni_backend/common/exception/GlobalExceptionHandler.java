@@ -9,7 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -228,6 +232,31 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleSecurity(SecurityException e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(Map.of("message", e.getMessage()));
+    }
+
+    /** Paramètre d'URL mal formé (identifiant, catégorie…) : on nomme le paramètre, sans le message Java brut. */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, String>> handleTypeParametre(MethodArgumentTypeMismatchException e) {
+        return ResponseEntity.badRequest().body(Map.of("message", "Le paramètre « " + e.getName() + " » est invalide."));
+    }
+
+    /*
+     * Sans ces trois gestionnaires, l'erreur passe par la page /error de Spring, réservée aux personnes connectées
+     * par la sécurité : la réponse devenait un 403 trompeur au lieu de dire ce qui ne va pas.
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, String>> handleCorpsIllisible() {
+        return ResponseEntity.badRequest().body(Map.of("message", "Le contenu de la requête est illisible ou mal formé."));
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<Map<String, String>> handleFormatNonPris() {
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(Map.of("message", "Ce format de contenu n'est pas accepté."));
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Map<String, String>> handleMethodeNonPrise() {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(Map.of("message", "Cette action n'existe pas à cette adresse."));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

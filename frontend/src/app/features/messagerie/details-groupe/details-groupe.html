@@ -47,7 +47,7 @@
         } @else {
           <div class="nom-ligne">
             <p class="nom-groupe">{{ detail.nom }}</p>
-            @if (administrateur()) {
+            @if (gereLeGroupe()) {
               <button type="button" class="icone-bouton modifier" aria-label="Modifier le nom et la description"
                 title="Modifier" (click)="ouvrirEdition()">
                 <i class="pi pi-pencil" aria-hidden="true"></i>
@@ -64,7 +64,7 @@
         }
       </section>
 
-      @if (!edition() && (detail.description || administrateur())) {
+      @if (!edition() && (detail.description || gereLeGroupe())) {
         <section class="carte" aria-labelledby="titre-description">
           <h3 id="titre-description">Description</h3>
           @if (detail.description) {
@@ -191,7 +191,7 @@
           <button type="button" class="ligne-action danger-texte quitter" (click)="confirmerDepart.set(true)">
             <i class="pi pi-sign-out" aria-hidden="true"></i> {{ libelleQuitter() }}
           </button>
-          @if (administrateur()) {
+          @if (gereLeGroupe()) {
             <button type="button" class="ligne-action danger-texte supprimer-groupe" (click)="confirmerSuppression.set(true)">
               <i class="pi pi-trash" aria-hidden="true"></i> Supprimer le groupe
             </button>

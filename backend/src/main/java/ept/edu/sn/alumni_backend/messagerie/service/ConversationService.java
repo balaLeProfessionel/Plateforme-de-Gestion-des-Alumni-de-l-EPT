@@ -198,6 +198,7 @@ public class ConversationService {
     @Transactional
     public ConversationDetailResponse modifier(UUID conversationId, UUID moi, ModificationGroupeRequest requete) {
         Conversation conversation = groupeAdministre(conversationId, moi, "Seul un administrateur du groupe peut le modifier.");
+        exigerHorsCommunaute(conversation, "Le nom et la description d'une communauté se modifient dans l'administration.");
         if (requete.nom() == null && requete.description() == null) {
             throw new IllegalArgumentException("Indiquez le nom ou la description à modifier.");
         }
@@ -256,7 +257,8 @@ public class ConversationService {
      */
     @Transactional
     public void supprimerGroupe(UUID conversationId, UUID moi) {
-        groupeAdministre(conversationId, moi, "Seul un administrateur du groupe peut le supprimer.");
+        exigerHorsCommunaute(groupeAdministre(conversationId, moi, "Seul un administrateur du groupe peut le supprimer."),
+            "Une communauté ne se supprime pas depuis la messagerie.");
         Conversation groupe = verrouiller(conversationId);
         Set<UUID> aPrevenir = participants.findUtilisateurIds(conversationId);
         List<String> fichiers = messages.findFichiersJoints(conversationId);
@@ -321,8 +323,9 @@ public class ConversationService {
         participants.flush();
         signaler(conversationId, aPrevenir);
 
-        // Une communauté automatique reste sans administrateur ; un groupe en garde toujours un.
-        if (!conversation.estCommunauteAutomatique()
+        // Un groupe garde toujours un administrateur. Une communauté, non : elle relève de l'administration de la
+        // plateforme, et un départ ne doit pas faire d'un membre son administrateur.
+        if (!conversation.estCommunaute()
             && participants.countByConversationIdAndRole(conversationId, RoleParticipant.ADMINISTRATEUR) == 0) {
             participants.findByConversationIdOrderByRejointLeAsc(conversationId).stream().findFirst()
                 .ifPresent(plusAncien -> plusAncien.setRole(RoleParticipant.ADMINISTRATEUR));
@@ -343,6 +346,11 @@ public class ConversationService {
         acces.exigerGroupe(participant.getConversation(), "Une conversation directe ne se modifie pas.");
         acces.exigerAdministrateur(participant, messageRefus);
         return participant.getConversation();
+    }
+
+    /** Nom unique, fin de vie : une communauté relève de l'administration de la plateforme, pas de ses membres. */
+    private static void exigerHorsCommunaute(Conversation conversation, String messageRefus) {
+        if (conversation.estCommunaute()) throw new SecurityException(messageRefus);
     }
 
     static String descriptionNettoyee(String description) {
