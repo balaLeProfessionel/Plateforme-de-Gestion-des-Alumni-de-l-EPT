@@ -44,6 +44,14 @@ scripts/donnees-demo/charger.sh adresse.du.compte@modele
   démonstration (parcours, carrière, entrepreneuriat, recherche, vie de l'école), avec leur publication
   porteuse dans le fil et des « J'aime ». Pour les modifier : éditer `generer-sql-articles.py` puis
   `python generer-sql-articles.py donnees-demo-articles.sql`.
+- Messagerie (`donnees-demo-messagerie.sql`) : 20 communautés créées par des membres (7 de ville, 5 de secteur,
+  8 d'intérêt dont 2 « sur demande »), dont les membres sont choisis d'après leur profil (ville, filière) ; des
+  discussions dans ces communautés et dans les communautés de promo ; 10 groupes privés (bureau de promo, chantier,
+  révisions, start-up, gala…) ; une centaine de conversations directes (conseils d'alumni, stages, CV,
+  recommandations, retrouvailles). Environ 1 000 messages étalés sur cinq semaines, jusqu'à quelques minutes avant
+  le chargement. Le compte modèle passé à `charger.sh` rejoint six communautés et deux groupes, et huit membres lui
+  écrivent : il voit des messages non lus. Aucune nouvelle table. Pour les modifier : éditer
+  `generer-sql-messagerie.py` puis `python generer-sql-messagerie.py donnees-demo-messagerie.sql`.
 - Photos (`photos-libres.json`) : 59 photos **libres de droits** (CC0 ou domaine public, Wikimedia Commons),
   sans personne reconnaissable. Elles illustrent la plupart des publications du fil, cinq articles sur huit et
   la plupart des événements (à la place des visuels dessinés). Une partie reste volontairement sans image
