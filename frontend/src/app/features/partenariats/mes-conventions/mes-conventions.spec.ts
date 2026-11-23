@@ -19,6 +19,9 @@ describe('MesConventions', () => {
     const fixture = TestBed.createComponent(MesConventions);
     fixture.detectChanges();
     http.expectOne('/api/partenariats/conventions').flush(conventions);
+    http.expectOne('/api/partenariats/mon-partenariat').flush({
+      partenaire: false, conventionsActives: [], accordsStageEnVigueur: 0, accordsMobiliteEnVigueur: 0, accordsAVenir: 0, reponsesAttendues: 0,
+    });
     http.expectOne('/api/partenariats/accords').flush([]);
     fixture.detectChanges();
     return fixture.nativeElement as HTMLElement;
@@ -38,7 +41,6 @@ describe('MesConventions', () => {
       uneConvention({ id: 'c2', statut: 'ACTIVE', dateDebut: '2025-01-01', dateFin: '2026-12-20', joursRestants: 27, expireBientot: true }),
     ]);
     expect(racine.querySelector('a[href="/partenariats/demander"]')).toBeNull();
-    expect(racine.textContent).toContain('Votre organisme est partenaire de l’EPT.');
     expect(racine.textContent).toContain('Prend fin dans 27 jours.');
     expect(racine.querySelector('a[href="/partenariats/conventions/c2"]')).not.toBeNull();
   });

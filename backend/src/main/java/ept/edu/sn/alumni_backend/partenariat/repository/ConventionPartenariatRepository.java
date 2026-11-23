@@ -52,4 +52,57 @@ public interface ConventionPartenariatRepository extends JpaRepository<Conventio
         where c.statut = ept.edu.sn.alumni_backend.partenariat.StatutConvention.ACTIVE and c.dateEffetResiliation <= :aujourdhui
         """)
     List<ConventionPartenariat> resiliationsEchues(@Param("aujourdhui") LocalDate aujourdhui);
+
+    // ----- Indicateurs -----
+
+    interface Comptage {
+        String getCle();
+        long getNombre();
+    }
+
+    interface ComptageAnnee {
+        int getAnnee();
+        long getNombre();
+    }
+
+    @Query("select cast(c.statut as string) as cle, count(c) as nombre from ConventionPartenariat c group by c.statut")
+    List<Comptage> compterParStatut();
+
+    @Query("select count(distinct c.organisme.id) from ConventionPartenariat c where c.statut = ept.edu.sn.alumni_backend.partenariat.StatutConvention.ACTIVE")
+    long compterPartenaires();
+
+    @Query("""
+        select cast(o.typeOrganisme as string) as cle, count(distinct o.id) as nombre
+        from ConventionPartenariat c join c.organisme o
+        where c.statut = ept.edu.sn.alumni_backend.partenariat.StatutConvention.ACTIVE
+        group by o.typeOrganisme
+        """)
+    List<Comptage> partenairesParType();
+
+    /** Conventions signées (devenues actives, même résiliées ou expirées depuis) par année civile de signature. */
+    @Query("""
+        select extract(year from c.dateSignature) as annee, count(c) as nombre from ConventionPartenariat c
+        where c.dateSignature >= :depuis
+          and c.statut in (ept.edu.sn.alumni_backend.partenariat.StatutConvention.ACTIVE,
+                           ept.edu.sn.alumni_backend.partenariat.StatutConvention.EXPIREE,
+                           ept.edu.sn.alumni_backend.partenariat.StatutConvention.RESILIEE)
+        group by extract(year from c.dateSignature)
+        """)
+    List<ComptageAnnee> signeesParAnnee(@Param("depuis") LocalDate depuis);
+
+    @EntityGraph(attributePaths = "organisme")
+    List<ConventionPartenariat> findTop6ByStatutInOrderByCreeeLeAsc(Collection<StatutConvention> statuts);
+
+    @EntityGraph(attributePaths = "organisme")
+    List<ConventionPartenariat> findTop6ByStatutAndDateFinLessThanEqualAndDateEffetResiliationIsNullOrderByDateFinAsc(StatutConvention statut, LocalDate limite);
+
+    @EntityGraph(attributePaths = "organisme")
+    List<ConventionPartenariat> findTop6ByStatutAndDateEffetResiliationIsNotNullOrderByDateEffetResiliationAsc(StatutConvention statut);
+
+    long countByStatutAndDateFinLessThanEqualAndDateEffetResiliationIsNull(StatutConvention statut, LocalDate limite);
+
+    long countByStatutAndDateEffetResiliationIsNotNull(StatutConvention statut);
+
+    @EntityGraph(attributePaths = "organisme")
+    List<ConventionPartenariat> findByOrganisme_IdAndStatutOrderByDateFinAsc(UUID organismeId, StatutConvention statut);
 }

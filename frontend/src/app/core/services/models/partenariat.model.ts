@@ -254,3 +254,62 @@ export function tonAccord(statut: StatutAccord): 'actif' | 'en-cours' | 'clos' |
   if (statut === 'REFUSE' || statut === 'RETIRE' || statut === 'RESILIE') return 'clos';
   return 'neutre';
 }
+
+// ----- Indicateurs -----
+
+export type MotifATraiter = 'DEMANDE_DEMANDEE' | 'DEMANDE_EN_EXAMEN' | 'DEMANDE_EN_NEGOCIATION' | 'PROPOSITION' | 'EXPIRATION' | 'RESILIATION';
+
+export interface TableauPartenariats {
+  chiffres: {
+    partenaires: number;
+    conventionsActives: number;
+    demandesEnCours: number;
+    conventionsExpirees: number;
+    conventionsResiliees: number;
+    accordsStageEnVigueur: number;
+    accordsMobiliteEnVigueur: number;
+    accordsAVenir: number;
+    propositionsAExaminer: number;
+    expirentBientot: number;
+    resiliationsEnCours: number;
+  };
+  aTraiter: {
+    nature: 'CONVENTION' | 'ACCORD';
+    id: string;
+    organismeNom: string;
+    objet: string;
+    motif: MotifATraiter;
+    /** Dépôt pour une demande ou une proposition, échéance pour une expiration, date d’effet pour une résiliation. */
+    date: string;
+    lien: string;
+  }[];
+  partenairesParType: { cle: string; nombre: number }[];
+  /** Cinq dernières années civiles, de la plus ancienne à l’année en cours. */
+  parAnnee: { annee: number; conventionsSignees: number; accordsStage: number; accordsMobilite: number }[];
+}
+
+export interface MonPartenariat {
+  partenaire: boolean;
+  conventionsActives: { id: string; objet: string; dateFin: string; joursRestants: number; dateEffetResiliation: string | null }[];
+  accordsStageEnVigueur: number;
+  accordsMobiliteEnVigueur: number;
+  accordsAVenir: number;
+  reponsesAttendues: number;
+}
+
+export const LIBELLES_MOTIF_A_TRAITER: Record<MotifATraiter, string> = {
+  DEMANDE_DEMANDEE: 'Demande à examiner',
+  DEMANDE_EN_EXAMEN: 'Demande en examen',
+  DEMANDE_EN_NEGOCIATION: 'Convention en négociation',
+  PROPOSITION: 'Proposition d’accord',
+  EXPIRATION: 'Expire bientôt',
+  RESILIATION: 'Résiliation en cours',
+};
+
+export const LIBELLES_TYPE_ORGANISME: Record<string, string> = {
+  ENTREPRISE: 'Entreprises',
+  ETABLISSEMENT_ENSEIGNEMENT: 'Établissements d’enseignement',
+  INSTITUTION_PUBLIQUE: 'Institutions publiques',
+  ONG: 'ONG',
+  AUTRE: 'Autres',
+};

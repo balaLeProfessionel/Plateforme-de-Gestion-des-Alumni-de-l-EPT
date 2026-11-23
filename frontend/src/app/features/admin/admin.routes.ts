@@ -138,6 +138,13 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./fiche-convention/fiche-convention').then((m) => m.FicheConvention),
   },
   {
+    path: 'partenariats',
+    title: 'Tableau de bord des partenariats | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_PARTENARIATS' },
+    loadComponent: () => import('./tableau-partenariats/tableau-partenariats').then((m) => m.TableauPartenariats),
+  },
+  {
     path: 'partenariats/accords',
     title: 'Accords de stage et de mobilité | EPT Alumni',
     canActivate: [permissionGuard],

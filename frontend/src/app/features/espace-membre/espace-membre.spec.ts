@@ -243,7 +243,7 @@ describe('Navigation de l’espace membre', () => {
     expect([...racine.querySelectorAll('.barre-laterale nav a')].map((lien) => lien.getAttribute('href'))).toEqual([
       '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/passage-classe', '/admin/diplomes', '/admin/filieres',
       '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations', '/admin/mobilites/offres', '/admin/mobilites/suivi', '/admin/mobilites/flux',
-      '/admin/partenariats/conventions', '/admin/partenariats/accords',
+      '/admin/partenariats', '/admin/partenariats/conventions', '/admin/partenariats/accords',
       '/admin/publications', '/admin/signalements', '/evenements', '/mentorat/gestion-programmes', '/admin/journal', '/annuaire',
     ]);
     expect(racine.querySelector('.barre-laterale a[href="/admin/signalements"]')?.textContent).toContain('2 signalements à examiner');
@@ -257,7 +257,7 @@ describe('Navigation de l’espace membre', () => {
     expect([...racine.querySelectorAll('.menu-mobile a')].map((lien) => lien.getAttribute('href'))).toEqual([
       '/admin/mon-compte', '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/passage-classe', '/admin/diplomes', '/admin/filieres',
       '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations', '/admin/mobilites/offres', '/admin/mobilites/suivi', '/admin/mobilites/flux',
-      '/admin/partenariats/conventions', '/admin/partenariats/accords',
+      '/admin/partenariats', '/admin/partenariats/conventions', '/admin/partenariats/accords',
       '/admin/publications', '/admin/signalements', '/mentorat/gestion-programmes', '/admin/journal',
     ]);
     expect(racine.querySelector('.menu-mobile a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');

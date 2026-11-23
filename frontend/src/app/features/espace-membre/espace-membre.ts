@@ -116,7 +116,8 @@ export class EspaceMembre implements OnDestroy {
           { libelle: 'Suivi des mobilités', icone: 'pi-eye', route: '/admin/mobilites/suivi', exact: false },
           { libelle: 'Flux', icone: 'pi-arrow-right-arrow-left', route: '/admin/mobilites/flux', exact: false }] : [] },
       { titre: 'Partenariats', liens: peut('GERER_PARTENARIATS')
-        ? [{ libelle: 'Conventions', icone: 'pi-building', route: '/admin/partenariats/conventions', exact: false },
+        ? [{ libelle: 'Vue d’ensemble', icone: 'pi-chart-bar', route: '/admin/partenariats', exact: true },
+          { libelle: 'Conventions', icone: 'pi-building', route: '/admin/partenariats/conventions', exact: false },
           { libelle: 'Accords', icone: 'pi-file-edit', route: '/admin/partenariats/accords', exact: false }] : [] },
       { titre: 'Contenus', liens: [
         ...(peut('PUBLIER_ANNONCES')

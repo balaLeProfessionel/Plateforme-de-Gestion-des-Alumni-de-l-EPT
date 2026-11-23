@@ -1,0 +1,26 @@
+@if (resume(); as r) {
+  @let prochaine = r.conventionsActives[0];
+  <dl class="resume" aria-label="Votre partenariat avec l’EPT">
+    <div [class.positif]="r.partenaire">
+      <dt>Partenariat</dt>
+      @if (prochaine) {
+        <dd>Partenaire de l’EPT</dd>
+        <dd class="detail">
+          @if (prochaine.dateEffetResiliation) { Résiliation effective le {{ prochaine.dateEffetResiliation | date: 'd MMMM y' }} }
+          @else { Jusqu’au {{ prochaine.dateFin | date: 'd MMMM y' }} ({{ prochaine.joursRestants }} jour{{ prochaine.joursRestants > 1 ? 's' : '' }}) }
+        </dd>
+      } @else {
+        <dd>Pas encore partenaire</dd>
+        <dd class="detail">Une convention-cadre active fait de votre organisme un partenaire.</dd>
+      }
+    </div>
+    <div><dt>Accords de stage en vigueur</dt><dd class="nombre">{{ r.accordsStageEnVigueur }}</dd></div>
+    <div><dt>Accords de mobilité en vigueur</dt><dd class="nombre">{{ r.accordsMobiliteEnVigueur }}</dd>
+      @if (r.accordsAVenir) { <dd class="detail">et {{ r.accordsAVenir }} à venir</dd> }</div>
+    <div [class.attente]="r.reponsesAttendues > 0">
+      <dt>Propositions de l’EPT</dt><dd class="nombre">{{ r.reponsesAttendues }}</dd>
+      <dd class="detail">{{ r.reponsesAttendues ? 'attendent votre réponse' : 'aucune réponse attendue' }}</dd>
+    </div>
+  </dl>
+  <p class="lien-indicateurs"><a routerLink="/stages/indicateurs">Voir aussi vos indicateurs de stage</a></p>
+}

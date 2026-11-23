@@ -1,6 +1,7 @@
 package ept.edu.sn.alumni_backend.partenariat.repository;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -14,6 +15,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import ept.edu.sn.alumni_backend.partenariat.OrigineConvention;
+import ept.edu.sn.alumni_backend.partenariat.StatutAccord;
+import ept.edu.sn.alumni_backend.partenariat.TypeAccord;
 
 import ept.edu.sn.alumni_backend.partenariat.entity.AccordCollaboration;
 import jakarta.persistence.LockModeType;
@@ -49,4 +54,41 @@ public interface AccordCollaborationRepository extends JpaRepository<AccordColla
           and a.dateEffetResiliation <= :aujourdhui
         """)
     List<AccordCollaboration> resiliationsEchues(@Param("aujourdhui") LocalDate aujourdhui);
+
+    // ----- Indicateurs -----
+
+    interface ComptageAnneeType {
+        int getAnnee();
+        TypeAccord getType();
+        long getNombre();
+    }
+
+    long countByTypeAndStatut(TypeAccord type, StatutAccord statut);
+
+    long countByStatut(StatutAccord statut);
+
+    long countByStatutAndProposePar(StatutAccord statut, OrigineConvention proposePar);
+
+    long countByStatutInAndDateEffetResiliationIsNotNull(Collection<StatutAccord> statuts);
+
+    long countByOrganisme_IdAndTypeAndStatut(UUID organismeId, TypeAccord type, StatutAccord statut);
+
+    long countByOrganisme_IdAndStatut(UUID organismeId, StatutAccord statut);
+
+    long countByOrganisme_IdAndStatutAndProposePar(UUID organismeId, StatutAccord statut, OrigineConvention proposePar);
+
+    @EntityGraph(attributePaths = "organisme")
+    List<AccordCollaboration> findTop6ByStatutAndProposeParOrderByCreeLeAsc(StatutAccord statut, OrigineConvention proposePar);
+
+    @EntityGraph(attributePaths = "organisme")
+    List<AccordCollaboration> findTop6ByStatutInAndDateEffetResiliationIsNotNullOrderByDateEffetResiliationAsc(Collection<StatutAccord> statuts);
+
+    /** Accords acceptés par année civile d'acceptation et par type (d'après l'historique). */
+    @Query("""
+        select extract(year from h.dateAction) as annee, a.type as type, count(h) as nombre
+        from HistoriqueAccord h, AccordCollaboration a
+        where h.accordId = a.id and h.action = ept.edu.sn.alumni_backend.partenariat.ActionAccord.ACCEPTATION and h.dateAction >= :depuis
+        group by extract(year from h.dateAction), a.type
+        """)
+    List<ComptageAnneeType> acceptesParAnnee(@Param("depuis") java.time.Instant depuis);
 }
