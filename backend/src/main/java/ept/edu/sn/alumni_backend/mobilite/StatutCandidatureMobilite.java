@@ -10,5 +10,7 @@ public enum StatutCandidatureMobilite {
     RETENUE,
     LISTE_ATTENTE,
     NON_RETENUE,
-    DESISTEE
+    DESISTEE,
+    /** Retenue, mais sa mobilité a été annulée par le chef du service mobilité : la place est libérée. */
+    ANNULEE
 }

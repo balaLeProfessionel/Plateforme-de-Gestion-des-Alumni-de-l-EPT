@@ -120,7 +120,7 @@ export function periodeLisible(offre: Pick<OffreMobilite, 'periode' | 'dureeSema
   return `${periode} · ${offre.anneeUniversitaire}`;
 }
 
-export type StatutCandidatureMobilite = 'SOUMISE' | 'RETIREE' | 'RETENUE' | 'LISTE_ATTENTE' | 'NON_RETENUE' | 'DESISTEE';
+export type StatutCandidatureMobilite = 'SOUMISE' | 'RETIREE' | 'RETENUE' | 'LISTE_ATTENTE' | 'NON_RETENUE' | 'DESISTEE' | 'ANNULEE';
 
 export const LIBELLES_STATUT_CANDIDATURE_MOBILITE: Record<StatutCandidatureMobilite, string> = {
   SOUMISE: 'Envoyée',
@@ -129,6 +129,7 @@ export const LIBELLES_STATUT_CANDIDATURE_MOBILITE: Record<StatutCandidatureMobil
   LISTE_ATTENTE: 'Sur liste d’attente',
   NON_RETENUE: 'Non retenue',
   DESISTEE: 'Désistée',
+  ANNULEE: 'Mobilité annulée',
 };
 
 /** Miroir de CandidatureMobiliteResponse. */

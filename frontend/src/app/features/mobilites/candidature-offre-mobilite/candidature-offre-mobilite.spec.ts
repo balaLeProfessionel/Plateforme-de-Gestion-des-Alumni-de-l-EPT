@@ -86,3 +86,12 @@ describe('etapesCandidature', () => {
     expect(etapesCandidature(uneCandidature({ statut: 'LISTE_ATTENTE', rangAttente: 2 }))[1].etat).toBe('liste d’attente, rang 2');
   });
 });
+
+describe('etapesCandidature, candidature retirée ou annulée', () => {
+  it('n’annonce pas de décision pour une candidature retirée après la date limite', () => {
+    const base = uneCandidature();
+    const retiree = uneCandidature({ statut: 'RETIREE', modifiable: false, offre: { ...base.offre, candidaturesOuvertes: false } });
+    expect(etapesCandidature(retiree)[1].etat).toBe('pas de décision : candidature retirée');
+    expect(etapesCandidature(uneCandidature({ statut: 'ANNULEE' }))[1].avancement).toBe('refuse');
+  });
+});

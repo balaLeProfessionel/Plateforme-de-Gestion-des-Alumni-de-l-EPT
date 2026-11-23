@@ -26,15 +26,20 @@ public interface CandidatureMobiliteRepository extends JpaRepository<Candidature
 
     long countByOffre_IdAndStatut(UUID offreId, StatutCandidatureMobilite statut);
 
+    long countByOffre_IdAndStatutIn(UUID offreId, Collection<StatutCandidatureMobilite> statuts);
+
+    @Query("select c.offre.id from CandidatureMobilite c where c.id = :id")
+    Optional<UUID> offreDe(@Param("id") UUID id);
+
+    /** Liste d'attente d'une offre, par rang. */
+    List<CandidatureMobilite> findByOffre_IdAndStatutOrderByRangAttenteAsc(UUID offreId, StatutCandidatureMobilite statut);
+
     /** Dossiers d'une offre, hors candidatures retirées, du plus ancien au plus récent. */
     @EntityGraph(attributePaths = {"candidat", "candidat.filiere"})
     List<CandidatureMobilite> findByOffre_IdAndStatutNotOrderBySoumiseLeAsc(UUID offreId, StatutCandidatureMobilite statut);
 
     @EntityGraph(attributePaths = {"candidat", "candidat.filiere"})
     List<CandidatureMobilite> findByOffre_IdAndStatutOrderByCandidat_NomAsc(UUID offreId, StatutCandidatureMobilite statut);
-
-    @Query("select coalesce(max(c.rangAttente), 0) from CandidatureMobilite c where c.offre.id = :offreId and c.statut = :statut")
-    int rangMaximal(@Param("offreId") UUID offreId, @Param("statut") StatutCandidatureMobilite statut);
 
     /** Candidatures retenues de ces candidats sur d'autres offres de la même année universitaire : pour l'avertissement de doublon. */
     @EntityGraph(attributePaths = {"offre", "offre.organisme"})

@@ -147,7 +147,8 @@ public class CandidaturesMobiliteService {
         Utilisateur lecteur = principal.getUtilisateur();
         CandidatureMobilite candidature = candidatureRepository.findWithOffreById(candidatureId).orElseThrow(FichierIntrouvableException::new);
         boolean autorise = candidature.getCandidat().getId().equals(lecteur.getId()) || AccesMobilite.estChef(lecteur)
-            || (AccesMobilite.estDeLInstitut(candidature.getOffre(), lecteur) && candidature.getStatut() == StatutCandidatureMobilite.RETENUE);
+            || (AccesMobilite.estDeLInstitut(candidature.getOffre(), lecteur) && candidature.getStatut() == StatutCandidatureMobilite.RETENUE
+                && candidature.getOffre().getStatut() == ept.edu.sn.alumni_backend.mobilite.StatutOffreMobilite.LISTE_PUBLIEE);
         if (!autorise) throw new FichierIntrouvableException();
         PieceCandidatureMobilite piece = pieceRepository.findByIdAndCandidature_Id(pieceId, candidatureId).orElseThrow(FichierIntrouvableException::new);
         return new Telechargement(piece.getNomFichier(), stockage.getPiecesCandidatures().lire(piece.getNomStocke()));

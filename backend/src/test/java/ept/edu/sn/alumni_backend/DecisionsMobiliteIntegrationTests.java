@@ -206,6 +206,81 @@ class DecisionsMobiliteIntegrationTests {
         decider(a2, "RETENUE").andExpect(status().isOk());
     }
 
+    @Test
+    void d05_apresLaDateLimiteOuUneDecisionLaDateLimiteNeChangePlus() throws Exception {
+        String offre = publier(institut, corps("ETUDIANTS", List.of(), List.of()));
+        String a = id(deposer(offre, etudiantInfo));
+        var entite = offreRepository.findById(UUID.fromString(offre)).orElseThrow();
+        entite.setDateLimite(LocalDate.now(ZoneId.of("Africa/Dakar")).minusDays(1));
+        offreRepository.saveAndFlush(entite);
+        decider(a, "RETENUE").andExpect(status().isOk());
+        String plusTard = LocalDate.now(ZoneId.of("Africa/Dakar")).plusDays(30).toString();
+        envoyer(put("/api/mobilites/offres/{id}", offre), institut, corps("ETUDIANTS", List.of(), List.of()).replace(demain(), plusTard))
+            .andExpect(status().isConflict()).andExpect(jsonPath("$.message").value("La sélection a commencé : la date limite ne change plus."));
+    }
+
+    @Test
+    void d06_annulerUneMobiliteSortanteLibereLaPlace() throws Exception {
+        String offre = publier(institut, corps("ETUDIANTS", List.of(), List.of()).replace("\"nombrePlaces\":3", "\"nombrePlaces\":1"));
+        String a = id(deposer(offre, etudiantInfo));
+        String b = id(deposer(offre, etudiantCivil));
+        mockMvc.perform(authentifie(patch("/api/mobilites/offres/{id}/cloturer", offre), institut)).andExpect(status().isOk());
+        decider(a, "RETENUE").andExpect(status().isOk());
+        // Avant la publication, l'institut ne lit pas encore le dossier du candidat retenu.
+        String piece = JsonPath.read(mockMvc.perform(authentifie(get("/api/mobilites/offres/{id}/ma-candidature", offre), etudiantInfo))
+            .andReturn().getResponse().getContentAsString(), "$.pieces[0].id");
+        mockMvc.perform(authentifie(get("/api/mobilites/candidatures/{id}/pieces/{piece}", a, piece), institut)).andExpect(status().isNotFound());
+        decider(b, "LISTE_ATTENTE").andExpect(status().isOk());
+        mockMvc.perform(authentifie(patch("/api/admin/mobilites/offres/{id}/liste/publier", offre), chef)).andExpect(status().isOk());
+
+        String mobilite = mobiliteRepository.findByCandidature_Id(UUID.fromString(a)).orElseThrow().getId().toString();
+        envoyer(patch("/api/admin/mobilites/mobilites/{id}/statut", mobilite), chef, "{\"statut\":\"ANNULEE\",\"motif\":\"Visa refusé\"}")
+            .andExpect(status().isOk());
+        mockMvc.perform(authentifie(get("/api/mobilites/offres/{id}/ma-candidature", offre), etudiantInfo)).andExpect(jsonPath("$.statut").value("ANNULEE"));
+        mockMvc.perform(authentifie(patch("/api/admin/mobilites/candidatures/{id}/promouvoir", b), chef))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.retenues").value(1));
+    }
+
+    @Test
+    void d07_unOrganismeExistantSansTypeNEstPasRequalifie() throws Exception {
+        Organisme entreprise = new Organisme();
+        entreprise.setNom("Entreprise " + UUID.randomUUID());
+        entreprise.setStatutValidation(StatutCompte.ACTIF);
+        entreprise = organismeRepository.saveAndFlush(entreprise);
+        organismesCrees.add(entreprise.getId());
+        envoyer(post("/api/admin/mobilites/offres"), chef, "{\"nomNouvelOrganisme\":\"" + entreprise.getNom().toUpperCase()
+                + "\",\"offre\":" + corps("ETUDIANTS", List.of(), List.of()) + "}")
+            .andExpect(status().isBadRequest());
+        assertThat(organismeRepository.findById(entreprise.getId()).orElseThrow().getTypeOrganisme()).isNull();
+    }
+
+    @Test
+    void d08_laListeDAttenteRestNumeroteeDeUnANSansDoublon() throws Exception {
+        String offre = publier(institut, corps("ETUDIANTS", List.of(), List.of()).replace("\"nombrePlaces\":3", "\"nombrePlaces\":1"));
+        Utilisateur quatrieme = creerEtudiant(civil, Classe.DIC1);
+        String r = id(deposer(offre, etudiant3));
+        String a = id(deposer(offre, etudiantInfo));
+        String b = id(deposer(offre, etudiantCivil));
+        String c = id(deposer(offre, quatrieme));
+        mockMvc.perform(authentifie(patch("/api/mobilites/offres/{id}/cloturer", offre), institut)).andExpect(status().isOk());
+        decider(r, "RETENUE").andExpect(status().isOk());
+        decider(a, "LISTE_ATTENTE").andExpect(status().isOk());
+        decider(b, "LISTE_ATTENTE").andExpect(status().isOk());
+        envoyer(patch("/api/admin/mobilites/candidatures/{id}/decision", c), chef, "{\"statut\":\"LISTE_ATTENTE\",\"rang\":1}").andExpect(status().isOk());
+        decider(a, "LISTE_ATTENTE").andExpect(status().isOk());
+        assertThat(rangs(c, a, b)).containsExactly(1, 2, 3);
+
+        mockMvc.perform(authentifie(patch("/api/admin/mobilites/offres/{id}/liste/publier", offre), chef)).andExpect(status().isOk());
+        mockMvc.perform(authentifie(patch("/api/mobilites/candidatures/{id}/desister", r), etudiant3)).andExpect(status().isNoContent());
+        mockMvc.perform(authentifie(patch("/api/admin/mobilites/candidatures/{id}/promouvoir", c), chef)).andExpect(status().isOk());
+        assertThat(rangs(a, b)).containsExactly(1, 2);
+    }
+
+    private List<Integer> rangs(String... candidatures) {
+        return java.util.Arrays.stream(candidatures)
+            .map(c -> candidatureRepository.findById(UUID.fromString(c)).orElseThrow().getRangAttente()).toList();
+    }
+
     private org.springframework.test.web.servlet.ResultActions decider(String candidature, String statut) throws Exception {
         return envoyer(patch("/api/admin/mobilites/candidatures/{id}/decision", candidature), chef, "{\"statut\":\"" + statut + "\"}");
     }

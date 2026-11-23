@@ -6,7 +6,7 @@ h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1.05rem; }
 p { margin: 0; color: var(--ept-primary-dark); }
 .etat-candidature { font-size: 0.9rem; }
 .statut { padding: 0.15rem 0.6rem; border-radius: 999px; background: var(--ept-success-light); color: var(--ept-success-dark); font-size: 0.78rem; font-weight: 700;
-  &[data-statut='NON_RETENUE'], &[data-statut='DESISTEE'] { background: var(--ept-bg); color: var(--ept-text-secondary); }
+  &[data-statut='NON_RETENUE'], &[data-statut='DESISTEE'], &[data-statut='ANNULEE'] { background: var(--ept-bg); color: var(--ept-text-secondary); }
   &[data-statut='LISTE_ATTENTE'] { background: var(--ept-gold-light); color: var(--ept-gold-dark); } }
 .pieces { display: grid; gap: 0.45rem; margin: 0; padding: 0; list-style: none;
   li { display: grid; gap: 0.3rem; padding: 0.55rem 0.7rem; border: 1px solid var(--ept-border); border-radius: 8px; background: var(--ept-surface);

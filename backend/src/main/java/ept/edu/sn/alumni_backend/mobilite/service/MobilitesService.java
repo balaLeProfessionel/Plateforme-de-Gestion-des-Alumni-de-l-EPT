@@ -25,6 +25,7 @@ import ept.edu.sn.alumni_backend.filiere.repository.FiliereRepository;
 import ept.edu.sn.alumni_backend.mobilite.ActionHistorique;
 import ept.edu.sn.alumni_backend.mobilite.ObjetHistorique;
 import ept.edu.sn.alumni_backend.mobilite.SensMobilite;
+import ept.edu.sn.alumni_backend.mobilite.StatutCandidatureMobilite;
 import ept.edu.sn.alumni_backend.mobilite.StatutMobilite;
 import ept.edu.sn.alumni_backend.mobilite.TypeMobilite;
 import ept.edu.sn.alumni_backend.mobilite.dto.AccueilRequest;
@@ -122,7 +123,13 @@ public class MobilitesService {
         if (nouveau == StatutMobilite.EN_COURS && mobilite.getDateDebut() == null) mobilite.setDateDebut(aujourdhui);
         if (nouveau == StatutMobilite.TERMINEE && mobilite.getDateFin() == null) mobilite.setDateFin(aujourdhui);
         mobilite.setStatut(nouveau);
-        if (nouveau == StatutMobilite.ANNULEE) mobilite.setMotif(texte);
+        if (nouveau == StatutMobilite.ANNULEE) {
+            mobilite.setMotif(texte);
+            // La candidature retenue libère sa place : un candidat de la liste d'attente peut la prendre.
+            if (mobilite.getCandidature() != null && mobilite.getCandidature().getStatut() == StatutCandidatureMobilite.RETENUE) {
+                mobilite.getCandidature().setStatut(StatutCandidatureMobilite.ANNULEE);
+            }
+        }
         historique.consigner(ObjetHistorique.MOBILITE, mobilite.getId(), ActionHistorique.CHANGEMENT_STATUT_MOBILITE, avant + " → " + nouveau,
             nouveau == StatutMobilite.ANNULEE ? texte : null, principal.getUtilisateur().getId());
         Utilisateur participant = mobilite.getParticipant();
@@ -136,12 +143,8 @@ public class MobilitesService {
 
     @Transactional
     public MobiliteResponse saisirEntrante(AccueilRequest request, UUID organismeId, String nomNouvelOrganisme, UtilisateurPrincipal principal) {
-        Organisme organisme = organismeService.resoudreOrganisme(organismeId, nomNouvelOrganisme);
-        if (organisme.getTypeOrganisme() == null) {
-            organisme.setTypeOrganisme(TypeOrganisme.ETABLISSEMENT_ENSEIGNEMENT);
-        } else if (organisme.getTypeOrganisme() != TypeOrganisme.ETABLISSEMENT_ENSEIGNEMENT) {
-            throw new IllegalArgumentException("Une mobilité entrante vient d'un établissement d'enseignement.");
-        }
+        Organisme organisme = OffresMobiliteService.etablissement(organismeService, organismeRepository, organismeId, nomNouvelOrganisme,
+            "Une mobilité entrante vient d'un établissement d'enseignement.");
         Mobilite mobilite = nouvelleEntrante(request, organisme, principal.getUtilisateur());
         mobilite.setStatut(StatutMobilite.PREVUE);
         mobilite = mobiliteRepository.save(mobilite);

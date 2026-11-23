@@ -20,8 +20,10 @@ export function etapesCandidature(c: CandidatureMobilite): EtapeFrise[] {
     : c.statut === 'LISTE_ATTENTE' ? { titre, etat: `liste d’attente, rang ${c.rangAttente ?? '–'}`, avancement: 'en-cours' }
     : c.statut === 'NON_RETENUE' ? { titre, etat: 'non retenue', avancement: 'refuse' }
     : c.statut === 'DESISTEE' ? { titre, etat: 'désistement', avancement: 'refuse' }
+    : c.statut === 'ANNULEE' ? { titre, etat: 'retenue, mobilité annulée par l’école', avancement: 'refuse' }
     : c.offre.statut === 'RETIREE' ? { titre, etat: 'offre retirée par l’école', avancement: 'refuse' }
-    : retiree || c.offre.candidaturesOuvertes ? { titre, etat: 'après la date limite', avancement: 'a-venir' }
+    : retiree ? { titre, etat: c.modifiable ? 'si vous renvoyez la candidature' : 'pas de décision : candidature retirée', avancement: 'a-venir' }
+    : c.offre.candidaturesOuvertes ? { titre, etat: 'après la date limite', avancement: 'a-venir' }
     : { titre, etat: 'dossiers en cours d’examen', avancement: 'en-cours' };
   return [dossier, decision];
 }

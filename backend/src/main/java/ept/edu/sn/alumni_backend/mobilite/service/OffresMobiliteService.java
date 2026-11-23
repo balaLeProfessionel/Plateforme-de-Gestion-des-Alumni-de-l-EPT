@@ -96,12 +96,8 @@ public class OffresMobiliteService {
     @Transactional
     public OffreMobiliteResponse publierParChef(OffreMobiliteRequest request, UUID organismeId, String nomNouvelOrganisme,
             UtilisateurPrincipal principal) {
-        Organisme organisme = organismeService.resoudreOrganisme(organismeId, nomNouvelOrganisme);
-        if (organisme.getTypeOrganisme() == null) {
-            organisme.setTypeOrganisme(TypeOrganisme.ETABLISSEMENT_ENSEIGNEMENT);
-        } else if (organisme.getTypeOrganisme() != TypeOrganisme.ETABLISSEMENT_ENSEIGNEMENT) {
-            throw new IllegalArgumentException("Une offre de mobilité se publie au nom d'un établissement d'enseignement.");
-        }
+        Organisme organisme = etablissement(organismeService, organismeRepository, organismeId, nomNouvelOrganisme,
+            "Une offre de mobilité se publie au nom d'un établissement d'enseignement.");
         if (organisme.getStatutValidation() == StatutCompte.SUSPENDU) {
             throw new IllegalArgumentException("Cet établissement est suspendu : ses offres ne seraient pas visibles.");
         }
@@ -115,12 +111,17 @@ public class OffresMobiliteService {
         if (offre.getStatut() != StatutOffreMobilite.PUBLIEE) {
             throw new ConflitMobiliteException("Seule une offre publiée se modifie.");
         }
+        // Après la date limite, ou dès la première décision, rouvrir les candidatures fausserait la sélection en cours.
+        if (!request.dateLimite().equals(offre.getDateLimite()) && (offre.getDateLimite().isBefore(aujourdhui())
+                || candidatureRepository.countByOffre_IdAndStatutIn(offre.getId(), List.of(StatutCandidatureMobilite.RETENUE,
+                    StatutCandidatureMobilite.LISTE_ATTENTE, StatutCandidatureMobilite.NON_RETENUE)) > 0)) {
+            throw new ConflitMobiliteException("La sélection a commencé : la date limite ne change plus.");
+        }
         if (nombreCandidatures(offre) > 0) {
             OffreMobiliteRequest conditions = new OffreMobiliteRequest(request.titre(), request.description(), request.type(),
                 request.publicVise(), request.pays(), request.ville(), request.anneeUniversitaire(), request.periode(), request.dureeSemaines(),
                 offre.getNombrePlaces(), offre.getDateLimite(), request.filiereIds(), request.classes(), request.piecesDemandees());
-            boolean villeChangee = !Objects.equals(offre.getVille(), request.ville() == null || request.ville().isBlank() ? null : request.ville().trim());
-            if (!changements(offre, conditions).isEmpty() || villeChangee
+            if (!changements(offre, conditions).isEmpty()
                     || request.nombrePlaces() < offre.getNombrePlaces() || request.dateLimite().isBefore(offre.getDateLimite())) {
                 throw new ConflitMobiliteException("Des candidatures sont arrivées : seules la date limite (prolongée) et les places (ajoutées) "
                     + "se modifient encore. Pour changer les conditions, retirez l'offre et publiez-en une nouvelle.");
@@ -357,6 +358,8 @@ public class OffresMobiliteService {
         if (offre.getType() != request.type()) lignes.add("type " + offre.getType().libelle() + " → " + request.type().libelle());
         if (offre.getPublicVise() != request.publicVise()) lignes.add("public " + offre.getPublicVise() + " → " + request.publicVise());
         if (!offre.getPays().equals(request.pays().trim())) lignes.add("pays " + offre.getPays() + " → " + request.pays().trim());
+        String ville = request.ville() == null || request.ville().isBlank() ? null : request.ville().trim();
+        if (!Objects.equals(offre.getVille(), ville)) lignes.add("ville " + Objects.requireNonNullElse(offre.getVille(), "—") + " → " + Objects.requireNonNullElse(ville, "—"));
         if (!offre.getAnneeUniversitaire().equals(request.anneeUniversitaire())) {
             lignes.add("année " + offre.getAnneeUniversitaire() + " → " + request.anneeUniversitaire());
         }
@@ -391,6 +394,24 @@ public class OffresMobiliteService {
                 classes.isEmpty(), classes.isEmpty() ? List.of(Classe.TC1) : classes)
             .forEach(destinataire -> evenements.publishEvent(
                 new NouvelleNotification(destinataire, TypeNotification.MOBILITE, "Nouvelle offre de mobilité", message, lien)));
+    }
+
+    /**
+     * L'établissement choisi ou créé par le chef. Seul un établissement créé à l'instant reçoit le type « établissement
+     * d'enseignement » : un organisme existant sans type (créé ailleurs à partir d'un nom) n'est pas requalifié.
+     */
+    static Organisme etablissement(OrganismeService organismeService, OrganismeRepository organismeRepository, UUID organismeId,
+            String nomNouvelOrganisme, String refus) {
+        boolean existait = organismeId != null
+            || (nomNouvelOrganisme != null && organismeRepository.findByNomIgnoreCase(nomNouvelOrganisme.trim()).isPresent());
+        Organisme organisme = organismeService.resoudreOrganisme(organismeId, nomNouvelOrganisme);
+        if (organisme.getTypeOrganisme() == null && !existait) {
+            organisme.setTypeOrganisme(TypeOrganisme.ETABLISSEMENT_ENSEIGNEMENT);
+        }
+        if (organisme.getTypeOrganisme() != TypeOrganisme.ETABLISSEMENT_ENSEIGNEMENT) {
+            throw new IllegalArgumentException(refus + " « " + organisme.getNom() + " » n'est pas enregistré comme tel.");
+        }
+        return organisme;
     }
 
     private OffreMobilite verrouiller(UUID id) {

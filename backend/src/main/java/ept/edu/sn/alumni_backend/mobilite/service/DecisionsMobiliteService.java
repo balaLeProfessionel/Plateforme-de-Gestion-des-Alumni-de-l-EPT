@@ -60,9 +60,9 @@ public class DecisionsMobiliteService {
 
     @Transactional
     public CandidaturesOffreResponse decider(UUID candidatureId, StatutCandidatureMobilite statut, Integer rang, UtilisateurPrincipal principal) {
+        // L'offre est verrouillée avant de relire la candidature : deux décisions simultanées ne dépassent pas les places.
+        OffreMobilite offre = verrouillerOffreDe(candidatureId);
         CandidatureMobilite candidature = candidatureRepository.findById(candidatureId).orElseThrow(OffreMobiliteIntrouvableException::new);
-        // L'offre est verrouillée : deux décisions simultanées ne dépassent pas le nombre de places.
-        OffreMobilite offre = offreRepository.findByIdForUpdate(candidature.getOffre().getId()).orElseThrow(OffreMobiliteIntrouvableException::new);
         if (statut != StatutCandidatureMobilite.RETENUE && statut != StatutCandidatureMobilite.LISTE_ATTENTE
                 && statut != StatutCandidatureMobilite.NON_RETENUE) {
             throw new IllegalArgumentException("La décision est « retenue », « liste d'attente » ou « non retenue ».");
@@ -80,10 +80,10 @@ public class DecisionsMobiliteService {
             throw new ConflitMobiliteException("Les " + offre.getNombrePlaces() + " places sont attribuées : placez ce candidat sur la liste d'attente.");
         }
         StatutCandidatureMobilite avant = candidature.getStatut();
+        // Reconfirmé en attente sans rang, le candidat garde sa place.
+        Integer place = rang != null ? rang : avant == StatutCandidatureMobilite.LISTE_ATTENTE ? candidature.getRangAttente() : null;
         candidature.setStatut(statut);
-        candidature.setRangAttente(statut == StatutCandidatureMobilite.LISTE_ATTENTE
-            ? (rang != null ? rang : candidatureRepository.rangMaximal(offre.getId(), StatutCandidatureMobilite.LISTE_ATTENTE) + 1)
-            : null);
+        ordonnerListeAttente(offre.getId(), candidature, statut == StatutCandidatureMobilite.LISTE_ATTENTE ? place : null);
         candidature.setDecideeLe(java.time.Instant.now());
         candidature.setDecideePar(utilisateurRepository.getReferenceById(principal.getUtilisateur().getId()));
         historique.consigner(ObjetHistorique.CANDIDATURE, candidature.getId(), ActionHistorique.DECISION_CANDIDATURE,
@@ -124,8 +124,8 @@ public class DecisionsMobiliteService {
     /** Le premier de la liste d'attente (ou celui choisi par le chef) prend une place libérée par un désistement. */
     @Transactional
     public CandidaturesOffreResponse promouvoir(UUID candidatureId, UtilisateurPrincipal principal) {
+        OffreMobilite offre = verrouillerOffreDe(candidatureId);
         CandidatureMobilite candidature = candidatureRepository.findById(candidatureId).orElseThrow(OffreMobiliteIntrouvableException::new);
-        OffreMobilite offre = offreRepository.findByIdForUpdate(candidature.getOffre().getId()).orElseThrow(OffreMobiliteIntrouvableException::new);
         if (offre.getStatut() != StatutOffreMobilite.LISTE_PUBLIEE || candidature.getStatut() != StatutCandidatureMobilite.LISTE_ATTENTE) {
             throw new ConflitMobiliteException("Seul un candidat sur la liste d'attente d'une liste publiée peut prendre une place.");
         }
@@ -134,7 +134,7 @@ public class DecisionsMobiliteService {
         }
         Utilisateur auteur = utilisateurRepository.getReferenceById(principal.getUtilisateur().getId());
         candidature.setStatut(StatutCandidatureMobilite.RETENUE);
-        candidature.setRangAttente(null);
+        ordonnerListeAttente(offre.getId(), candidature, null);
         candidature.setDecideeLe(java.time.Instant.now());
         candidature.setDecideePar(auteur);
         creerMobilite(candidature, auteur);
@@ -147,10 +147,10 @@ public class DecisionsMobiliteService {
     /** Le candidat retenu renonce à sa place ; sa mobilité est annulée et le service mobilité est prévenu. */
     @Transactional
     public void desister(UUID candidatureId, UtilisateurPrincipal principal) {
+        verrouillerOffreDe(candidatureId);
         CandidatureMobilite candidature = candidatureRepository.findWithOffreById(candidatureId)
             .filter(c -> c.getCandidat().getId().equals(principal.getUtilisateur().getId()))
             .orElseThrow(OffreMobiliteIntrouvableException::new);
-        offreRepository.findByIdForUpdate(candidature.getOffre().getId());
         if (candidature.getStatut() != StatutCandidatureMobilite.RETENUE || candidature.getOffre().getStatut() != StatutOffreMobilite.LISTE_PUBLIEE) {
             throw new ConflitMobiliteException("Seul un candidat retenu sur une liste publiée peut se désister.");
         }
@@ -178,6 +178,29 @@ public class DecisionsMobiliteService {
         if (offre.getStatut() != StatutOffreMobilite.LISTE_PUBLIEE) return List.of();
         return candidatureRepository.findByOffre_IdAndStatutOrderByCandidat_NomAsc(offreId, StatutCandidatureMobilite.RETENUE).stream()
             .map(c -> dossier(c, null)).toList();
+    }
+
+    /** L'offre de la candidature, verrouillée et relue : les contrôles d'état portent sur sa version à jour. */
+    private OffreMobilite verrouillerOffreDe(UUID candidatureId) {
+        UUID offreId = candidatureRepository.offreDe(candidatureId).orElseThrow(OffreMobiliteIntrouvableException::new);
+        return offreRepository.findByIdForUpdate(offreId).orElseThrow(OffreMobiliteIntrouvableException::new);
+    }
+
+    /**
+     * Renumérote la liste d'attente de 1 à n. La candidature donnée y entre au rang voulu (à la fin sans rang), ou en
+     * sort si elle n'est plus en attente ; les autres gardent leur ordre et se décalent.
+     */
+    private void ordonnerListeAttente(UUID offreId, CandidatureMobilite candidature, Integer rang) {
+        List<CandidatureMobilite> liste = new java.util.ArrayList<>(
+            candidatureRepository.findByOffre_IdAndStatutOrderByRangAttenteAsc(offreId, StatutCandidatureMobilite.LISTE_ATTENTE).stream()
+                .filter(c -> !c.getId().equals(candidature.getId())).toList());
+        if (candidature.getStatut() == StatutCandidatureMobilite.LISTE_ATTENTE) {
+            int position = rang == null ? liste.size() : Math.min(rang - 1, liste.size());
+            liste.add(position, candidature);
+        } else {
+            candidature.setRangAttente(null);
+        }
+        for (int i = 0; i < liste.size(); i++) liste.get(i).setRangAttente(i + 1);
     }
 
     private void creerMobilite(CandidatureMobilite candidature, Utilisateur auteur) {
