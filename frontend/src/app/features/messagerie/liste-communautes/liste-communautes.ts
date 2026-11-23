@@ -1,8 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, ElementRef, inject, signal } from '@angular/core';
 import { FormField, form, maxLength } from '@angular/forms/signals';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 import { AuthService } from '../../../core/services/auth/auth-service';
+import { MessagerieService } from '../../../core/services/messagerie/messagerie';
 import { CommunauteADecouvrir, estCommunauteAutomatique, ICONES_CATEGORIE, LIBELLES_CATEGORIE } from '../../../core/services/models/messagerie.model';
 import { DateRelativePipe } from '../../../shared/dates/date-relative';
 import { apercuConversation } from '../apercu';
@@ -11,6 +14,7 @@ import { EtatCommunautes } from '../etat-communautes';
 import { messageServeur } from '../message-erreur';
 
 const LONGUEUR_MAX_RECHERCHE_COMMUNAUTES = 100;
+const DELAI_RECHERCHE_MS = 300;
 
 /** Minuscules sans accents, pour comparer « Thiès » et « thies ». */
 function normaliser(texte: string): string {
@@ -37,6 +41,7 @@ function correspond(termes: readonly string[], ...textes: (string | null | undef
 export class ListeCommunautes {
   protected readonly etat = inject(EtatCommunautes);
   private readonly authService = inject(AuthService);
+  private readonly messagerie = inject(MessagerieService);
   private readonly router = inject(Router);
   private readonly hote = inject<ElementRef<HTMLElement>>(ElementRef);
   protected readonly libelles = LIBELLES_CATEGORIE;
@@ -75,17 +80,45 @@ export class ListeCommunautes {
   /** Mes communautés, filtrées par nom et par catégorie (« promo », « ville »…). */
   protected readonly lignes = computed(() => this.toutesLesLignes().filter((ligne) =>
     correspond(this.termes(), ligne.conversation.nom, ligne.nature)));
-  /** À découvrir, filtrées aussi sur la description (« afterwork », « solaire »…). */
-  protected readonly decouvertes = computed(() => this.etat.aDecouvrir().filter((communaute) =>
-    correspond(this.termes(), communaute.nom, LIBELLES_CATEGORIE[communaute.categorie], communaute.description)));
+  /**
+   * Résultats du serveur pour la recherche en cours, parmi toutes les communautés à rejoindre (la liste chargée n’en
+   * montre que les 30 premières) ; `null` tant qu’ils ne sont pas arrivés ou sans recherche.
+   */
+  private readonly reponseServeur = toSignal(toObservable(this.recherche).pipe(
+    debounceTime(DELAI_RECHERCHE_MS),
+    distinctUntilChanged(),
+    switchMap((recherche) => !recherche || recherche.length > LONGUEUR_MAX_RECHERCHE_COMMUNAUTES
+      ? of({ recherche, communautes: [] as CommunauteADecouvrir[] })
+      // En cas d’échec, la recherche se contente de la liste chargée.
+      : this.messagerie.rechercherCommunautes(recherche).pipe(
+        map((communautes) => ({ recherche, communautes })),
+        catchError(() => of({ recherche, communautes: [] as CommunauteADecouvrir[] })))),
+  ), { initialValue: { recherche: '', communautes: [] as CommunauteADecouvrir[] } });
+  private readonly trouveesSurLeServeur = computed(() =>
+    this.reponseServeur().recherche === this.recherche() ? this.reponseServeur().communautes : null);
+  /** La réponse du serveur pour ce qui est saisi n’est pas encore là. */
+  protected readonly rechercheEnCours = computed(() => this.recherche() !== '' && this.trouveesSurLeServeur() === null);
+
+  /**
+   * À découvrir, filtrées aussi sur la description (« afterwork », « solaire ») et la catégorie (« ville ») ;
+   * pendant une recherche, s’y ajoutent celles que le serveur trouve au-delà de la liste chargée.
+   */
+  protected readonly decouvertes = computed(() => {
+    const locales = this.etat.aDecouvrir().filter((communaute) =>
+      correspond(this.termes(), communaute.nom, LIBELLES_CATEGORIE[communaute.categorie], communaute.description));
+    const serveur = this.recherche() ? this.trouveesSurLeServeur() ?? [] : [];
+    const dejaLa = new Set(locales.map((communaute) => communaute.id));
+    // Une communauté rejointe entre-temps n’est plus à découvrir, même si le serveur l’avait trouvée avant.
+    return [...locales, ...serveur.filter((communaute) => !dejaLa.has(communaute.id) && !this.etat.estMienne(communaute.id))];
+  });
   /** Le champ apparaît dès qu’il y a de quoi chercher, et reste tant qu’une recherche est saisie. */
   protected readonly rechercheVisible = computed(() =>
     this.toutesLesLignes().length + this.etat.aDecouvrir().length > 0 || this.recherche() !== '');
-  protected readonly aucunResultat = computed(() =>
-    this.recherche() !== '' && this.lignes().length === 0 && this.decouvertes().length === 0);
-  /** Résultat annoncé aux lecteurs d’écran. */
+  protected readonly aucunResultat = computed(() => this.recherche() !== '' && !this.rechercheEnCours()
+    && this.lignes().length === 0 && this.decouvertes().length === 0);
+  /** Résultat annoncé aux lecteurs d’écran, une fois la réponse du serveur arrivée. */
   protected readonly statutRecherche = computed(() => {
-    if (!this.recherche()) return '';
+    if (!this.recherche() || this.rechercheEnCours()) return '';
     const total = this.lignes().length + this.decouvertes().length;
     return total === 0 ? 'Aucune communauté trouvée.'
       : `${total} communauté${total > 1 ? 's' : ''} trouvée${total > 1 ? 's' : ''}.`;

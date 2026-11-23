@@ -86,16 +86,38 @@ public class CommunauteService {
 
         List<Conversation> aDecouvrir = new ArrayList<>(automatiquesQuittees(utilisateur));
         aDecouvrir.addAll(conversations.findADecouvrir(moi, Limit.of(NOMBRE_MAX_A_DECOUVRIR)));
-        List<UUID> ids = aDecouvrir.stream().map(Conversation::getId).toList();
+        return new CommunautesResponse(conversationService.versLignes(conversations.findCommunautesDe(moi), moi),
+            versDecouvertes(aDecouvrir, utilisateur));
+    }
+
+    /**
+     * Recherche parmi toutes les communautés que je peux rejoindre, et pas seulement les premières que montre
+     * « À découvrir » : nom ou description, sans tenir compte des majuscules ni des accents. Simple lecture.
+     */
+    @Transactional(readOnly = true)
+    public List<CommunauteResponse> rechercherADecouvrir(UUID moi, String recherche) {
+        Utilisateur utilisateur = utilisateurs.findById(moi)
+            .orElseThrow(() -> new MessagerieIntrouvableException("Ce membre est introuvable."));
+        if (!ROLES_AVEC_PROMO.contains(utilisateur.getRole()) || recherche == null || recherche.isBlank()) return List.of();
+        String motif = ConversationService.motifRecherche(recherche);
+        String terme = normaliser(recherche.trim());
+
+        List<Conversation> trouvees = new ArrayList<>(automatiquesQuittees(utilisateur).stream()
+            .filter(c -> normaliser(c.getNom() + " " + (c.getDescription() == null ? "" : c.getDescription())).contains(terme))
+            .toList());
+        trouvees.addAll(conversations.rechercherADecouvrir(moi, motif, Limit.of(NOMBRE_MAX_A_DECOUVRIR)));
+        return versDecouvertes(trouvees, utilisateur);
+    }
+
+    /** Cartes « À découvrir » : nombre de membres, et combien sont de ma promo, en deux requêtes groupées. */
+    private List<CommunauteResponse> versDecouvertes(List<Conversation> communautes, Utilisateur utilisateur) {
+        List<UUID> ids = communautes.stream().map(Conversation::getId).toList();
         Map<UUID, Long> membres = ids.isEmpty() ? Map.of() : enTable(participants.compterParConversation(ids));
         Map<UUID, Long> deMaPromo = ids.isEmpty() || utilisateur.getAnneeSortie() == null ? Map.of()
             : enTable(participants.compterDeLaPromoParConversation(ids, utilisateur.getAnneeSortie()));
-
-        return new CommunautesResponse(
-            conversationService.versLignes(conversations.findCommunautesDe(moi), moi),
-            aDecouvrir.stream().map(c -> new CommunauteResponse(c.getId(), c.getNom(), c.getDescription(), c.getUrlPhoto(),
-                c.getCategorie(), c.getAcces(), membres.getOrDefault(c.getId(), 0L), deMaPromo.getOrDefault(c.getId(), 0L)))
-                .toList());
+        return communautes.stream().map(c -> new CommunauteResponse(c.getId(), c.getNom(), c.getDescription(), c.getUrlPhoto(),
+            c.getCategorie(), c.getAcces(), membres.getOrDefault(c.getId(), 0L), deMaPromo.getOrDefault(c.getId(), 0L)))
+            .toList();
     }
 
     /**

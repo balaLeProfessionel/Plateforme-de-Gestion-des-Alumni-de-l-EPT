@@ -8,6 +8,7 @@ import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
 import { AuthService } from '../../../core/services/auth/auth-service';
+import { MessagerieService } from '../../../core/services/messagerie/messagerie';
 import { CommunauteADecouvrir, Conversation } from '../../../core/services/models/messagerie.model';
 import { EtatCommunautes } from '../etat-communautes';
 import { ListeCommunautes } from './liste-communautes';
@@ -31,18 +32,23 @@ describe('ListeCommunautes', () => {
   const etat = {
     miennes, aDecouvrir, chargee: signal(true), chargement: signal(false), erreur: signal<string | null>(null),
     actualiser: vi.fn(), rejoindre: vi.fn(),
+    estMienne: (id: string) => miennes().some((communaute) => communaute.id === id),
   };
+  const messagerie = { rechercherCommunautes: vi.fn() };
+  const attendre = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   beforeEach(() => {
     miennes.set([]);
     aDecouvrir.set([]);
     vi.clearAllMocks();
+    messagerie.rechercherCommunautes.mockReturnValue(of([]));
     TestBed.configureTestingModule({
       imports: [ListeCommunautes],
       providers: [
         provideRouter([]),
         { provide: EtatCommunautes, useValue: etat },
         { provide: AuthService, useValue: { utilisateur: signal({ id: 'moi' }) } },
+        { provide: MessagerieService, useValue: messagerie },
       ],
     });
   });
@@ -125,11 +131,15 @@ describe('ListeCommunautes', () => {
       champ.value = texte;
       champ.dispatchEvent(new Event('input'));
       fixture.detectChanges();
+      // La recherche part au serveur après une pause de frappe.
+      await attendre(350);
+      fixture.detectChanges();
       await fixture.whenStable();
     };
     const noms = () => [...racine.querySelectorAll('.nom')].map((nom) => nom.textContent?.trim());
 
     await chercher('thies');
+    expect(messagerie.rechercherCommunautes).toHaveBeenCalledWith('thies');
     expect(noms()).toEqual(['EPT à Thiès']);
     // Une section sans résultat s’efface pendant la recherche.
     expect(racine.querySelector('#titre-a-decouvrir')).toBeNull();
@@ -148,6 +158,46 @@ describe('ListeCommunautes', () => {
     await fixture.whenStable();
     expect(noms()).toHaveLength(4);
     expect(document.activeElement?.id).toBe('recherche-communautes');
+  });
+
+  it('ajoute les communautés que le serveur trouve au-delà de la liste chargée, sans doublon ni déjà rejointe', async () => {
+    miennes.set([promo]);
+    aDecouvrir.set([dakar]);
+    const ziguinchor = { ...dakar, id: 'v-zig', nom: 'EPT à Ziguinchor', description: 'Casamance', membresDeMaPromo: 0 };
+    messagerie.rechercherCommunautes.mockReturnValue(of([ziguinchor, dakar, { ...dakar, id: 'p-2015', nom: 'Promo 2015' }]));
+    const fixture = TestBed.createComponent(ListeCommunautes);
+    fixture.detectChanges();
+    const racine = fixture.nativeElement as HTMLElement;
+    const champ = racine.querySelector('#recherche-communautes') as HTMLInputElement;
+    champ.value = 'ept';
+    champ.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    // Pendant la recherche au serveur : ni « aucune communauté » ni annonce prématurée.
+    expect(racine.querySelector('.etat.vide')).toBeNull();
+    expect(racine.querySelector('[role="status"]')?.textContent).toBe('');
+
+    await attendre(350);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const decouvertes = [...racine.querySelectorAll('.decouvertes .nom')].map((nom) => nom.textContent?.trim());
+    expect(decouvertes).toEqual(['EPT à Dakar', 'EPT à Ziguinchor']);
+    expect(racine.querySelector('[role="status"]')?.textContent).toBe('2 communautés trouvées.');
+  });
+
+  it('se contente de la liste chargée si la recherche au serveur échoue', async () => {
+    aDecouvrir.set([dakar]);
+    messagerie.rechercherCommunautes.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 0 })));
+    const fixture = TestBed.createComponent(ListeCommunautes);
+    fixture.detectChanges();
+    const racine = fixture.nativeElement as HTMLElement;
+    const champ = racine.querySelector('#recherche-communautes') as HTMLInputElement;
+    champ.value = 'dakar';
+    champ.dispatchEvent(new Event('input'));
+    await attendre(350);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect([...racine.querySelectorAll('.nom')].map((nom) => nom.textContent?.trim())).toEqual(['EPT à Dakar']);
   });
 
   it('affiche le refus du serveur sous la communauté', () => {

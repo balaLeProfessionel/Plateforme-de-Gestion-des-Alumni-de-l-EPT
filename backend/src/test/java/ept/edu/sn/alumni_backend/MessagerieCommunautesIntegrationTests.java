@@ -380,6 +380,39 @@ class MessagerieCommunautesIntegrationTests {
         mockMvc.perform(authentifie(delete(ADMIN), admin)).andExpect(status().isMethodNotAllowed());
     }
 
+    @Test
+    void c11_laRechercheTrouveUneCommunauteARejoindreAuDelaDesTrentePremieres() throws Exception {
+        Utilisateur admin = membre("Admin", TypeRole.ADMIN, null, null);
+        Utilisateur awa = alumni("Awa", 1990, null);
+        Utilisateur personnel = membre("Saliou", TypeRole.PERSONNEL, null, null);
+        String ziguinchor = JsonPath.read(creer(admin,
+            "{\"nom\":\"EPT à Ziguinchor\",\"categorie\":\"VILLE\",\"description\":\"Les alumni de Casamance\"}")
+            .andReturn().getResponse().getContentAsString(), "$.id");
+        // Trente communautés plus actives la repoussent hors de « À découvrir ».
+        for (int i = 0; i < 30; i++) {
+            creer(admin, "{\"nom\":\"Club " + i + "\",\"categorie\":\"INTERET\"}").andExpect(status().isCreated());
+        }
+        communautes(awa).andExpect(jsonPath("$.aDecouvrir", hasSize(30)))
+            .andExpect(jsonPath("$.aDecouvrir[?(@.id == '" + ziguinchor + "')]", hasSize(0)));
+
+        decouvrir(awa, "ept a ZIGUINCHÔR").andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(1))).andExpect(jsonPath("$[0].id").value(ziguinchor))
+            .andExpect(jsonPath("$[0].nombreMembres").value(0));
+        decouvrir(awa, "casamance").andExpect(jsonPath("$[0].id").value(ziguinchor));
+        decouvrir(awa, "%").andExpect(jsonPath("$", hasSize(0)));
+        decouvrir(awa, "club").andExpect(jsonPath("$", hasSize(30)));
+        decouvrir(awa, "   ").andExpect(status().isBadRequest());
+        decouvrir(personnel, "ziguinchor").andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(0)));
+
+        // Une fois rejointe, elle quitte les résultats.
+        rejoindre(awa, ziguinchor).andExpect(status().isOk());
+        decouvrir(awa, "ziguinchor").andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    private ResultActions decouvrir(Utilisateur moi, String recherche) throws Exception {
+        return mockMvc.perform(authentifie(get(API + "/communautes/decouvrir").param("recherche", recherche), moi));
+    }
+
     private Utilisateur alumni(String prenom, Integer anneeSortie, String filiere) {
         return membre(prenom, TypeRole.ALUMNI, anneeSortie, filiere);
     }

@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import {
-  Communautes, Conversation, ConversationDetail, MembreBloque, Message, ModificationGroupe, PageConversations, PageMessages,
+  CommunauteADecouvrir, Communautes, Conversation, ConversationDetail, MembreBloque, Message, ModificationGroupe, PageConversations, PageMessages,
   RoleParticipant,
 } from '../models/messagerie.model';
 import { PageAnnuaire } from '../models/annuaire.model';
@@ -22,6 +22,12 @@ export class MessagerieService {
   /** Mes communautés (promo, filière… : le serveur m’y range d’abord) et celles que je peux rejoindre. */
   listerCommunautes() {
     return this.http.get<Communautes>(`${API}/communautes`);
+  }
+
+  /** Communautés à rejoindre dont le nom ou la description contient la recherche, parmi toutes (30 au plus). */
+  rechercherCommunautes(recherche: string) {
+    return this.http.get<CommunauteADecouvrir[]>(`${API}/communautes/decouvrir`,
+      { params: new HttpParams().set('recherche', recherche.trim()) });
   }
 
   /** Annuaire d’une communauté dont je fais partie : ses membres, triés par nom, au format de l’annuaire. */

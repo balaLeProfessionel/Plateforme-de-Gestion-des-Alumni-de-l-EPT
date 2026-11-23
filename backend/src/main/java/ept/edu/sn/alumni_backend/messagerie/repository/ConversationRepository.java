@@ -117,6 +117,27 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
         """)
     List<Conversation> findADecouvrir(@Param("utilisateurId") UUID utilisateurId, Limit limite);
 
+    /**
+     * Comme {@link #findADecouvrir}, parmi toutes celles dont le nom ou la description contient le motif (sans tenir
+     * compte des majuscules ni des accents) ; le motif est déjà en minuscules, sans accents, entouré de {@code %}.
+     */
+    @Query("""
+        select conversation from Conversation conversation
+        where conversation.categorie is not null
+          and conversation.categorie not in (ept.edu.sn.alumni_backend.messagerie.CategorieCommunaute.PROMO,
+            ept.edu.sn.alumni_backend.messagerie.CategorieCommunaute.FILIERE,
+            ept.edu.sn.alumni_backend.messagerie.CategorieCommunaute.PROMO_FILIERE)
+          and not exists (select moi from Participant moi
+                          where moi.conversation = conversation and moi.utilisateur.id = :utilisateurId)
+          and (cast(function('translate', lower(conversation.nom), '""" + AVEC_ACCENTS + "', '" + SANS_ACCENTS + """
+        ') as String) like :motif escape '\\'
+            or cast(function('translate', lower(coalesce(conversation.description, '')), '""" + AVEC_ACCENTS + "', '" + SANS_ACCENTS + """
+        ') as String) like :motif escape '\\')
+        order by conversation.dernierMessageLe desc, conversation.id
+        """)
+    List<Conversation> rechercherADecouvrir(@Param("utilisateurId") UUID utilisateurId, @Param("motif") String motif,
+                                            Limit limite);
+
     /** Communautés automatiques d'une personne : quand son profil change, elle quitte celles qui ne la concernent plus. */
     @Query("""
         select conversation from Participant participant join participant.conversation conversation
