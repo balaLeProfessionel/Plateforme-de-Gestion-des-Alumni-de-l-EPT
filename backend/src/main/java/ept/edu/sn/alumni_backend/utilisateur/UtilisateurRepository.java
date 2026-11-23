@@ -24,8 +24,8 @@ import java.util.Optional;
 @Repository
 public interface UtilisateurRepository extends JpaRepository<Utilisateur, UUID>,
         JpaSpecificationExecutor<Utilisateur> {
-    /** Chargé par le filtre JWT hors transaction : les responsabilités viennent avec le compte. */
-    @EntityGraph(attributePaths = "permissionsAdmin")
+    /** Chargé par le filtre JWT hors transaction : les responsabilités et la filière viennent avec le compte. */
+    @EntityGraph(attributePaths = {"permissionsAdmin", "filiere"})
     Optional<Utilisateur> findByEmail(String email);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
