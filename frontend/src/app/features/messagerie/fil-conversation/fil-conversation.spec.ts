@@ -233,7 +233,8 @@ describe('FilConversation', () => {
     details[0].click();
     await fixture.whenStable();
     const dialogue = racine.querySelector('app-details-groupe dialog') as HTMLDialogElement;
-    expect(dialogue.open).toBe(true);
+    // La fenêtre s'ouvre après le rendu : on l'attend plutôt que de la vérifier aussitôt.
+    await vi.waitFor(() => expect(dialogue.open).toBe(true));
 
     dialogue.close();
     dialogue.dispatchEvent(new Event('close'));

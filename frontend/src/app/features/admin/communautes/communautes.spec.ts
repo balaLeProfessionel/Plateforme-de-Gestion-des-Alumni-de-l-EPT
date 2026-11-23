@@ -1,9 +1,10 @@
 import { registerLocaleData } from '@angular/common';
-import { provideHttpClient } from '@angular/common/http';
+import { HttpRequest, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import localeFr from '@angular/common/locales/fr';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { vi } from 'vitest';
 import { CommunauteAdmin } from '../../../core/services/models/messagerie.model';
 import { CommunautesAdmin } from './communautes';
 
@@ -17,10 +18,15 @@ const communaute = (id: string, nom: string, valeurs: Partial<CommunauteAdmin> =
 const page = (contenu: CommunauteAdmin[], numero = 0, totalPages = 1) =>
   ({ contenu, page: numero, taille: 20, totalElements: totalPages > 1 ? 20 * totalPages : contenu.length, totalPages });
 const RESUME = { total: 5, parCategorie: { VILLE: 2, SECTEUR: 1, INTERET: 0, PROMO: 2, FILIERE: 0, PROMO_FILIERE: 0 } };
-const attendre = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 describe('CommunautesAdmin', () => {
   let http: HttpTestingController;
+  /** La recherche part après le délai de saisie : on l'attend au lieu de parier sur une durée fixe. */
+  const requeteAttendue = (critere: (requete: HttpRequest<unknown>) => boolean) => vi.waitFor(() => {
+    const [requete] = http.match(critere);
+    if (!requete) throw new Error('Requête pas encore envoyée');
+    return requete;
+  }, { timeout: 3000 });
   let fixture: ComponentFixture<CommunautesAdmin>;
   let racine: HTMLElement;
 
@@ -91,8 +97,7 @@ describe('CommunautesAdmin', () => {
   it('filtre par nom et par catégorie, annonce le résultat et dit ce qui n’a rien donné', async () => {
     await afficher([communaute('v', 'EPT à Dakar')]);
     await saisir('#recherche-communautes-admin', ' dakar ');
-    await attendre(350);
-    http.expectOne((r) => r.url === API && r.params.get('recherche') === 'dakar' && !r.params.has('categorie'))
+    (await requeteAttendue((r) => r.url === API && r.params.get('recherche') === 'dakar' && !r.params.has('categorie')))
       .flush(page([communaute('v', 'EPT à Dakar')]));
     await rendre();
     expect(statuts()).toContain('1 communauté trouvée.');
@@ -157,8 +162,7 @@ describe('CommunautesAdmin', () => {
     expect(statuts()).toContain('La communauté « EPT à Saint-Louis » est créée.');
     http.expectOne(`${API}/resume`).flush({ ...RESUME, total: 6 });
 
-    await attendre(350);
-    http.expectOne((r) => r.url === API && r.params.get('recherche') === 'EPT à Saint-Louis')
+    (await requeteAttendue((r) => r.url === API && r.params.get('recherche') === 'EPT à Saint-Louis'))
       .flush(page([communaute('n', 'EPT à Saint-Louis', { nombreMembres: 0 })]));
     await rendre();
     expect(document.activeElement?.getAttribute('aria-label')).toBe('Modifier EPT à Saint-Louis');
