@@ -1,0 +1,34 @@
+@let c = convention();
+<section class="fichiers" aria-labelledby="titre-pieces-convention">
+  <h2 id="titre-pieces-convention">Documents</h2>
+  @if (c.pieces.length) {
+    <ul class="pieces">
+      @for (piece of c.pieces; track piece.id) {
+        <li>
+          <i class="pi pi-file-pdf" aria-hidden="true"></i>
+          <button type="button" class="lien" (click)="telecharger(piece)">{{ piece.nomFichier }}</button>
+          <small>PDF, {{ piece.taille | taille }} · {{ piece.deposeeParOrganisme ? 'déposé par l’organisme' : 'déposé par l’école' }}</small>
+          @if (piece.supprimable) {
+            <button type="button" class="retirer" [disabled]="enCours()" [attr.aria-label]="'Retirer ' + piece.nomFichier" (click)="retirer(piece)">
+              <i class="pi pi-trash" aria-hidden="true"></i>
+            </button>
+          }
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="aide">Aucun document joint.</p>
+  }
+  @if (ajoutable() && c.pieces.length < piecesMax) {
+    <div class="gestion">
+      <label class="choix-fichier" for="ajout-piece-convention">
+        <i class="pi pi-paperclip" aria-hidden="true"></i>Joindre un PDF
+        <input id="ajout-piece-convention" class="sr-only" type="file" accept="application/pdf,.pdf" [disabled]="enCours()" (change)="ajouter($event)" />
+      </label>
+    </div>
+    <small class="aide">{{ admin() ? 'Exemplaire signé, avenant, projet de convention…' : 'Présentation de l’organisme, projet de convention…' }}
+      PDF de 5 Mo au plus, {{ piecesMax }} documents par convention.</small>
+  }
+  @if (erreur(); as texte) { <p class="erreur" role="alert">{{ texte }}</p> }
+  <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
+</section>

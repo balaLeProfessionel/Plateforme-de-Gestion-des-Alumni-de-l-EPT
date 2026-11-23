@@ -1,0 +1,52 @@
+<app-page-admin titre="Conventions de partenariat"
+  introduction="Demandes des organismes et conventions-cadres de l’EPT. Un organisme est partenaire tant qu’une de ses conventions est active.">
+  <a actionsPage class="bouton principal" routerLink="/admin/partenariats/conventions/saisir"><i class="pi pi-plus" aria-hidden="true"></i>Enregistrer une convention</a>
+
+  <section class="filtres" aria-label="Filtrer les conventions">
+    <div class="champ">
+      <label for="recherche-convention">Organisme ou objet</label>
+      <input id="recherche-convention" type="search" autocomplete="off" [value]="criteres().recherche" (input)="saisir($event)" (keydown.enter)="appliquer($event)" />
+    </div>
+    <div class="champ">
+      <label for="filtre-statut-convention">Statut</label>
+      <select id="filtre-statut-convention" (change)="choisirStatut($event)">
+        <option value="" [selected]="!criteres().statut">Tous</option>
+        @for (s of listeStatuts; track s) { <option [value]="s" [selected]="criteres().statut === s">{{ statuts[s] }}</option> }
+      </select>
+    </div>
+    <button type="button" class="bouton bascule" [attr.aria-pressed]="criteres().expireBientot" (click)="basculerEcheance()">
+      <i class="pi pi-clock" aria-hidden="true"></i>Expirent dans 60 jours</button>
+  </section>
+
+  <div aria-live="polite" [attr.aria-busy]="chargement()">
+    @if (erreur(); as e) {
+      <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ e }}</p></div>
+    } @else if (page(); as p) {
+      @if (p.contenu.length === 0) {
+        <div class="etat"><i class="pi pi-building" aria-hidden="true"></i><h2>Aucune convention</h2>
+          <p>{{ criteres().statut || criteres().recherche || criteres().expireBientot ? 'Aucune convention ne correspond à ces critères.' : 'Les demandes des organismes apparaîtront ici.' }}</p></div>
+      } @else {
+        <ul class="liste" [class.attente]="chargement()">
+          @for (c of p.contenu; track c.id) {
+            <li class="carte offre carte-cliquable">
+              <div class="entete-offre">
+                <h2><a class="lien-etire" [routerLink]="['/admin/partenariats/conventions', c.id]">{{ c.organismeNom }}</a></h2>
+                <app-statut-convention [statut]="c.statut" />
+              </div>
+              <p class="details">{{ c.objet }}</p>
+              <p class="details">
+                @if (c.dateDebut && c.dateFin) { Valide du {{ c.dateDebut | date: 'd MMM y' }} au {{ c.dateFin | date: 'd MMM y' }} }
+                @else { {{ c.origine === 'ORGANISME' ? 'Demandée' : 'Enregistrée' }} le {{ c.creeeLe | date: 'd MMM y' }} }
+                · mise à jour le {{ c.modifieeLe | date: 'd MMM y' }}
+              </p>
+              @if (c.expireBientot) { <p class="echeance">Prend fin dans {{ c.joursRestants }} jour{{ (c.joursRestants ?? 0) > 1 ? 's' : '' }}</p> }
+            </li>
+          }
+        </ul>
+        <app-pagination-admin [page]="p.page" [totalPages]="p.totalPages" libelle="Pagination des conventions" (changer)="changerPage($event)" />
+      }
+    } @else {
+      <div class="squelette" aria-label="Chargement des conventions"></div>
+    }
+  </div>
+</app-page-admin>

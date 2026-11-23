@@ -1,0 +1,45 @@
+@let c = convention();
+<div class="page-stages">
+  <app-fil-ariane [etapes]="etapes()" />
+  @if (erreurChargement(); as e) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h1>Chargement impossible</h1><p>{{ e }}</p></div>
+  } @else if (c) {
+    <header class="entete">
+      <div class="titre">
+        <h1>{{ c.objet }}</h1>
+        @if (!edition() && !confirmationAnnulation()) {
+          <div class="actions">
+            @if (c.statut === 'DEMANDEE') {
+              <button type="button" class="bouton" (click)="edition.set(true)"><i class="pi pi-pencil" aria-hidden="true"></i>Modifier la demande</button>
+            }
+            @if (annulable()) {
+              <button type="button" class="bouton" (click)="confirmationAnnulation.set(true)"><i class="pi pi-times" aria-hidden="true"></i>Annuler la demande</button>
+            }
+          </div>
+        }
+      </div>
+    </header>
+    <p class="statut-message" role="status">{{ message() }}</p>
+
+    @if (confirmationAnnulation()) {
+      <div class="carte confirmation" role="group" aria-label="Annuler la demande">
+        <p>L’école cessera de traiter cette demande. Elle restera dans votre historique.</p>
+        @if (erreurAction(); as e) { <p class="erreur" role="alert">{{ e }}</p> }
+        <div class="actions">
+          <button type="button" class="bouton principal" [disabled]="enCours()" (click)="annuler()">Annuler la demande</button>
+          <button type="button" class="bouton" (click)="confirmationAnnulation.set(false)">Garder la demande</button>
+        </div>
+      </div>
+    }
+
+    @if (edition()) {
+      <app-formulaire-demande-convention [initial]="c" (enregistree)="miseAJour($event, 'Votre demande est corrigée.')" (annulee)="edition.set(false)" />
+    } @else {
+      <section class="carte" aria-label="Convention"><app-infos-convention [convention]="c" /></section>
+    }
+    <div class="carte"><app-pieces-convention [convention]="c" [ajoutable]="enTraitement()" (modifiee)="miseAJour($event)" /></div>
+    <div class="carte"><app-historique-convention [lignes]="historique()" /></div>
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement de la convention"></div>
+  }
+</div>

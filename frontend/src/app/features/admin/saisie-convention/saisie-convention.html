@@ -1,0 +1,60 @@
+@let m = modele();
+<app-page-admin titre="Enregistrer une convention" [parents]="parents"
+  introduction="Pour une convention signée hors de la plateforme, ou négociée à l’initiative de l’école. L’organisme est prévenu.">
+  <form class="carte" (submit)="envoyer($event)" novalidate>
+    @if (erreur(); as e) { <p class="message erreur" role="alert">{{ e }}</p> }
+    <div class="grille-champs">
+      <div class="champ large">
+        <label for="saisie-organisme">Organisme</label>
+        <input id="saisie-organisme" type="text" autocomplete="off" list="saisie-organismes" [formField]="formulaire.organisme"
+          [attr.aria-invalid]="formulaire.organisme().touched() && formulaire.organisme().invalid()" aria-describedby="aide-saisie-organisme erreur-saisie-organisme" />
+        <datalist id="saisie-organismes">@for (s of suggestions(); track s.id) { <option [value]="s.nom"></option> }</datalist>
+        <small id="aide-saisie-organisme" class="aide" aria-live="polite">
+          @if (organismeConnu(); as connu) { Organisme choisi : {{ connu.nom }}. } @else { Tapez au moins deux lettres de son nom. }
+        </small>
+        @if (formulaire.organisme().touched() && formulaire.organisme().errors()[0]; as e) { <small id="erreur-saisie-organisme" class="erreur-champ">{{ e.message }}</small> }
+      </div>
+      <div class="champ large">
+        <label for="saisie-objet">Objet de la convention</label>
+        <input id="saisie-objet" type="text" autocomplete="off" [formField]="formulaire.objet"
+          [attr.aria-invalid]="formulaire.objet().touched() && formulaire.objet().invalid()" aria-describedby="erreur-saisie-objet" />
+        @if (formulaire.objet().touched() && formulaire.objet().errors()[0]; as e) { <small id="erreur-saisie-objet" class="erreur-champ">{{ e.message }}</small> }
+      </div>
+      <div class="champ large">
+        <label for="saisie-domaines">Domaines de coopération (facultatif)</label>
+        <input id="saisie-domaines" type="text" autocomplete="off" [formField]="formulaire.domaines" />
+      </div>
+      <fieldset class="champ large statut">
+        <legend>État de la convention</legend>
+        <div role="group" aria-label="État de la convention" class="choix">
+          <button type="button" class="bouton" [attr.aria-pressed]="m.statut === 'ACTIVE'" (click)="choisirStatut('ACTIVE')">Déjà signée</button>
+          <button type="button" class="bouton" [attr.aria-pressed]="m.statut === 'EN_NEGOCIATION'" (click)="choisirStatut('EN_NEGOCIATION')">En négociation</button>
+        </div>
+      </fieldset>
+      @if (m.statut === 'ACTIVE') {
+        <div class="champ">
+          <label for="saisie-signature">Date de signature</label>
+          <input id="saisie-signature" type="date" [formField]="formulaire.dateSignature"
+            [attr.aria-invalid]="formulaire.dateSignature().touched() && formulaire.dateSignature().invalid()" aria-describedby="erreur-saisie-signature" />
+          @if (formulaire.dateSignature().touched() && formulaire.dateSignature().errors()[0]; as e) { <small id="erreur-saisie-signature" class="erreur-champ">{{ e.message }}</small> }
+        </div>
+        <div class="champ">
+          <label for="saisie-debut">Début de validité</label>
+          <input id="saisie-debut" type="date" [formField]="formulaire.dateDebut"
+            [attr.aria-invalid]="formulaire.dateDebut().touched() && formulaire.dateDebut().invalid()" aria-describedby="erreur-saisie-debut" />
+          @if (formulaire.dateDebut().touched() && formulaire.dateDebut().errors()[0]; as e) { <small id="erreur-saisie-debut" class="erreur-champ">{{ e.message }}</small> }
+        </div>
+        <div class="champ">
+          <label for="saisie-fin">Fin de validité</label>
+          <input id="saisie-fin" type="date" [formField]="formulaire.dateFin"
+            [attr.aria-invalid]="formulaire.dateFin().touched() && formulaire.dateFin().invalid()" aria-describedby="erreur-saisie-fin" />
+          @if (formulaire.dateFin().touched() && formulaire.dateFin().errors()[0]; as e) { <small id="erreur-saisie-fin" class="erreur-champ">{{ e.message }}</small> }
+        </div>
+      }
+    </div>
+    <div class="boutons">
+      <button type="submit" class="bouton principal" [disabled]="enCours()">Enregistrer la convention</button>
+      <button type="button" class="bouton" (click)="annuler()">Ne rien changer</button>
+    </div>
+  </form>
+</app-page-admin>

@@ -47,6 +47,8 @@ export const routes: Routes = [
     path,
     title: `EPT Alumni | ${titre}`,
     data: { rubrique: path },
+    // Connecté, /partenariats mène à la rubrique de l'organisme (conventions-cadres) : la page d'attente ne vaut que sans compte.
+    ...(path === 'partenariats' ? { canMatch: [visiteurMatch] } : {}),
     canActivate: [visiteurGuard],
     loadComponent: () => import('./features/vitrine/page-bientot/page-bientot').then((m) => m.PageBientot)
   })),
@@ -286,6 +288,11 @@ export const routes: Routes = [
         path: 'mobilites',
         canActivate: [authGuard, changementInitialRequisGuard],
         loadChildren: () => import('./features/mobilites/mobilites.routes').then((m) => m.MOBILITES_ROUTES)
+      },
+      {
+        path: 'partenariats',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadChildren: () => import('./features/partenariats/partenariats.routes').then((m) => m.PARTENARIATS_ROUTES)
       },
       {
         path: 'admin',

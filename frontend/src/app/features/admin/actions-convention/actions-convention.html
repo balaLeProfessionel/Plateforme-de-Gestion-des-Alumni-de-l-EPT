@@ -1,0 +1,77 @@
+@let s = saisie();
+@if (!aucuneAction()) {
+  <section class="carte" aria-labelledby="titre-actions-convention">
+    <h2 id="titre-actions-convention">Décision</h2>
+    @if (panneau() === null) {
+      <div class="boutons" role="group" aria-label="Actions sur la convention">
+        @switch (statut()) {
+          @case ('DEMANDEE') {
+            <button type="button" class="bouton principal" [disabled]="enCours()" (click)="examiner()">Prendre en examen</button>
+          }
+          @case ('EN_EXAMEN') {
+            <button type="button" class="bouton principal" (click)="ouvrir('signature')">Enregistrer la signature…</button>
+            <button type="button" class="bouton" [disabled]="enCours()" (click)="negocier()">Passer en négociation</button>
+          }
+          @case ('EN_NEGOCIATION') {
+            <button type="button" class="bouton principal" (click)="ouvrir('signature')">Enregistrer la signature…</button>
+          }
+          @case ('ACTIVE') {
+            <button type="button" class="bouton" (click)="ouvrir('resiliation')">Résilier…</button>
+          }
+        }
+        @if (statut() === 'DEMANDEE' || statut() === 'EN_EXAMEN' || statut() === 'EN_NEGOCIATION') {
+          <button type="button" class="bouton" (click)="ouvrir('refus')">Refuser…</button>
+        }
+        <button type="button" class="bouton" (click)="ouvrir('modification')"><i class="pi pi-pencil" aria-hidden="true"></i>Modifier</button>
+      </div>
+      @if (erreur(); as e) { <p class="erreur-champ" role="alert">{{ e }}</p> }
+    } @else {
+      <form class="panneau" (submit)="confirmer($event)" novalidate>
+        @if (panneau() === 'modification') {
+          <div class="champ">
+            <label for="action-objet">Objet</label>
+            <input id="action-objet" type="text" [value]="s.objet" (input)="champ('objet', $event)" />
+          </div>
+          <div class="champ">
+            <label for="action-domaines">Domaines de coopération</label>
+            <input id="action-domaines" type="text" [value]="s.domaines" (input)="champ('domaines', $event)" />
+          </div>
+        }
+        @if (panneau() === 'signature' || (panneau() === 'modification' && statut() === 'ACTIVE')) {
+          <div class="dates">
+            <div class="champ">
+              <label for="action-signature">Date de signature</label>
+              <input id="action-signature" type="date" [max]="maximumSignature" [value]="s.dateSignature" (input)="champ('dateSignature', $event)" />
+            </div>
+            <div class="champ">
+              <label for="action-debut">Début de validité</label>
+              <input id="action-debut" type="date" [value]="s.dateDebut" (input)="champ('dateDebut', $event)" />
+            </div>
+            <div class="champ">
+              <label for="action-fin">Fin de validité</label>
+              <input id="action-fin" type="date" [min]="s.dateDebut || maximumSignature" [value]="s.dateFin" (input)="champ('dateFin', $event)" />
+            </div>
+          </div>
+        }
+        @if (panneau() === 'refus' || panneau() === 'resiliation') {
+          <div class="champ">
+            <label for="action-motif">{{ panneau() === 'refus' ? 'Motif du refus' : 'Motif de la résiliation' }}, envoyé à l’organisme</label>
+            <textarea id="action-motif" rows="3" maxlength="500" [value]="s.motif" (input)="champ('motif', $event)"></textarea>
+          </div>
+        }
+        @if (erreur(); as e) { <p class="erreur-champ" role="alert">{{ e }}</p> }
+        <div class="boutons">
+          <button type="submit" class="bouton principal" [disabled]="enCours()">
+            @switch (panneau()) {
+              @case ('signature') { Activer la convention }
+              @case ('refus') { Refuser la demande }
+              @case ('resiliation') { Résilier la convention }
+              @default { Enregistrer }
+            }
+          </button>
+          <button type="button" class="bouton" (click)="panneau.set(null)">Ne rien changer</button>
+        </div>
+      </form>
+    }
+  </section>
+}

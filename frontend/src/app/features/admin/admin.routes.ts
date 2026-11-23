@@ -117,6 +117,27 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('../stages/evaluation-stage/evaluation-stage').then((m) => m.EvaluationStagePage),
   },
   {
+    path: 'partenariats/conventions',
+    title: 'Conventions de partenariat | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_PARTENARIATS' },
+    loadComponent: () => import('./conventions-partenariat/conventions-partenariat').then((m) => m.ConventionsPartenariat),
+  },
+  {
+    path: 'partenariats/conventions/saisir',
+    title: 'Enregistrer une convention | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_PARTENARIATS' },
+    loadComponent: () => import('./saisie-convention/saisie-convention').then((m) => m.SaisieConvention),
+  },
+  {
+    path: 'partenariats/conventions/:id',
+    title: 'Convention de partenariat | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_PARTENARIATS' },
+    loadComponent: () => import('./fiche-convention/fiche-convention').then((m) => m.FicheConvention),
+  },
+  {
     path: 'mobilites/offres',
     title: 'Offres de mobilité | EPT Alumni',
     canActivate: [permissionGuard],

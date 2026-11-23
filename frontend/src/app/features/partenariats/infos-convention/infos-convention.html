@@ -1,0 +1,19 @@
+@let c = convention();
+<app-frise [etapes]="etapes()" libelle="Avancement de la convention" />
+<dl class="infos">
+  <div><dt>Statut</dt><dd><app-statut-convention [statut]="c.statut" /></dd></div>
+  <div><dt>Organisme</dt><dd>
+    @if (lienOrganisme()) { <a [routerLink]="['/organismes', c.organismeId]">{{ c.organismeNom }}</a> } @else { {{ c.organismeNom }} }
+  </dd></div>
+  <div><dt>Origine</dt><dd>{{ c.origine === 'ORGANISME' ? 'Demande de l’organisme' : 'Enregistrée par l’école' }}, le {{ c.creeeLe | date: 'd MMMM y' }}</dd></div>
+  @if (c.dateSignature) { <div><dt>Signée le</dt><dd>{{ c.dateSignature | date: 'd MMMM y' }}</dd></div> }
+  @if (c.dateDebut && c.dateFin) {
+    <div><dt>Validité</dt><dd>du {{ c.dateDebut | date: 'd MMMM y' }} au {{ c.dateFin | date: 'd MMMM y' }}</dd></div>
+  }
+  @if (c.joursRestants !== null) {
+    <div><dt>Reste</dt><dd [class.alerte]="c.expireBientot">{{ c.joursRestants }} jour{{ c.joursRestants > 1 ? 's' : '' }}</dd></div>
+  }
+  @if (c.domaines) { <div class="large"><dt>Domaines de coopération</dt><dd>{{ c.domaines }}</dd></div> }
+  @if (c.message) { <div class="large"><dt>Présentation de la demande</dt><dd class="texte">{{ c.message }}</dd></div> }
+  @if (c.motifDecision) { <div class="large"><dt>Motif de l’école</dt><dd>{{ c.motifDecision }}</dd></div> }
+</dl>

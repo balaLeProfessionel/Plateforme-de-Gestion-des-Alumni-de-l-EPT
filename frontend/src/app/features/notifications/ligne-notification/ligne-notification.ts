@@ -9,6 +9,7 @@ const ICONES: Record<TypeNotification, string> = {
   EVENEMENT: 'pi-calendar',
   COMPTE: 'pi-user',
   MOBILITE: 'pi-globe',
+  PARTENARIAT: 'pi-building',
 };
 
 /**

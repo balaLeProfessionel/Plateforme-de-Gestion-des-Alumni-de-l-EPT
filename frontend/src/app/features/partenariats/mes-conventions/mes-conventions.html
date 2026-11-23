@@ -1,0 +1,52 @@
+<div class="page-stages">
+  <app-fil-ariane [etapes]="etapes" />
+  <header class="entete">
+    <div class="titre">
+      <h1>Partenariat avec l’EPT</h1>
+      @if (conventions() && !demandeEnCours()) {
+        <a class="bouton principal" routerLink="/partenariats/demander"><i class="pi pi-plus" aria-hidden="true"></i>Demander une convention</a>
+      }
+    </div>
+    <p class="introduction">Votre organisme devient partenaire de l’EPT en signant une convention-cadre de partenariat.
+      Suivez ici vos demandes, vos conventions et leurs dates de validité.</p>
+  </header>
+
+  @if (erreurChargement()) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Vos conventions n’ont pas pu être chargées</h2>
+      <button type="button" class="bouton" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (conventions(); as liste) {
+    @if (partenaire()) {
+      <p class="bandeau"><i class="pi pi-verified" aria-hidden="true"></i>Votre organisme est partenaire de l’EPT.</p>
+    } @else if (demandeEnCours(); as d) {
+      <p class="bandeau attente"><i class="pi pi-clock" aria-hidden="true"></i>Votre demande « {{ d.objet }} » est en cours de traitement par l’école.</p>
+    }
+    @if (liste.length === 0) {
+      <div class="etat">
+        <i class="pi pi-building" aria-hidden="true"></i>
+        <h2>Aucune convention pour l’instant</h2>
+        <p>Présentez votre organisme et ce que vous attendez du partenariat : le service des Relations extérieures de l’EPT étudiera votre demande.</p>
+      </div>
+    } @else {
+      <ul class="liste">
+        @for (c of liste; track c.id) {
+          <li class="ligne carte-cliquable">
+            <div class="principal">
+              <h2><a class="lien-etire" [routerLink]="['/partenariats/conventions', c.id]">{{ c.objet }}</a></h2>
+              <p class="details">
+                @if (c.dateDebut && c.dateFin) { Valide du {{ c.dateDebut | date: 'd MMMM y' }} au {{ c.dateFin | date: 'd MMMM y' }} }
+                @else { {{ c.origine === 'ORGANISME' ? 'Demandée' : 'Enregistrée par l’école' }} le {{ c.creeeLe | date: 'd MMMM y' }} }
+              </p>
+              @if (c.expireBientot) { <p class="alerte">Prend fin dans {{ c.joursRestants }} jour{{ (c.joursRestants ?? 0) > 1 ? 's' : '' }}.</p> }
+            </div>
+            <app-statut-convention [statut]="c.statut" />
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement de vos conventions"></div>
+  }
+</div>

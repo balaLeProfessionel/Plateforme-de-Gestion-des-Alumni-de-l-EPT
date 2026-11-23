@@ -64,6 +64,8 @@ export class EspaceMembre implements OnDestroy {
   /** Le mentorat ne concerne que les étudiants et les alumni. */
   protected readonly voitMentorat = computed(() => participeAuMentorat(this.authService.utilisateur()?.role));
   /** Les offres pour les étudiants et les enseignants, ses propres offres pour un institut ; rien pour les autres. */
+  /** Un organisme suit ses conventions de partenariat avec l’EPT. */
+  private readonly organisme = computed(() => this.authService.utilisateur()?.role === 'ORGANISME');
   private readonly lienMobilites = computed(() => {
     const role = this.authService.utilisateur()?.role;
     if (role === 'ETUDIANT' || role === 'PERSONNEL') return '/mobilites';
@@ -83,6 +85,7 @@ export class EspaceMembre implements OnDestroy {
         }] : []),
         { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages', exact: false },
         ...(this.lienMobilites() ? [{ libelle: 'Mobilités', icone: 'pi-globe', route: this.lienMobilites() ?? '', exact: false }] : []),
+        ...(this.organisme() ? [{ libelle: 'Partenariat', icone: 'pi-building', route: '/partenariats', exact: false }] : []),
       ] }];
     }
     const peut = (permission: PermissionAdmin) => this.authService.aPermission(permission);
@@ -112,6 +115,8 @@ export class EspaceMembre implements OnDestroy {
         ? [{ libelle: 'Offres de mobilité', icone: 'pi-globe', route: '/admin/mobilites/offres', exact: false },
           { libelle: 'Suivi des mobilités', icone: 'pi-eye', route: '/admin/mobilites/suivi', exact: false },
           { libelle: 'Flux', icone: 'pi-arrow-right-arrow-left', route: '/admin/mobilites/flux', exact: false }] : [] },
+      { titre: 'Partenariats', liens: peut('GERER_PARTENARIATS')
+        ? [{ libelle: 'Conventions', icone: 'pi-building', route: '/admin/partenariats/conventions', exact: false }] : [] },
       { titre: 'Contenus', liens: [
         ...(peut('PUBLIER_ANNONCES')
           ? [{ libelle: 'Annonces et appels', icone: 'pi-megaphone', route: '/admin/publications', exact: false }] : []),
@@ -150,6 +155,7 @@ export class EspaceMembre implements OnDestroy {
         ? [{ libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() }] : []),
       { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages' },
       ...(this.lienMobilites() ? [{ libelle: 'Mobilités', icone: 'pi-globe', route: this.lienMobilites() ?? '' }] : []),
+      ...(this.organisme() ? [{ libelle: 'Partenariat', icone: 'pi-building', route: '/partenariats' }] : []),
     ]);
 
   private readonly urlCourante = toSignal(this.router.events.pipe(
