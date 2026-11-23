@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpEventType } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { EvenementMessagerie, FluxMessagerie, LecteurSse } from './flux-messagerie';
+import { EvenementMessagerie, FluxMessagerie, LecteurSse, SILENCE_MAX } from './flux-messagerie';
 
 describe('LecteurSse', () => {
   it('ne rend que les événements complets et garde la suite pour la prochaine lecture', () => {
@@ -56,6 +56,34 @@ describe('FluxMessagerie', () => {
     try {
       flux.demarrer();
       http.expectOne('/api/messagerie/flux').error(new ProgressEvent('error'));
+      expect(flux.connecte()).toBe(false);
+      vi.advanceTimersByTime(1_000);
+      http.expectOne('/api/messagerie/flux');
+      flux.arreter();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('rouvre une connexion restée muette (serveur redémarré derrière un proxy)', () => {
+    vi.useFakeTimers();
+    try {
+      flux.demarrer();
+      const premiere = http.expectOne('/api/messagerie/flux');
+      const texte = 'event:pret\ndata:{}\n\n';
+      premiere.event({ type: HttpEventType.DownloadProgress, loaded: texte.length, partialText: texte });
+      expect(flux.connecte()).toBe(true);
+
+      // Les commentaires d’entretien suffisent à prouver que la connexion vit.
+      vi.advanceTimersByTime(SILENCE_MAX - 5_000);
+      const suite = texte + ':ok\n\n';
+      premiere.event({ type: HttpEventType.DownloadProgress, loaded: suite.length, partialText: suite });
+      vi.advanceTimersByTime(SILENCE_MAX - 5_000);
+      http.expectNone('/api/messagerie/flux');
+
+      // Puis plus rien : la connexion est fermée et une autre s’ouvre.
+      vi.advanceTimersByTime(SILENCE_MAX);
+      expect(premiere.cancelled).toBe(true);
       expect(flux.connecte()).toBe(false);
       vi.advanceTimersByTime(1_000);
       http.expectOne('/api/messagerie/flux');

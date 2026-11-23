@@ -6,6 +6,11 @@ const URL_FLUX = '/api/messagerie/flux';
 /** Après une coupure, on réessaie de plus en plus tard, sans dépasser ce délai. */
 export const DELAI_RECONNEXION_MAX = 30_000;
 const DELAI_RECONNEXION_MIN = 1_000;
+/**
+ * Le serveur écrit au moins toutes les 25 secondes. Au-delà de ce silence, la connexion est morte sans l’avoir
+ * dit (serveur redémarré derrière un proxy, réseau perdu) : on la ferme pour en rouvrir une.
+ */
+export const SILENCE_MAX = 60_000;
 
 /**
  * Signal reçu en temps réel. `pret` arrive à chaque (re)connexion : ce qui a pu changer pendant
@@ -53,10 +58,18 @@ export class FluxMessagerie {
   private ouvrir(): Observable<EvenementMessagerie> {
     return new Observable<EvenementMessagerie>((abonne) => {
       const lecteur = new LecteurSse();
+      let dernierSigneDeVie = Date.now();
+      const veille = timer(SILENCE_MAX / 4, SILENCE_MAX / 4).subscribe(() => {
+        if (Date.now() - dernierSigneDeVie < SILENCE_MAX) return;
+        requete.unsubscribe();
+        this.connecteSignal.set(false);
+        abonne.error(new Error('Flux de la messagerie silencieux.'));
+      });
       const requete = this.http.get(URL_FLUX, { observe: 'events', reportProgress: true, responseType: 'text' })
         .subscribe({
           next: (evenement: HttpEvent<string>) => {
             if (evenement.type !== HttpEventType.DownloadProgress) return;
+            dernierSigneDeVie = Date.now();
             for (const recu of lecteur.lire((evenement as HttpDownloadProgressEvent).partialText ?? '')) {
               if (recu.type === 'pret') this.connecteSignal.set(true);
               abonne.next(recu);
@@ -71,7 +84,10 @@ export class FluxMessagerie {
             abonne.complete();
           },
         });
-      return () => requete.unsubscribe();
+      return () => {
+        veille.unsubscribe();
+        requete.unsubscribe();
+      };
     });
   }
 }
