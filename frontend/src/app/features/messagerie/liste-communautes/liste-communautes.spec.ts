@@ -114,6 +114,42 @@ describe('ListeCommunautes', () => {
     expect(etat.rejoindre).toHaveBeenCalledWith('p-2015');
   });
 
+  it('cherche sans tenir compte des accents, dans le nom, la catégorie et la description', async () => {
+    miennes.set([promo, { ...promo, id: 'v-thies', nom: 'EPT à Thiès', categorie: 'VILLE' }]);
+    aDecouvrir.set([dakar, { ...dakar, id: 'i-data', nom: 'Data et IA', categorie: 'INTERET', description: 'Science des données' }]);
+    const fixture = TestBed.createComponent(ListeCommunautes);
+    fixture.detectChanges();
+    const racine = fixture.nativeElement as HTMLElement;
+    const chercher = async (texte: string) => {
+      const champ = racine.querySelector('#recherche-communautes') as HTMLInputElement;
+      champ.value = texte;
+      champ.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      await fixture.whenStable();
+    };
+    const noms = () => [...racine.querySelectorAll('.nom')].map((nom) => nom.textContent?.trim());
+
+    await chercher('thies');
+    expect(noms()).toEqual(['EPT à Thiès']);
+    // Une section sans résultat s’efface pendant la recherche.
+    expect(racine.querySelector('#titre-a-decouvrir')).toBeNull();
+    expect(racine.querySelector('[role="status"]')?.textContent).toBe('1 communauté trouvée.');
+
+    await chercher('DONNÉES');
+    expect(noms()).toEqual(['Data et IA']);
+    await chercher('promo');
+    expect(noms()).toEqual(['Promo 2015']);
+
+    await chercher('rugby');
+    expect(racine.querySelector('.etat.vide p')?.textContent).toBe('Aucune communauté ne correspond à « rugby ».');
+    const effacer = [...racine.querySelectorAll('button')].find((b) => b.textContent?.trim() === 'Effacer la recherche')!;
+    effacer.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(noms()).toHaveLength(4);
+    expect(document.activeElement?.id).toBe('recherche-communautes');
+  });
+
   it('affiche le refus du serveur sous la communauté', () => {
     aDecouvrir.set([dakar]);
     etat.rejoindre.mockReturnValue(throwError(() => new HttpErrorResponse({

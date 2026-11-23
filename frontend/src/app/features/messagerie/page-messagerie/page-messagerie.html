@@ -12,25 +12,30 @@
         </button>
       </div>
     </header>
-    <div class="onglets" role="tablist" aria-label="Messagerie" (keydown)="naviguerOnglets($event)">
-      <button type="button" role="tab" id="onglet-conversations" aria-controls="panneau-conversations"
-        [attr.aria-selected]="onglet() === 'conversations'" [attr.tabindex]="onglet() === 'conversations' ? 0 : -1"
-        (click)="onglet.set('conversations')">Conversations</button>
-      <button type="button" role="tab" id="onglet-communautes" aria-controls="panneau-communautes"
-        [attr.aria-selected]="onglet() === 'communautes'" [attr.tabindex]="onglet() === 'communautes' ? 0 : -1"
-        (click)="onglet.set('communautes')">
-        Communautés
-        @if (communautes.nonLus() > 0) {
-          <span class="pastille-onglet" aria-hidden="true">{{ communautes.nonLus() > 99 ? '99+' : communautes.nonLus() }}</span>
-          <span class="sr-only">, {{ communautes.nonLus() }} non lu{{ communautes.nonLus() > 1 ? 's' : '' }}</span>
-        }
-      </button>
-    </div>
-    @if (onglet() === 'conversations') {
-      <app-liste-conversations id="panneau-conversations" role="tabpanel" aria-labelledby="onglet-conversations"
-        (nouvelle)="nouvelleOuverte.set(true)" />
+    <!-- Sans communautés (personnel, visiteurs, organismes) : la liste seule, sans onglets. -->
+    @if (!avecCommunautes()) {
+      <app-liste-conversations (nouvelle)="nouvelleOuverte.set(true)" />
     } @else {
-      <app-liste-communautes id="panneau-communautes" role="tabpanel" aria-labelledby="onglet-communautes" />
+      <div class="onglets" role="tablist" aria-label="Messagerie" (keydown)="naviguerOnglets($event)">
+        <button type="button" role="tab" id="onglet-conversations" aria-controls="panneau-conversations"
+          [attr.aria-selected]="onglet() === 'conversations'" [attr.tabindex]="onglet() === 'conversations' ? 0 : -1"
+          (click)="onglet.set('conversations')">Conversations</button>
+        <button type="button" role="tab" id="onglet-communautes" aria-controls="panneau-communautes"
+          [attr.aria-selected]="onglet() === 'communautes'" [attr.tabindex]="onglet() === 'communautes' ? 0 : -1"
+          (click)="onglet.set('communautes')">
+          Communautés
+          @if (communautes.nonLus() > 0) {
+            <span class="pastille-onglet" aria-hidden="true">{{ communautes.nonLus() > 99 ? '99+' : communautes.nonLus() }}</span>
+            <span class="sr-only">, {{ communautes.nonLus() }} non lu{{ communautes.nonLus() > 1 ? 's' : '' }}</span>
+          }
+        </button>
+      </div>
+      @if (onglet() === 'conversations') {
+        <app-liste-conversations id="panneau-conversations" role="tabpanel" aria-labelledby="onglet-conversations"
+          (nouvelle)="nouvelleOuverte.set(true)" />
+      } @else {
+        <app-liste-communautes id="panneau-communautes" role="tabpanel" aria-labelledby="onglet-communautes" />
+      }
     }
   </section>
 

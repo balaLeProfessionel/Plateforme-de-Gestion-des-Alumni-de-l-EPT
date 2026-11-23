@@ -26,6 +26,8 @@ export class SelectionMembres {
   readonly choisis = model<MembreChoisi[]>([]);
   /** Membres à ne pas proposer (déjà dans le groupe). Je ne me propose jamais moi-même. */
   readonly exclus = input<readonly string[]>([]);
+  /** Rôles proposés (une communauté : alumni et étudiants) ; null : tous. */
+  readonly roles = input<readonly string[] | null>(null);
   /** Préfixe des identifiants HTML : deux sélecteurs peuvent coexister dans la page. */
   readonly identifiant = input.required<string>();
   readonly libelle = input('Rechercher un membre');
@@ -42,8 +44,9 @@ export class SelectionMembres {
   protected readonly propositions = computed(() => {
     const ecartes = new Set([...this.exclus(), this.authService.utilisateur()?.id]);
     const choisis = new Set(this.choisis().map((membre) => membre.id));
+    const roles = this.roles();
     return this.resultats()
-      .filter((membre) => !ecartes.has(membre.id))
+      .filter((membre) => !ecartes.has(membre.id) && (!roles || roles.includes(membre.role)))
       .map((membre) => ({ membre, choisi: choisis.has(membre.id), role: this.libelleRole(membre.role) }));
   });
 

@@ -96,6 +96,8 @@ export class EspaceMembre implements OnDestroy {
           libelle: 'Signalements', icone: 'pi-flag', route: '/admin/signalements', exact: false,
           compteur: this.compteurSignalements.nombre(), libelleCompteur: 'signalements à examiner',
         }] : []),
+        ...(peut('GERER_COMMUNAUTES')
+          ? [{ libelle: 'Communautés', icone: 'pi-comments', route: '/admin/communautes', exact: false }] : []),
         { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
         { libelle: 'Programmes de mentorat', icone: 'pi-sitemap', route: '/mentorat/gestion-programmes', exact: false },
       ] },

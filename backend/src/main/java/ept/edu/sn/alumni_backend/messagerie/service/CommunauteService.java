@@ -25,7 +25,6 @@ import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.messagerie.AccesCommunaute;
 import ept.edu.sn.alumni_backend.messagerie.CategorieCommunaute;
 import ept.edu.sn.alumni_backend.messagerie.RoleParticipant;
-import ept.edu.sn.alumni_backend.messagerie.dto.CommunauteRequest;
 import ept.edu.sn.alumni_backend.messagerie.dto.CommunauteResponse;
 import ept.edu.sn.alumni_backend.messagerie.dto.CommunautesResponse;
 import ept.edu.sn.alumni_backend.messagerie.dto.ConversationDetailResponse;
@@ -48,7 +47,7 @@ import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 @Service
 public class CommunauteService {
     private static final int NOMBRE_MAX_A_DECOUVRIR = 30;
-    private static final Set<TypeRole> ROLES_AVEC_PROMO = Set.of(TypeRole.ALUMNI, TypeRole.ETUDIANT);
+    private static final Set<TypeRole> ROLES_AVEC_PROMO = AccesConversation.ROLES_COMMUNAUTES;
 
     private final ConversationRepository conversations;
     private final ParticipantRepository participants;
@@ -80,6 +79,8 @@ public class CommunauteService {
     public CommunautesResponse lister(UUID moi) {
         Utilisateur utilisateur = utilisateurs.findById(moi)
             .orElseThrow(() -> new MessagerieIntrouvableException("Ce membre est introuvable."));
+        // Personnel, visiteurs, organismes, administrateurs : pas de communautés.
+        if (!ROLES_AVEC_PROMO.contains(utilisateur.getRole())) return new CommunautesResponse(List.of(), List.of());
         synchroniser(utilisateur, true);
         participants.flush();
 
@@ -112,6 +113,9 @@ public class CommunauteService {
         Utilisateur utilisateur = utilisateurs.findById(moi)
             .filter(AccesConversation::estJoignable)
             .orElseThrow(() -> new MessagerieIntrouvableException("Ce membre est introuvable."));
+        if (!ROLES_AVEC_PROMO.contains(utilisateur.getRole())) {
+            throw new SecurityException(AccesConversation.COMMUNAUTES_RESERVEES);
+        }
         if (communaute.estCommunauteAutomatique()) {
             boolean deMonProfil = ROLES_AVEC_PROMO.contains(utilisateur.getRole())
                 && cibles(utilisateur.getAnneeSortie(), utilisateur.getFiliere()).containsKey(communaute.getCleCommunaute());
@@ -125,26 +129,6 @@ public class CommunauteService {
         return conversationService.detail(communaute, moi);
     }
 
-    /** Une communauté à rejoindre (ville, secteur, intérêt), créée par un administrateur de la plateforme. */
-    @Transactional
-    public ConversationDetailResponse creer(Utilisateur createur, CommunauteRequest requete) {
-        if (createur.getRole() != TypeRole.ADMIN) {
-            throw new SecurityException("Seul un administrateur de la plateforme crée une communauté.");
-        }
-        if (requete.categorie().automatique()) {
-            throw new IllegalArgumentException("Les communautés de promo et de filière se créent toutes seules.");
-        }
-        Conversation communaute = Conversation.communaute(requete.nom().trim(), requete.categorie(),
-            requete.acces() == null ? AccesCommunaute.OUVERTE : requete.acces(), null);
-        String description = requete.description() == null ? null : requete.description().strip();
-        communaute.setDescription(description == null || description.isEmpty() ? null : description);
-        communaute = conversations.save(communaute);
-        Participant admin = Participant.de(communaute, createur, RoleParticipant.ADMINISTRATEUR);
-        admin.setDernierLuLe(Instant.now());
-        participants.save(admin);
-        participants.flush();
-        return conversationService.detail(communaute, createur.getId());
-    }
 
     /**
      * Range une personne dans les communautés de sa promo et de sa filière, et la retire de celles qui ne la concernent
@@ -250,8 +234,10 @@ public class CommunauteService {
         if (!annoncer) return;
         messages.save(MessagesSysteme.creer(communaute, utilisateur, MessagesSysteme.ARRIVEE));
         participants.flush();
-        evenements.publishEvent(new EvenementMessagerie(participants.findUtilisateurIds(communaute.getId()),
-            EvenementMessagerie.Type.MESSAGE, communaute.getId()));
+        Set<UUID> membres = participants.findUtilisateurIds(communaute.getId());
+        evenements.publishEvent(new EvenementMessagerie(membres, EvenementMessagerie.Type.MESSAGE, communaute.getId()));
+        // La liste des membres a changé : les fils ouverts relisent la communauté (nombre de membres, infos).
+        evenements.publishEvent(new EvenementMessagerie(membres, EvenementMessagerie.Type.CONVERSATION, communaute.getId()));
     }
 
     /** Clé sans accents ni majuscules : « Génie Civil » et « genie civil » désignent la même filière. */

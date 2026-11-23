@@ -247,14 +247,14 @@ describe('Navigation de l’espace membre', () => {
     expect([...racine.querySelectorAll('.barre-laterale p-sidebar-group-label')].map((titre) => titre.textContent?.trim()))
       .toEqual(['Pilotage', 'Membres', 'Contenus', 'Système', 'Plateforme', 'À découvrir bientôt']);
     expect([...racine.querySelectorAll('.barre-laterale nav a')].map((lien) => lien.getAttribute('href'))).toEqual([
-      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/admin/publications', '/admin/signalements',
+      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/admin/publications', '/admin/signalements', '/admin/communautes',
       '/evenements', '/mentorat/gestion-programmes', '/admin/journal', '/annuaire',
     ]);
     expect(racine.querySelector('.barre-laterale a[href="/admin/signalements"]')?.textContent).toContain('2 signalements à examiner');
     expect(racine.querySelector('.barre-laterale a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
     // Le panneau mobile reprend les rubriques d'administration ; Annuaire et Événements sont dans la barre du bas.
     expect([...racine.querySelectorAll('.menu-mobile a')].map((lien) => lien.getAttribute('href'))).toEqual([
-      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/admin/publications', '/admin/signalements',
+      '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/diplomes', '/admin/publications', '/admin/signalements', '/admin/communautes',
       '/mentorat/gestion-programmes', '/admin/journal',
     ]);
     expect(racine.querySelector('.menu-mobile a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');

@@ -18,7 +18,9 @@ public enum PermissionAdmin {
     /** Publier une annonce officielle ou un appel à projet. */
     PUBLIER_ANNONCES,
     /** Traiter les signalements et masquer une publication ; voit aussi les publications de toutes les audiences. */
-    MODERER_PUBLICATIONS;
+    MODERER_PUBLICATIONS,
+    /** Lister, créer et modifier les communautés de la messagerie (sans en devenir membre). */
+    GERER_COMMUNAUTES;
 
     public static Set<PermissionAdmin> pour(TypeRole role) {
         return role == TypeRole.ADMIN ? EnumSet.allOf(PermissionAdmin.class) : EnumSet.noneOf(PermissionAdmin.class);

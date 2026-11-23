@@ -1,7 +1,7 @@
-import { afterNextRender, Component, ElementRef, inject, Injector, input, output, signal } from '@angular/core';
+import { afterNextRender, Component, computed, ElementRef, inject, Injector, input, output, signal } from '@angular/core';
 import { firstValueFrom, Observable } from 'rxjs';
 import { MessagerieService } from '../../../core/services/messagerie/messagerie';
-import { ConversationDetail } from '../../../core/services/models/messagerie.model';
+import { ConversationDetail, ICONES_CATEGORIE } from '../../../core/services/models/messagerie.model';
 import { chargerImagePourRecadrage } from '../../../shared/images/charger-image';
 import { FORMAT_PHOTO_PROFIL } from '../../../shared/images/recadrage';
 import { RecadreurImage } from '../../../shared/images/recadreur-image';
@@ -22,6 +22,7 @@ import { messageServeur } from '../message-erreur';
     } @else {
       <div class="photo">
         <app-avatar-groupe [urlPhoto]="detail().urlPhoto" [nom]="detail().nom" [taille]="6.5"
+          [icone]="icone()"
           [libelle]="detail().urlPhoto ? 'Photo du groupe ' + detail().nom : null" />
         @if (administrateur()) {
           <div class="actions">
@@ -76,6 +77,11 @@ export class PhotoGroupe {
   readonly modifie = output<ConversationDetail>();
 
   protected readonly format = FORMAT_PHOTO_PROFIL;
+  /** Sans photo, une communauté montre l’icône de sa catégorie, comme dans la liste et l’en-tête du fil. */
+  protected readonly icone = computed(() => {
+    const categorie = this.detail().categorie;
+    return categorie ? ICONES_CATEGORIE[categorie] : null;
+  });
   protected readonly aRecadrer = signal<HTMLImageElement | null>(null);
   protected readonly enCours = signal(false);
   protected readonly erreur = signal<string | null>(null);

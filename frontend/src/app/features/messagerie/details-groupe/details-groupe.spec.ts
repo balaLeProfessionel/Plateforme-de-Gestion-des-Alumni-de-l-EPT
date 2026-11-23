@@ -61,6 +61,26 @@ describe('DetailsGroupe', () => {
     expect(racine.querySelector('label[for="photo-groupe"]')).toBeNull();
   });
 
+  it('place les administrateurs en tête, puis montre les membres dix par dix', async () => {
+    const autres = Array.from({ length: 13 }, (_, i) => membre(`u-${i}`, `Membre${i}`, 'MEMBRE'));
+    const racine = ouvrir(groupe('MEMBRE', [...autres.slice(0, 5), membre(MOI, 'Awa', 'MEMBRE'),
+      membre('u-admin', 'Binta', 'ADMINISTRATEUR'), ...autres.slice(5)]));
+    const noms = () => [...racine.querySelectorAll('.participants .nom-membre')].map((n) => n.textContent?.trim());
+
+    expect(noms().slice(0, 3)).toEqual(['Binta Diop', 'Vous', 'Membre0 Diop']);
+    expect(noms()).toHaveLength(10);
+    const plus = racine.querySelector('.plus-membres') as HTMLButtonElement;
+    expect(plus.textContent).toContain('5 autres');
+
+    plus.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(noms()).toHaveLength(15);
+    expect(racine.querySelector('.plus-membres')).toBeNull();
+    // Le focus va au premier membre nouvellement affiché.
+    expect(document.activeElement?.textContent?.trim()).toBe('Membre8 Diop');
+  });
+
   it('nomme un membre administrateur après confirmation', async () => {
     const racine = ouvrir(groupe('ADMINISTRATEUR', [membre(MOI, 'Awa', 'ADMINISTRATEUR'), membre('u-2', 'Moussa', 'MEMBRE')]));
     const modifie = vi.fn();

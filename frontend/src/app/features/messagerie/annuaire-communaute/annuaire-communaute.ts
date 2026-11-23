@@ -60,6 +60,12 @@ export class AnnuaireCommunaute {
     return this.rechercheAppliquee() ? `${membres} pour « ${this.rechercheAppliquee()} »` : membres;
   });
   protected readonly encoreDesMembres = computed(() => this.page() + 1 < this.totalPages());
+  /** « Membres de Promo 2015 », mais « Membres d’EPT au Maroc » : élision devant une voyelle. */
+  protected readonly titre = computed(() => {
+    const nom = this.communaute()?.nom;
+    if (!nom) return 'Membres';
+    return /^[aeiouyàâäéèêëîïôöûü]/i.test(nom) ? `Membres d’${nom}` : `Membres de ${nom}`;
+  });
 
   constructor() {
     // Arrivé depuis le menu du fil : le focus se poserait sur la page entière ; on le donne au titre.

@@ -107,3 +107,27 @@ time { flex: 0 0 auto; color: var(--ept-text-secondary); font-size: 0.75rem; }
 
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
+
+/* Champ de recherche en tête de liste, qui reste visible au défilement (conversations, communautés). */
+.recherche {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  padding: 0 0.5rem 0.5rem;
+  background: var(--ept-surface);
+
+  i { position: absolute; top: calc(50% - 0.25rem); left: 1.35rem; color: var(--ept-text-secondary); transform: translateY(-50%); }
+
+  input {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0 0.9rem 0 2.4rem;
+    border: 1px solid var(--ept-border);
+    border-radius: var(--ept-radius-sm);
+    background: var(--ept-surface);
+    color: var(--ept-text);
+    font: inherit;
+
+    &:focus-visible { border-color: var(--ept-primary); outline: 2px solid var(--ept-focus-clair); outline-offset: 1px; }
+  }
+}

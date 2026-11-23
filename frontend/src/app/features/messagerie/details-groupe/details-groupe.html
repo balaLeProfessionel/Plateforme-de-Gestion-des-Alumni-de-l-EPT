@@ -55,8 +55,8 @@
             }
           </div>
           <p class="sous-titre">
-            @if (detail.categorie) {
-              Communauté · {{ nombre }} membre{{ nombre > 1 ? 's' : '' }}
+            @if (nature(); as nature) {
+              {{ nature }} · {{ nombre }} membre{{ nombre > 1 ? 's' : '' }}
             } @else {
               Groupe · {{ nombre }} participant{{ nombre > 1 ? 's' : '' }}
             }
@@ -88,7 +88,7 @@
               @if (ajoutOuvert()) {
                 <div id="zone-ajout" class="ajout">
                   <app-selection-membres identifiant="ajout-groupe" libelle="Rechercher un membre à ajouter"
-                    [exclus]="participantIds()" [(choisis)]="nouveaux" />
+                    [exclus]="participantIds()" [roles]="rolesAjoutables()" [(choisis)]="nouveaux" />
                   @if (ajoutTropGrand()) { <p class="erreur">Ajoutez au plus 50 membres à la fois.</p> }
                   @if (nouveaux().length > 0) {
                     <button type="button" class="principal" [disabled]="enCours() || ajoutTropGrand()" (click)="ajouter()">
@@ -99,7 +99,7 @@
               }
             </li>
           }
-          @for (membre of detail.participants; track membre.id) {
+          @for (membre of membresAffiches(); track membre.id) {
             @let estMoi = membre.id === moiId();
             @let admin = membre.roleParticipant === 'ADMINISTRATEUR';
             @let actions = roleModifiable(membre) || (administrateur() && !estMoi);
@@ -154,6 +154,15 @@
                   </div>
                 }
               }
+            </li>
+          }
+          @if (membresRestants() > 0) {
+            <li>
+              <button type="button" class="ligne-action plus-membres" (click)="afficherPlus()">
+                <span class="pastille" aria-hidden="true"><i class="pi pi-chevron-down"></i></span>
+                Afficher plus
+                <span class="reste">{{ membresRestants() }} autre{{ membresRestants() > 1 ? 's' : '' }}</span>
+              </button>
             </li>
           }
         </ul>

@@ -96,6 +96,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/journal/**", "/api/admin/journal").hasAuthority(PermissionAdmin.CONSULTER_JOURNAL.name())
                 .requestMatchers("/api/admin/comptes/**", "/api/admin/comptes").hasAuthority(PermissionAdmin.GERER_COMPTES.name())
                 .requestMatchers("/api/admin/signalements/**", "/api/admin/signalements").hasAuthority(PermissionAdmin.MODERER_PUBLICATIONS.name())
+                .requestMatchers("/api/admin/communautes/**", "/api/admin/communautes").hasAuthority(PermissionAdmin.GERER_COMMUNAUTES.name())
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/organisme/me").hasRole("ORGANISME")
                 .requestMatchers("/api/formations/**", "/api/experiences/**")

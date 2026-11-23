@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -40,6 +41,7 @@ import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 @AutoConfigureMockMvc
 class MessagerieCommunautesIntegrationTests {
     private static final String API = "/api/messagerie";
+    private static final String ADMIN = "/api/admin/communautes";
 
     @Autowired private MockMvc mockMvc;
     @Autowired private JwtService jwtService;
@@ -154,16 +156,20 @@ class MessagerieCommunautesIntegrationTests {
 
         creer(awa, "{\"nom\":\"EPT à Dakar\",\"categorie\":\"VILLE\"}").andExpect(status().isForbidden());
         creer(admin, "{\"nom\":\"Promo bis\",\"categorie\":\"PROMO\"}").andExpect(status().isBadRequest());
+        // L'administrateur de la plateforme n'en devient pas membre : la communauté part vide.
         String dakar = JsonPath.read(creer(admin, "{\"nom\":\"EPT à Dakar\",\"description\":\"Afterworks\",\"categorie\":\"VILLE\"}")
-            .andExpect(status().isCreated()).andExpect(jsonPath("$.monRole").value("ADMINISTRATEUR"))
+            .andExpect(status().isCreated()).andExpect(jsonPath("$.nombreMembres").value(0))
+            .andExpect(jsonPath("$.acces").value("OUVERTE"))
             .andReturn().getResponse().getContentAsString(), "$.id");
+        org.assertj.core.api.Assertions.assertThat(participants.existsByConversationIdAndUtilisateurId(
+            UUID.fromString(dakar), admin.getId())).isFalse();
         String mentors = JsonPath.read(creer(admin, "{\"nom\":\"Mentors EPT\",\"categorie\":\"INTERET\",\"acces\":\"SUR_DEMANDE\"}")
             .andReturn().getResponse().getContentAsString(), "$.id");
 
         rejoindre(moussa, dakar).andExpect(status().isOk());
         communautes(awa)
             .andExpect(jsonPath("$.aDecouvrir", hasSize(2)))
-            .andExpect(jsonPath("$.aDecouvrir[?(@.id == '" + dakar + "')].nombreMembres").value(2))
+            .andExpect(jsonPath("$.aDecouvrir[?(@.id == '" + dakar + "')].nombreMembres").value(1))
             .andExpect(jsonPath("$.aDecouvrir[?(@.id == '" + dakar + "')].membresDeMaPromo").value(1));
 
         rejoindre(awa, mentors).andExpect(status().isConflict());
@@ -222,6 +228,111 @@ class MessagerieCommunautesIntegrationTests {
         communautes(sansPromo).andExpect(jsonPath("$.miennes", hasSize(0)));
     }
 
+    @Test
+    void c07_lesCommunautesSontReserveesAuxAlumniEtAuxEtudiants() throws Exception {
+        Utilisateur admin = membre("Admin", TypeRole.ADMIN, null, null);
+        Utilisateur personnel = membre("Saliou", TypeRole.PERSONNEL, 2001, "Génie Civil");
+        Utilisateur etudiant = membre("Codou", TypeRole.ETUDIANT, 2028, null);
+        String dakar = JsonPath.read(creer(admin, "{\"nom\":\"EPT à Dakar\",\"categorie\":\"VILLE\"}")
+            .andReturn().getResponse().getContentAsString(), "$.id");
+
+        // Ni onglet garni ni adhésion pour le personnel (pas même sa promo d'ancien élève).
+        communautes(personnel).andExpect(status().isOk())
+            .andExpect(jsonPath("$.miennes", hasSize(0))).andExpect(jsonPath("$.aDecouvrir", hasSize(0)));
+        rejoindre(personnel, dakar).andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.message").value("Les communautés sont réservées aux alumni et aux étudiants."));
+
+        // L'administrateur de la communauté (un alumni) n'y ajoute pas non plus du personnel ; un étudiant, si.
+        Utilisateur responsable = alumni("Awa", 1990, null);
+        rejoindre(responsable, dakar).andExpect(status().isOk());
+        participants.findByConversationIdAndUtilisateurId(UUID.fromString(dakar), responsable.getId()).ifPresent(p -> {
+            p.setRole(ept.edu.sn.alumni_backend.messagerie.RoleParticipant.ADMINISTRATEUR);
+            participants.saveAndFlush(p);
+        });
+        mockMvc.perform(authentifie(post(API + "/conversations/{id}/participants", dakar), responsable)
+            .contentType(MediaType.APPLICATION_JSON).content("{\"membreIds\":[\"" + personnel.getId() + "\"]}"))
+            .andExpect(status().isConflict());
+        mockMvc.perform(authentifie(post(API + "/conversations/{id}/participants", dakar), responsable)
+            .contentType(MediaType.APPLICATION_JSON).content("{\"membreIds\":[\"" + etudiant.getId() + "\"]}"))
+            .andExpect(status().isOk());
+        rejoindre(etudiant, dakar).andExpect(status().isOk());
+
+        // Un groupe privé, lui, reste ouvert à tous les rôles.
+        String prive = JsonPath.read(mockMvc.perform(authentifie(post(API + "/conversations/groupes"), etudiant)
+            .contentType(MediaType.APPLICATION_JSON).content("{\"nom\":\"Projet\",\"membreIds\":[\"" + personnel.getId() + "\"]}"))
+            .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), "$.id");
+        org.assertj.core.api.Assertions.assertThat(participants.existsByConversationIdAndUtilisateurId(
+            UUID.fromString(prive), personnel.getId())).isTrue();
+    }
+
+    @Test
+    void c08_lAdministrationListeCreeEtModifieLesCommunautesSansEnEtreMembre() throws Exception {
+        Utilisateur admin = membre("Admin", TypeRole.ADMIN, null, null);
+        Utilisateur awa = alumni("Awa", 1996, "Génie Civil");
+        communautes(awa);
+        String promo = idCommunaute(awa, "PROMO");
+        String thies = JsonPath.read(creer(admin, "{\"nom\":\"EPT à Thiès\",\"categorie\":\"VILLE\"}")
+            .andReturn().getResponse().getContentAsString(), "$.id");
+        creer(admin, "{\"nom\":\"Énergie solaire\",\"categorie\":\"SECTEUR\",\"acces\":\"SUR_DEMANDE\"}");
+        rejoindre(awa, thies).andExpect(status().isOk());
+
+        // Toutes les communautés, filtrées par catégorie et par nom (sans accents ni majuscules), avec leurs membres.
+        mockMvc.perform(authentifie(get(ADMIN), admin)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.contenu[*].nom", org.hamcrest.Matchers.hasItems("EPT à Thiès", "Énergie solaire", "Promo 1996")));
+        mockMvc.perform(authentifie(get(ADMIN).param("recherche", "THIES"), admin))
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.contenu[0].nombreMembres").value(1))
+            .andExpect(jsonPath("$.contenu[0].automatique").value(false));
+        mockMvc.perform(authentifie(get(ADMIN).param("recherche", "energie"), admin))
+            .andExpect(jsonPath("$.contenu[0].acces").value("SUR_DEMANDE"));
+        mockMvc.perform(authentifie(get(ADMIN).param("categorie", "PROMO"), admin))
+            .andExpect(jsonPath("$.contenu[*].categorie", org.hamcrest.Matchers.everyItem(org.hamcrest.Matchers.is("PROMO"))));
+        mockMvc.perform(authentifie(get(ADMIN), awa)).andExpect(status().isForbidden());
+
+        // Nom, description, accès ; la description vide s'efface ; un membre voit le nouveau nom.
+        modifier(admin, thies, "{\"nom\":\" Alumni EPT à Thiès \",\"description\":\"Rencontres mensuelles\",\"acces\":\"SUR_DEMANDE\"}")
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.nom").value("Alumni EPT à Thiès"))
+            .andExpect(jsonPath("$.description").value("Rencontres mensuelles"))
+            .andExpect(jsonPath("$.acces").value("SUR_DEMANDE"));
+        modifier(admin, thies, "{\"description\":\"  \"}").andExpect(jsonPath("$.description").value(org.hamcrest.Matchers.nullValue()));
+        mockMvc.perform(authentifie(get(API + "/conversations/{id}", thies), awa))
+            .andExpect(jsonPath("$.nom").value("Alumni EPT à Thiès"));
+        modifier(admin, thies, "{\"nom\":\"  \"}").andExpect(status().isBadRequest());
+        modifier(admin, thies, "{}").andExpect(status().isBadRequest());
+        modifier(awa, thies, "{\"nom\":\"Piratage\"}").andExpect(status().isForbidden());
+
+        // Une promo : description seulement ; son nom et son accès suivent les profils.
+        modifier(admin, promo, "{\"description\":\"Les ingénieurs sortis en 1996.\"}").andExpect(status().isOk())
+            .andExpect(jsonPath("$.automatique").value(true));
+        modifier(admin, promo, "{\"nom\":\"Promo renommée\"}").andExpect(status().isBadRequest());
+        modifier(admin, promo, "{\"acces\":\"SUR_DEMANDE\"}").andExpect(status().isBadRequest());
+        modifier(admin, promo, "{\"nom\":\"Promo 1996\"}").andExpect(status().isOk());
+
+        // Deux communautés ne portent pas le même nom (majuscules comprises) ; garder son propre nom reste permis.
+        creer(admin, "{\"nom\":\"alumni ept à thiès\",\"categorie\":\"INTERET\"}").andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value("Une communauté porte déjà le nom « alumni ept à thiès »."));
+        String solaire = JsonPath.read(mockMvc.perform(authentifie(get(ADMIN).param("recherche", "energie"), admin))
+            .andReturn().getResponse().getContentAsString(), "$.contenu[0].id");
+        modifier(admin, solaire, "{\"nom\":\"Promo 1996\"}").andExpect(status().isConflict());
+        modifier(admin, thies, "{\"nom\":\"ALUMNI EPT à Thiès\"}").andExpect(status().isOk());
+
+        // Les filtres affichent le nombre de communautés de chaque catégorie, 0 compris.
+        mockMvc.perform(authentifie(get(ADMIN + "/resume"), admin)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.parCategorie.VILLE").value(1))
+            .andExpect(jsonPath("$.parCategorie.SECTEUR").value(1))
+            .andExpect(jsonPath("$.parCategorie.INTERET").value(0))
+            .andExpect(jsonPath("$.parCategorie.PROMO").value(1))
+            .andExpect(jsonPath("$.total").value(5));
+        mockMvc.perform(authentifie(get(ADMIN + "/resume"), awa)).andExpect(status().isForbidden());
+
+        // Un groupe privé n'est pas une communauté : introuvable pour l'administration.
+        String prive = JsonPath.read(mockMvc.perform(authentifie(post(API + "/conversations/groupes"), awa)
+            .contentType(MediaType.APPLICATION_JSON).content("{\"nom\":\"Amis\"}"))
+            .andReturn().getResponse().getContentAsString(), "$.id");
+        modifier(admin, prive, "{\"nom\":\"Autre\"}").andExpect(status().isNotFound());
+    }
+
     private Utilisateur alumni(String prenom, Integer anneeSortie, String filiere) {
         return membre(prenom, TypeRole.ALUMNI, anneeSortie, filiere);
     }
@@ -265,7 +376,11 @@ class MessagerieCommunautesIntegrationTests {
     }
 
     private ResultActions creer(Utilisateur moi, String json) throws Exception {
-        return mockMvc.perform(authentifie(post(API + "/communautes"), moi).contentType(MediaType.APPLICATION_JSON).content(json));
+        return mockMvc.perform(authentifie(post(ADMIN), moi).contentType(MediaType.APPLICATION_JSON).content(json));
+    }
+
+    private ResultActions modifier(Utilisateur moi, String id, String json) throws Exception {
+        return mockMvc.perform(authentifie(patch(ADMIN + "/{id}", id), moi).contentType(MediaType.APPLICATION_JSON).content(json));
     }
 
     private ResultActions envoyer(Utilisateur moi, String conversationId, String contenu) throws Exception {

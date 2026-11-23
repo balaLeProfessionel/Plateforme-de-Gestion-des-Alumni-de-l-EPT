@@ -1,3 +1,12 @@
+@if (etat.chargee() && !etat.erreur() && rechercheVisible()) {
+  <div class="recherche" role="search">
+    <label for="recherche-communautes" class="sr-only">Rechercher une communauté</label>
+    <i class="pi pi-search" aria-hidden="true"></i>
+    <input id="recherche-communautes" type="search" autocomplete="off" placeholder="Rechercher une communauté"
+      [formField]="formulaire.recherche" />
+    <p class="sr-only" role="status">{{ statutRecherche() }}</p>
+  </div>
+}
 <div class="zone" [attr.aria-busy]="etat.chargement()">
   @if (etat.erreur(); as erreur) {
     <div class="etat" role="alert">
@@ -10,103 +19,114 @@
         <li><span class="rond"></span><span class="barres"><span></span><span></span></span></li>
       }
     </ul>
+  } @else if (aucunResultat()) {
+    <div class="etat vide">
+      <i class="pi pi-search" aria-hidden="true"></i>
+      <p>Aucune communauté ne correspond à « {{ recherche() }} ».</p>
+      <button type="button" class="lien-action" (click)="effacerRecherche()">Effacer la recherche</button>
+    </div>
   } @else {
-    <section class="section" aria-labelledby="titre-mes-communautes">
-      <h2 class="titre-section" id="titre-mes-communautes">
-        Mes communautés
-        @if (lignes().length > 0) { <span class="compte">{{ lignes().length }}</span> }
-      </h2>
-      @if (lignes().length === 0) {
-        <div class="vide">
-          <i class="pi pi-id-card" aria-hidden="true"></i>
-          <p class="aide">Renseignez votre promo et votre filière dans <a routerLink="/profil">votre profil</a> :
-            vous rejoindrez leurs communautés.</p>
-        </div>
-      } @else {
-        <ul class="conversations">
-          @for (ligne of lignes(); track ligne.conversation.id) {
-            @let communaute = ligne.conversation;
-            <li>
-              <a [routerLink]="['/messagerie', communaute.id]" routerLinkActive="active" ariaCurrentWhenActive="page"
-                [class.non-lue]="communaute.nombreNonLus > 0">
-                <app-avatar-groupe [urlPhoto]="communaute.urlPhoto" [nom]="communaute.nom" [taille]="2.75"
-                  [icone]="communaute.categorie ? icones[communaute.categorie] : null" />
-                <span class="texte">
-                  <span class="ligne-haut">
-                    <strong class="nom">{{ communaute.nom }}</strong>
-                    <time [attr.datetime]="communaute.dernierMessageLe">{{ communaute.dernierMessageLe | dateRelative }}</time>
+    <!-- Pendant une recherche, une section sans résultat s’efface. -->
+    @if (!recherche() || lignes().length > 0) {
+      <section class="section" aria-labelledby="titre-mes-communautes">
+        <h2 class="titre-section" id="titre-mes-communautes">
+          Mes communautés
+          @if (lignes().length > 0) { <span class="compte">{{ lignes().length }}</span> }
+        </h2>
+        @if (lignes().length === 0) {
+          <div class="vide">
+            <i class="pi pi-id-card" aria-hidden="true"></i>
+            <p class="aide">Renseignez votre promo et votre filière dans <a routerLink="/profil">votre profil</a> :
+              vous rejoindrez leurs communautés.</p>
+          </div>
+        } @else {
+          <ul class="conversations">
+            @for (ligne of lignes(); track ligne.conversation.id) {
+              @let communaute = ligne.conversation;
+              <li>
+                <a [routerLink]="['/messagerie', communaute.id]" routerLinkActive="active" ariaCurrentWhenActive="page"
+                  [class.non-lue]="communaute.nombreNonLus > 0">
+                  <app-avatar-groupe [urlPhoto]="communaute.urlPhoto" [nom]="communaute.nom" [taille]="2.75"
+                    [icone]="communaute.categorie ? icones[communaute.categorie] : null" />
+                  <span class="texte">
+                    <span class="ligne-haut">
+                      <strong class="nom">{{ communaute.nom }}</strong>
+                      <time [attr.datetime]="communaute.dernierMessageLe">{{ communaute.dernierMessageLe | dateRelative }}</time>
+                    </span>
+                    <span class="ligne-bas">
+                      <!-- L’icône dit la catégorie ; quand un message la remplace à l’écran, on la redonne aux lecteurs d’écran. -->
+                      @if (!ligne.presentation) { <span class="sr-only">{{ ligne.nature }} : </span> }
+                      <span class="apercu" [class.presentation]="ligne.presentation"
+                        [class.supprime]="communaute.dernierMessage?.supprime">{{ ligne.apercu }}</span>
+                      @if (communaute.nombreNonLus > 0) {
+                        <span class="pastille" aria-hidden="true">{{ ligne.nonLus }}</span>
+                        <span class="sr-only">, {{ communaute.nombreNonLus }} {{ communaute.nombreNonLus > 1 ? 'messages non lus' : 'message non lu' }}</span>
+                      }
+                    </span>
                   </span>
-                  <span class="ligne-bas">
-                    <!-- L’icône dit la catégorie ; quand un message la remplace à l’écran, on la redonne aux lecteurs d’écran. -->
-                    @if (!ligne.presentation) { <span class="sr-only">{{ ligne.nature }} : </span> }
-                    <span class="apercu" [class.presentation]="ligne.presentation"
-                      [class.supprime]="communaute.dernierMessage?.supprime">{{ ligne.apercu }}</span>
-                    @if (communaute.nombreNonLus > 0) {
-                      <span class="pastille" aria-hidden="true">{{ ligne.nonLus }}</span>
-                      <span class="sr-only">, {{ communaute.nombreNonLus }} {{ communaute.nombreNonLus > 1 ? 'messages non lus' : 'message non lu' }}</span>
-                    }
-                  </span>
-                </span>
-              </a>
-            </li>
-          }
-        </ul>
-      }
-    </section>
+                </a>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
 
-    <section class="section" aria-labelledby="titre-a-decouvrir">
-      <h2 class="titre-section" id="titre-a-decouvrir">
-        À découvrir
-        @if (etat.aDecouvrir().length > 0) { <span class="compte">{{ etat.aDecouvrir().length }}</span> }
-      </h2>
-      <p class="intro">Ville, secteur, centres d’intérêt : d’autres alumni à rejoindre.</p>
-      @if (etat.aDecouvrir().length === 0) {
-        <div class="vide">
-          <i class="pi pi-compass" aria-hidden="true"></i>
-          <p class="aide">Aucune autre communauté ouverte pour l’instant.</p>
-        </div>
-      } @else {
-        <ul class="decouvertes">
-          @for (communaute of etat.aDecouvrir(); track communaute.id) {
-            <li class="carte">
-              <div class="entete">
-                <app-avatar-groupe [urlPhoto]="communaute.urlPhoto" [nom]="communaute.nom" [taille]="2.5"
-                  [icone]="icones[communaute.categorie]" />
-                <div class="identite">
-                  <strong class="nom">{{ communaute.nom }}</strong>
-                  <span class="categorie">{{ libelles[communaute.categorie] }}</span>
+    @if (!recherche() || decouvertes().length > 0) {
+      <section class="section" aria-labelledby="titre-a-decouvrir">
+        <h2 class="titre-section" id="titre-a-decouvrir">
+          À découvrir
+          @if (decouvertes().length > 0) { <span class="compte">{{ decouvertes().length }}</span> }
+        </h2>
+        <p class="intro">Ville, secteur, centres d’intérêt : d’autres alumni à rejoindre.</p>
+        @if (decouvertes().length === 0) {
+          <div class="vide">
+            <i class="pi pi-compass" aria-hidden="true"></i>
+            <p class="aide">Aucune autre communauté ouverte pour l’instant.</p>
+          </div>
+        } @else {
+          <ul class="decouvertes">
+            @for (communaute of decouvertes(); track communaute.id) {
+              <li class="carte">
+                <div class="entete">
+                  <app-avatar-groupe [urlPhoto]="communaute.urlPhoto" [nom]="communaute.nom" [taille]="2.5"
+                    [icone]="icones[communaute.categorie]" />
+                  <div class="identite">
+                    <strong class="nom">{{ communaute.nom }}</strong>
+                    <span class="categorie">{{ libelles[communaute.categorie] }}</span>
+                  </div>
                 </div>
-              </div>
-              @if (communaute.description) { <p class="description">{{ communaute.description }}</p> }
-              <div class="pied">
-                <span class="details">
-                  <i class="pi pi-users" aria-hidden="true"></i>
-                  <span>{{ membres(communaute) }}@if (deMaPromo(communaute); as nombre) {<span class="ma-promo"> · {{ nombre }} de votre promo</span>}</span>
-                </span>
-                @if (estAutomatique(communaute)) {
-                  <!-- Ma promo ou ma filière, que j’ai quittée : on y revient d’un clic. -->
-                  <button type="button" class="rejoindre" [disabled]="enCours() !== null"
-                    [attr.aria-label]="'Revenir dans ' + communaute.nom" (click)="rejoindre(communaute)">
-                    @if (enCours() === communaute.id) { Un instant… }
-                    @else { <i class="pi pi-replay" aria-hidden="true"></i> Revenir }
-                  </button>
-                } @else if (communaute.acces === 'OUVERTE') {
-                  <button type="button" class="rejoindre" [disabled]="enCours() !== null"
-                    [attr.aria-label]="'Rejoindre ' + communaute.nom" (click)="rejoindre(communaute)">
-                    @if (enCours() === communaute.id) { Un instant… }
-                    @else { <i class="pi pi-plus" aria-hidden="true"></i> Rejoindre }
-                  </button>
-                } @else {
-                  <span class="sur-demande"><i class="pi pi-lock" aria-hidden="true"></i> Sur demande</span>
+                @if (communaute.description) { <p class="description">{{ communaute.description }}</p> }
+                <div class="pied">
+                  <span class="details">
+                    <i class="pi pi-users" aria-hidden="true"></i>
+                    <span>{{ membres(communaute) }}@if (deMaPromo(communaute); as nombre) {<span class="ma-promo"> · {{ nombre }} de votre promo</span>}</span>
+                  </span>
+                  @if (estAutomatique(communaute)) {
+                    <!-- Ma promo ou ma filière, que j’ai quittée : on y revient d’un clic. -->
+                    <button type="button" class="rejoindre" [disabled]="enCours() !== null"
+                      [attr.aria-label]="'Revenir dans ' + communaute.nom" (click)="rejoindre(communaute)">
+                      @if (enCours() === communaute.id) { Un instant… }
+                      @else { <i class="pi pi-replay" aria-hidden="true"></i> Revenir }
+                    </button>
+                  } @else if (communaute.acces === 'OUVERTE') {
+                    <button type="button" class="rejoindre" [disabled]="enCours() !== null"
+                      [attr.aria-label]="'Rejoindre ' + communaute.nom" (click)="rejoindre(communaute)">
+                      @if (enCours() === communaute.id) { Un instant… }
+                      @else { <i class="pi pi-plus" aria-hidden="true"></i> Rejoindre }
+                    </button>
+                  } @else {
+                    <span class="sur-demande"><i class="pi pi-lock" aria-hidden="true"></i> Sur demande</span>
+                  }
+                </div>
+                @if (erreurRejoindre()?.id === communaute.id) {
+                  <p class="erreur" role="alert">{{ erreurRejoindre()?.message }}</p>
                 }
-              </div>
-              @if (erreurRejoindre()?.id === communaute.id) {
-                <p class="erreur" role="alert">{{ erreurRejoindre()?.message }}</p>
-              }
-            </li>
-          }
-        </ul>
-      }
-    </section>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
   }
 </div>

@@ -3,6 +3,8 @@ import { afterNextRender, Component, computed, effect, ElementRef, inject, Injec
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
+import { AuthService } from '../../../core/services/auth/auth-service';
+import { ROLES_COMMUNAUTE } from '../../../core/services/models/messagerie.model';
 import { EtatCommunautes } from '../etat-communautes';
 import { EtatConversations } from '../etat-conversations';
 import { ListeCommunautes } from '../liste-communautes/liste-communautes';
@@ -26,11 +28,15 @@ export class PageMessagerie {
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
   private readonly hote = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly authService = inject(AuthService);
   protected readonly nouvelleOuverte = signal(false);
   protected readonly bloquesOuverts = signal(false);
   protected readonly communautes = inject(EtatCommunautes);
   /** Colonne de gauche : mes conversations, ou les communautés (promo, filière, celles que j’ai rejointes). */
   protected readonly onglet = signal<'conversations' | 'communautes'>('conversations');
+  /** Personnel, visiteurs, organismes, administrateurs : pas de communautés, donc pas d’onglets. */
+  protected readonly avecCommunautes = computed(() =>
+    ROLES_COMMUNAUTE.includes(this.authService.utilisateur()?.role ?? ''));
 
   private readonly urlCourante = toSignal(this.router.events.pipe(
     filter((evenement): evenement is NavigationEnd => evenement instanceof NavigationEnd),

@@ -124,6 +124,8 @@ a.nom-membre::after { position: absolute; inset: 0; content: ''; }
   cursor: pointer;
 }
 
+.plus-membres .reste { margin-left: auto; color: var(--ept-text-secondary); font-size: 0.85rem; font-weight: 500; }
+
 .ligne-action {
   width: calc(100% + 1.5rem);
   min-height: 3.25rem;

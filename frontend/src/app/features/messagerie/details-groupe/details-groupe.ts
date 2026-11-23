@@ -8,12 +8,15 @@ import { AuthService } from '../../../core/services/auth/auth-service';
 import { MessagerieService } from '../../../core/services/messagerie/messagerie';
 import {
   ConversationDetail, estCommunauteAutomatique, LONGUEUR_MAX_DESCRIPTION_GROUPE, LONGUEUR_MAX_NOM_GROUPE, MembreChoisi, MembreConversation,
-  MEMBRES_MAX_PAR_AJOUT,
+  MEMBRES_MAX_PAR_AJOUT, NATURES_COMMUNAUTE, ROLES_COMMUNAUTE,
 } from '../../../core/services/models/messagerie.model';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
 import { PhotoGroupe } from '../photo-groupe/photo-groupe';
 import { SelectionMembres } from '../selection-membres/selection-membres';
 import { messageServeur } from '../message-erreur';
+
+/** Membres montrés d’abord, puis à chaque « Afficher plus ». */
+const MEMBRES_PAR_PAGE = 10;
 
 /** Action en attente de confirmation sur la ligne d’un membre. */
 interface ActionMembre {
@@ -61,6 +64,23 @@ export class DetailsGroupe {
       : 'Vous ne verrez plus cette conversation.';
   });
   protected readonly participantIds = computed(() => this.detail()?.participants.map((membre) => membre.id) ?? []);
+  /** Dans une communauté, seuls les alumni et les étudiants sont proposés à l’ajout. */
+  /** « Communauté de promo », « Communauté de ville »… : le même libellé que l’en-tête du fil. */
+  protected readonly nature = computed(() => {
+    const categorie = this.detail()?.categorie;
+    return categorie ? NATURES_COMMUNAUTE[categorie] : null;
+  });
+  protected readonly rolesAjoutables =computed(() => this.detail()?.categorie ? ROLES_COMMUNAUTE : null);
+  /** Les administrateurs en tête, puis les autres ; dans chaque bloc, moi d’abord, puis l’ordre reçu. */
+  protected readonly membresTries = computed(() => {
+    const moi = this.moiId();
+    const rang = (membre: MembreConversation) =>
+      (membre.roleParticipant === 'ADMINISTRATEUR' ? 0 : 2) + (membre.id === moi ? 0 : 1);
+    return [...(this.detail()?.participants ?? [])].sort((a, b) => rang(a) - rang(b));
+  });
+  protected readonly nombreAffiches = signal(MEMBRES_PAR_PAGE);
+  protected readonly membresAffiches = computed(() => this.membresTries().slice(0, this.nombreAffiches()));
+  protected readonly membresRestants = computed(() => this.membresTries().length - this.membresAffiches().length);
   protected readonly nombreAdministrateurs = computed(() =>
     this.detail()?.participants.filter((membre) => membre.roleParticipant === 'ADMINISTRATEUR').length ?? 0);
 
@@ -120,6 +140,13 @@ export class DetailsGroupe {
         this.retourFocus = null;
       }
     });
+  }
+
+  /** Montre les membres suivants ; le focus va au premier d’entre eux, pour continuer la lecture là. */
+  protected afficherPlus(): void {
+    const premier = this.membresTries()[this.nombreAffiches()];
+    this.nombreAffiches.update((nombre) => nombre + MEMBRES_PAR_PAGE);
+    if (premier) this.focaliser(`li[data-membre="${premier.id}"] .nom-membre`);
   }
 
   /** Focalise l’élément voulu après le rendu ; s’il n’existe plus (membre retiré), le titre de la fenêtre. */
@@ -284,5 +311,6 @@ export class DetailsGroupe {
     this.confirmerSuppression.set(false);
     this.erreur.set(null);
     this.confirmation.set(null);
+    this.nombreAffiches.set(MEMBRES_PAR_PAGE);
   }
 }

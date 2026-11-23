@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
+import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.messagerie.RoleParticipant;
 import ept.edu.sn.alumni_backend.messagerie.TypeConversation;
 import ept.edu.sn.alumni_backend.messagerie.entity.Conversation;
@@ -24,6 +25,9 @@ import lombok.RequiredArgsConstructor;
 public class AccesConversation {
     static final String CONVERSATION_INTROUVABLE = "Cette conversation est introuvable.";
     private static final Set<StatutCompte> STATUTS_JOIGNABLES = Set.of(StatutCompte.ACTIF, StatutCompte.EN_ATTENTE);
+    /** Les communautés réunissent les alumni et les étudiants, et eux seuls. */
+    public static final Set<TypeRole> ROLES_COMMUNAUTES = Set.of(TypeRole.ALUMNI, TypeRole.ETUDIANT);
+    static final String COMMUNAUTES_RESERVEES = "Les communautés sont réservées aux alumni et aux étudiants.";
 
     /** Message de la personne qui a bloqué. */
     static final String J_AI_BLOQUE = "Vous avez bloqué ce membre. Débloquez-le pour lui écrire.";

@@ -49,6 +49,8 @@ export const LONGUEUR_MAX_MESSAGE = 2000;
 export const LONGUEUR_MAX_NOM_GROUPE = 80;
 export const LONGUEUR_MAX_DESCRIPTION_GROUPE = 500;
 export const MEMBRES_MAX_PAR_AJOUT = 50;
+/** Les communautés réunissent les alumni et les étudiants, et eux seuls (règle du serveur). */
+export const ROLES_COMMUNAUTE: readonly string[] = ['ALUMNI', 'ETUDIANT'];
 
 /** Pièce jointe : un fichier par message, mêmes limites que `StockagePieceJointe` et `TypePieceJointe`. */
 export const TAILLE_MAX_PIECE_JOINTE = 10 * 1024 * 1024;
@@ -145,6 +147,33 @@ export interface CommunauteADecouvrir {
   nombreMembres: number;
   membresDeMaPromo: number;
 }
+
+/** Communauté vue par l’administration ; `automatique` : promo ou filière, dont seule la description se modifie. */
+export interface CommunauteAdmin {
+  id: string;
+  nom: string;
+  description: string | null;
+  urlPhoto: string | null;
+  categorie: CategorieCommunaute;
+  acces: AccesCommunaute;
+  automatique: boolean;
+  nombreMembres: number;
+  creeLe: string;
+  derniereActivite: string;
+}
+
+/** Ce que l’administration crée : les communautés de promo et de filière, elles, naissent des profils. */
+export const CATEGORIES_A_CREER: readonly CategorieCommunaute[] = ['VILLE', 'SECTEUR', 'INTERET'];
+
+export interface NouvelleCommunaute {
+  nom: string;
+  description: string;
+  categorie: CategorieCommunaute;
+  acces: AccesCommunaute;
+}
+
+/** Un champ absent reste tel quel. */
+export type ModificationCommunaute = Partial<Pick<NouvelleCommunaute, 'nom' | 'description' | 'acces'>>;
 
 export interface Communautes {
   miennes: Conversation[];

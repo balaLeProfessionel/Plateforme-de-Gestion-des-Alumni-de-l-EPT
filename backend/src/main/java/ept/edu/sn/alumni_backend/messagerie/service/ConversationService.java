@@ -115,7 +115,7 @@ public class ConversationService {
      * Motif sans accents ni majuscules (« verif » trouve « Vérification ») ; « % » et « _ » tapés par l'utilisateur
      * se cherchent tels quels, sans jouer le rôle de jokers.
      */
-    private static String motifRecherche(String recherche) {
+    static String motifRecherche(String recherche) {
         String sansAccents = Normalizer.normalize(recherche.trim().toLowerCase(Locale.ROOT), Normalizer.Form.NFD)
             .replaceAll("\\p{M}", "");
         String echappee = sansAccents.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
@@ -283,7 +283,11 @@ public class ConversationService {
 
         for (UUID membreId : membreIds) {
             if (participants.existsByConversationIdAndUtilisateurId(conversationId, membreId)) continue;
-            participants.save(Participant.de(groupe, acces.chargerJoignable(membreId), RoleParticipant.MEMBRE));
+            Utilisateur membre = acces.chargerJoignable(membreId);
+            if (groupe.estCommunaute() && !AccesConversation.ROLES_COMMUNAUTES.contains(membre.getRole())) {
+                throw new ConflitMessagerieException(AccesConversation.COMMUNAUTES_RESERVEES);
+            }
+            participants.save(Participant.de(groupe, membre, RoleParticipant.MEMBRE));
         }
         participants.flush();
         signaler(conversationId);
@@ -341,7 +345,7 @@ public class ConversationService {
         return participant.getConversation();
     }
 
-    private static String descriptionNettoyee(String description) {
+    static String descriptionNettoyee(String description) {
         if (description == null) return null;
         String texte = description.strip();
         return texte.isEmpty() ? null : texte;

@@ -59,6 +59,43 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
 
     Optional<Conversation> findByCleCommunaute(String cleCommunaute);
 
+    String FILTRE_COMMUNAUTES_ADMIN = """
+        from Conversation conversation
+        where conversation.categorie is not null
+          and (:categorie is null or conversation.categorie = :categorie)
+          and (:motif is null or cast(function('translate', lower(conversation.nom), '""" + AVEC_ACCENTS + "', '" + SANS_ACCENTS + """
+        ') as String) like :motif escape '\\')
+        """;
+
+    /**
+     * Toutes les communautés, pour l'administration, par ordre alphabétique. {@code categorie} et {@code motif}
+     * ({@code null} : pas de filtre) ; le motif est déjà en minuscules, sans accents, entouré de {@code %}.
+     */
+    @Query(value = "select conversation " + FILTRE_COMMUNAUTES_ADMIN + " order by lower(conversation.nom), conversation.id",
+        countQuery = "select count(conversation) " + FILTRE_COMMUNAUTES_ADMIN)
+    Page<Conversation> rechercherCommunautes(@Param("categorie") ept.edu.sn.alumni_backend.messagerie.CategorieCommunaute categorie,
+                                             @Param("motif") String motif, Pageable pageable);
+
+    /** Une autre communauté porte-t-elle déjà ce nom (sans tenir compte des majuscules) ? {@code sauf} : celle qu'on renomme. */
+    @Query("""
+        select count(conversation) > 0 from Conversation conversation
+        where conversation.categorie is not null and lower(conversation.nom) = lower(:nom)
+          and (:sauf is null or conversation.id <> :sauf)
+        """)
+    boolean existeCommunauteNommee(@Param("nom") String nom, @Param("sauf") UUID sauf);
+
+    /** Nombre de communautés de chaque catégorie, pour les filtres de l'administration. */
+    @Query("""
+        select conversation.categorie as categorie, count(conversation) as nombre from Conversation conversation
+        where conversation.categorie is not null group by conversation.categorie
+        """)
+    List<NombreParCategorie> compterCommunautesParCategorie();
+
+    interface NombreParCategorie {
+        ept.edu.sn.alumni_backend.messagerie.CategorieCommunaute getCategorie();
+        Long getNombre();
+    }
+
     /** Mes communautés, la plus récemment active d'abord. */
     @Query("""
         select conversation from Participant participant join participant.conversation conversation

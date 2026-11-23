@@ -317,7 +317,7 @@ class AdminComptesIntegrationTests {
     void a13_lAdministrationRecoitSesPermissions() throws Exception {
         mockMvc.perform(authentifie(get("/api/auth/me"), admin))
             .andExpect(jsonPath("$.permissions").value(org.hamcrest.Matchers.containsInAnyOrder(
-                "CONSULTER_TABLEAU_DE_BORD", "GERER_COMPTES", "CONSULTER_JOURNAL", "PUBLIER_ANNONCES", "MODERER_PUBLICATIONS")));
+                "CONSULTER_TABLEAU_DE_BORD", "GERER_COMPTES", "CONSULTER_JOURNAL", "PUBLIER_ANNONCES", "MODERER_PUBLICATIONS", "GERER_COMMUNAUTES")));
     }
 
     @Test

@@ -34,6 +34,8 @@ public interface ParticipantRepository extends JpaRepository<Participant, UUID> 
 
     long countByConversationIdAndRole(UUID conversationId, RoleParticipant role);
 
+    long countByConversationId(UUID conversationId);
+
     /** Les personnes à prévenir en temps réel d'un changement dans la conversation. */
     @Query("select participant.utilisateur.id from Participant participant where participant.conversation.id = :conversationId")
     Set<UUID> findUtilisateurIds(@Param("conversationId") UUID conversationId);
