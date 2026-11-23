@@ -15,7 +15,6 @@ const RUBRIQUES_ROUTES = [
   ['messagerie', 'Messagerie et espace communautaire'],
   ['partenariats', 'Partenariats de l’école'],
   ['conventions', 'Conventions'],
-  ['mobilites', 'Mobilités'],
   ['insertion', 'Insertion professionnelle'],
   ['offres-emploi', 'Offres d’emploi'],
   ['publier-offre', 'Publier une offre']
@@ -51,6 +50,13 @@ export const routes: Routes = [
     canActivate: [visiteurGuard],
     loadComponent: () => import('./features/vitrine/page-bientot/page-bientot').then((m) => m.PageBientot)
   })),
+  {
+    // Sans compte : la rubrique invite à se connecter. Connecté, la route des membres (offres de mobilité) prend le relais.
+    path: 'mobilites',
+    title: 'EPT Alumni | Mobilités',
+    canMatch: [visiteurMatch],
+    loadComponent: () => import('./features/vitrine/page-mobilites/page-mobilites').then((m) => m.PageMobilites)
+  },
   {
     // Sans compte : la rubrique invite à se connecter (STA-02). Connecté, la route des membres prend le relais.
     path: 'stages',

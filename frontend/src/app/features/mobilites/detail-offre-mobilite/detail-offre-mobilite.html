@@ -17,6 +17,7 @@
           @else if (!o.candidaturesOuvertes) { <span class="pastille statut">Candidatures closes</span> }
         </div>
         <h1>{{ o.titre }}</h1>
+        <p class="definition">{{ definitions[o.type] }}</p>
         <p class="organisme"><a [routerLink]="['/organismes', o.organisme.id]">{{ o.organisme.nom }}</a></p>
       </header>
 

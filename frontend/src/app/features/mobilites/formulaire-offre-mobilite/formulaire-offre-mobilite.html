@@ -66,11 +66,10 @@
         </div>
         <div class="champ">
           <label for="offre-type">Type de mobilité</label>
-          <select id="offre-type" [formField]="formulaire.type"
-            [attr.aria-invalid]="formulaire.type().touched() && formulaire.type().invalid()" aria-describedby="erreur-type">
-            <option value="">Choisir…</option>
+          <select id="offre-type" [formField]="formulaire.type" aria-describedby="aide-type erreur-type">
             @for (type of types; track type) { <option [value]="type">{{ libellesType[type] }}</option> }
           </select>
+          <small id="aide-type" class="aide">{{ definitionsType[modele().type || 'ECHANGE'] }}</small>
           @if (formulaire.type().touched() && formulaire.type().errors()[0]; as erreur) {
             <small id="erreur-type" class="erreur-champ">{{ erreur.message }}</small>
           }

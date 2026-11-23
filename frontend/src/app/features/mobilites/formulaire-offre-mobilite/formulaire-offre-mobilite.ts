@@ -6,7 +6,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, firstValueFrom, map, of, switchMap } from 'rxjs';
 import { Classe, CLASSES_PAR_CYCLE, LIBELLES_CLASSE } from '../../../core/services/models/classe.model';
 import {
-  anneeUniversitaire, LIBELLES_PERIODE, LIBELLES_PIECE, LIBELLES_PUBLIC_VISE, LIBELLES_TYPE_MOBILITE, OffreMobilite, OffreMobiliteRequete,
+  anneeUniversitaire, DEFINITIONS_TYPE_MOBILITE, LIBELLES_PERIODE, LIBELLES_PIECE, LIBELLES_PUBLIC_VISE, LIBELLES_TYPE_MOBILITE, OffreMobilite, OffreMobiliteRequete,
   PERIODES_MOBILITE, PeriodeMobilite, PIECES_OFFRE_MOBILITE_MAX, POIDS_MAX_PIECE_MOBILITE, PUBLICS_VISES, PublicVise, TYPES_MOBILITE,
   TYPES_PIECE, TypeMobilite, TypePiece,
 } from '../../../core/services/models/mobilite.model';
@@ -38,7 +38,7 @@ interface Saisie {
 
 function vierge(): Saisie {
   return {
-    organisme: '', titre: '', type: '', publicVise: '', pays: '', ville: '', anneeUniversitaire: anneeUniversitaire(new Date(), 1),
+    organisme: '', titre: '', type: 'ECHANGE', publicVise: '', pays: '', ville: '', anneeUniversitaire: anneeUniversitaire(new Date(), 1),
     periode: '', dureeSemaines: '', nombrePlaces: '', dateLimite: '', description: '', filiereIds: [], classes: [],
     piecesDemandees: ['LETTRE_MOTIVATION', 'RELEVES_NOTES'],
   };
@@ -80,6 +80,7 @@ export class FormulaireOffreMobilite {
   protected readonly filieres = inject(FilieresService).proposees();
   protected readonly types = TYPES_MOBILITE;
   protected readonly libellesType = LIBELLES_TYPE_MOBILITE;
+  protected readonly definitionsType = DEFINITIONS_TYPE_MOBILITE;
   protected readonly publics = PUBLICS_VISES;
   protected readonly libellesPublic = LIBELLES_PUBLIC_VISE;
   protected readonly periodes = PERIODES_MOBILITE;

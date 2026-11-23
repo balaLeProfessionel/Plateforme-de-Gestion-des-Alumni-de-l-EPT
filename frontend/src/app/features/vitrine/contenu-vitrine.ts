@@ -136,8 +136,8 @@ export const RUBRIQUES_A_VENIR = {
   },
   mobilites: {
     titre: 'Mobilités',
-    description: 'Elle centralisera les demandes de mobilité de stage, de crédit, de recherche et d’enseignant-chercheur.',
-    enAttendant: 'En attendant, vous pouvez proposer ou demander un mentorat après connexion.'
+    description: 'Les échanges, doubles diplômes et séjours d’enseignement proposés par les établissements partenaires de l’EPT, avec le dépôt des candidatures en ligne.',
+    enAttendant: 'Connectez-vous pour consulter les offres et candidater.'
   },
   'offres-emploi': {
     titre: 'Offres d’emploi',
@@ -188,7 +188,7 @@ export const MENUS_ENTETE: readonly MenuRubrique[] = [
     libelle: 'Carrière',
     liens: [
       { libelle: 'Stages', lien: '/stages', precision: 'Après connexion' },
-      { libelle: 'Mobilités', lien: '/mobilites', precision: 'À venir' },
+      { libelle: 'Mobilités', lien: '/mobilites', precision: 'Après connexion' },
       { libelle: 'Insertion professionnelle', lien: '/insertion', precision: 'À venir' }
     ]
   },

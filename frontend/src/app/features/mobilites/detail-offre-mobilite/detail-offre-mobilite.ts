@@ -5,7 +5,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { LIBELLES_CLASSE } from '../../../core/services/models/classe.model';
 import {
-  LIBELLES_PIECE, LIBELLES_PUBLIC_VISE, LIBELLES_STATUT_OFFRE_MOBILITE, LIBELLES_TYPE_MOBILITE, OffreMobilite, periodeLisible,
+  DEFINITIONS_TYPE_MOBILITE, LIBELLES_PIECE, LIBELLES_PUBLIC_VISE, LIBELLES_STATUT_OFFRE_MOBILITE, LIBELLES_TYPE_MOBILITE, OffreMobilite, periodeLisible,
 } from '../../../core/services/models/mobilite.model';
 import { OffresMobiliteService } from '../../../core/services/mobilites/offres-mobilite';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
@@ -31,6 +31,7 @@ export class DetailOffreMobilite implements OnInit {
   protected readonly message = signal<string | null>(null);
   protected readonly enCours = signal(false);
   protected readonly types = LIBELLES_TYPE_MOBILITE;
+  protected readonly definitions = DEFINITIONS_TYPE_MOBILITE;
   protected readonly publics = LIBELLES_PUBLIC_VISE;
   protected readonly statuts = LIBELLES_STATUT_OFFRE_MOBILITE;
   protected readonly pieces = LIBELLES_PIECE;

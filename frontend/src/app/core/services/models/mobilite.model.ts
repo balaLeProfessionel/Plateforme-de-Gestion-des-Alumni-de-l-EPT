@@ -17,6 +17,13 @@ export const LIBELLES_TYPE_MOBILITE: Record<TypeMobilite, string> = {
   ENSEIGNEMENT_RECHERCHE: 'Enseignement ou recherche',
 };
 
+/** Ce que recouvre chaque type, affiché sous le choix du type et sur la page de l’offre. */
+export const DEFINITIONS_TYPE_MOBILITE: Record<TypeMobilite, string> = {
+  ECHANGE: 'Un semestre ou une année d’études dans l’établissement partenaire ; l’étudiant reste inscrit à l’EPT, qui reconnaît les crédits obtenus.',
+  DOUBLE_DIPLOME: 'Un parcours suivi en partie chez le partenaire, qui délivre aussi son diplôme en plus de celui de l’EPT.',
+  ENSEIGNEMENT_RECHERCHE: 'Un séjour d’un enseignant de l’EPT chez le partenaire, pour enseigner ou mener une recherche.',
+};
+
 export const LIBELLES_PUBLIC_VISE: Record<PublicVise, string> = {
   ETUDIANTS: 'Étudiants',
   ENSEIGNANTS: 'Enseignants',
