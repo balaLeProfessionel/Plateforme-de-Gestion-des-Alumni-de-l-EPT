@@ -18,6 +18,8 @@ public record ConventionResponse(
     UUID organismeId,
     String organismeNom,
     String organismeLogoUrl,
+    /** L'organisme apparaît dans la liste des partenaires vue par les membres (s'il a une convention active). */
+    boolean organismeVisible,
     String objet,
     String domaines,
     String message,

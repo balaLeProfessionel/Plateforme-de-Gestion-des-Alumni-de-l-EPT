@@ -5,7 +5,7 @@ export type OrigineConvention = 'ORGANISME' | 'ECOLE';
 export type ActionConvention =
   | 'DEMANDE' | 'MODIFICATION_DEMANDE' | 'ANNULATION' | 'SAISIE' | 'MODIFICATION' | 'EXAMEN' | 'NEGOCIATION'
   | 'ACTIVATION' | 'REFUS' | 'RESILIATION' | 'ANNULATION_RESILIATION' | 'RESILIATION_EFFECTIVE' | 'EXPIRATION'
-  | 'AJOUT_PIECE' | 'RETRAIT_PIECE';
+  | 'VISIBILITE' | 'AJOUT_PIECE' | 'RETRAIT_PIECE';
 
 export interface PieceConvention {
   id: string;
@@ -21,6 +21,8 @@ export interface Convention {
   organismeId: string;
   organismeNom: string;
   organismeLogoUrl: string | null;
+  /** L’organisme apparaît dans la liste des partenaires vue par les membres (s’il a une convention active). */
+  organismeVisible: boolean;
   objet: string;
   domaines: string | null;
   message: string | null;
@@ -114,6 +116,7 @@ export const LIBELLES_ACTION_CONVENTION: Record<ActionConvention, string> = {
   ANNULATION_RESILIATION: 'Résiliation annulée',
   RESILIATION_EFFECTIVE: 'Résiliation effective',
   EXPIRATION: 'Expiration',
+  VISIBILITE: 'Visibilité auprès des membres',
   AJOUT_PIECE: 'Document ajouté',
   RETRAIT_PIECE: 'Document retiré',
 };
@@ -313,3 +316,37 @@ export const LIBELLES_TYPE_ORGANISME: Record<string, string> = {
   ONG: 'ONG',
   AUTRE: 'Autres',
 };
+
+// ----- Partenaires vus par les membres -----
+
+export type TypeOrganisme = 'ENTREPRISE' | 'ETABLISSEMENT_ENSEIGNEMENT' | 'INSTITUTION_PUBLIQUE' | 'ONG' | 'AUTRE';
+
+export const TYPES_ORGANISME: readonly TypeOrganisme[] = ['ENTREPRISE', 'ETABLISSEMENT_ENSEIGNEMENT', 'INSTITUTION_PUBLIQUE', 'ONG', 'AUTRE'];
+
+/** Un organisme partenaire : rien de privé (échéances, motifs, documents). */
+export interface Partenaire {
+  id: string;
+  nom: string;
+  logoUrl: string | null;
+  typeOrganisme: TypeOrganisme | null;
+  secteurActivite: string | null;
+  pays: string | null;
+  siteWeb: string | null;
+  partenaireDepuis: string | null;
+  accordsStage: boolean;
+  accordsMobilite: boolean;
+}
+
+export interface PartenariatPublic {
+  partenaireDepuis: string | null;
+  domaines: string[];
+  accordsStage: boolean;
+  accordsMobilite: boolean;
+}
+
+export interface CriteresPartenaires {
+  recherche: string;
+  type: TypeOrganisme | '';
+  secteur: string;
+  page: number;
+}

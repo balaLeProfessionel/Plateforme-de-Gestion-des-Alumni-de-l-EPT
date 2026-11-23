@@ -16,6 +16,8 @@ public enum ActionConvention {
     ANNULATION_RESILIATION,
     RESILIATION_EFFECTIVE,
     EXPIRATION,
+    /** L'organisme est montré ou masqué dans la liste des partenaires vue par les membres. */
+    VISIBILITE,
     AJOUT_PIECE,
     RETRAIT_PIECE
 }

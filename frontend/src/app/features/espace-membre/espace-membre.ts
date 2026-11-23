@@ -66,6 +66,8 @@ export class EspaceMembre implements OnDestroy {
   /** Les offres pour les étudiants et les enseignants, ses propres offres pour un institut ; rien pour les autres. */
   /** Un organisme suit ses conventions de partenariat avec l’EPT. */
   private readonly organisme = computed(() => this.authService.utilisateur()?.role === 'ORGANISME');
+  /** Étudiants, alumni et personnel consultent les organismes partenaires de l’EPT. */
+  private readonly voitPartenaires = computed(() => ['ETUDIANT', 'ALUMNI', 'PERSONNEL'].includes(this.authService.utilisateur()?.role ?? ''));
   private readonly lienMobilites = computed(() => {
     const role = this.authService.utilisateur()?.role;
     if (role === 'ETUDIANT' || role === 'PERSONNEL') return '/mobilites';
@@ -86,6 +88,7 @@ export class EspaceMembre implements OnDestroy {
         { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages', exact: false },
         ...(this.lienMobilites() ? [{ libelle: 'Mobilités', icone: 'pi-globe', route: this.lienMobilites() ?? '', exact: false }] : []),
         ...(this.organisme() ? [{ libelle: 'Partenariat', icone: 'pi-building', route: '/partenariats', exact: false }] : []),
+        ...(this.voitPartenaires() ? [{ libelle: 'Partenaires', icone: 'pi-building', route: '/partenaires', exact: false }] : []),
       ] }];
     }
     const peut = (permission: PermissionAdmin) => this.authService.aPermission(permission);
@@ -132,7 +135,8 @@ export class EspaceMembre implements OnDestroy {
       ] },
       { titre: 'Système', liens: peut('CONSULTER_JOURNAL')
         ? [{ libelle: 'Journal', icone: 'pi-history', route: '/admin/journal', exact: false }] : [] },
-      { titre: 'Plateforme', liens: [{ libelle: 'Annuaire', icone: 'pi-book', route: '/annuaire', exact: false }] },
+      { titre: 'Plateforme', liens: [{ libelle: 'Annuaire', icone: 'pi-book', route: '/annuaire', exact: false },
+        { libelle: 'Partenaires', icone: 'pi-building', route: '/partenaires', exact: false }] },
     ];
     return groupes.filter((groupe) => groupe.liens.length > 0);
   });
@@ -158,6 +162,7 @@ export class EspaceMembre implements OnDestroy {
       { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages' },
       ...(this.lienMobilites() ? [{ libelle: 'Mobilités', icone: 'pi-globe', route: this.lienMobilites() ?? '' }] : []),
       ...(this.organisme() ? [{ libelle: 'Partenariat', icone: 'pi-building', route: '/partenariats' }] : []),
+      ...(this.voitPartenaires() ? [{ libelle: 'Partenaires', icone: 'pi-building', route: '/partenaires' }] : []),
     ]);
 
   private readonly urlCourante = toSignal(this.router.events.pipe(

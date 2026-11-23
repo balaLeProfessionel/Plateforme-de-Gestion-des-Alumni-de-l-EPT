@@ -71,7 +71,7 @@ describe('Navigation de l’espace membre', () => {
     const liens = [...racine.querySelectorAll('.barre-laterale nav a')]
       .map((lien) => lien.getAttribute('href'));
 
-    expect(liens).toEqual(['/accueil', '/annuaire', '/evenements', '/articles', '/mentorat', '/stages']);
+    expect(liens).toEqual(['/accueil', '/annuaire', '/evenements', '/articles', '/mentorat', '/stages', '/partenaires']);
     expect(racine.querySelector('.barre-laterale .marque')?.getAttribute('href')).toBe('/accueil');
     expect([...racine.querySelectorAll('.barre-laterale nav button[aria-disabled="true"]')]
       .map((lien) => lien.getAttribute('aria-label')))
@@ -170,6 +170,7 @@ describe('Navigation de l’espace membre', () => {
     expect(racine.querySelector('a[href="/mobilites/mes-offres"]')).not.toBeNull();
     // Il suit ses conventions de partenariat avec l’EPT.
     expect(racine.querySelector('a[href="/partenariats"]')).not.toBeNull();
+    expect(racine.querySelector('a[href="/partenaires"]')).toBeNull();
     expect(racine.querySelector('.menu-mobile a[aria-label="Paramètres du profil"]')).toBeNull();
     // Un organisme publie, écrit et organise ; le mentorat ne le concerne pas.
     expect(racine.querySelector('a[href="/mentorat"]')).toBeNull();
@@ -244,7 +245,7 @@ describe('Navigation de l’espace membre', () => {
       '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/passage-classe', '/admin/diplomes', '/admin/filieres',
       '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations', '/admin/mobilites/offres', '/admin/mobilites/suivi', '/admin/mobilites/flux',
       '/admin/partenariats', '/admin/partenariats/conventions', '/admin/partenariats/accords',
-      '/admin/publications', '/admin/signalements', '/evenements', '/mentorat/gestion-programmes', '/admin/journal', '/annuaire',
+      '/admin/publications', '/admin/signalements', '/evenements', '/mentorat/gestion-programmes', '/admin/journal', '/annuaire', '/partenaires',
     ]);
     expect(racine.querySelector('.barre-laterale a[href="/admin/signalements"]')?.textContent).toContain('2 signalements à examiner');
     expect(racine.querySelector('.barre-laterale a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
@@ -258,7 +259,7 @@ describe('Navigation de l’espace membre', () => {
       '/admin/mon-compte', '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/passage-classe', '/admin/diplomes', '/admin/filieres',
       '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations', '/admin/mobilites/offres', '/admin/mobilites/suivi', '/admin/mobilites/flux',
       '/admin/partenariats', '/admin/partenariats/conventions', '/admin/partenariats/accords',
-      '/admin/publications', '/admin/signalements', '/mentorat/gestion-programmes', '/admin/journal',
+      '/admin/publications', '/admin/signalements', '/mentorat/gestion-programmes', '/admin/journal', '/partenaires',
     ]);
     expect(racine.querySelector('.menu-mobile a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
     expect(racine.querySelectorAll('.navigation-mobile a')).toHaveLength(3);

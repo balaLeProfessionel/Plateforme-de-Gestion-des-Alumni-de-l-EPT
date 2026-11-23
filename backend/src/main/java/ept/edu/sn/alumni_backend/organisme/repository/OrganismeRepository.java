@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,7 +15,7 @@ import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
 import jakarta.persistence.LockModeType;
 
 @Repository
-public interface OrganismeRepository extends JpaRepository<Organisme, UUID> {
+public interface OrganismeRepository extends JpaRepository<Organisme, UUID>, JpaSpecificationExecutor<Organisme> {
     List<Organisme> findByNomContainingIgnoreCase(String nom);
 
     Optional<Organisme> findByNomIgnoreCase(String nom);

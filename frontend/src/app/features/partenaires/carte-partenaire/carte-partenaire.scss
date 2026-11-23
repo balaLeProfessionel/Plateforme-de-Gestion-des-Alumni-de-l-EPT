@@ -1,0 +1,14 @@
+:host { display: block; height: 100%; }
+.carte { display: grid; align-content: start; gap: 0.6rem; height: 100%; padding: 1rem; border: 1px solid var(--ept-border); border-top: 3px solid var(--ept-primary-dark);
+  border-radius: 12px; background: var(--ept-surface); }
+.entete { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+.identite { min-width: 0;
+  h2 { margin: 0; font-size: 1rem; overflow-wrap: anywhere;
+    a { color: var(--ept-primary-dark); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    a:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+  p { margin: 0.15rem 0 0; color: var(--ept-text-secondary); font-size: 0.82rem; } }
+.secteur { margin: 0; color: var(--ept-primary-dark); font-size: 0.88rem; }
+.accords { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0; padding: 0; list-style: none;
+  li { padding: 0.12rem 0.55rem; border-radius: 999px; background: var(--ept-primary-light); color: var(--ept-primary); font-size: 0.75rem; font-weight: 700; } }
+.depuis { margin: 0; color: var(--ept-text-secondary); font-size: 0.8rem; }

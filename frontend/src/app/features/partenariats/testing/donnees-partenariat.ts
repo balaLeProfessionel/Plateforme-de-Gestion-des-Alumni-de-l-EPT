@@ -3,7 +3,7 @@ import { Accord, Convention } from '../../../core/services/models/partenariat.mo
 /** Données des tests des partenariats : une convention et un accord, à ajuster par test. */
 export function uneConvention(changement: Partial<Convention> = {}): Convention {
   return {
-    id: 'c1', organismeId: 'o1', organismeNom: 'Sonatel', organismeLogoUrl: null, objet: 'Coopération en formation', domaines: 'Stages',
+    id: 'c1', organismeId: 'o1', organismeNom: 'Sonatel', organismeLogoUrl: null, organismeVisible: true, objet: 'Coopération en formation', domaines: 'Stages',
     message: 'Nous souhaitons accueillir des étudiants.', statut: 'DEMANDEE', origine: 'ORGANISME', dateSignature: null, dateDebut: null,
     dateFin: null, joursRestants: null, expireBientot: false, motifDecision: null, resiliationDemandeePar: null,
     resiliationDemandeeLe: null, dateEffetResiliation: null, resiliable: false, resiliationAnnulable: false, creeeLe: '2026-11-01T10:00:00Z',

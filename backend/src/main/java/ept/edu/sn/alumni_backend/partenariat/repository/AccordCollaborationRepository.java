@@ -91,4 +91,16 @@ public interface AccordCollaborationRepository extends JpaRepository<AccordColla
         group by extract(year from h.dateAction), a.type
         """)
     List<ComptageAnneeType> acceptesParAnnee(@Param("depuis") java.time.Instant depuis);
+
+    interface TypeEnVigueur {
+        UUID getOrganismeId();
+        TypeAccord getType();
+    }
+
+    /** Types d'accords en vigueur pour ces organismes. */
+    @Query("""
+        select distinct a.organisme.id as organismeId, a.type as type from AccordCollaboration a
+        where a.organisme.id in :ids and a.statut = ept.edu.sn.alumni_backend.partenariat.StatutAccord.ACTIF
+        """)
+    List<TypeEnVigueur> typesEnVigueur(@Param("ids") Collection<UUID> ids);
 }

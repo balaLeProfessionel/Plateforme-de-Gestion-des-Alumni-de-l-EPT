@@ -105,4 +105,28 @@ public interface ConventionPartenariatRepository extends JpaRepository<Conventio
 
     @EntityGraph(attributePaths = "organisme")
     List<ConventionPartenariat> findByOrganisme_IdAndStatutOrderByDateFinAsc(UUID organismeId, StatutConvention statut);
+
+    // ----- Partenaires vus par les membres -----
+
+    interface DebutPartenariat {
+        UUID getOrganismeId();
+        LocalDate getDepuis();
+    }
+
+    @Query("""
+        select distinct o.secteurActivite from Organisme o
+        where o.partenaireMasque = false and o.secteurActivite is not null and o.secteurActivite <> ''
+          and exists (select 1 from ConventionPartenariat c where c.organisme = o
+                      and c.statut = ept.edu.sn.alumni_backend.partenariat.StatutConvention.ACTIVE)
+        order by o.secteurActivite
+        """)
+    List<String> secteursDesPartenaires();
+
+    /** Début du partenariat : la plus ancienne date de début des conventions actives de chaque organisme. */
+    @Query("""
+        select c.organisme.id as organismeId, min(c.dateDebut) as depuis from ConventionPartenariat c
+        where c.organisme.id in :ids and c.statut = ept.edu.sn.alumni_backend.partenariat.StatutConvention.ACTIVE
+        group by c.organisme.id
+        """)
+    List<DebutPartenariat> debutsPartenariat(@Param("ids") Collection<UUID> ids);
 }

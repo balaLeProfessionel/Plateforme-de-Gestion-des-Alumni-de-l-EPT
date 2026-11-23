@@ -9,11 +9,12 @@ import { PiecesConvention } from '../../partenariats/pieces-convention/pieces-co
 import { ResiliationConvention } from '../../partenariats/resiliation-convention/resiliation-convention';
 import { ActionsConvention } from '../actions-convention/actions-convention';
 import { PageAdmin } from '../page-admin/page-admin';
+import { VisibilitePartenaire } from '../visibilite-partenaire/visibilite-partenaire';
 
 /** Fiche d’une convention pour le service des Relations extérieures : décisions, documents et historique. */
 @Component({
   selector: 'app-fiche-convention',
-  imports: [PageAdmin, InfosConvention, PiecesConvention, HistoriqueConventionListe, ActionsConvention, ResiliationConvention],
+  imports: [PageAdmin, InfosConvention, PiecesConvention, HistoriqueConventionListe, ActionsConvention, ResiliationConvention, VisibilitePartenaire],
   templateUrl: './fiche-convention.html',
   styleUrls: ['../formulaire-admin.scss', '../etats-admin.scss'],
 })
@@ -43,6 +44,11 @@ export class FicheConvention implements OnInit {
   protected miseAJour(convention: Convention, message: string | null = null): void {
     this.convention.set(convention);
     this.message.set(message);
+    this.chargerHistorique();
+  }
+
+  /** Le changement de visibilité est consigné dans l’historique des conventions actives. */
+  protected chargerHistoriqueApresVisibilite(): void {
     this.chargerHistorique();
   }
 

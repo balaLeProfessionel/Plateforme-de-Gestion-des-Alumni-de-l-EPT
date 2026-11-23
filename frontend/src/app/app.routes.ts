@@ -290,6 +290,13 @@ export const routes: Routes = [
         loadChildren: () => import('./features/mobilites/mobilites.routes').then((m) => m.MOBILITES_ROUTES)
       },
       {
+        path: 'partenaires',
+        title: 'Partenaires de l’EPT | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard, roleGuard],
+        data: { roles: ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'ADMIN'] },
+        loadComponent: () => import('./features/partenaires/liste-partenaires/liste-partenaires').then((m) => m.ListePartenaires)
+      },
+      {
         path: 'partenariats',
         canActivate: [authGuard, changementInitialRequisGuard],
         loadChildren: () => import('./features/partenariats/partenariats.routes').then((m) => m.PARTENARIATS_ROUTES)

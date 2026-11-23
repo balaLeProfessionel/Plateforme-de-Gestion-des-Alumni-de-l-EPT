@@ -369,7 +369,7 @@ public class ConventionsPartenariatService {
             ? convention.getPieces().stream().map(p -> new PieceConventionResponse(p.getId(), p.getNomFichier(), p.getTaille(),
                 p.isDeposeeParOrganisme(), p.getAjouteeLe(), peutRetirer(convention, p, lecteur))).toList()
             : List.of();
-        return new ConventionResponse(convention.getId(), organisme.getId(), organisme.getNom(), organisme.getLogoUrl(),
+        return new ConventionResponse(convention.getId(), organisme.getId(), organisme.getNom(), organisme.getLogoUrl(), !organisme.isPartenaireMasque(),
             convention.getObjet(), convention.getDomaines(), convention.getMessage(), convention.getStatut(), convention.getOrigine(),
             convention.getDateSignature(), convention.getDateDebut(), convention.getDateFin(), joursRestants, expireBientot,
             convention.getMotifDecision(), convention.getResiliationDemandeePar(), convention.getResiliationDemandeeLe(),
