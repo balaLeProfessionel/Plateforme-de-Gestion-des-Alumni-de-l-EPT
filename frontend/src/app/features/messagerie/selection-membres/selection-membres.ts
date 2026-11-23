@@ -7,6 +7,7 @@ import { AuthService } from '../../../core/services/auth/auth-service';
 import { AnnuaireMembre } from '../../../core/services/models/annuaire.model';
 import { MembreChoisi } from '../../../core/services/models/messagerie.model';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
+import { SqueletteLignes } from '../squelettes';
 import { PRESENTATION_ROLES_MEMBRE } from '../../../shared/roles/etiquette-role';
 
 const DELAI_SAISIE_MS = 300;
@@ -16,7 +17,7 @@ const RESULTATS_MAX = 8;
 /** Recherche de membres dans l’annuaire et liste des membres choisis, pour une conversation ou un groupe. */
 @Component({
   selector: 'app-selection-membres',
-  imports: [FormField, AvatarMembre],
+  imports: [FormField, AvatarMembre, SqueletteLignes],
   templateUrl: './selection-membres.html',
   styleUrl: './selection-membres.scss',
 })

@@ -82,12 +82,12 @@
     <div #zone class="zone-messages" role="log" aria-labelledby="titre-fil" tabindex="0" [attr.aria-busy]="chargement()"
       (scroll)="suivreDefilement()">
       @if (chargement()) {
-        <p class="attente" role="status">Chargement des messages…</p>
+        <app-squelette-fil />
       } @else {
         @if (plusAnciens()) {
           <div class="anciens">
             <button type="button" class="lien-action" [disabled]="chargementAnciens()" (click)="chargerAnciens()">
-              {{ chargementAnciens() ? 'Chargement…' : 'Messages plus anciens' }}
+              @if (chargementAnciens()) { <i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement… } @else { Messages plus anciens }
             </button>
             @if (erreurAnciens()) { <p class="erreur" role="alert">{{ erreurAnciens() }}</p> }
           </div>

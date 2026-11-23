@@ -63,7 +63,7 @@
     </ul>
     @if (etat.aPlus()) {
       <button type="button" class="lien-action plus" [disabled]="etat.chargement()" (click)="afficherPlus()">
-        Afficher plus de conversations
+        @if (etat.chargementPlus()) { <i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement… } @else { Afficher plus de conversations }
       </button>
     }
   }

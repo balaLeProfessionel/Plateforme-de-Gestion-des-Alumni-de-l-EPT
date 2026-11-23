@@ -31,6 +31,7 @@ export class EtatConversations {
   private readonly conversationsSignal = signal<Conversation[]>([]);
   private readonly chargementSignal = signal(true);
   private readonly chargeeSignal = signal(false);
+  private readonly chargementPlusSignal = signal(false);
   private readonly erreurSignal = signal<string | null>(null);
   private readonly rechercheSignal = signal('');
   private readonly pagesSignal = signal(1);
@@ -38,6 +39,8 @@ export class EtatConversations {
   private readonly totalSignal = signal(0);
   readonly conversations = this.conversationsSignal.asReadonly();
   readonly chargement = this.chargementSignal.asReadonly();
+  /** Vrai seulement pendant l’ajout d’une page demandé par « Afficher plus » (pas pendant une relève). */
+  readonly chargementPlus = this.chargementPlusSignal.asReadonly();
   /** Vrai dès la première réponse : distingue « pas encore chargée » de « vide ». */
   readonly chargee = this.chargeeSignal.asReadonly();
   readonly erreur = this.erreurSignal.asReadonly();
@@ -75,6 +78,7 @@ export class EtatConversations {
       // Une relève qui échoue garde la liste déjà affichée : l’erreur ne remplace qu’une liste jamais chargée.
       this.erreurSignal.set(resultats || this.chargeeSignal() ? null : erreur);
       this.chargementSignal.set(false);
+      this.chargementPlusSignal.set(false);
     });
     // Le badge suit le flux de lui-même : seule la liste est rechargée ici.
     const signaux = this.flux.evenements.pipe(debounceTime(300)).subscribe(() => this.demandes.next());
@@ -99,6 +103,7 @@ export class EtatConversations {
   afficherPlus(): void {
     if (!this.aPlus()) return;
     this.pagesSignal.update((pages) => pages + 1);
+    this.chargementPlusSignal.set(true);
     this.demandes.next();
   }
 

@@ -20,7 +20,7 @@ describe('ListeConversations', () => {
   const aPlus = signal(false);
   const total = signal(0);
   const etat = {
-    conversations, chargee, erreur, recherche, aPlus, total, chargement: signal(false),
+    conversations, chargee, erreur, recherche, aPlus, total, chargement: signal(false), chargementPlus: signal(false),
     actualiser: vi.fn(), afficherPlus: vi.fn(), rechercher: vi.fn((texte: string) => recherche.set(texte)),
   };
 

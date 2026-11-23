@@ -12,7 +12,7 @@
     </p>
 
     @if (chargement()) {
-      <p class="consigne">Chargement…</p>
+      <app-squelette-lignes libelle="Chargement des membres bloqués…" />
     } @else if (erreurChargement(); as message) {
       <div class="etat" role="alert">
         <p>{{ message }}</p>

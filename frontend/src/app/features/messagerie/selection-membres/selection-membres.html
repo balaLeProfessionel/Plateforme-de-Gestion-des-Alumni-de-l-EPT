@@ -27,7 +27,9 @@
     <p [id]="identifiant() + '-aide'" class="aide">Tapez au moins deux lettres du nom.</p>
   } @else if (erreur()) {
     <p [id]="identifiant() + '-aide'" class="aide erreur" role="alert">{{ erreur() }}</p>
-  } @else if (!chargement() && propositions().length === 0) {
+  } @else if (chargement() && propositions().length === 0) {
+    <app-squelette-lignes [id]="identifiant() + '-aide'" libelle="Recherche des membres…" />
+  } @else if (propositions().length === 0) {
     <p [id]="identifiant() + '-aide'" class="aide">Aucun membre ne correspond à « {{ modele().recherche.trim() }} ».</p>
   } @else {
     <p [id]="identifiant() + '-aide'" class="sr-only">{{ propositions().length }} membres proposés. Activez un nom pour le choisir.</p>

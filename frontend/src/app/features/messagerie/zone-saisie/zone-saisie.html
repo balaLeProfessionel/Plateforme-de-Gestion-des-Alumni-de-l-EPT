@@ -30,7 +30,8 @@
       (keydown.enter)="toucheEntree($event)"></textarea>
     <button type="submit" class="envoyer" aria-label="Envoyer le message" title="Envoyer"
       [disabled]="vide() || tropLong() || formulaire().submitting()">
-      <i class="pi pi-send" aria-hidden="true"></i>
+      <i class="pi" [class.pi-send]="!formulaire().submitting()" [class.pi-spin]="formulaire().submitting()"
+        [class.pi-spinner]="formulaire().submitting()" aria-hidden="true"></i>
     </button>
   </div>
   <p id="aide-saisie" class="aide">

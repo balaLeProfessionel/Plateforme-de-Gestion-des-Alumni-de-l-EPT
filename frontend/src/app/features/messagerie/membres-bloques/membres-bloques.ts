@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { MessagerieService } from '../../../core/services/messagerie/messagerie';
 import { MembreBloque } from '../../../core/services/models/messagerie.model';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
+import { SqueletteLignes } from '../squelettes';
 import { EtatConversations } from '../etat-conversations';
 import { messageServeur } from '../message-erreur';
 
@@ -13,7 +14,7 @@ import { messageServeur } from '../message-erreur';
  */
 @Component({
   selector: 'app-membres-bloques',
-  imports: [AvatarMembre, DatePipe],
+  imports: [AvatarMembre, DatePipe, SqueletteLignes],
   templateUrl: './membres-bloques.html',
   styleUrl: './membres-bloques.scss',
 })

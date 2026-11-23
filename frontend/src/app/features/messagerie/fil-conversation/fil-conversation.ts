@@ -17,6 +17,7 @@ import {
   ConversationDetail, ICONES_CATEGORIE, Message, NATURES_COMMUNAUTE,
 } from '../../../core/services/models/messagerie.model';
 import { AccueilCommunaute } from './accueil-communaute';
+import { SqueletteFil } from '../squelettes';
 import { AvatarMembre } from '../../../shared/images/avatar-membre';
 import { AvatarGroupe } from '../avatar-groupe';
 import { BandeauBlocage } from '../bandeau-blocage/bandeau-blocage';
@@ -40,7 +41,7 @@ const MARGE_BAS_PX = 120;
   selector: 'app-fil-conversation',
   imports: [
     RouterLink, AvatarMembre, AvatarGroupe, BandeauBlocage, MessageFil, MessageSysteme, ZoneSaisie, DetailsGroupe,
-    AccueilCommunaute,
+    AccueilCommunaute, SqueletteFil,
   ],
   templateUrl: './fil-conversation.html',
   styleUrl: './fil-conversation.scss',
