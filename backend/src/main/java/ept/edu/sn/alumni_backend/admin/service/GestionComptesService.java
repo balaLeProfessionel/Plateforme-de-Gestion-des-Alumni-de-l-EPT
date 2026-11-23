@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.admin.service;
 
+import ept.edu.sn.alumni_backend.filiere.entity.Filiere;
 import ept.edu.sn.alumni_backend.admin.NomCompte;
 import java.util.EnumSet;
 import java.util.List;
@@ -30,6 +31,7 @@ import ept.edu.sn.alumni_backend.admin.exception.ConflitCompteException;
 import ept.edu.sn.alumni_backend.admin.repository.ActionAdminRepository;
 import ept.edu.sn.alumni_backend.admin.repository.ActionAdminRepository.NombreParCibleProjection;
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
+import ept.edu.sn.alumni_backend.enums.Classe;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.security.RefreshTokenService;
@@ -55,6 +57,7 @@ public class GestionComptesService {
     private final ActionAdminRepository actionAdminRepository;
     private final RefreshTokenService refreshTokenService;
     private final ApplicationEventPublisher evenements;
+    private final GardeSuperAdministrateur garde;
 
     /**
      * Comptes vérifiés selon les critères. sansAnneeEntree / sansFiliere ciblent les comptes où ces champs sont
@@ -62,7 +65,8 @@ public class GestionComptesService {
      */
     @Transactional(readOnly = true)
     public PageResponse<CompteAdminResponse> rechercher(String recherche, TypeRole role, StatutCompte statut,
-            Integer anneeEntree, boolean sansAnneeEntree, String filiere, boolean sansFiliere, int page, int taille) {
+            Integer anneeEntree, boolean sansAnneeEntree, String filiere, boolean sansFiliere, Classe classe, boolean sansClasse,
+            int page, int taille) {
         Specification<Utilisateur> specification = (racine, requete, cb) -> cb.isTrue(racine.get("emailVerifie"));
         if (role != null) {
             specification = specification.and((racine, requete, cb) -> cb.equal(racine.get("role"), role));
@@ -77,10 +81,15 @@ public class GestionComptesService {
         }
         if (sansFiliere) {
             specification = specification.and((racine, requete, cb) ->
-                cb.or(cb.isNull(racine.get("filiere")), cb.equal(cb.trim(racine.get("filiere")), "")));
+                cb.isNull(racine.get("filiere")));
         } else if (filiere != null && !filiere.isBlank()) {
-            String valeur = filiere.trim().toLowerCase(Locale.ROOT);
-            specification = specification.and((racine, requete, cb) -> cb.equal(cb.lower(racine.get("filiere")), valeur));
+            String cle = Filiere.cle(filiere);
+            specification = specification.and((racine, requete, cb) -> cb.equal(racine.get("filiere").get("cle"), cle));
+        }
+        if (sansClasse) {
+            specification = specification.and((racine, requete, cb) -> cb.isNull(racine.get("classe")));
+        } else if (classe != null) {
+            specification = specification.and((racine, requete, cb) -> cb.equal(racine.get("classe"), classe));
         }
         if (recherche != null && !recherche.isBlank()) {
             String motif = "%" + recherche.trim().toLowerCase(Locale.ROOT) + "%";
@@ -137,7 +146,8 @@ public class GestionComptesService {
         return new FicheCompteResponse(versReponse(compte, motif, nombreDecisions(compte)),
             compte.getVilleResidence(), compte.getPosteActuel(), compte.getLienLinkedin(), compte.getLienPortfolio(),
             compte.getBio(), compte.getDiplome() == null ? null : compte.getDiplome().name(), compte.getDateNaissance(),
-            compte.isDoitChangerMotDePasse(), compte.getFormations().size(), compte.getExperiences().size());
+            compte.isDoitChangerMotDePasse(), compte.getFormations().size(), compte.getExperiences().size(),
+            compte.getPermissionsAdmin().stream().sorted().map(Enum::name).toList());
     }
 
     @Transactional(readOnly = true)
@@ -153,7 +163,7 @@ public class GestionComptesService {
 
     @Transactional
     public CompteAdminResponse valider(UUID id, UtilisateurPrincipal principal) {
-        Utilisateur compte = chargerInscription(id, "valider");
+        Utilisateur compte = chargerInscription(id, "valider", principal);
         compte.setStatutCompte(StatutCompte.ACTIF);
         if (compte.getOrganisme() != null) {
             compte.getOrganisme().setStatutValidation(StatutCompte.ACTIF);
@@ -167,7 +177,7 @@ public class GestionComptesService {
 
     @Transactional
     public CompteAdminResponse refuser(UUID id, String motif, UtilisateurPrincipal principal) {
-        Utilisateur compte = chargerInscription(id, "refuser");
+        Utilisateur compte = chargerInscription(id, "refuser", principal);
         compte.setStatutCompte(StatutCompte.SUSPENDU);
         if (compte.getOrganisme() != null) {
             compte.getOrganisme().setStatutValidation(StatutCompte.SUSPENDU);
@@ -182,7 +192,7 @@ public class GestionComptesService {
 
     @Transactional
     public CompteAdminResponse suspendre(UUID id, String motif, UtilisateurPrincipal principal) {
-        Utilisateur compte = chargerPourModification(id);
+        Utilisateur compte = chargerPourModification(id, principal);
         if (compte.getId().equals(principal.getUtilisateur().getId())) {
             throw new ConflitCompteException("Vous ne pouvez pas suspendre votre propre compte.");
         }
@@ -205,7 +215,7 @@ public class GestionComptesService {
 
     @Transactional
     public CompteAdminResponse reactiver(UUID id, String motif, UtilisateurPrincipal principal) {
-        Utilisateur compte = chargerPourModification(id);
+        Utilisateur compte = chargerPourModification(id, principal);
         if (compte.getStatutCompte() != StatutCompte.SUSPENDU) {
             throw new ConflitCompteException("Ce compte n'est pas suspendu.");
         }
@@ -226,15 +236,19 @@ public class GestionComptesService {
         return versReponse(compte, null, nombreDecisions(compte));
     }
 
-    /** Verrouille le compte : deux administrateurs ne décident pas en même temps. */
-    private Utilisateur chargerPourModification(UUID id) {
+    /**
+     * Verrouille le compte : deux administrateurs ne décident pas en même temps. Un compte d'administration ne se
+     * décide que par un super administrateur.
+     */
+    private Utilisateur chargerPourModification(UUID id, UtilisateurPrincipal principal) {
+        garde.exigerSiAdministration(id, null, principal);
         return utilisateurRepository.findByIdForUpdate(id)
             .filter(Utilisateur::isEmailVerifie)
             .orElseThrow(CompteIntrouvableException::new);
     }
 
-    private Utilisateur chargerInscription(UUID id, String verbe) {
-        Utilisateur compte = chargerPourModification(id);
+    private Utilisateur chargerInscription(UUID id, String verbe, UtilisateurPrincipal principal) {
+        Utilisateur compte = chargerPourModification(id, principal);
         if (compte.getStatutCompte() != StatutCompte.EN_ATTENTE) {
             throw new ConflitCompteException("Cette inscription a déjà été traitée : impossible de la " + verbe + ".");
         }
@@ -263,7 +277,8 @@ public class GestionComptesService {
     private static CompteAdminResponse versReponse(Utilisateur compte, String motifSuspension, long nombreDecisions) {
         return new CompteAdminResponse(
             compte.getId(), compte.getPrenom(), compte.getNom(), compte.getEmail(), compte.getTelephone(),
-            compte.getRole().name(), compte.getStatutCompte().name(), compte.getFiliere(),
+            compte.getRole().name(), compte.getStatutCompte().name(), compte.getNomFiliere(),
+            compte.getClasse() == null ? null : compte.getClasse().name(),
             compte.getAnneeEntree(), compte.getAnneeSortie(),
             compte.getOrganisme() == null ? null : compte.getOrganisme().getNom(),
             compte.getOrganisme() == null ? null : compte.getOrganisme().getId(),

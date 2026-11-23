@@ -1,0 +1,88 @@
+<div class="page-stages">
+  <app-fil-ariane [etapes]="etapes()" />
+  <header class="entete">
+    <h1>Candidatures reçues</h1>
+    @if (offre(); as o) { <p class="introduction">{{ o.titre }} · {{ o.organisme.nom }}</p> }
+    @if (!administration) {
+      <p class="introduction">Votre avis n’est pas montré aux étudiants.</p>
+    }
+  </header>
+
+  @if (stagiaires(); as liste) {
+    <section class="stagiaires" aria-labelledby="titre-stagiaires">
+      <h2 id="titre-stagiaires">Liste définitive de l’école</h2>
+      @if (liste.length === 0) {
+        <p class="details">L’école n’a retenu aucun étudiant pour cette offre.</p>
+      } @else {
+        <ul>
+          @for (s of liste; track s.id) {
+            <li>
+              <app-avatar-membre [urlPhoto]="s.etudiant.urlPhoto" [prenom]="s.etudiant.prenom" [nom]="s.etudiant.nom" roleMembre="ETUDIANT" [taille]="2" />
+              <span><a [routerLink]="['/profil', s.etudiant.id]">{{ s.etudiant.prenom }} {{ s.etudiant.nom }}</a>
+                <small><a [href]="'mailto:' + s.email">{{ s.email }}</a></small>
+                <small>Du {{ s.dateDebut | date: 'd MMMM y' }} au {{ s.dateFin | date: 'd MMMM y' }}</small>
+                <a class="evaluation" [routerLink]="administration ? ['/admin/stages/suivi', s.id, 'evaluation'] : ['/stages/suivi', s.id, 'evaluation']"
+                  [attr.aria-label]="'Évaluation de ' + s.etudiant.prenom + ' ' + s.etudiant.nom">Évaluation du stagiaire</a></span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+
+  @if (erreurChargement(); as message) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-circle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ message }}</p></div>
+  } @else if (candidatures(); as liste) {
+    @if (liste.length === 0) {
+      <div class="etat">
+        <i class="pi pi-inbox" aria-hidden="true"></i>
+        <h2>Aucune candidature pour l’instant</h2>
+        <p>Les candidatures des étudiants apparaîtront ici dès leur envoi.</p>
+      </div>
+    } @else {
+      <p class="resume" role="status">
+        <strong>{{ envoyees() }}</strong> {{ envoyees() > 1 ? 'candidatures envoyées' : 'candidature envoyée' }}, dont {{ retenues() }} retenue(s) par l’organisme
+      </p>
+      <ul class="liste">
+        @for (c of liste; track c.id) {
+          <li class="candidat" [class.retiree]="c.statut === 'RETIREE'">
+            <div class="identite">
+              <app-avatar-membre [urlPhoto]="c.etudiant.urlPhoto" [prenom]="c.etudiant.prenom" [nom]="c.etudiant.nom" roleMembre="ETUDIANT" [taille]="2.75" />
+              <div>
+                <h2><a [routerLink]="['/profil', c.etudiant.id]">{{ c.etudiant.prenom }} {{ c.etudiant.nom }}</a></h2>
+                <p class="details">
+                  @if (libelleClasse(c.etudiant.classe); as classe) { {{ classe }} · }{{ c.etudiant.filiere ?? 'Filière non renseignée' }}
+                  · envoyée le {{ c.envoyeeLe | date: 'd MMMM y' }}
+                </p>
+                @if (c.email) { <p class="details"><a [href]="'mailto:' + c.email">{{ c.email }}</a></p> }
+              </div>
+              @if (administration) {
+                <span class="statut" [attr.data-statut]="c.statut">{{ statuts[c.statut] }}</span>
+              }
+            </div>
+
+            <button type="button" class="lien-cv" (click)="telechargerCv(c)"><i class="pi pi-file-pdf" aria-hidden="true"></i>{{ c.nomCv }}</button>
+            @if (c.lettreMotivation) {
+              <details><summary>Lettre de motivation</summary><p class="lettre">{{ c.lettreMotivation }}</p></details>
+            }
+
+            @if (administration || avisFiges()) {
+              <p class="avis-lu">@if (!administration) { Votre avis : } @else { Avis de l’organisme : }<strong>{{ libellesAvis[c.avisOrganisme] }}</strong>
+                @if (c.avisDonneLe) { <span>(le {{ c.avisDonneLe | date: 'd MMMM y' }})</span> }</p>
+            } @else {
+              <div class="avis" role="group" [attr.aria-label]="'Votre avis sur la candidature de ' + c.etudiant.prenom + ' ' + c.etudiant.nom">
+                @for (avis of avisPossibles; track avis) {
+                  <button type="button" [attr.aria-pressed]="c.avisOrganisme === avis" [attr.data-avis]="avis" (click)="donnerAvis(c, avis)">
+                    {{ libellesAvis[avis] }}</button>
+                }
+              </div>
+            }
+            @if (erreurAction()?.id === c.id) { <p class="erreur" role="alert">{{ erreurAction()?.message }}</p> }
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement des candidatures"></div>
+  }
+</div>

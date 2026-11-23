@@ -1,5 +1,5 @@
 import { inject } from "@angular/core";
-import { CanActivateFn, Router } from "@angular/router";
+import { CanActivateFn, CanMatchFn, Router } from "@angular/router";
 import { AuthService } from "../services/auth/auth-service";
 import { PermissionAdmin } from "../services/models/admin.model";
 
@@ -19,6 +19,9 @@ export const visiteurGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   return authService.estConnecte() ? inject(Router).createUrlTree(['/accueil']) : true;
 };
+
+/** Route réservée aux visiteurs sans compte : connecté, la route suivante de même chemin est essayée. */
+export const visiteurMatch: CanMatchFn = () => !inject(AuthService).estConnecte();
 
 export const roleGuard: CanActivateFn = (route) => {
   const authService = inject(AuthService);

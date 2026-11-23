@@ -1,0 +1,79 @@
+<section class="candidature" aria-labelledby="titre-candidature">
+  <h2 id="titre-candidature">Votre candidature</h2>
+  @if (!chargee()) {
+    <p class="aide">Chargement…</p>
+  } @else {
+    @let c = candidature();
+    @if (c && c.statut !== 'RETIREE') {
+      <p class="etat-candidature">
+        <span class="statut" [attr.data-statut]="c.statut">{{ statuts[c.statut] }}</span>
+        le {{ c.soumiseLe | date: 'd MMMM y' }}
+        @if (c.statut === 'SOUMISE') { · l’école examine les dossiers après le {{ offre().dateLimite | date: 'd MMMM y' }}. }
+      </p>
+    } @else if (c?.statut === 'RETIREE') {
+      <p class="etat-candidature">Vous avez retiré votre candidature. Vous pouvez la renvoyer jusqu’à la date limite, avec les pièces déjà déposées.</p>
+    }
+
+    @if (peutDeposer()) {
+      <ul class="pieces">
+        @for (type of offre().piecesDemandees; track type) {
+          @let deja = deposee(type);
+          @let nouveau = choisis()[type];
+          <li>
+            <span class="libelle">{{ libellesPiece[type] }}</span>
+            @if (nouveau) {
+              <span class="fichier"><i class="pi pi-file-pdf" aria-hidden="true"></i>{{ nouveau.name }} <small>{{ nouveau.size | taille }}</small></span>
+              <button type="button" class="bouton-texte" (click)="oublier(type)">Ne pas envoyer</button>
+            } @else if (deja) {
+              <button type="button" class="fichier lien" (click)="telecharger(deja)"><i class="pi pi-file-pdf" aria-hidden="true"></i>{{ deja.nom }}</button>
+              <label class="choix-fichier" [for]="'piece-' + type">Remplacer
+                <input [id]="'piece-' + type" class="sr-only" type="file" accept="application/pdf,.pdf" (change)="choisir(type, $event)" />
+              </label>
+            } @else {
+              <label class="choix-fichier" [for]="'piece-' + type"><i class="pi pi-paperclip" aria-hidden="true"></i>Choisir un PDF
+                <input [id]="'piece-' + type" class="sr-only" type="file" accept="application/pdf,.pdf" (change)="choisir(type, $event)" />
+              </label>
+            }
+          </li>
+        }
+      </ul>
+      <small class="aide">Un PDF de 5 Mo au plus par pièce.</small>
+      @if (erreur(); as e) { <p class="erreur" role="alert">{{ e }}</p> }
+      <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
+
+      @if (confirmerRetrait()) {
+        <div class="confirmation" role="group" aria-label="Retirer la candidature">
+          <p>Retirer votre candidature ? L’école ne l’examinera pas, sauf si vous la renvoyez avant la date limite.</p>
+          <div class="boutons">
+            <button type="button" class="bouton principal" [disabled]="enCours()" (click)="retirer()">Retirer ma candidature</button>
+            <button type="button" class="bouton" (click)="confirmerRetrait.set(false)">Ne rien changer</button>
+          </div>
+        </div>
+      } @else {
+        <div class="boutons">
+          @if (!rienAEnvoyer()) {
+            <button type="button" class="bouton principal" [disabled]="enCours()" (click)="envoyer()">
+              {{ envoyee() ? 'Envoyer les pièces remplacées' : c?.statut === 'RETIREE' ? 'Renvoyer ma candidature' : 'Envoyer ma candidature' }}</button>
+          }
+          @if (envoyee()) {
+            <button type="button" class="bouton" (click)="confirmerRetrait.set(true)">Retirer ma candidature…</button>
+          }
+        </div>
+      }
+    } @else {
+      @if (c) {
+        <ul class="pieces lecture">
+          @for (piece of c.pieces; track piece.id) {
+            <li><span class="libelle">{{ libellesPiece[piece.type] }}</span>
+              <button type="button" class="fichier lien" (click)="telecharger(piece)"><i class="pi pi-file-pdf" aria-hidden="true"></i>{{ piece.nom }}</button></li>
+          }
+        </ul>
+      } @else {
+        <p>Cette offre ne reçoit plus de candidatures.</p>
+      }
+      @if (erreur(); as e) { <p class="erreur" role="alert">{{ e }}</p> }
+      <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
+    }
+    <a class="lien-suivi" routerLink="/mobilites/mes-candidatures">Toutes mes candidatures</a>
+  }
+</section>

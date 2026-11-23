@@ -1,15 +1,17 @@
+@use 'responsive' as *;
+
 .premiere-connexion-page {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 2rem;
-  background: var(--ept-surface);
+  padding: 1rem;
+  background: var(--ept-bg);
 }
 
 .carte {
   width: 100%;
-  max-width: 460px;
-  padding: 2.5rem;
+  max-width: 30rem;
+  padding: 1.5rem 1.25rem;
   border: 1px solid var(--ept-border);
   border-radius: var(--ept-radius);
   background: var(--ept-surface);
@@ -30,23 +32,50 @@
 
 h1 {
   margin: 0 0 0.5rem;
-  font-size: 1.8rem;
+  font-size: 1.6rem;
+  text-wrap: balance;
 }
 
 .sous-titre {
-  margin: 0 0 1.75rem;
+  margin: 0 0 1.5rem;
   color: var(--ept-text-secondary);
   line-height: 1.55;
 }
 
 .message-erreur {
-  display: block;
-  margin-bottom: 1.25rem;
+  margin: 0 0 1.25rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: var(--ept-radius-sm);
+  background: var(--ept-error-light);
+  color: var(--ept-error-dark);
+  font-weight: 600;
+}
+
+.identite {
+  margin: 0 0 1.25rem;
+  padding: 0;
+  border: 0;
+
+  legend {
+    margin-bottom: 0.25rem;
+    padding: 0;
+    color: var(--ept-primary-dark);
+    font-weight: 700;
+  }
+
+  > .aide { margin-bottom: 0.75rem; }
+}
+
+.deux-champs {
+  display: grid;
+  gap: 0 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
 }
 
 .champ {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   margin-bottom: 1.25rem;
 
   label {
@@ -56,21 +85,38 @@ h1 {
   }
 }
 
+input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ept-border-champ);
+  border-radius: var(--ept-radius-sm);
+  background: var(--ept-surface);
+  color: var(--ept-primary-dark);
+  font: inherit;
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-focus-clair);
+    outline-offset: 1px;
+  }
+
+  &[aria-invalid='true'] { border-color: var(--ept-error); }
+}
+
 .champ-mdp {
   position: relative;
   display: flex;
   align-items: center;
 
-  input {
-    width: 100%;
-    padding-right: 2.75rem;
-  }
+  input { padding-right: 3rem; }
 
   button {
     position: absolute;
-    right: 0.5rem;
-    display: flex;
-    padding: 0.5rem;
+    right: 0.25rem;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
     border: 0;
     border-radius: var(--ept-radius-sm);
     color: var(--ept-text-secondary);
@@ -78,10 +124,17 @@ h1 {
     cursor: pointer;
 
     &:focus-visible {
-      outline: 2px solid var(--ept-primary);
-      outline-offset: 2px;
+      outline: 2px solid var(--ept-focus-clair);
+      outline-offset: -2px;
     }
   }
+}
+
+.aide {
+  margin: 0.35rem 0 0;
+  color: var(--ept-text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.45;
 }
 
 .erreur-champ {
@@ -92,4 +145,35 @@ h1 {
 
 .btn-ept {
   width: 100%;
+}
+
+.sortie {
+  margin: 1.25rem 0 0;
+  color: var(--ept-text-secondary);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.lien {
+  min-height: 2.75rem;
+  padding: 0 0.25rem;
+  border: 0;
+  background: transparent;
+  color: var(--ept-primary);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-focus-clair);
+    outline-offset: 2px;
+  }
+}
+
+@include a-partir-de(tablette) {
+  .premiere-connexion-page { padding: 2rem; }
+  .carte { padding: 2.5rem; }
+  h1 { font-size: 1.8rem; }
 }

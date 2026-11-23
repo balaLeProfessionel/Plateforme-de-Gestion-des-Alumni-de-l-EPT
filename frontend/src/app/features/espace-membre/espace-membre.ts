@@ -12,6 +12,8 @@ import { TooltipModule } from 'primeng/tooltip';
 import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurInscriptions } from '../../core/services/admin/compteur-inscriptions';
 import { CompteurSignalements } from '../../core/services/publications/moderation';
+import { CompteurDeclarationsATraiter } from '../../core/services/stages/compteur-declarations';
+import { CompteurOffresAVerifier } from '../../core/services/stages/compteur-offres';
 import { PermissionAdmin, TOUTES_LES_PERMISSIONS } from '../../core/services/models/admin.model';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
 import { participeAuMentorat } from '../../core/services/models/mentorat.model';
@@ -56,9 +58,19 @@ export class EspaceMembre implements OnDestroy {
   private readonly compteurInscriptions = inject(CompteurInscriptions);
   private readonly compteurSignalements = inject(CompteurSignalements);
   private readonly notificationService = inject(NotificationService);
+  private readonly compteurOffres = inject(CompteurOffresAVerifier);
+  private readonly compteurDeclarations = inject(CompteurDeclarationsATraiter);
   /** Un compte d’administration navigue par domaine ; un membre garde les rubriques de la communauté. */
   private readonly administration = computed(() =>
     TOUTES_LES_PERMISSIONS.some((permission) => this.authService.aPermission(permission)));
+  /** Le mentorat ne concerne que les étudiants et les alumni. */
+  protected readonly voitMentorat = computed(() => participeAuMentorat(this.authService.utilisateur()?.role));
+  /** Les offres pour les étudiants et les enseignants, ses propres offres pour un institut ; rien pour les autres. */
+  private readonly lienMobilites = computed(() => {
+    const role = this.authService.utilisateur()?.role;
+    if (role === 'ETUDIANT' || role === 'PERSONNEL') return '/mobilites';
+    return role === 'ORGANISME' ? '/mobilites/mes-offres' : null;
+  });
   protected readonly groupesNavigation = computed<readonly GroupeNavigation[]>(() => {
     if (!this.administration()) {
       return [{ titre: 'Navigation', liens: [
@@ -75,6 +87,8 @@ export class EspaceMembre implements OnDestroy {
           libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', exact: false,
           compteur: this.compteurMentorat.nombre(), libelleCompteur: 'demandes en attente',
         }] : []),
+        { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages', exact: false },
+        ...(this.lienMobilites() ? [{ libelle: 'Mobilités', icone: 'pi-globe', route: this.lienMobilites() ?? '', exact: false }] : []),
       ] }];
     }
     const peut = (permission: PermissionAdmin) => this.authService.aPermission(permission);
@@ -87,8 +101,23 @@ export class EspaceMembre implements OnDestroy {
           compteur: this.compteurInscriptions.nombre(), libelleCompteur: 'inscriptions à examiner',
         },
         { libelle: 'Comptes', icone: 'pi-users', route: '/admin/comptes', exact: false },
+        { libelle: 'Passage de classe', icone: 'pi-angle-double-up', route: '/admin/passage-classe', exact: false },
         { libelle: 'Diplômés', icone: 'pi-graduation-cap', route: '/admin/diplomes', exact: false },
+        { libelle: 'Filières', icone: 'pi-sitemap', route: '/admin/filieres', exact: false },
       ] : [] },
+      { titre: 'Stages', liens: peut('GERER_STAGES')
+        ? [{
+          libelle: 'Offres de stage', icone: 'pi-briefcase', route: '/admin/stages/offres', exact: false,
+          compteur: this.compteurOffres.nombre(), libelleCompteur: 'offres à vérifier',
+        }, {
+          libelle: 'Stages déclarés', icone: 'pi-inbox', route: '/admin/stages/declarations', exact: false,
+          compteur: this.compteurDeclarations.nombre(), libelleCompteur: 'stages déclarés à traiter',
+        }, { libelle: 'Suivi des stages', icone: 'pi-eye', route: '/admin/stages/suivi', exact: false },
+        { libelle: 'Solliciter les organismes', icone: 'pi-envelope', route: '/admin/stages/sollicitations', exact: false }] : [] },
+      { titre: 'Mobilités', liens: peut('GERER_MOBILITES')
+        ? [{ libelle: 'Offres de mobilité', icone: 'pi-globe', route: '/admin/mobilites/offres', exact: false },
+          { libelle: 'Suivi des mobilités', icone: 'pi-eye', route: '/admin/mobilites/suivi', exact: false },
+          { libelle: 'Flux', icone: 'pi-arrow-right-arrow-left', route: '/admin/mobilites/flux', exact: false }] : [] },
       { titre: 'Contenus', liens: [
         ...(peut('PUBLIER_ANNONCES')
           ? [{ libelle: 'Annonces et appels', icone: 'pi-megaphone', route: '/admin/publications', exact: false }] : []),
@@ -99,7 +128,8 @@ export class EspaceMembre implements OnDestroy {
         ...(peut('GERER_COMMUNAUTES')
           ? [{ libelle: 'Communautés', icone: 'pi-comments', route: '/admin/communautes', exact: false }] : []),
         { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
-        { libelle: 'Programmes de mentorat', icone: 'pi-sitemap', route: '/mentorat/gestion-programmes', exact: false },
+        ...(peut('GERER_MENTORAT')
+          ? [{ libelle: 'Programmes de mentorat', icone: 'pi-sitemap', route: '/mentorat/gestion-programmes', exact: false }] : []),
       ] },
       { titre: 'Système', liens: peut('CONSULTER_JOURNAL')
         ? [{ libelle: 'Journal', icone: 'pi-history', route: '/admin/journal', exact: false }] : [] },
@@ -110,7 +140,6 @@ export class EspaceMembre implements OnDestroy {
   protected readonly rubriquesAVenir = computed<readonly RubriqueAVenir[]>(() => this.administration() ? [
     { libelle: 'Statistiques', icone: 'pi-chart-bar' },
     { libelle: 'Enquêtes', icone: 'pi-clipboard' },
-    { libelle: 'Rôles et accès', icone: 'pi-key' },
   ] : [
     // Les actualités vivent dans le fil de l’accueil : plus de rubrique à part.
     { libelle: 'Offres d’emploi', icone: 'pi-briefcase' },
@@ -131,6 +160,8 @@ export class EspaceMembre implements OnDestroy {
       { libelle: 'Articles', icone: 'pi-book', route: '/articles' },
       ...(this.mentorat()
         ? [{ libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() }] : []),
+      { libelle: 'Stages', icone: 'pi-briefcase', route: '/stages' },
+      ...(this.lienMobilites() ? [{ libelle: 'Mobilités', icone: 'pi-globe', route: this.lienMobilites() ?? '' }] : []),
     ]);
 
   private readonly urlCourante = toSignal(this.router.events.pipe(
@@ -139,12 +170,15 @@ export class EspaceMembre implements OnDestroy {
   ), { initialValue: this.router.url });
   /** Son propre profil n’a pas d’entrée dans la barre : le bouton du compte, qui y mène, est alors la page courante. */
   protected readonly pageCompte = computed(() =>
-    /^\/(profil|profil\/parametres|organisme\/parametres)(\?|#|$)/.test(this.urlCourante()));
+    /^\/(profil|profil\/parametres|organisme\/parametres|admin\/mon-compte)(\?|#|$)/.test(this.urlCourante()));
 
   protected readonly lienProfil = computed(() => {
     const role = this.authService.utilisateur()?.role;
     if (role === 'ORGANISME') {
       return '/organisme/parametres';
+    }
+    if (role === 'ADMIN') {
+      return '/admin/mon-compte';
     }
     if (role && ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'].includes(role)) {
       return '/profil';
@@ -152,12 +186,15 @@ export class EspaceMembre implements OnDestroy {
     return null;
   });
 
+  /** Un administrateur n’a pas de profil de membre : son nom et son mot de passe sont dans « Mon compte ». */
+  protected readonly libelleProfil = computed(() => ({ ORGANISME: 'Mon organisme', ADMIN: 'Mon compte' } as Record<string, string>)
+    [this.authService.utilisateur()?.role ?? ''] ?? 'Mon profil');
+
   protected readonly elementsMenuCompte = computed<MenuItem[]>(() => {
     // Pas d’entrée « Paramètres » : le profil s’ouvre en lecture et « Modifier mon profil » y mène.
     const profil = this.lienProfil();
-    const organisme = this.authService.utilisateur()?.role === 'ORGANISME';
     return [
-      ...(profil ? [{ label: organisme ? 'Mon organisme' : 'Mon profil', icon: 'pi pi-user', routerLink: profil }] : []),
+      ...(profil ? [{ label: this.libelleProfil(), icon: 'pi pi-user', routerLink: profil }] : []),
       ...(profil ? [{ separator: true }] : []),
       { label: 'Déconnexion', icon: 'pi pi-sign-out', command: () => this.seDeconnecter() },
     ];
@@ -185,6 +222,10 @@ export class EspaceMembre implements OnDestroy {
     if (this.authService.aPermission('MODERER_PUBLICATIONS')) this.compteurSignalements.actualiser();
     this.notificationService.demarrer();
     if (!this.administration()) this.compteurMessages.demarrer();
+    if (this.authService.aPermission('GERER_STAGES')) {
+      this.compteurOffres.actualiser();
+      this.compteurDeclarations.actualiser();
+    }
   }
 
   ngOnDestroy(): void {

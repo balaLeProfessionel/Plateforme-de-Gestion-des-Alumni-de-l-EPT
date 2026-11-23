@@ -14,13 +14,13 @@ export interface LectureCsv {
 const COLONNES: Record<string, keyof LigneImport> = {
   prenom: 'prenom', prenoms: 'prenom', nom: 'nom', email: 'email', mail: 'email', courriel: 'email', adresse: 'email',
   filiere: 'filiere', anneeentree: 'anneeEntree', entree: 'anneeEntree', anneesortie: 'anneeSortie', sortie: 'anneeSortie',
-  promotion: 'anneeSortie',
+  promotion: 'anneeSortie', classe: 'classe', niveau: 'classe',
 };
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const LIGNES_MAX = 300;
 
 /** Modèle proposé au téléchargement, lisible par un tableur français (séparateur point-virgule). */
-export const MODELE_CSV = 'prenom;nom;email;filiere;annee_entree\nAwa;Diop;awa.diop@ept.sn;Génie informatique et télécommunications;2026\n';
+export const MODELE_CSV = 'prenom;nom;email;filiere;classe;annee_entree\nAwa;Diop;awa.diop@ept.sn;Génie informatique et télécommunications;TC1;2026\n';
 
 /**
  * Lit un fichier de promotion exporté d’un tableur : première ligne d’en-têtes (ordre libre, accents et
@@ -47,6 +47,7 @@ export function lireCsvComptes(texte: string): LectureCsv {
       numero: index + 1,
       prenom: brut['prenom'] ?? '', nom: brut['nom'] ?? '', email: (brut['email'] ?? '').toLowerCase(),
       filiere: brut['filiere'] || null, anneeEntree: annee(brut['anneeEntree']), anneeSortie: annee(brut['anneeSortie']),
+      classe: brut['classe'] || null,
       probleme: null,
     };
     ligne.probleme = !ligne.prenom || !ligne.nom ? 'Prénom ou nom manquant.'

@@ -7,7 +7,7 @@ import { ButtonDirective, ButtonIcon } from 'primeng/button';
 import {
   catchError, combineLatest, debounceTime, distinctUntilChanged, filter, map, of, startWith, Subject, switchMap, tap
 } from 'rxjs';
-import { FILIERES } from '../../core/data/filieres';
+import { FilieresService } from '../../core/services/filieres/filieres';
 import { AnnuaireService } from '../../core/services/annuaire/annuaire';
 import {
   FiltresAnnuaire,
@@ -42,7 +42,7 @@ export class Annuaire {
   private readonly destroyRef = inject(DestroyRef);
   private readonly actualiserSujet = new Subject<void>();
 
-  protected readonly filieres = FILIERES;
+  protected readonly filieres = inject(FilieresService).proposees();
   protected readonly modele = signal({
     recherche: '',
     role: 'ALUMNI' as TypeMembreAnnuaire,

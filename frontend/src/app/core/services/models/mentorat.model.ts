@@ -26,7 +26,7 @@ export interface ProfilMentorRequest {
 }
 
 /** Toute personne membre peut être mentor et mentoré ; les comptes d’organisme et d’administration non. */
-export const ROLES_MENTORAT: readonly string[] = ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'];
+export const ROLES_MENTORAT: readonly string[] = ['ETUDIANT', 'ALUMNI'];
 
 export function participeAuMentorat(role: string | null | undefined): boolean {
   return ROLES_MENTORAT.includes(role ?? '');
@@ -202,12 +202,8 @@ export const LIBELLES_MODALITE: Record<ModaliteSeance, string> = {
 
 export type StatutProgramme = 'BROUILLON' | 'OUVERT' | 'EN_COURS' | 'CLOS';
 
-/** Seule l’administration crée et gère les programmes. */
-export const ROLES_GESTION_PROGRAMMES: readonly string[] = ['ADMIN'];
-
-export function gereLesProgrammes(role: string | null | undefined): boolean {
-  return ROLES_GESTION_PROGRAMMES.includes(role ?? '');
-}
+/** Seule l’administration ayant la responsabilité Mentorat crée et gère les programmes (règle du serveur). */
+export const PERMISSION_GESTION_PROGRAMMES = 'GERER_MENTORAT' as const;
 
 export const LIBELLES_STATUT_PROGRAMME: Record<StatutProgramme, string> = {
   BROUILLON: 'Brouillon',

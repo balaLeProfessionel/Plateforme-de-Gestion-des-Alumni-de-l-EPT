@@ -29,6 +29,7 @@ import ept.edu.sn.alumni_backend.publication.repository.PublicationRepository;
 import ept.edu.sn.alumni_backend.security.JwtService;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
+import ept.edu.sn.alumni_backend.filiere.repository.FiliereRepository;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 
 /** Fil personnalisé : classement par affinité, audience respectée, raison affichée, pagination figée. */
@@ -39,6 +40,7 @@ class FilApiIntegrationTests {
     @Autowired private MockMvc mvc;
     @Autowired private JwtService jwt;
     @Autowired private UtilisateurRepository utilisateurs;
+    @Autowired private FiliereRepository filiereRepository;
     @Autowired private PublicationRepository publications;
 
     @Test
@@ -98,7 +100,7 @@ class FilApiIntegrationTests {
         membre.setStatutCompte(StatutCompte.ACTIF);
         membre.setEmailVerifie(true);
         membre.setAnneeSortie(promotion);
-        membre.setFiliere(filiere);
+        membre.setFiliere(filiere == null ? null : FilieresDeTest.filiere(filiereRepository, filiere));
         return utilisateurs.saveAndFlush(membre);
     }
 

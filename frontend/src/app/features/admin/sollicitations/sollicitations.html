@@ -1,0 +1,81 @@
+<app-page-admin titre="Solliciter les organismes" [parents]="parents"
+  introduction="Demandez aux organismes partenaires des sujets de PFE (octobre) ou des offres de stage (mars). Le message part par e-mail à chaque organisme coché.">
+  @if (erreurChargement(); as texte) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ texte }}</p></div>
+  } @else {
+    <section class="bloc" aria-labelledby="titre-envoi">
+      <h2 id="titre-envoi">Nouvel envoi</h2>
+      <div class="types" role="group" aria-label="Type de sollicitation">
+        @for (t of types; track t[0]) {
+          <button type="button" class="bouton petit" [attr.aria-pressed]="type() === t[0]" (click)="choisirType(t[0])">{{ t[1] }}</button>
+        }
+      </div>
+      <div class="champ"><label for="objet">Objet</label>
+        <input id="objet" type="text" [maxLength]="longueurObjet" [value]="objet()" (input)="saisir('objet', $event)" /></div>
+      <div class="champ"><label for="message">Message</label>
+        <textarea id="message" rows="12" [maxLength]="longueurMessage" [value]="message()" (input)="saisir('message', $event)"></textarea></div>
+
+      <fieldset class="destinataires">
+        <legend>Organismes destinataires @if (destinataires(); as liste) { <span>{{ choisis().length }} sur {{ liste.length }}</span> }</legend>
+        @if (destinataires(); as liste) {
+          @if (liste.length === 0) { <p class="aide">Aucun organisme n’a d’adresse e-mail enregistrée.</p> }
+          @else {
+            <div class="boutons">
+              <button type="button" class="bouton petit" (click)="toutCocher(true)">Tout cocher</button>
+              <button type="button" class="bouton petit" (click)="toutCocher(false)">Tout décocher</button>
+            </div>
+            <ul>
+              @for (d of liste; track d.organismeId) {
+                <li><label><input type="checkbox" [checked]="!retires().has(d.organismeId)" (change)="basculer(d.organismeId, $event)" />
+                  <span>{{ d.nom }} <small>{{ d.email }}</small></span></label></li>
+              }
+            </ul>
+          }
+        } @else { <p class="aide" aria-busy="true">Chargement des organismes…</p> }
+      </fieldset>
+
+      @if (erreur(); as texte) { <p class="message erreur" role="alert">{{ texte }}</p> }
+      <p class="message" role="status" [hidden]="!annonce()">{{ annonce() }}</p>
+      @if (confirmation()) {
+        <div class="confirmation" role="group" aria-label="Confirmer l’envoi">
+          <p>Envoyer ce message à {{ choisis().length }} organisme{{ choisis().length > 1 ? 's' : '' }} ? L’envoi ne peut pas être annulé.</p>
+          <div class="boutons">
+            <button type="button" class="bouton principal" (click)="envoyer()">Confirmer l’envoi</button>
+            <button type="button" class="bouton" (click)="confirmation.set(false)">Ne rien changer</button>
+          </div>
+        </div>
+      } @else {
+        <div class="boutons"><button type="button" class="bouton principal" [disabled]="enCours()" (click)="demanderEnvoi()">Envoyer</button></div>
+      }
+    </section>
+  }
+
+  <section class="bloc" aria-labelledby="titre-historique">
+    <h2 id="titre-historique">Historique des envois</h2>
+    @if (historique(); as h) {
+      @if (h.contenu.length === 0) { <p class="aide">Aucun envoi pour l’instant.</p> }
+      @else {
+        <ul class="historique">
+          @for (s of h.contenu; track s.id) {
+            <li>
+              <button type="button" class="ligne" [attr.aria-expanded]="ouverte()?.id === s.id" (click)="basculerDetail(s)">
+                <strong>{{ s.objet }}</strong>
+                <span>{{ libelles[s.type] }} · {{ s.nombreDestinataires }} organisme{{ s.nombreDestinataires > 1 ? 's' : '' }} ·
+                  {{ s.envoyeeLe | date: 'd MMMM y à HH:mm' }} · {{ s.envoyeePar }}</span>
+              </button>
+              @if (ouverte(); as d) {
+                @if (d.id === s.id) {
+                  <div class="detail">
+                    <p class="texte">{{ d.message }}</p>
+                    <p class="aide">Destinataires : @for (x of d.destinataires; track x.organismeId; let dernier = $last) { {{ x.nom }} ({{ x.email }}){{ dernier ? '' : ', ' }} }</p>
+                  </div>
+                }
+              }
+            </li>
+          }
+        </ul>
+        <app-pagination-admin [page]="h.page" [totalPages]="h.totalPages" libelle="Pagination de l’historique" (changer)="chargerHistorique($event)" />
+      }
+    } @else { <p class="aide">Chargement de l’historique…</p> }
+  </section>
+</app-page-admin>

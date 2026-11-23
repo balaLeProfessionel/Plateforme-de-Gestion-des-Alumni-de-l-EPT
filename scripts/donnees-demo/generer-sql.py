@@ -14,6 +14,11 @@ def uid(*parties):
 def q(texte):
     return 'null' if texte is None else "'" + str(texte).replace("'", "''") + "'"
 
+def filiere_sql(nom):
+    """Filière d'un compte : la table filiere est remplie par le backend au démarrage (TRA-14)."""
+    return f"(select id from filiere where nom = {q(nom)})" if nom else 'null'
+
+
 
 FILIERES = ['Génie Informatique et Télécommunications', 'Génie Civil', 'Génie Électromécanique',
             'Génie Industriel', 'Génie Aéronautique et Aérospatial']
@@ -136,9 +141,9 @@ for prenom, nom, role, fil, promo, ville, poste, org in MEMBRES:
     entree = promo - 3 if promo else None
     diplome = "'INGENIEUR'" if role == 'ALUMNI' else 'null'
     lignes.append(
-        f"insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)\n"
+        f"insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)\n"
         f"select {q(i)}, {q(email(prenom, nom))}, true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,\n"
-        f"  {q(prenom)}, {q(nom)}, '{role}', 'ACTIF', {q(filiere)}, {entree if entree else 'null'}, {promo if promo else 'null'}, {diplome}, {q(ville)}, {q(poste)}, {q(bio)}, '+221 77 000 00 00', now() - interval '{random.randint(10, 400)} days'\n"
+        f"  {q(prenom)}, {q(nom)}, '{role}', 'ACTIF', {filiere_sql(filiere)}, {entree if entree else 'null'}, {promo if promo else 'null'}, {diplome}, {q(ville)}, {q(poste)}, {q(bio)}, '+221 77 000 00 00', now() - interval '{random.randint(10, 400)} days'\n"
         f"on conflict do nothing;")
     if role == 'ALUMNI':
         lignes.append(

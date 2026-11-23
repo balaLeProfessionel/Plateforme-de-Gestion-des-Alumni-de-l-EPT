@@ -31,6 +31,11 @@
 
     <app-evolution-compte [compte]="c" (modifie)="apresDecision($event)" />
 
+    @if (c.role === 'ADMIN') {
+      <app-responsabilites-compte [compteId]="c.id" [prenom]="c.prenom" [responsabilites]="f.responsabilites"
+        (modifie)="apresDecision($event)" />
+    }
+
     <div class="sections">
       <section class="carte" aria-labelledby="titre-contact">
         <h2 id="titre-contact">Contact</h2>
@@ -48,6 +53,7 @@
           <dt>Promotion</dt><dd [class.vide]="!c.anneeSortie">{{ c.anneeSortie || 'Non renseignée' }}</dd>
           <dt>Diplôme</dt><dd [class.vide]="!f.diplome">{{ f.diplome ? (libellesDiplome[f.diplome] ?? f.diplome) : 'Non renseigné' }}</dd>
         </dl>
+        @if (c.role === 'ETUDIANT') { <app-classe-compte [compte]="c" (modifie)="apresDecision($event)" /> }
       </section>
       <section class="carte" aria-labelledby="titre-situation">
         <h2 id="titre-situation">Situation</h2>

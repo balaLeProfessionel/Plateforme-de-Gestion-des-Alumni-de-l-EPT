@@ -53,9 +53,9 @@ insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de
 select '67535720-bda8-5703-9f0f-65ddb8184dea', 'ingenieurs-solidaires@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
   'Ingénieurs Solidaires du Sahel', 'ORGANISME', 'ACTIF', '606f73f2-9b7f-53e0-bbdb-6de6191ccad4', now()
 on conflict do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '1538e22c-a2a9-5eee-9a99-7a5ac9d211be', 'aminata.sarr@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Aminata', 'Sarr', 'ALUMNI', 'ACTIF', 'Génie Informatique et Télécommunications', 2009, 2012, 'INGENIEUR', 'Dakar', 'Directrice technique', 'Diplômée de l’EPT, je travaille aujourd’hui comme directrice technique à Dakar. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '124 days'
+  'Aminata', 'Sarr', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Informatique et Télécommunications'), 2009, 2012, 'INGENIEUR', 'Dakar', 'Directrice technique', 'Diplômée de l’EPT, je travaille aujourd’hui comme directrice technique à Dakar. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '124 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('3702a41b-2fdf-5907-ab6b-654feae8103c', '1538e22c-a2a9-5eee-9a99-7a5ac9d211be', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Informatique et Télécommunications', 'DIPLOMANTE', date '2009-10-01', date '2012-07-31', false, true,
@@ -66,9 +66,9 @@ values ('7a5c04cc-5c7f-51ff-812c-e92921ca59d7', '1538e22c-a2a9-5eee-9a99-7a5ac9d
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('a57a51ff-395c-5d40-9b5b-8f670a0ef004', '1538e22c-a2a9-5eee-9a99-7a5ac9d211be', '9a407d0c-7bf8-5252-8fdd-29fc61c80b63', 'Stage de fin d’études', 'STAGE', date '2012-02-01', date '2012-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select 'a6c84916-3462-5018-8e9c-bedaeb3b39bd', 'ousmane.ndiaye@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Ousmane', 'Ndiaye', 'ALUMNI', 'ACTIF', 'Génie Informatique et Télécommunications', 2013, 2016, 'INGENIEUR', 'Paris', 'Ingénieur logiciel senior', 'Diplômé de l’EPT, je travaille aujourd’hui comme ingénieur logiciel senior à Paris. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '328 days'
+  'Ousmane', 'Ndiaye', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Informatique et Télécommunications'), 2013, 2016, 'INGENIEUR', 'Paris', 'Ingénieur logiciel senior', 'Diplômé de l’EPT, je travaille aujourd’hui comme ingénieur logiciel senior à Paris. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '328 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('aae1222e-e317-5475-bbca-5a649966909e', 'a6c84916-3462-5018-8e9c-bedaeb3b39bd', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Informatique et Télécommunications', 'DIPLOMANTE', date '2013-10-01', date '2016-07-31', false, true,
@@ -79,9 +79,9 @@ values ('4b1d5744-16e1-5970-bc4b-5fa9b6d68c61', 'a6c84916-3462-5018-8e9c-bedaeb3
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('4fcf2ab6-69e1-55e5-a8d4-0df15c87d50d', 'a6c84916-3462-5018-8e9c-bedaeb3b39bd', '9a407d0c-7bf8-5252-8fdd-29fc61c80b63', 'Stage de fin d’études', 'STAGE', date '2016-02-01', date '2016-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select 'fd215a7e-7fbb-57c5-b04b-57f515003008', 'fatou.diagne@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Fatou', 'Diagne', 'ALUMNI', 'ACTIF', 'Génie Informatique et Télécommunications', 2016, 2019, 'INGENIEUR', 'Dakar', 'Data scientist', 'Diplômée de l’EPT, je travaille aujourd’hui comme data scientist à Dakar. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '225 days'
+  'Fatou', 'Diagne', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Informatique et Télécommunications'), 2016, 2019, 'INGENIEUR', 'Dakar', 'Data scientist', 'Diplômée de l’EPT, je travaille aujourd’hui comme data scientist à Dakar. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '225 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('fc3c41a3-51d9-50f2-87d2-731f670363ca', 'fd215a7e-7fbb-57c5-b04b-57f515003008', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Informatique et Télécommunications', 'DIPLOMANTE', date '2016-10-01', date '2019-07-31', false, true,
@@ -92,9 +92,9 @@ values ('a35eaec0-c59f-5d54-a0e4-39a19398cf2b', 'fd215a7e-7fbb-57c5-b04b-57f5150
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('f30efe55-1615-593b-be4e-fbb4d0081318', 'fd215a7e-7fbb-57c5-b04b-57f515003008', '9a407d0c-7bf8-5252-8fdd-29fc61c80b63', 'Stage de fin d’études', 'STAGE', date '2019-02-01', date '2019-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select 'a4a8b788-bfdc-55b1-84d0-380654974580', 'mamadou.faye@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Mamadou', 'Faye', 'ALUMNI', 'ACTIF', 'Génie Informatique et Télécommunications', 2018, 2021, 'INGENIEUR', 'Montréal', 'Ingénieur DevOps', 'Diplômé de l’EPT, je travaille aujourd’hui comme ingénieur devops à Montréal. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '290 days'
+  'Mamadou', 'Faye', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Informatique et Télécommunications'), 2018, 2021, 'INGENIEUR', 'Montréal', 'Ingénieur DevOps', 'Diplômé de l’EPT, je travaille aujourd’hui comme ingénieur devops à Montréal. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '290 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('7cf5aed6-e3ad-5c05-9ad3-d961e7e52462', 'a4a8b788-bfdc-55b1-84d0-380654974580', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Informatique et Télécommunications', 'DIPLOMANTE', date '2018-10-01', date '2021-07-31', false, true,
@@ -105,9 +105,9 @@ values ('e5bf47e4-309a-59ae-b00f-4dc0d5cb78a7', 'a4a8b788-bfdc-55b1-84d0-3806549
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('8fa41cee-265a-5567-a61d-4a7e57ee9595', 'a4a8b788-bfdc-55b1-84d0-380654974580', '16397ae4-872c-5909-a942-7f13d802f0bb', 'Stage de fin d’études', 'STAGE', date '2021-02-01', date '2021-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '2a4cfd61-2f58-5671-b2ca-14cae9884932', 'khady.sow@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Khady', 'Sow', 'ALUMNI', 'ACTIF', 'Génie Informatique et Télécommunications', 2011, 2014, 'INGENIEUR', 'Dakar', 'Responsable cybersécurité', 'Diplômée de l’EPT, je travaille aujourd’hui comme responsable cybersécurité à Dakar. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '261 days'
+  'Khady', 'Sow', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Informatique et Télécommunications'), 2011, 2014, 'INGENIEUR', 'Dakar', 'Responsable cybersécurité', 'Diplômée de l’EPT, je travaille aujourd’hui comme responsable cybersécurité à Dakar. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '261 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('c66204a9-da68-524c-b3b2-4c5135027c3d', '2a4cfd61-2f58-5671-b2ca-14cae9884932', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Informatique et Télécommunications', 'DIPLOMANTE', date '2011-10-01', date '2014-07-31', false, true,
@@ -118,9 +118,9 @@ values ('32bc594c-a591-5bb4-ad53-08fde01230c8', '2a4cfd61-2f58-5671-b2ca-14cae98
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('2bc329ab-9784-544c-952e-194204992638', '2a4cfd61-2f58-5671-b2ca-14cae9884932', '9a407d0c-7bf8-5252-8fdd-29fc61c80b63', 'Stage de fin d’études', 'STAGE', date '2014-02-01', date '2014-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select 'ac0b40a5-bfdc-534d-ab0c-e3afd44aab16', 'ibrahima.gueye@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Ibrahima', 'Gueye', 'ALUMNI', 'ACTIF', 'Génie Civil', 2007, 2010, 'INGENIEUR', 'Thiès', 'Directeur de projets BTP', 'Diplômé de l’EPT, je travaille aujourd’hui comme directeur de projets btp à Thiès. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '235 days'
+  'Ibrahima', 'Gueye', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Civil'), 2007, 2010, 'INGENIEUR', 'Thiès', 'Directeur de projets BTP', 'Diplômé de l’EPT, je travaille aujourd’hui comme directeur de projets btp à Thiès. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '235 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('4c831551-2a4c-58cf-9a6c-61a6285d2b31', 'ac0b40a5-bfdc-534d-ab0c-e3afd44aab16', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Civil', 'DIPLOMANTE', date '2007-10-01', date '2010-07-31', false, true,
@@ -131,9 +131,9 @@ values ('cbd0cd4f-6265-5b31-9a66-db8b3866866e', 'ac0b40a5-bfdc-534d-ab0c-e3afd44
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('06262650-4b4b-5e8c-8453-613c2e8097a7', 'ac0b40a5-bfdc-534d-ab0c-e3afd44aab16', 'd4782754-5bbb-5a6c-8e1f-fff15176445b', 'Stage de fin d’études', 'STAGE', date '2010-02-01', date '2010-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select 'e220afa9-938c-526b-bca4-e7357e3d1208', 'mariama.ba@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Mariama', 'Ba', 'ALUMNI', 'ACTIF', 'Génie Civil', 2012, 2015, 'INGENIEUR', 'Dakar', 'Ingénieure structures', 'Diplômée de l’EPT, je travaille aujourd’hui comme ingénieure structures à Dakar. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '11 days'
+  'Mariama', 'Ba', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Civil'), 2012, 2015, 'INGENIEUR', 'Dakar', 'Ingénieure structures', 'Diplômée de l’EPT, je travaille aujourd’hui comme ingénieure structures à Dakar. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '11 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('d652dbeb-8b3c-5978-bcee-f0c890592e2d', 'e220afa9-938c-526b-bca4-e7357e3d1208', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Civil', 'DIPLOMANTE', date '2012-10-01', date '2015-07-31', false, true,
@@ -144,9 +144,9 @@ values ('916707e3-28f4-5626-8671-d712c4c8dcae', 'e220afa9-938c-526b-bca4-e7357e3
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('4a0ba855-dfbf-540e-becc-356deb875b65', 'e220afa9-938c-526b-bca4-e7357e3d1208', 'd4782754-5bbb-5a6c-8e1f-fff15176445b', 'Stage de fin d’études', 'STAGE', date '2015-02-01', date '2015-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '3ec77c21-295a-5bcf-a1a1-662782624791', 'cheikh.mbaye@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Cheikh', 'Mbaye', 'ALUMNI', 'ACTIF', 'Génie Civil', 2015, 2018, 'INGENIEUR', 'Saint-Louis', 'Conducteur de travaux', 'Diplômé de l’EPT, je travaille aujourd’hui comme conducteur de travaux à Saint-Louis. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '51 days'
+  'Cheikh', 'Mbaye', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Civil'), 2015, 2018, 'INGENIEUR', 'Saint-Louis', 'Conducteur de travaux', 'Diplômé de l’EPT, je travaille aujourd’hui comme conducteur de travaux à Saint-Louis. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '51 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('5f954970-ce4d-54d3-a924-c583a7634df9', '3ec77c21-295a-5bcf-a1a1-662782624791', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Civil', 'DIPLOMANTE', date '2015-10-01', date '2018-07-31', false, true,
@@ -157,9 +157,9 @@ values ('21181a73-9a58-5da5-83db-b9f44dbb7ed7', '3ec77c21-295a-5bcf-a1a1-6627826
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('a1fee9c8-bc94-575c-8805-db059b9e80e8', '3ec77c21-295a-5bcf-a1a1-662782624791', 'd4782754-5bbb-5a6c-8e1f-fff15176445b', 'Stage de fin d’études', 'STAGE', date '2018-02-01', date '2018-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select 'cb4ae14b-a5ae-5be3-87f5-03bdebba98db', 'awa.thiam@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Awa', 'Thiam', 'ALUMNI', 'ACTIF', 'Génie Civil', 2019, 2022, 'INGENIEUR', 'Lyon', 'Ingénieure hydraulique', 'Diplômée de l’EPT, je travaille aujourd’hui comme ingénieure hydraulique à Lyon. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '157 days'
+  'Awa', 'Thiam', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Civil'), 2019, 2022, 'INGENIEUR', 'Lyon', 'Ingénieure hydraulique', 'Diplômée de l’EPT, je travaille aujourd’hui comme ingénieure hydraulique à Lyon. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '157 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('f8f77eac-dc23-55d3-8d8c-e7d0a4ec008d', 'cb4ae14b-a5ae-5be3-87f5-03bdebba98db', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Civil', 'DIPLOMANTE', date '2019-10-01', date '2022-07-31', false, true,
@@ -170,9 +170,9 @@ values ('9bf75838-37c5-5e8d-b844-ea6e1036ebfa', 'cb4ae14b-a5ae-5be3-87f5-03bdebb
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('55d170ef-f20c-504e-a8ff-04db25fe9c61', 'cb4ae14b-a5ae-5be3-87f5-03bdebba98db', '606f73f2-9b7f-53e0-bbdb-6de6191ccad4', 'Stage de fin d’études', 'STAGE', date '2022-02-01', date '2022-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '217acb44-3d62-541a-ad55-20b393defe14', 'moussa.diop@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Moussa', 'Diop', 'ALUMNI', 'ACTIF', 'Génie Électromécanique', 2008, 2011, 'INGENIEUR', 'Thiès', 'Responsable maintenance industrielle', 'Diplômé de l’EPT, je travaille aujourd’hui comme responsable maintenance industrielle à Thiès. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '240 days'
+  'Moussa', 'Diop', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Électromécanique'), 2008, 2011, 'INGENIEUR', 'Thiès', 'Responsable maintenance industrielle', 'Diplômé de l’EPT, je travaille aujourd’hui comme responsable maintenance industrielle à Thiès. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '240 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('bdb3f669-fc21-5e03-b5c4-4e760d1f4017', '217acb44-3d62-541a-ad55-20b393defe14', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Électromécanique', 'DIPLOMANTE', date '2008-10-01', date '2011-07-31', false, true,
@@ -183,9 +183,9 @@ values ('043b2db3-c0cd-507f-9461-d0031e4490cd', '217acb44-3d62-541a-ad55-20b393d
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('66856482-4c4c-54f1-bed6-a329f05c9ec0', '217acb44-3d62-541a-ad55-20b393defe14', 'ad907e30-c5ea-5d71-bcee-e646c8faba85', 'Stage de fin d’études', 'STAGE', date '2011-02-01', date '2011-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '4ba85b20-f2d7-5b10-91aa-f71726a6c246', 'seynabou.ndour@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Seynabou', 'Ndour', 'ALUMNI', 'ACTIF', 'Génie Électromécanique', 2014, 2017, 'INGENIEUR', 'Dakar', 'Ingénieure énergies solaires', 'Diplômée de l’EPT, je travaille aujourd’hui comme ingénieure énergies solaires à Dakar. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '360 days'
+  'Seynabou', 'Ndour', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Électromécanique'), 2014, 2017, 'INGENIEUR', 'Dakar', 'Ingénieure énergies solaires', 'Diplômée de l’EPT, je travaille aujourd’hui comme ingénieure énergies solaires à Dakar. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '360 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('3b90f028-18b1-5241-8ed5-71aef2e3fd5f', '4ba85b20-f2d7-5b10-91aa-f71726a6c246', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Électromécanique', 'DIPLOMANTE', date '2014-10-01', date '2017-07-31', false, true,
@@ -196,9 +196,9 @@ values ('7374f962-2db9-574f-904d-0424097cbd27', '4ba85b20-f2d7-5b10-91aa-f71726a
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('d93fad13-7808-510d-bcfc-043463e33458', '4ba85b20-f2d7-5b10-91aa-f71726a6c246', 'ad907e30-c5ea-5d71-bcee-e646c8faba85', 'Stage de fin d’études', 'STAGE', date '2017-02-01', date '2017-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select 'f43959e1-0009-5285-b7d8-1da0861fad73', 'abdoulaye.cisse@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Abdoulaye', 'Cissé', 'ALUMNI', 'ACTIF', 'Génie Électromécanique', 2017, 2020, 'INGENIEUR', 'Mbour', 'Chef de projet électrification rurale', 'Diplômé de l’EPT, je travaille aujourd’hui comme chef de projet électrification rurale à Mbour. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '357 days'
+  'Abdoulaye', 'Cissé', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Électromécanique'), 2017, 2020, 'INGENIEUR', 'Mbour', 'Chef de projet électrification rurale', 'Diplômé de l’EPT, je travaille aujourd’hui comme chef de projet électrification rurale à Mbour. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '357 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('5407e986-4cc8-51ad-a902-d1903d607c0f', 'f43959e1-0009-5285-b7d8-1da0861fad73', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Électromécanique', 'DIPLOMANTE', date '2017-10-01', date '2020-07-31', false, true,
@@ -209,9 +209,9 @@ values ('acd05f09-b3b6-5825-8fc8-7b8377e4ea23', 'f43959e1-0009-5285-b7d8-1da0861
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('5346f23c-f5f3-5273-8df1-97865f2505d9', 'f43959e1-0009-5285-b7d8-1da0861fad73', '606f73f2-9b7f-53e0-bbdb-6de6191ccad4', 'Stage de fin d’études', 'STAGE', date '2020-02-01', date '2020-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select 'caa7ac70-9b4e-5f0c-99b5-9261e81224f2', 'rokhaya.kane@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Rokhaya', 'Kane', 'ALUMNI', 'ACTIF', 'Génie Industriel', 2010, 2013, 'INGENIEUR', 'Abidjan', 'Responsable supply chain', 'Diplômée de l’EPT, je travaille aujourd’hui comme responsable supply chain à Abidjan. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '117 days'
+  'Rokhaya', 'Kane', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Industriel'), 2010, 2013, 'INGENIEUR', 'Abidjan', 'Responsable supply chain', 'Diplômée de l’EPT, je travaille aujourd’hui comme responsable supply chain à Abidjan. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '117 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('895b77f3-47e5-5ae3-8fd0-2173211e7254', 'caa7ac70-9b4e-5f0c-99b5-9261e81224f2', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Industriel', 'DIPLOMANTE', date '2010-10-01', date '2013-07-31', false, true,
@@ -222,9 +222,9 @@ values ('37084d47-a2e1-54ff-90cd-c7b2fec36bab', 'caa7ac70-9b4e-5f0c-99b5-9261e81
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('9bd2f23b-7624-568e-89a5-9d4a39e02673', 'caa7ac70-9b4e-5f0c-99b5-9261e81224f2', '16397ae4-872c-5909-a942-7f13d802f0bb', 'Stage de fin d’études', 'STAGE', date '2013-02-01', date '2013-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select 'f963c1e1-ddad-5c37-aeec-73a4a0871d57', 'pape.sy@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Pape', 'Sy', 'ALUMNI', 'ACTIF', 'Génie Industriel', 2016, 2019, 'INGENIEUR', 'Dakar', 'Consultant amélioration continue', 'Diplômé de l’EPT, je travaille aujourd’hui comme consultant amélioration continue à Dakar. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '138 days'
+  'Pape', 'Sy', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Industriel'), 2016, 2019, 'INGENIEUR', 'Dakar', 'Consultant amélioration continue', 'Diplômé de l’EPT, je travaille aujourd’hui comme consultant amélioration continue à Dakar. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '138 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('a4813fe7-880e-5728-b2f5-637120810840', 'f963c1e1-ddad-5c37-aeec-73a4a0871d57', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Industriel', 'DIPLOMANTE', date '2016-10-01', date '2019-07-31', false, true,
@@ -235,9 +235,9 @@ values ('bf887e5f-6b07-53b4-9ef6-c9f7540a3681', 'f963c1e1-ddad-5c37-aeec-73a4a08
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('ae6e273d-3544-5e77-9715-3124bfe8813c', 'f963c1e1-ddad-5c37-aeec-73a4a0871d57', 'd4782754-5bbb-5a6c-8e1f-fff15176445b', 'Stage de fin d’études', 'STAGE', date '2019-02-01', date '2019-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '346777f9-3a05-56ac-a532-17cb17f2d45b', 'ndeye.fall@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Ndeye', 'Fall', 'ALUMNI', 'ACTIF', 'Génie Industriel', 2020, 2023, 'INGENIEUR', 'Thiès', 'Ingénieure qualité', 'Diplômée de l’EPT, je travaille aujourd’hui comme ingénieure qualité à Thiès. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '192 days'
+  'Ndeye', 'Fall', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Industriel'), 2020, 2023, 'INGENIEUR', 'Thiès', 'Ingénieure qualité', 'Diplômée de l’EPT, je travaille aujourd’hui comme ingénieure qualité à Thiès. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '192 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('9ac52d6a-a110-5c33-9244-34e8d26dfba7', '346777f9-3a05-56ac-a532-17cb17f2d45b', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Industriel', 'DIPLOMANTE', date '2020-10-01', date '2023-07-31', false, true,
@@ -248,9 +248,9 @@ values ('79634b36-9b4f-51b0-a480-b2943f839bbf', '346777f9-3a05-56ac-a532-17cb17f
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('0f30de3c-607a-5d8b-871a-649cba34765b', '346777f9-3a05-56ac-a532-17cb17f2d45b', 'ad907e30-c5ea-5d71-bcee-e646c8faba85', 'Stage de fin d’études', 'STAGE', date '2023-02-01', date '2023-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '755dbf8a-d991-5272-97a1-ea495c4116fa', 'alioune.diallo@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Alioune', 'Diallo', 'ALUMNI', 'ACTIF', 'Génie Aéronautique et Aérospatial', 2015, 2018, 'INGENIEUR', 'Dakar', 'Ingénieur navigabilité', 'Diplômé de l’EPT, je travaille aujourd’hui comme ingénieur navigabilité à Dakar. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '391 days'
+  'Alioune', 'Diallo', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Aéronautique et Aérospatial'), 2015, 2018, 'INGENIEUR', 'Dakar', 'Ingénieur navigabilité', 'Diplômé de l’EPT, je travaille aujourd’hui comme ingénieur navigabilité à Dakar. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '391 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('cd903318-cec0-52f5-a05a-5899e1042aff', '755dbf8a-d991-5272-97a1-ea495c4116fa', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Aéronautique et Aérospatial', 'DIPLOMANTE', date '2015-10-01', date '2018-07-31', false, true,
@@ -261,9 +261,9 @@ values ('b7db5c9a-b2a0-58a9-ad9b-9a2bf1ae40c7', '755dbf8a-d991-5272-97a1-ea495c4
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('1a710746-2674-530b-b8ff-edb9b5e49e7d', '755dbf8a-d991-5272-97a1-ea495c4116fa', '24d6fa3c-1e78-5930-86c2-9db155558ef5', 'Stage de fin d’études', 'STAGE', date '2018-02-01', date '2018-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '28b42385-c305-5335-8c90-0cb2c1668b2f', 'coumba.seck@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Coumba', 'Seck', 'ALUMNI', 'ACTIF', 'Génie Aéronautique et Aérospatial', 2018, 2021, 'INGENIEUR', 'Paris', 'Ingénieure propulsion', 'Diplômée de l’EPT, je travaille aujourd’hui comme ingénieure propulsion à Paris. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '336 days'
+  'Coumba', 'Seck', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Aéronautique et Aérospatial'), 2018, 2021, 'INGENIEUR', 'Paris', 'Ingénieure propulsion', 'Diplômée de l’EPT, je travaille aujourd’hui comme ingénieure propulsion à Paris. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '336 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('736fdfb8-8c03-53c0-aabe-6e01e7a43bca', '28b42385-c305-5335-8c90-0cb2c1668b2f', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Aéronautique et Aérospatial', 'DIPLOMANTE', date '2018-10-01', date '2021-07-31', false, true,
@@ -274,9 +274,9 @@ values ('92eafc58-ff99-5779-ba06-62116b816fc1', '28b42385-c305-5335-8c90-0cb2c16
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('a5053764-0072-5e9d-99aa-de277cbd7275', '28b42385-c305-5335-8c90-0cb2c1668b2f', '24d6fa3c-1e78-5930-86c2-9db155558ef5', 'Stage de fin d’études', 'STAGE', date '2021-02-01', date '2021-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '8860b22b-057b-5a11-aa09-11335b1ef58f', 'babacar.niang@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Babacar', 'Niang', 'ALUMNI', 'ACTIF', 'Génie Informatique et Télécommunications', 2005, 2008, 'INGENIEUR', 'Dakar', 'Fondateur et CTO', 'Diplômé de l’EPT, je travaille aujourd’hui comme fondateur et cto à Dakar. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '380 days'
+  'Babacar', 'Niang', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Informatique et Télécommunications'), 2005, 2008, 'INGENIEUR', 'Dakar', 'Fondateur et CTO', 'Diplômé de l’EPT, je travaille aujourd’hui comme fondateur et cto à Dakar. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '380 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('762a9c50-6f11-59e2-8220-8123a8b024de', '8860b22b-057b-5a11-aa09-11335b1ef58f', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Informatique et Télécommunications', 'DIPLOMANTE', date '2005-10-01', date '2008-07-31', false, true,
@@ -287,9 +287,9 @@ values ('827eb57f-5aee-5ae3-9cc1-08b23a4f86f7', '8860b22b-057b-5a11-aa09-11335b1
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('97c733ed-3e5f-59c1-8187-1e7fe7746c35', '8860b22b-057b-5a11-aa09-11335b1ef58f', '9a407d0c-7bf8-5252-8fdd-29fc61c80b63', 'Stage de fin d’études', 'STAGE', date '2008-02-01', date '2008-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select 'c45d1c47-7542-5522-8a2e-ede85b53b2ae', 'astou.mbengue@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Astou', 'Mbengue', 'ALUMNI', 'ACTIF', 'Génie Électromécanique', 2021, 2024, 'INGENIEUR', 'Ziguinchor', 'Ingénieure électricité', 'Diplômée de l’EPT, je travaille aujourd’hui comme ingénieure électricité à Ziguinchor. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '55 days'
+  'Astou', 'Mbengue', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Électromécanique'), 2021, 2024, 'INGENIEUR', 'Ziguinchor', 'Ingénieure électricité', 'Diplômée de l’EPT, je travaille aujourd’hui comme ingénieure électricité à Ziguinchor. Toujours partante pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '55 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('a547bbad-31d1-514f-8812-9d7d45be7d69', 'c45d1c47-7542-5522-8a2e-ede85b53b2ae', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Électromécanique', 'DIPLOMANTE', date '2021-10-01', date '2024-07-31', false, true,
@@ -300,9 +300,9 @@ values ('f3d40adb-fdb8-5dab-84c5-f6c9b5492332', 'c45d1c47-7542-5522-8a2e-ede85b5
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('7733f3b7-347a-53c3-a89b-8d8d7f3a50a1', 'c45d1c47-7542-5522-8a2e-ede85b53b2ae', 'ad907e30-c5ea-5d71-bcee-e646c8faba85', 'Stage de fin d’études', 'STAGE', date '2024-02-01', date '2024-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '70ef578a-181c-510a-9cf7-b6cf3ce5f99b', 'lamine.toure@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Lamine', 'Touré', 'ALUMNI', 'ACTIF', 'Génie Civil', 2006, 2009, 'INGENIEUR', 'Kaolack', 'Directeur régional des travaux', 'Diplômé de l’EPT, je travaille aujourd’hui comme directeur régional des travaux à Kaolack. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '285 days'
+  'Lamine', 'Touré', 'ALUMNI', 'ACTIF', (select id from filiere where nom = 'Génie Civil'), 2006, 2009, 'INGENIEUR', 'Kaolack', 'Directeur régional des travaux', 'Diplômé de l’EPT, je travaille aujourd’hui comme directeur régional des travaux à Kaolack. Toujours partant pour échanger avec les étudiants et les jeunes diplômés.', '+221 77 000 00 00', now() - interval '285 days'
 on conflict do nothing;
 insert into formation (id, utilisateur_id, organisme_id, libelle, type_formation, date_debut, date_fin, est_stage, est_valide, description)
 values ('d812396e-819a-5249-afe7-ddfec3d901f8', '70ef578a-181c-510a-9cf7-b6cf3ce5f99b', (select id from organisme where etablissement_ept limit 1), 'Diplôme d’ingénieur de conception — Génie Civil', 'DIPLOMANTE', date '2006-10-01', date '2009-07-31', false, true,
@@ -313,51 +313,51 @@ values ('dadd72c3-8817-59ef-854f-d5ca2ccb2a11', '70ef578a-181c-510a-9cf7-b6cf3ce
 insert into experience_professionelle (id, utilisateur_id, organisme_id, poste, type_contrat, date_debut, date_fin, est_stage, est_valide, description)
 values ('7c570192-a653-5961-b228-a2e8653e4eec', '70ef578a-181c-510a-9cf7-b6cf3ce5f99b', 'd4782754-5bbb-5a6c-8e1f-fff15176445b', 'Stage de fin d’études', 'STAGE', date '2009-02-01', date '2009-07-15', true, true,
   'Projet de fin d’études encadré en entreprise.') on conflict (id) do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '6904214d-a1f0-5cf9-b47d-c8344e8ff2c0', 'yacine.diouf@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Yacine', 'Diouf', 'ETUDIANT', 'ACTIF', 'Génie Informatique et Télécommunications', 2024, 2027, null, 'Thiès', 'Élève ingénieur', 'Élève à l’EPT en Génie Informatique et Télécommunications. Je cherche un stage et des conseils pour préparer mon insertion.', '+221 77 000 00 00', now() - interval '157 days'
+  'Yacine', 'Diouf', 'ETUDIANT', 'ACTIF', (select id from filiere where nom = 'Génie Informatique et Télécommunications'), 2024, 2027, null, 'Thiès', 'Élève ingénieur', 'Élève à l’EPT en Génie Informatique et Télécommunications. Je cherche un stage et des conseils pour préparer mon insertion.', '+221 77 000 00 00', now() - interval '157 days'
 on conflict do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '4d33cf28-2592-56c3-b033-855cffb14776', 'bineta.camara@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Bineta', 'Camara', 'ETUDIANT', 'ACTIF', 'Génie Informatique et Télécommunications', 2025, 2028, null, 'Thiès', 'Élève ingénieure', 'Élève à l’EPT en Génie Informatique et Télécommunications. Je cherche un stage et des conseils pour préparer mon insertion.', '+221 77 000 00 00', now() - interval '244 days'
+  'Bineta', 'Camara', 'ETUDIANT', 'ACTIF', (select id from filiere where nom = 'Génie Informatique et Télécommunications'), 2025, 2028, null, 'Thiès', 'Élève ingénieure', 'Élève à l’EPT en Génie Informatique et Télécommunications. Je cherche un stage et des conseils pour préparer mon insertion.', '+221 77 000 00 00', now() - interval '244 days'
 on conflict do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '0cd8c41f-b1bd-505f-b6dd-dad8da16380f', 'serigne.lo@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Serigne', 'Lo', 'ETUDIANT', 'ACTIF', 'Génie Civil', 2024, 2027, null, 'Thiès', 'Élève ingénieur', 'Élève à l’EPT en Génie Civil. Je cherche un stage et des conseils pour préparer mon insertion.', '+221 77 000 00 00', now() - interval '82 days'
+  'Serigne', 'Lo', 'ETUDIANT', 'ACTIF', (select id from filiere where nom = 'Génie Civil'), 2024, 2027, null, 'Thiès', 'Élève ingénieur', 'Élève à l’EPT en Génie Civil. Je cherche un stage et des conseils pour préparer mon insertion.', '+221 77 000 00 00', now() - interval '82 days'
 on conflict do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '5caabf0a-289b-50a6-b714-75d251427d31', 'aida.sene@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Aïda', 'Sène', 'ETUDIANT', 'ACTIF', 'Génie Électromécanique', 2024, 2027, null, 'Thiès', 'Élève ingénieure', 'Élève à l’EPT en Génie Électromécanique. Je cherche un stage et des conseils pour préparer mon insertion.', '+221 77 000 00 00', now() - interval '340 days'
+  'Aïda', 'Sène', 'ETUDIANT', 'ACTIF', (select id from filiere where nom = 'Génie Électromécanique'), 2024, 2027, null, 'Thiès', 'Élève ingénieure', 'Élève à l’EPT en Génie Électromécanique. Je cherche un stage et des conseils pour préparer mon insertion.', '+221 77 000 00 00', now() - interval '340 days'
 on conflict do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '57518406-14da-54a4-bab0-408d9f6bb421', 'modou.wade@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Modou', 'Wade', 'ETUDIANT', 'ACTIF', 'Génie Industriel', 2025, 2028, null, 'Thiès', 'Élève ingénieur', 'Élève à l’EPT en Génie Industriel. Je cherche un stage et des conseils pour préparer mon insertion.', '+221 77 000 00 00', now() - interval '370 days'
+  'Modou', 'Wade', 'ETUDIANT', 'ACTIF', (select id from filiere where nom = 'Génie Industriel'), 2025, 2028, null, 'Thiès', 'Élève ingénieur', 'Élève à l’EPT en Génie Industriel. Je cherche un stage et des conseils pour préparer mon insertion.', '+221 77 000 00 00', now() - interval '370 days'
 on conflict do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select 'd8ce4039-b9d4-5e06-8e8c-e5d507c9ea9c', 'penda.sall@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Penda', 'Sall', 'ETUDIANT', 'ACTIF', 'Génie Aéronautique et Aérospatial', 2024, 2027, null, 'Thiès', 'Élève ingénieure', 'Élève à l’EPT en Génie Aéronautique et Aérospatial. Je cherche un stage et des conseils pour préparer mon insertion.', '+221 77 000 00 00', now() - interval '376 days'
+  'Penda', 'Sall', 'ETUDIANT', 'ACTIF', (select id from filiere where nom = 'Génie Aéronautique et Aérospatial'), 2024, 2027, null, 'Thiès', 'Élève ingénieure', 'Élève à l’EPT en Génie Aéronautique et Aérospatial. Je cherche un stage et des conseils pour préparer mon insertion.', '+221 77 000 00 00', now() - interval '376 days'
 on conflict do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '438d8c6e-122a-501e-bf8a-a8db962e4337', 'omar.badji@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Omar', 'Badji', 'ETUDIANT', 'ACTIF', 'Génie Informatique et Télécommunications', 2026, 2029, null, 'Thiès', 'Élève ingénieur', 'Élève à l’EPT en Génie Informatique et Télécommunications. Je cherche un stage et des conseils pour préparer mon insertion.', '+221 77 000 00 00', now() - interval '305 days'
+  'Omar', 'Badji', 'ETUDIANT', 'ACTIF', (select id from filiere where nom = 'Génie Informatique et Télécommunications'), 2026, 2029, null, 'Thiès', 'Élève ingénieur', 'Élève à l’EPT en Génie Informatique et Télécommunications. Je cherche un stage et des conseils pour préparer mon insertion.', '+221 77 000 00 00', now() - interval '305 days'
 on conflict do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '8b0824f9-36fa-590f-8d99-227ff13aeb80', 'mareme.dieng@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
-  'Marème', 'Dieng', 'ETUDIANT', 'ACTIF', 'Génie Civil', 2025, 2028, null, 'Thiès', 'Élève ingénieure', 'Élève à l’EPT en Génie Civil. Je cherche un stage et des conseils pour préparer mon insertion.', '+221 77 000 00 00', now() - interval '168 days'
+  'Marème', 'Dieng', 'ETUDIANT', 'ACTIF', (select id from filiere where nom = 'Génie Civil'), 2025, 2028, null, 'Thiès', 'Élève ingénieure', 'Élève à l’EPT en Génie Civil. Je cherche un stage et des conseils pour préparer mon insertion.', '+221 77 000 00 00', now() - interval '168 days'
 on conflict do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select 'af68381f-38ee-55b1-8ae5-65b149d6f4c8', 'saliou.ka@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
   'Saliou', 'Ka', 'PERSONNEL', 'ACTIF', null, null, null, null, 'Thiès', 'Responsable des relations entreprises', 'Membre du personnel de l’École Polytechnique de Thiès, responsable des relations entreprises.', '+221 77 000 00 00', now() - interval '22 days'
 on conflict do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '0f494f58-6c35-57f1-b27c-9d4b676f3b63', 'ndeye-astou.faye@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
   'Ndèye Astou', 'Faye', 'PERSONNEL', 'ACTIF', null, null, null, null, 'Thiès', 'Chargée de la vie étudiante', 'Membre du personnel de l’École Polytechnique de Thiès, chargée de la vie étudiante.', '+221 77 000 00 00', now() - interval '373 days'
 on conflict do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '51225c77-6d76-5efb-8d46-5e0ab767ae87', 'jean-marc.mendy@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
   'Jean-Marc', 'Mendy', 'VISITEUR', 'ACTIF', null, null, null, null, 'Dakar', 'Recruteur indépendant', 'recruteur indépendant, en lien avec le réseau des ingénieurs de l’EPT.', '+221 77 000 00 00', now() - interval '198 days'
 on conflict do nothing;
-insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
+insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, date_creation)
 select '99599b64-8426-5c71-9a67-7d8476b7d2eb', 'claire.dubois@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
   'Claire', 'Dubois', 'VISITEUR', 'ACTIF', null, null, null, null, 'Lyon', 'Chargée de partenariats universitaires', 'chargée de partenariats universitaires, en lien avec le réseau des ingénieurs de l’EPT.', '+221 77 000 00 00', now() - interval '196 days'
 on conflict do nothing;
@@ -841,6 +841,7 @@ insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de
 select 'f7de9858-2346-53fe-a544-d2cc267a6f17', 'admin@demo.ept-alumni.invalid', true, coalesce((select password from utilisateur where email = :'compte_modele'), '!'), false,
   'Mame Diarra', 'Ndour', 'ADMIN', 'ACTIF', 'Thiès', 'Administratrice de la plateforme', 'Administratrice de la plateforme EPT Alumni.', now() - interval '400 days'
 on conflict do nothing;
+update evenements set organisateur_id = 'f7de9858-2346-53fe-a544-d2cc267a6f17' where officiel_ept and id in ('9f8711d5-e2e2-59ad-b35b-75672cf5274a', '3f870157-716c-539e-a90f-6c9ebf273532', '9938e3f0-5f5f-5f9d-97d9-981ccf9ae464', '0d4d1558-2dce-555b-a31e-d913d1d709ec', '9f935a9c-eb0e-54b7-a83a-6908a78ce099', 'de982c42-a752-5886-8c80-41cae229ba7b', 'ecb4679a-9b5c-5b21-ac53-1f16baee6760', 'f26dd6d9-36d4-58fc-9760-a2e25beca31d', 'fd843535-180f-5ae6-99b2-84adc0c08c89', 'eb257261-054c-5491-808f-f0a09890bcd4', '9cb048dd-5d49-50c4-bce6-7d19a80aaec8', 'b11c07d1-5d62-573e-bdb0-6a5f7003b8e2', '15a8e064-2ed3-56c2-b78f-237daee69c40', '6d32b726-ba8a-54ba-909d-7882a831ab62', 'b145ed21-8d9e-583a-910e-a2dd1c1739ae');
 insert into programmes_mentorat (id, titre, description, date_debut, date_fin, statut, responsable_id, cree_le)
 values ('481f3bc0-b1fd-5fd9-b487-8b794889479b', 'Orientation des lycéens', 'Des élèves et étudiants de l’EPT accompagnent les lycéens dans leur choix d’orientation : filières, concours, vie à l’école.', current_date - 7, current_date + interval '6 months', 'OUVERT', 'f7de9858-2346-53fe-a544-d2cc267a6f17', now() - interval '30 days')
 on conflict (id) do nothing;

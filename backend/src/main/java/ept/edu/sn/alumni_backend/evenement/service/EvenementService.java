@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.evenement.service;
 
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import ept.edu.sn.alumni_backend.evenement.dto.FiltresEvenements;
 import jakarta.persistence.criteria.Predicate;
 import java.text.Normalizer;
@@ -175,8 +176,8 @@ public class EvenementService {
         Evenement evenement = new Evenement();
         appliquer(evenement, request);
         evenement.setOrganisateur(organisateur);
-        // Un événement officiel de l'EPT est un événement publié par l'administration, et seulement lui.
-        evenement.setOfficielEpt(organisateur.getRole() == TypeRole.ADMIN);
+        // Un événement officiel de l'EPT est un événement publié par l'administration (responsabilité Événements), et seulement lui.
+        evenement.setOfficielEpt(PermissionAdmin.accordee(organisateur, PermissionAdmin.GERER_EVENEMENTS));
         evenement.setStatut(StatutEvenement.PUBLIE);
         return evenementMapper.versResponse(evenementRepository.save(evenement), 0);
     }
@@ -296,6 +297,9 @@ public class EvenementService {
         if (!gestionnaire && !membreAutorise) {
             throw new EvenementIntrouvableException();
         }
+        Utilisateur utilisateurCourant = principal.getUtilisateur();
+        boolean estAdministrateur = PermissionAdmin.accordee(utilisateurCourant, PermissionAdmin.GERER_EVENEMENTS);
+        boolean estOrganisateur = evenement.getOrganisateur().getId().equals(utilisateurCourant.getId());
 
         PageRequest pagination = PageRequest.of(page, taille);
         String motifNom = recherche == null || recherche.isBlank() ? "%" : motif(sansAccents(recherche.strip()));
@@ -371,7 +375,7 @@ public class EvenementService {
 
     private boolean peutGerer(Evenement evenement, UtilisateurPrincipal principal) {
         Utilisateur utilisateurCourant = principal.getUtilisateur();
-        return utilisateurCourant.getRole() == TypeRole.ADMIN
+        return PermissionAdmin.accordee(utilisateurCourant, PermissionAdmin.GERER_EVENEMENTS)
             || evenement.getOrganisateur().getId().equals(utilisateurCourant.getId());
     }
 

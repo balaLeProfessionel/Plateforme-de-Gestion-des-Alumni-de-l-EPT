@@ -1,0 +1,103 @@
+<div class="page-stages">
+  <app-fil-ariane [etapes]="etapes" />
+
+  <header class="entete">
+    <div class="titre">
+      <h1>Offres de stage</h1>
+      <div class="actions">
+        @if (estOrganisme()) {
+          <a class="bouton" routerLink="/stages/mes-offres"><i class="pi pi-list" aria-hidden="true"></i>Mes offres</a>
+          <a class="bouton" routerLink="/stages/suivi"><i class="pi pi-users" aria-hidden="true"></i>Mes stagiaires</a>
+          <a class="bouton" routerLink="/stages/indicateurs"><i class="pi pi-chart-bar" aria-hidden="true"></i>Mes indicateurs</a>
+          <a class="bouton principal" routerLink="/stages/publier"><i class="pi pi-plus" aria-hidden="true"></i>Publier une offre</a>
+        }
+        @if (estEtudiant()) {
+          <a class="bouton" routerLink="/stages/mes-candidatures"><i class="pi pi-send" aria-hidden="true"></i>Mes candidatures</a>
+          <a class="bouton" routerLink="/stages/mes-stages"><i class="pi pi-briefcase" aria-hidden="true"></i>Mes stages</a>
+        }
+        @if (estPersonnel()) {
+          <a class="bouton" routerLink="/stages/suivi"><i class="pi pi-eye" aria-hidden="true"></i>Suivi des stages</a>
+        }
+        @if (gereLesOffres()) {
+          <a class="bouton" routerLink="/admin/stages/offres"><i class="pi pi-cog" aria-hidden="true"></i>Gérer les offres</a>
+        }
+      </div>
+    </div>
+    <p class="introduction">Les stages proposés par les organismes partenaires et vérifiés par l’école.</p>
+  </header>
+
+  <section class="filtres" aria-label="Filtrer les offres">
+    <div class="types" role="group" aria-label="Type de stage">
+      <button type="button" [attr.aria-pressed]="!criteres().type" (click)="choisirType('')">Tous les types</button>
+      @for (type of types; track type) {
+        <button type="button" [attr.aria-pressed]="criteres().type === type" (click)="choisirType(type)">{{ libellesType[type] }}</button>
+      }
+    </div>
+    <div class="champs">
+      <div class="champ">
+        <label for="filtre-organisme">Organisme</label>
+        <select id="filtre-organisme" (change)="choisirOrganisme($event)">
+          <option value="" [selected]="!criteres().organisme">Tous les organismes</option>
+          @for (organisme of organismes(); track organisme.id) {
+            <option [value]="organisme.id" [selected]="criteres().organisme === organisme.id">{{ organisme.nom }}</option>
+          }
+        </select>
+      </div>
+      <div class="champ">
+        <label for="filtre-lieu">Lieu</label>
+        <input id="filtre-lieu" type="search" autocomplete="off" placeholder="Dakar, Thiès…" [formField]="formulaire.lieu"
+          aria-describedby="aide-filtres" (keydown.enter)="$event.preventDefault(); appliquerLieu()" />
+      </div>
+      <label class="case">
+        <input type="checkbox" [checked]="criteres().ouvertes" (change)="basculerOuvertes($event)" />
+        Candidatures ouvertes uniquement
+      </label>
+    </div>
+    <span id="aide-filtres" class="sr-only">Les résultats se mettent à jour automatiquement.</span>
+  </section>
+
+  <p class="resume" role="status">
+    @if (resultat(); as page) {
+      <strong>{{ page.totalElements }}</strong> {{ page.totalElements > 1 ? 'offres' : 'offre' }}
+      @if (filtresActifs()) { <button type="button" class="lien" (click)="reinitialiser()">Effacer les filtres</button> }
+    } @else if (enChargement()) {
+      Chargement des offres…
+    }
+  </p>
+
+  <div aria-live="polite" [attr.aria-busy]="enChargement()">
+    @if (enChargement() && !resultat()) {
+      <div class="grille" aria-hidden="true">
+        @for (item of [1, 2, 3, 4, 5, 6]; track item) { <div class="squelette"></div> }
+      </div>
+    } @else if (messageErreur(); as message) {
+      <div class="etat" role="alert">
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        <h2>Chargement impossible</h2>
+        <p>{{ message }}</p>
+      </div>
+    } @else if (resultat()?.contenu?.length === 0) {
+      <div class="etat">
+        <i class="pi pi-briefcase" aria-hidden="true"></i>
+        <h2>Aucune offre ne correspond</h2>
+        <p>
+          @if (filtresActifs()) { Essayez un autre type de stage ou un autre lieu, ou affichez aussi les offres closes. }
+          @else { Aucune offre n’est ouverte pour le moment. Revenez bientôt. }
+        </p>
+      </div>
+    } @else if (resultat(); as page) {
+      <ul class="grille" [class.actualisation]="enChargement()">
+        @for (offre of page.contenu; track offre.id) {
+          <li><app-carte-offre [offre]="offre" /></li>
+        }
+      </ul>
+      @if (page.totalPages > 1) {
+        <nav class="pagination" aria-label="Pagination des offres">
+          <button type="button" [disabled]="page.page === 0" (click)="changerPage(page.page - 1)">Précédent</button>
+          <span>Page {{ page.page + 1 }} sur {{ page.totalPages }}</span>
+          <button type="button" [disabled]="page.page + 1 >= page.totalPages" (click)="changerPage(page.page + 1)">Suivant</button>
+        </nav>
+      }
+    }
+  </div>
+</div>

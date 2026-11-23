@@ -1,0 +1,36 @@
+<app-page-admin [titre]="titre()" [parents]="parents"
+  introduction="Stagiaires accueillis par cet organisme : désignez leur encadrant à l’EPT, tenez à jour le maître de stage et suivez convention, évaluation et rapport.">
+  <a class="retour" routerLink="/admin/stages/suivi" [queryParams]="retour"><i class="pi pi-arrow-left" aria-hidden="true"></i>Tous les organismes</a>
+  @if (filtre) { <p class="aide">Les filtres de la liste des organismes s’appliquent : seuls les stagiaires qui y répondent sont affichés.</p> }
+
+  <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
+
+  @if (erreurChargement(); as erreur) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ erreur }}</p></div>
+  } @else if (page(); as p) {
+    @if (p.contenu.length === 0) {
+      <div class="etat"><i class="pi pi-inbox" aria-hidden="true"></i><h2>Aucun stagiaire</h2><p>Aucun stage confirmé ne correspond chez cet organisme.</p></div>
+    } @else {
+      <p class="aide" aria-live="polite">{{ p.totalElements }} stagiaire{{ p.totalElements > 1 ? 's' : '' }}</p>
+      <section class="date-limite" aria-labelledby="titre-date-limite">
+        <h2 id="titre-date-limite">Date limite des rapports</h2>
+        <p class="aide">S’applique aux {{ p.contenu.length }} stagiaire{{ p.contenu.length > 1 ? 's' : '' }} affiché{{ p.contenu.length > 1 ? 's' : '' }} ci-dessous.
+          Chaque étudiant concerné est prévenu par e-mail.</p>
+        <div class="ligne">
+          <div class="champ"><label for="date-limite">Date limite (incluse)</label>
+            <input id="date-limite" type="date" [value]="dateLimite()" (input)="saisirDateLimite($event)" /></div>
+          <button type="button" class="bouton principal" [disabled]="enCours()" (click)="appliquerDateLimite(p.contenu)">Appliquer à ces stagiaires</button>
+        </div>
+        @if (erreurDateLimite(); as texte) { <p class="message erreur" role="alert">{{ texte }}</p> }
+      </section>
+      <ul class="liste">
+        @for (stage of p.contenu; track stage.id) {
+          <li><app-fiche-suivi [stage]="stage" [ecole]="true"><app-actions-suivi [stage]="stage" (modifie)="apresModification($event)" /></app-fiche-suivi></li>
+        }
+      </ul>
+      <app-pagination-admin [page]="p.page" [totalPages]="p.totalPages" libelle="Pagination des stagiaires" (changer)="charger($event)" />
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement des stagiaires"></div>
+  }
+</app-page-admin>

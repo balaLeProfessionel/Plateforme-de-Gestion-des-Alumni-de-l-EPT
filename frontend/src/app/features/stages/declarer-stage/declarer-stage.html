@@ -1,0 +1,111 @@
+<div class="page-stages">
+  <app-bouton-retour secours="/stages/mes-stages" />
+  <header class="entete">
+    <h1>Déclarer un stage</h1>
+    <p class="introduction">Vous avez trouvé un stage par vous-même ? Déclarez-le : l’école le vérifie, puis le suit comme les autres
+      (convention, évaluation, rapport). Vous êtes prévenu par e-mail de sa décision.</p>
+  </header>
+
+  @if (declaree(); as d) {
+    <section #resultat class="carte resultat" tabindex="-1" aria-labelledby="titre-resultat">
+      <h2 id="titre-resultat"><i class="pi pi-send" aria-hidden="true"></i> Déclaration envoyée à l’école</h2>
+      <p>« {{ d.sujet }} » chez {{ d.organisme }}. Vous pouvez la retirer tant que l’école ne l’a pas traitée.</p>
+      <div class="boutons"><a class="bouton principal" routerLink="/stages/mes-stages">Voir mes stages</a></div>
+    </section>
+  } @else {
+    <form class="carte" (submit)="envoyer($event)" novalidate>
+      @if (messageErreur(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+      <fieldset class="grille">
+        <legend>Le stage</legend>
+        <div class="champ large">
+          <label for="declaration-organisme">Organisme d’accueil</label>
+          <input id="declaration-organisme" type="text" autocomplete="off" list="organismes-declaration" [formField]="formulaire.organisme"
+            [attr.aria-invalid]="formulaire.organisme().touched() && formulaire.organisme().invalid()" aria-describedby="aide-organisme erreur-organisme" />
+          <datalist id="organismes-declaration">
+            @for (suggestion of suggestions(); track suggestion.id) { <option [value]="suggestion.nom"></option> }
+          </datalist>
+          <small id="aide-organisme" class="aide" aria-live="polite">
+            @if (organismeConnu(); as connu) { Organisme connu de la plateforme : {{ connu.nom }}. }
+            @else if (modele().organisme.trim()) { Organisme inconnu de la plateforme : l’école l’enregistrera en validant votre stage. }
+            @else { Commencez à taper son nom pour le retrouver. }
+          </small>
+          @if (formulaire.organisme().touched() && formulaire.organisme().errors()[0]; as erreur) {
+            <small id="erreur-organisme" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="declaration-type">Type de stage</label>
+          <select id="declaration-type" [formField]="formulaire.typeStage"
+            [attr.aria-invalid]="formulaire.typeStage().touched() && formulaire.typeStage().invalid()" aria-describedby="erreur-type">
+            <option value="">Choisir…</option>
+            @for (type of types; track type) { <option [value]="type">{{ libellesType[type] }}</option> }
+          </select>
+          @if (formulaire.typeStage().touched() && formulaire.typeStage().errors()[0]; as erreur) {
+            <small id="erreur-type" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="declaration-lieu">Lieu (facultatif)</label>
+          <input id="declaration-lieu" type="text" autocomplete="off" [formField]="formulaire.lieu" />
+        </div>
+        <div class="champ large">
+          <label for="declaration-sujet">Sujet</label>
+          <input id="declaration-sujet" type="text" autocomplete="off" [formField]="formulaire.sujet"
+            [attr.aria-invalid]="formulaire.sujet().touched() && formulaire.sujet().invalid()" aria-describedby="erreur-sujet" />
+          @if (formulaire.sujet().touched() && formulaire.sujet().errors()[0]; as erreur) {
+            <small id="erreur-sujet" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="declaration-debut">Début</label>
+          <input id="declaration-debut" type="date" [formField]="formulaire.dateDebut"
+            [attr.aria-invalid]="formulaire.dateDebut().touched() && formulaire.dateDebut().invalid()" aria-describedby="erreur-debut" />
+          @if (formulaire.dateDebut().touched() && formulaire.dateDebut().errors()[0]; as erreur) {
+            <small id="erreur-debut" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="declaration-fin">Fin</label>
+          <input id="declaration-fin" type="date" [formField]="formulaire.dateFin"
+            [attr.aria-invalid]="formulaire.dateFin().touched() && formulaire.dateFin().invalid()" aria-describedby="erreur-fin" />
+          @if (formulaire.dateFin().touched() && formulaire.dateFin().errors()[0]; as erreur) {
+            <small id="erreur-fin" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="grille">
+        <legend>Le maître de stage</legend>
+        <div class="champ">
+          <label for="declaration-tuteur">Nom</label>
+          <input id="declaration-tuteur" type="text" autocomplete="off" [formField]="formulaire.tuteurNom"
+            [attr.aria-invalid]="formulaire.tuteurNom().touched() && formulaire.tuteurNom().invalid()" aria-describedby="erreur-tuteur" />
+          @if (formulaire.tuteurNom().touched() && formulaire.tuteurNom().errors()[0]; as erreur) {
+            <small id="erreur-tuteur" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="declaration-fonction">Fonction (facultative)</label>
+          <input id="declaration-fonction" type="text" autocomplete="off" [formField]="formulaire.tuteurFonction" />
+        </div>
+        <div class="champ">
+          <label for="declaration-email">E-mail (facultatif)</label>
+          <input id="declaration-email" type="email" autocomplete="off" [formField]="formulaire.tuteurEmail"
+            [attr.aria-invalid]="formulaire.tuteurEmail().touched() && formulaire.tuteurEmail().invalid()" aria-describedby="erreur-email" />
+          @if (formulaire.tuteurEmail().touched() && formulaire.tuteurEmail().errors()[0]; as erreur) {
+            <small id="erreur-email" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="declaration-telephone">Téléphone (facultatif)</label>
+          <input id="declaration-telephone" type="tel" autocomplete="off" [formField]="formulaire.tuteurTelephone" />
+        </div>
+      </fieldset>
+
+      <div class="boutons">
+        <button type="submit" class="bouton principal" [disabled]="enCours()"><i class="pi pi-send" aria-hidden="true"></i>Déclarer le stage</button>
+        <a class="bouton" routerLink="/stages/mes-stages">Annuler</a>
+      </div>
+    </form>
+  }
+</div>

@@ -11,6 +11,7 @@
   // Fond et surfaces
   --ept-bg: #F8F9FA;
   --ept-surface: #FFFFFF;
+  --ept-squelette: #EDF1F3; // fond des squelettes de chargement
 
   // Bleu foncé — couleur principale (texte, boutons, en-têtes)
   --ept-primary: #014365;
@@ -45,6 +46,7 @@
   --ept-text-secondary: #536C7D;   // ≥ 4.5:1 sur blanc, --ept-bg, --ept-primary-light et --ept-gold-light
   --ept-text-on-dark: #FFFFFF;
   --ept-border: #E0E5E9;
+  --ept-border-champ: #748391;   // bord des champs de saisie : 3,9:1 sur blanc (WCAG 1.4.11), --ept-border n’atteint que 1,3:1
 
   // Rayons : une seule échelle, arrondie, pour toute la plateforme.
   // sm : champs, boutons, messages · base : cartes, panneaux, menus · lg : fenêtres de dialogue.
@@ -165,7 +167,7 @@ app-consultation-profil .lien-parcours {
 }
 
 app-consultation-profil .lien-parcours:focus-visible {
-  outline: 3px solid var(--ept-sky);
+  outline: 3px solid var(--ept-focus-clair);
   outline-offset: 3px;
 }
 
@@ -190,8 +192,26 @@ app-consultation-profil .indicateur-detail {
 .carte-cliquable { position: relative; }
 .carte-cliquable .lien-etire::after { content: ''; position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
 .carte-cliquable .lien-etire:focus-visible { outline: none; }
-.carte-cliquable:has(.lien-etire:focus-visible) { outline: 3px solid var(--ept-sky); outline-offset: 3px; }
+.carte-cliquable:has(.lien-etire:focus-visible) { outline: 3px solid var(--ept-focus-clair); outline-offset: 3px; }
 .carte-cliquable :is(button, a:not(.lien-etire), input, select, textarea, label, summary) { position: relative; z-index: 2; }
 
 /* Tout nouveau champ fichier prend l'habillage commun ; un champ caché derrière un bouton (.fichier-cache) n'est pas concerné. */
 input[type='file']:not(.fichier-cache) { @include champ-fichier; }
+
+/*
+ * Espace membre sous 761 px : l’en-tête mobile (collant, 4 rem) et la barre du bas (fixe, 3,6 rem + marge)
+ * couvrent le haut et le bas de la page. Un élément qui reçoit le focus défile hors de ces zones (WCAG 2.4.11).
+ * Même palier que espace-membre.scss et navigation-mobile.scss.
+ */
+@media (max-width: 760px) {
+  html:has(.espace-membre) {
+    scroll-padding-top: 4.5rem;
+    scroll-padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+}
+
+// Edge ajoute son propre bouton « afficher le mot de passe » : on garde seulement le nôtre.
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}

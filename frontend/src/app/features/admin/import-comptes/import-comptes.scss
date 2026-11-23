@@ -1,8 +1,8 @@
 @use '../../../../styles/champ-fichier' as *;
 
 .tableau {
-  overflow-x: auto; border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm);
-  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+  overflow-x: auto; border: 1px solid var(--ept-border); border-radius: 8px;
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
 }
 table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
 th, td { padding: 0.5rem 0.7rem; border-bottom: 1px solid var(--ept-border); text-align: left; white-space: nowrap; }
@@ -12,6 +12,6 @@ tr.echec td { background: #fff8f6; color: var(--ept-error-dark); }
 td a { color: var(--ept-primary); font-weight: 600; }
 .lien-aide {
   padding: 0; border: 0; background: none; color: var(--ept-primary); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer;
-  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
 }
 .champ input[type='file'] { @include champ-fichier; }

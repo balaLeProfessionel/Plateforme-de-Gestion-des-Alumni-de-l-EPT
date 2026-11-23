@@ -1,0 +1,49 @@
+@let o = offre();
+@if (o.piecesJointes.length || o.modifiable) {
+  <section class="fichiers" aria-labelledby="titre-pieces-offre">
+    <h2 id="titre-pieces-offre">Documents</h2>
+    @if (o.piecesJointes.length) {
+      <ul class="pieces">
+        @for (piece of o.piecesJointes; track piece.id) {
+          <li>
+            <i class="pi pi-file-pdf" aria-hidden="true"></i>
+            <button type="button" class="lien" (click)="telecharger(piece)">{{ piece.nom }}</button>
+            <small>PDF, {{ piece.taille | taille }}</small>
+            @if (o.modifiable) {
+              <button type="button" class="retirer" [disabled]="enCours()" [attr.aria-label]="'Retirer ' + piece.nom" (click)="retirerPiece(piece)">
+                <i class="pi pi-trash" aria-hidden="true"></i>
+              </button>
+            }
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="aide">Aucun document joint.</p>
+    }
+
+    @if (o.modifiable) {
+      <div class="gestion" role="group" aria-label="Gérer les fichiers de l’offre">
+        @if (o.piecesJointes.length < piecesMax) {
+          <label class="choix-fichier" for="ajout-piece-offre">
+            <i class="pi pi-paperclip" aria-hidden="true"></i>Joindre un PDF
+            <input id="ajout-piece-offre" class="sr-only" type="file" accept="application/pdf,.pdf" [disabled]="enCours()" (change)="ajouterPiece($event)" />
+          </label>
+        }
+        <label class="choix-fichier" for="image-offre">
+          <i class="pi pi-image" aria-hidden="true"></i>{{ o.urlImage ? 'Changer l’image' : 'Ajouter une image' }}
+          <input id="image-offre" class="sr-only" type="file" accept="image/jpeg,image/png" [disabled]="enCours()" (change)="choisirImage($event)" />
+        </label>
+        @if (o.urlImage) {
+          <button type="button" class="bouton-texte" [disabled]="enCours()" (click)="retirerImage()">Retirer l’image</button>
+        }
+      </div>
+      <small class="aide">PDF de 5 Mo au plus, {{ piecesMax }} documents par offre. Image JPEG ou PNG recadrée en 16:9.</small>
+      @if (imageARecadrer(); as image) {
+        <app-recadreur-image [image]="image" [format]="formatImage" libelle="Recadrer l’image de l’offre au format 16:9"
+          (recadree)="envoyerImage($event)" (annulee)="fermerRecadrage()" />
+      }
+    }
+    @if (erreur(); as texte) { <p class="erreur" role="alert">{{ texte }}</p> }
+    <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
+  </section>
+}

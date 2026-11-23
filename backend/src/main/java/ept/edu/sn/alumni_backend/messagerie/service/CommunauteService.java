@@ -140,7 +140,7 @@ public class CommunauteService {
         }
         if (communaute.estCommunauteAutomatique()) {
             boolean deMonProfil = ROLES_AVEC_PROMO.contains(utilisateur.getRole())
-                && cibles(utilisateur.getAnneeSortie(), utilisateur.getFiliere()).containsKey(communaute.getCleCommunaute());
+                && cibles(utilisateur.getAnneeSortie(), utilisateur.getNomFiliere()).containsKey(communaute.getCleCommunaute());
             if (!deMonProfil) {
                 throw new ConflitMessagerieException("Cette communauté est réservée à sa promo et à sa filière.");
             }
@@ -159,7 +159,7 @@ public class CommunauteService {
     @Transactional
     public void synchroniser(Utilisateur utilisateur, boolean annoncer) {
         Map<String, Cible> cibles = AccesConversation.estJoignable(utilisateur) && ROLES_AVEC_PROMO.contains(utilisateur.getRole())
-            ? cibles(utilisateur.getAnneeSortie(), utilisateur.getFiliere()) : Map.of();
+            ? cibles(utilisateur.getAnneeSortie(), utilisateur.getNomFiliere()) : Map.of();
 
         for (Conversation actuelle : conversations.findCommunautesAutomatiquesDe(utilisateur.getId())) {
             if (cibles.containsKey(actuelle.getCleCommunaute())) continue;
@@ -189,7 +189,7 @@ public class CommunauteService {
     /** Communautés automatiques de mon profil que j'ai quittées : proposées en tête de « À découvrir ». */
     private List<Conversation> automatiquesQuittees(Utilisateur utilisateur) {
         if (!ROLES_AVEC_PROMO.contains(utilisateur.getRole())) return List.of();
-        return cibles(utilisateur.getAnneeSortie(), utilisateur.getFiliere()).keySet().stream()
+        return cibles(utilisateur.getAnneeSortie(), utilisateur.getNomFiliere()).keySet().stream()
             .map(conversations::findByCleCommunaute)
             .flatMap(Optional::stream)
             .filter(c -> !participants.existsByConversationIdAndUtilisateurId(c.getId(), utilisateur.getId()))

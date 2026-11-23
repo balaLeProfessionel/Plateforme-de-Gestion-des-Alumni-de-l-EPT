@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.admin.service;
 
+import ept.edu.sn.alumni_backend.filiere.service.FiliereService;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import ept.edu.sn.alumni_backend.auth.AuthService;
 import ept.edu.sn.alumni_backend.auth.dto.CompteCreeResponse;
 import ept.edu.sn.alumni_backend.auth.dto.CreerCompteRequest;
 import ept.edu.sn.alumni_backend.auth.exception.EmailDejaUtiliseException;
+import ept.edu.sn.alumni_backend.enums.Classe;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
@@ -45,14 +47,19 @@ public class CreationComptesService {
     private final TraceCompte trace;
     private final Validator validator;
     private final TransactionTemplate transaction;
+    private final GardeSuperAdministrateur garde;
+    private final FiliereService filiereService;
 
     @Transactional
     public CompteCreeResponse creer(CreerCompteRequest request, UtilisateurPrincipal principal) {
         if (!ROLES_CREABLES.contains(request.role())) {
             throw new IllegalArgumentException("Un compte d'organisme se crée depuis la page d'inscription des organismes.");
         }
+        if (request.role() == TypeRole.ADMIN) {
+            garde.exiger(principal);
+        }
         verifierAnnees(request.anneeEntree(), request.anneeSortie());
-        CompteCreeResponse cree = authService.creerCompteParAdmin(request);
+        CompteCreeResponse cree = authService.creerCompteParAdmin(request, principal.getUtilisateur());
         Utilisateur compte = utilisateurRepository.findById(cree.id()).orElseThrow();
         trace.consigner(principal, compte, TypeActionAdmin.CREATION_COMPTE, null, compte.getRole().name());
         trace.envoyerIdentifiants(compte, cree.motDePasseTemporaire());
@@ -71,11 +78,26 @@ public class CreationComptesService {
             ImportComptesRequest.Ligne ligne = request.lignes().get(i);
             int numero = i + 1;
             String email = ligne.email() == null ? "" : ligne.email().trim().toLowerCase(Locale.ROOT);
+            Classe classe = null;
+            String erreur = null;
+            try {
+                classe = request.role() == TypeRole.ETUDIANT ? Classe.lire(ligne.classe()) : null;
+            } catch (IllegalArgumentException e) {
+                erreur = e.getMessage();
+            }
             CreerCompteRequest demande = new CreerCompteRequest(
-                vide(ligne.nom()), vide(ligne.prenom()), email, request.role(), ligne.anneeEntree(), ligne.filiere(), ligne.anneeSortie());
-            String erreur = premiereErreur(demande);
+                vide(ligne.nom()), vide(ligne.prenom()), email, request.role(), ligne.anneeEntree(), ligne.filiere(), ligne.anneeSortie(), classe);
+            if (erreur == null) erreur = premiereErreur(demande);
             if (erreur == null && !emailsVus.add(email)) {
                 erreur = "Cette adresse apparaît plusieurs fois dans le fichier.";
+            }
+            if (erreur == null) {
+                // Un import ne crée pas de filière : une faute de frappe en ferait un doublon (TRA-14).
+                try {
+                    filiereService.exigerExistante(ligne.filiere());
+                } catch (IllegalArgumentException e) {
+                    erreur = e.getMessage();
+                }
             }
             if (erreur != null) {
                 lignes.add(new ResultatImportResponse.Ligne(numero, email, false, erreur, null, null));

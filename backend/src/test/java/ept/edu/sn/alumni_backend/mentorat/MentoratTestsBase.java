@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import com.jayway.jsonpath.JsonPath;
 
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.mentorat.repository.DomaineMentoratRepository;
@@ -99,6 +100,10 @@ abstract class MentoratTestsBase {
         utilisateur.setNom(nom + "-" + UUID.randomUUID().toString().substring(0, 8));
         utilisateur.setTelephone("+221700000000");
         utilisateur.setRole(role);
+        if (role == TypeRole.ADMIN) {
+            // Super administrateur, comme les administrateurs existants après la migration (TRA-13).
+            utilisateur.getPermissionsAdmin().add(PermissionAdmin.GERER_ADMINISTRATEURS);
+        }
         utilisateur.setStatutCompte(statut);
         utilisateur.setEmailVerifie(emailVerifie);
         return utilisateurRepository.saveAndFlush(utilisateur);

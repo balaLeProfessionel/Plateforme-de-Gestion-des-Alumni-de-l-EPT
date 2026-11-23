@@ -30,6 +30,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import com.jayway.jsonpath.JsonPath;
 
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import ept.edu.sn.alumni_backend.admin.repository.ActionAdminRepository;
 import ept.edu.sn.alumni_backend.auth.EmailService;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
@@ -47,6 +48,8 @@ class AdminMembresIntegrationTests {
     @Autowired private MockMvc mockMvc;
     @Autowired private JwtService jwtService;
     @Autowired private UtilisateurRepository utilisateurRepository;
+    @Autowired
+    private ept.edu.sn.alumni_backend.filiere.repository.FiliereRepository filiereRepository;
     @Autowired private ActionAdminRepository actionAdminRepository;
     @Autowired private RefreshTokenRepository refreshTokenRepository;
     @MockitoSpyBean private EmailService emailService;
@@ -63,6 +66,8 @@ class AdminMembresIntegrationTests {
 
     @AfterEach
     void nettoyer() {
+        // Une filière saisie avec « Autre… » note son auteur : détachée pour que les comptes restent supprimables.
+        filiereRepository.saveAll(filiereRepository.findAll().stream().peek(filiere -> filiere.setCreeePar(null)).toList());
         actionAdminRepository.deleteAll();
         refreshTokenRepository.deleteAll();
     }
@@ -111,11 +116,11 @@ class AdminMembresIntegrationTests {
     void m03_importeUnePromotionEtRendCompteDeChaqueLigne() throws Exception {
         envoyer(post("/api/admin/comptes/import"), admin, """
                 {"role":"ETUDIANT","lignes":[
-                  {"prenom":"Awa","nom":"Diop","email":"%1$s.1@example.invalid","filiere":"GIT","anneeEntree":2026},
-                  {"prenom":"Binta","nom":"Sow","email":"pas-une-adresse","filiere":"GIT","anneeEntree":2026},
-                  {"prenom":"Coumba","nom":"Fall","email":"%1$s.1@example.invalid","filiere":"GIT","anneeEntree":2026},
-                  {"prenom":"Dame","nom":"Ka","email":"%2$s","filiere":"GIT","anneeEntree":2026},
-                  {"prenom":"","nom":"Ndiaye","email":"%1$s.5@example.invalid","filiere":"GIT","anneeEntree":2026}
+                  {"prenom":"Awa","nom":"Diop","email":"%1$s.1@example.invalid","filiere":"Génie Civil","anneeEntree":2026},
+                  {"prenom":"Binta","nom":"Sow","email":"pas-une-adresse","filiere":"Génie Civil","anneeEntree":2026},
+                  {"prenom":"Coumba","nom":"Fall","email":"%1$s.1@example.invalid","filiere":"Génie Civil","anneeEntree":2026},
+                  {"prenom":"Dame","nom":"Ka","email":"%2$s","filiere":"Génie Civil","anneeEntree":2026},
+                  {"prenom":"","nom":"Ndiaye","email":"%1$s.5@example.invalid","filiere":"Génie Civil","anneeEntree":2026}
                 ]}
                 """.formatted(lot, admin.getEmail()))
             .andExpect(status().isOk())
@@ -153,14 +158,16 @@ class AdminMembresIntegrationTests {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.role").value("ADMIN"));
 
-        // Le même jeton donne aussitôt les droits du nouveau rôle.
-        mockMvc.perform(authentifie(get("/api/admin/journal"), membre))
+        // Le même jeton ouvre aussitôt le tableau de bord ; le journal attend qu'un super administrateur coche cette responsabilité.
+        mockMvc.perform(authentifie(get("/api/admin/tableau-de-bord"), membre)).andExpect(status().isOk());
+        mockMvc.perform(authentifie(get("/api/admin/journal"), membre)).andExpect(status().isForbidden());
+        mockMvc.perform(authentifie(get("/api/admin/journal"), admin))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.contenu[0].type").value("CHANGEMENT_ROLE"))
             .andExpect(jsonPath("$.contenu[0].details").value("PERSONNEL → ADMIN"))
             .andExpect(jsonPath("$.contenu[0].motif").value("Rejoint le service des relations alumni"));
         verify(emailService).envoyerNotification(eq(membre.getEmail()), eq("Votre rôle sur EPT Alumni a changé"),
-            argThat(message -> message.contains("relations alumni")));
+            argThat(message -> message.contains("relations alumni") && message.contains("le rôle Administration")));
     }
 
     @Test
@@ -181,6 +188,14 @@ class AdminMembresIntegrationTests {
             .andExpect(status().isConflict()).andExpect(jsonPath("$.message").value("Ce compte a déjà ce rôle."));
         envoyer(patch("/api/admin/comptes/{id}/role", alumni.getId()), admin, "{\"role\":\"ORGANISME\",\"motif\":\"Test\"}")
             .andExpect(status().isConflict());
+
+        // Le rôle le plus élevé ne va pas à un compte que l'école n'a pas vérifié ; les autres rôles, si.
+        Utilisateur enAttente = creerUtilisateur(TypeRole.ALUMNI, StatutCompte.EN_ATTENTE, "Attente", null);
+        envoyer(patch("/api/admin/comptes/{id}/role", enAttente.getId()), admin, "{\"role\":\"ADMIN\",\"motif\":\"Test\"}")
+            .andExpect(status().isConflict()).andExpect(jsonPath("$.message").value(
+                "Validez d'abord l'inscription de ce compte : le rôle Administration ne se donne qu'à un compte vérifié."));
+        assertThat(utilisateurRepository.findById(enAttente.getId()).orElseThrow().getRole()).isEqualTo(TypeRole.ALUMNI);
+        envoyer(patch("/api/admin/comptes/{id}/role", enAttente.getId()), admin, corps).andExpect(status().isOk());
     }
 
     @Test
@@ -228,6 +243,105 @@ class AdminMembresIntegrationTests {
             .andExpect(jsonPath("$.contenu[0].prenom").value("SansAnnee"));
     }
 
+    @Test
+    void m08_laClasseSeSaisitALaCreationEtALImportPuisSeModifieAuJournal() throws Exception {
+        String email = lot + ".classe@example.invalid";
+        String id = JsonPath.read(envoyer(post("/api/admin/comptes"), admin, """
+                {"prenom":"Awa","nom":"Diop","email":"%s","role":"ETUDIANT","classe":"DIC1"}
+                """.formatted(email)).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), "$.id");
+        mockMvc.perform(authentifie(get("/api/admin/comptes/{id}", id), admin)).andExpect(jsonPath("$.compte.classe").value("DIC1"));
+
+        // L'import accepte « dic 2 » ou « Master 1 », et signale une classe inconnue sur sa ligne.
+        envoyer(post("/api/admin/comptes/import"), admin, """
+                {"role":"ETUDIANT","lignes":[
+                  {"prenom":"Binta","nom":"Sow","email":"%1$s.i1@example.invalid","classe":"dic 2"},
+                  {"prenom":"Coumba","nom":"Fall","email":"%1$s.i2@example.invalid","classe":"Master 1"},
+                  {"prenom":"Dame","nom":"Ka","email":"%1$s.i3@example.invalid","classe":"CP3"}
+                ]}
+                """.formatted(lot))
+            .andExpect(jsonPath("$.crees").value(2))
+            .andExpect(jsonPath("$.lignes[2].message").value(org.hamcrest.Matchers.startsWith("Classe inconnue : « CP3 »")));
+        assertThat(utilisateurRepository.findByEmail(lot + ".i1@example.invalid")).get()
+            .extracting(Utilisateur::getClasse).isEqualTo(ept.edu.sn.alumni_backend.enums.Classe.DIC2);
+        assertThat(utilisateurRepository.findByEmail(lot + ".i2@example.invalid")).get()
+            .extracting(Utilisateur::getClasse).isEqualTo(ept.edu.sn.alumni_backend.enums.Classe.MASTER1);
+
+        envoyer(patch("/api/admin/comptes/{id}/classe", id), admin, "{\"classe\":\"DIC2\"}")
+            .andExpect(status().isOk()).andExpect(jsonPath("$.classe").value("DIC2"));
+        envoyer(patch("/api/admin/comptes/{id}/classe", id), admin, "{\"classe\":\"DIC2\"}").andExpect(status().isConflict());
+        envoyer(patch("/api/admin/comptes/{id}/classe", id), admin, "{}").andExpect(status().isBadRequest());
+        mockMvc.perform(authentifie(get("/api/admin/comptes/{id}/historique", id), admin))
+            .andExpect(jsonPath("$[0].type").value("MODIFICATION_CLASSE"))
+            .andExpect(jsonPath("$[0].details").value("DIC1 → DIC2"));
+
+        Utilisateur alumni = creerUtilisateur(TypeRole.ALUMNI, StatutCompte.ACTIF, "Coumba", 2020);
+        envoyer(patch("/api/admin/comptes/{id}/classe", alumni.getId()), admin, "{\"classe\":\"DIC2\"}")
+            .andExpect(status().isConflict()).andExpect(jsonPath("$.message").value("Seul un compte étudiant a une classe."));
+
+        // Diplômé, l'étudiant n'a plus de classe.
+        envoyer(post("/api/admin/comptes/diplomation"), admin, "{\"ids\":[\"%s\"],\"anneeSortie\":2026}".formatted(id))
+            .andExpect(jsonPath("$.diplomes").value(1));
+        assertThat(utilisateurRepository.findById(UUID.fromString(id))).get().extracting(Utilisateur::getClasse).isNull();
+    }
+
+    @Test
+    void m09_lePassageAnnuelFaitMonterUneClasseEtLaisseDeCoteCeuxQuiNOntPlusLaClasseDeDepart() throws Exception {
+        Utilisateur awa = etudiantEn("Awa", ept.edu.sn.alumni_backend.enums.Classe.DIC1, StatutCompte.ACTIF);
+        Utilisateur binta = etudiantEn("Binta", ept.edu.sn.alumni_backend.enums.Classe.DIC1, StatutCompte.ACTIF);
+        Utilisateur dejaPassee = etudiantEn("Coumba", ept.edu.sn.alumni_backend.enums.Classe.DIC2, StatutCompte.ACTIF);
+        Utilisateur suspendue = etudiantEn("Dieynaba", ept.edu.sn.alumni_backend.enums.Classe.DIC1, StatutCompte.SUSPENDU);
+        Utilisateur sansClasse = etudiantEn("Eva", null, StatutCompte.ACTIF);
+
+        mockMvc.perform(authentifie(get("/api/admin/comptes/classes"), admin))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[?(@.classe == 'DIC1' && @.filiere == '%s')].nombre".formatted("F" + lot)).value(hasItem(2)))
+            .andExpect(jsonPath("$[?(@.classe == null && @.filiere == '%s')].nombre".formatted("F" + lot)).value(hasItem(1)));
+        mockMvc.perform(authentifie(get("/api/admin/comptes").param("role", "ETUDIANT").param("classe", "DIC1")
+                .param("filiere", "f" + lot), admin))
+            .andExpect(jsonPath("$.totalElements").value(3));
+        mockMvc.perform(authentifie(get("/api/admin/comptes").param("role", "ETUDIANT").param("sansClasse", "true")
+                .param("filiere", "f" + lot), admin))
+            .andExpect(jsonPath("$.totalElements").value(1));
+
+        envoyer(post("/api/admin/comptes/passage-classe"), admin, """
+                {"ids":["%s","%s","%s","%s"],"classeDepart":"DIC1","classeArrivee":"DIC2"}
+                """.formatted(awa.getId(), binta.getId(), dejaPassee.getId(), suspendue.getId()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.passes").value(2))
+            .andExpect(jsonPath("$.ignores[*].raison").value(org.hamcrest.Matchers.containsInAnyOrder(
+                "Sa classe a changé entre-temps (DIC2).", "Ce compte est suspendu.")));
+        assertThat(utilisateurRepository.findById(awa.getId())).get()
+            .extracting(Utilisateur::getClasse).isEqualTo(ept.edu.sn.alumni_backend.enums.Classe.DIC2);
+        mockMvc.perform(authentifie(get("/api/admin/comptes/{id}/historique", binta.getId()), admin))
+            .andExpect(jsonPath("$[0].type").value("MODIFICATION_CLASSE"))
+            .andExpect(jsonPath("$[0].details").value("DIC1 → DIC2 (passage annuel)"));
+
+        // Rejoué par erreur, le même passage ne fait plus rien.
+        envoyer(post("/api/admin/comptes/passage-classe"), admin, """
+                {"ids":["%s"],"classeDepart":"DIC1","classeArrivee":"DIC2"}
+                """.formatted(awa.getId()))
+            .andExpect(jsonPath("$.passes").value(0));
+        // Une classe non renseignée se rattrape aussi en masse.
+        envoyer(post("/api/admin/comptes/passage-classe"), admin, """
+                {"ids":["%s"],"classeArrivee":"TC1"}
+                """.formatted(sansClasse.getId()))
+            .andExpect(jsonPath("$.passes").value(1));
+        envoyer(post("/api/admin/comptes/passage-classe"), admin, """
+                {"ids":["%s"],"classeDepart":"TC1","classeArrivee":"TC1"}
+                """.formatted(sansClasse.getId()))
+            .andExpect(status().isBadRequest());
+        envoyer(post("/api/admin/comptes/passage-classe"), creerUtilisateur(TypeRole.ETUDIANT, StatutCompte.ACTIF, "Moi", null), """
+                {"ids":["%s"],"classeArrivee":"TC2"}
+                """.formatted(sansClasse.getId()))
+            .andExpect(status().isForbidden());
+    }
+
+    private Utilisateur etudiantEn(String prenom, ept.edu.sn.alumni_backend.enums.Classe classe, StatutCompte statut) {
+        Utilisateur etudiant = creerUtilisateur(TypeRole.ETUDIANT, statut, prenom, 2024);
+        etudiant.setClasse(classe);
+        return utilisateurRepository.saveAndFlush(etudiant);
+    }
+
     private Utilisateur creerUtilisateur(TypeRole role, StatutCompte statut, String prenom, Integer anneeEntree) {
         Utilisateur utilisateur = new Utilisateur();
         utilisateur.setEmail(lot + "." + UUID.randomUUID() + "@example.invalid");
@@ -235,10 +349,14 @@ class AdminMembresIntegrationTests {
         utilisateur.setPrenom(prenom);
         utilisateur.setNom(lot);
         utilisateur.setRole(role);
+        if (role == TypeRole.ADMIN) {
+            // Super administrateur, comme les administrateurs existants après la migration (TRA-13).
+            utilisateur.getPermissionsAdmin().add(PermissionAdmin.GERER_ADMINISTRATEURS);
+        }
         utilisateur.setStatutCompte(statut);
         utilisateur.setEmailVerifie(true);
         utilisateur.setAnneeEntree(anneeEntree);
-        utilisateur.setFiliere("F" + lot);
+        utilisateur.setFiliere(FilieresDeTest.filiere(filiereRepository, "F" + lot));
         return utilisateurRepository.saveAndFlush(utilisateur);
     }
 

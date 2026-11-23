@@ -79,7 +79,8 @@ public class AnnuaireCommunauteService {
             cb.like(cb.lower(cb.concat(cb.concat(racine.get("nom"), " "), racine.get("prenom"))), motif, ECHAPPEMENT),
             cb.like(cb.lower(racine.get("posteActuel")), motif, ECHAPPEMENT),
             cb.like(cb.lower(racine.get("villeResidence")), motif, ECHAPPEMENT),
-            cb.like(cb.lower(racine.get("filiere")), motif, ECHAPPEMENT));
+            // La filière est une entité : jointure externe sur son nom (un compte sans filière reste trouvable par son nom).
+            cb.like(cb.lower(racine.join("filiere", jakarta.persistence.criteria.JoinType.LEFT).get("nom")), motif, ECHAPPEMENT));
     }
 
     /** « 100% » ou « a_b » se cherchent tels quels : % et _ ne sont pas des jokers ici. */

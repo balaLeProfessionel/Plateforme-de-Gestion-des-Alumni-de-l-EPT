@@ -1,6 +1,6 @@
 import { DOCUMENT } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, signal } from '@angular/core';
+import { afterNextRender, Component, computed, ElementRef, inject, Injector, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AdminComptesService } from '../../../core/services/admin/admin-comptes';
 import { CompteurInscriptions } from '../../../core/services/admin/compteur-inscriptions';
@@ -33,6 +33,8 @@ export class ImportComptes {
   protected readonly enCours = signal(false);
   protected readonly messageErreur = signal<string | null>(null);
   protected readonly resultat = signal<ResultatImport | null>(null);
+  private readonly injector = inject(Injector);
+  private readonly rapport = viewChild<ElementRef<HTMLElement>>('rapport');
 
   protected async choisirFichier(champ: HTMLInputElement): Promise<void> {
     const fichier = champ.files?.[0];
@@ -62,6 +64,8 @@ export class ImportComptes {
         this.enCours.set(false);
         this.resultat.set(resultat);
         this.compteur.actualiser();
+        // L’aperçu disparaît : le focus va au rapport, qui contient les mots de passe provisoires créés.
+        afterNextRender(() => this.rapport()?.nativeElement.focus(), { injector: this.injector });
       },
       error: (erreur: HttpErrorResponse) => {
         this.enCours.set(false);

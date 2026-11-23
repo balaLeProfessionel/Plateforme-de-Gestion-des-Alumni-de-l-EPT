@@ -7,13 +7,14 @@
 .champ.large { grid-column: 1 / -1; }
 .champ label { color: var(--ept-primary-dark); font-size: 0.85rem; font-weight: 600; }
 .champ input, .champ select, .champ textarea {
-  width: 100%; min-height: 2.6rem; padding: 0.5rem 0.7rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm);
+  width: 100%; min-height: 2.6rem; padding: 0.5rem 0.7rem; border: 1px solid var(--ept-border-champ); border-radius: 8px;
   background: white; color: var(--ept-primary-dark); font: inherit;
 }
 .champ textarea { resize: vertical; font-family: var(--ept-font-mono, monospace); font-size: 0.85rem; }
-.champ :is(input, select, textarea):focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 1px; }
+.champ :is(input, select, textarea):focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 1px; }
 .champ [aria-invalid='true'] { border-color: var(--ept-error); }
 .aide { margin: 0; color: var(--ept-text-secondary); font-size: 0.8rem; line-height: 1.45; }
+.aide.alerte { color: var(--ept-gold-dark); font-weight: 600; }
 .erreur-champ { color: var(--ept-error); font-size: 0.8rem; }
 
 .boutons { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-top: 1rem; }
@@ -25,7 +26,7 @@
   &:disabled { opacity: 0.6; cursor: wait; }
   &:hover:not(:disabled) { background: var(--ept-primary-light); }
   &.principal:hover:not(:disabled) { background: var(--ept-primary-dark); }
-  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
 }
 
 .message { margin: 0 0 1rem; padding: 0.65rem 0.9rem; border-radius: var(--ept-radius-sm); background: var(--ept-success-light); color: var(--ept-success-dark); font-size: 0.9rem; font-weight: 600; }
@@ -37,3 +38,6 @@
   .grille-champs { grid-template-columns: minmax(0, 1fr); }
   .carte { padding: 1rem; }
 }
+
+// Résultat qui reçoit le focus après une action (rapport d’import, compte créé, diplomation) : le focus reste visible.
+[tabindex='-1']:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }

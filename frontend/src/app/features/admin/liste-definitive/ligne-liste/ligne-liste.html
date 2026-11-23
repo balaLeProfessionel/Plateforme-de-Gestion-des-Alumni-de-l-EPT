@@ -1,0 +1,69 @@
+@let l = ligne();
+<div class="identite">
+  <app-avatar-membre [urlPhoto]="l.etudiant.urlPhoto" [prenom]="l.etudiant.prenom" [nom]="l.etudiant.nom" roleMembre="ETUDIANT" [taille]="2.5" />
+  <div class="texte">
+    <h3><a [routerLink]="['/profil', l.etudiant.id]">{{ nom() }}</a></h3>
+    <p class="details">{{ libelleClasse(l.etudiant.classe) ?? 'Classe non renseignée' }} · {{ l.etudiant.filiere ?? 'Filière non renseignée' }}</p>
+    <p class="details">
+      @if (l.candidatureId) { A postulé · avis de l’organisme : <strong>{{ avis[l.avisOrganisme ?? 'EN_ATTENTE'] }}</strong> }
+      @else { N’a pas postulé à cette offre }
+    </p>
+  </div>
+  <span class="statut" [attr.data-statut]="l.statut">{{ statuts[l.statut] }}</span>
+</div>
+
+<p class="periode">
+  @if (l.dateDebut && l.dateFin) {
+    <i class="pi pi-calendar" aria-hidden="true"></i>Du {{ l.dateDebut | date: 'd MMMM y' }} au {{ l.dateFin | date: 'd MMMM y' }}
+  } @else {
+    <i class="pi pi-exclamation-circle" aria-hidden="true"></i><span class="manque">Dates à renseigner avant la publication</span>
+  }
+</p>
+@if (annule()) {
+  <p class="details">Annulé le {{ l.annuleLe | date: 'd MMMM y' }} · motif : {{ l.motif }}</p>
+}
+
+@switch (mode()) {
+  @case ('dates') {
+    <div class="zone" role="group" [attr.aria-label]="'Dates du stage de ' + nom()">
+      <div class="dates">
+        <div class="champ"><label [for]="'debut-' + l.id">Début</label>
+          <input [id]="'debut-' + l.id" type="date" [value]="debut()" (input)="saisir('debut', $event)" /></div>
+        <div class="champ"><label [for]="'fin-' + l.id">Fin</label>
+          <input [id]="'fin-' + l.id" type="date" [value]="fin()" (input)="saisir('fin', $event)" /></div>
+      </div>
+      @if (confirme()) { <p class="details">L’étudiant sera prévenu par e-mail des nouvelles dates.</p> }
+      @if (erreur(); as texte) { <p class="erreur" role="alert">{{ texte }}</p> }
+      <div class="boutons">
+        <button type="button" class="bouton principal petit" [disabled]="enCours()" (click)="enregistrerDates()">Enregistrer les dates</button>
+        <button type="button" class="bouton petit" (click)="mode.set('lecture')">Annuler</button>
+      </div>
+    </div>
+  }
+  @case ('retrait') {
+    <div class="zone" role="group" [attr.aria-label]="'Retirer ' + nom() + ' de la liste'">
+      @if (confirme()) {
+        <div class="champ">
+          <label [for]="'motif-' + l.id">Motif de l’annulation, envoyé à l’étudiant et à l’organisme</label>
+          <textarea [id]="'motif-' + l.id" rows="2" [attr.maxlength]="longueurMotif" [value]="motif()" (input)="saisir('motif', $event)"></textarea>
+        </div>
+      } @else {
+        <p class="details">Retirer {{ nom() }} du brouillon ? Personne n’est prévenu.</p>
+      }
+      @if (erreur(); as texte) { <p class="erreur" role="alert">{{ texte }}</p> }
+      <div class="boutons">
+        <button type="button" class="bouton principal petit" [disabled]="enCours()" (click)="retirer()">
+          {{ confirme() ? 'Annuler le stage' : 'Retirer de la liste' }}</button>
+        <button type="button" class="bouton petit" (click)="mode.set('lecture')">Ne rien changer</button>
+      </div>
+    </div>
+  }
+  @default {
+    @if (!annule()) {
+      <div class="boutons">
+        <button type="button" class="bouton petit" (click)="ouvrir('dates')">Modifier les dates</button>
+        <button type="button" class="bouton petit" (click)="ouvrir('retrait')">{{ confirme() ? 'Annuler le stage…' : 'Retirer' }}</button>
+      </div>
+    }
+  }
+}

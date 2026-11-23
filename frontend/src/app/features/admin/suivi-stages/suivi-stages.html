@@ -1,0 +1,53 @@
+<app-page-admin titre="Suivi des stages" [parents]="parents"
+  introduction="Stages confirmés, regroupés par organisme d’accueil. Ouvrez un organisme pour voir ses stagiaires, désigner leurs encadrants et suivre convention, évaluation et rapport.">
+  <section class="filtres" aria-label="Filtrer les stages">
+    <div class="champ">
+      <label for="suivi-texte">Étudiant, sujet ou organisme</label>
+      <input id="suivi-texte" type="search" autocomplete="off" [value]="criteres().texte" (input)="saisirTexte($event)" />
+    </div>
+    <div class="champ">
+      <label for="suivi-filiere">Filière</label>
+      <select id="suivi-filiere" (change)="choisirFiliere($event)">
+        <option value="" [selected]="!criteres().filiere">Toutes</option>
+        @for (f of filieres(); track f.id) { <option [value]="f.id" [selected]="f.id === criteres().filiere">{{ f.nom }}</option> }
+      </select>
+    </div>
+    <label class="case"><input type="checkbox" [checked]="criteres().sansEncadrant" (change)="basculerSansEncadrant($event)" />Sans encadrant seulement</label>
+  </section>
+
+  @if (erreurChargement(); as erreur) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ erreur }}</p></div>
+  } @else if (organismes(); as liste) {
+    @if (liste.length === 0) {
+      <div class="etat">
+        <i class="pi pi-inbox" aria-hidden="true"></i>
+        <h2>Aucun stage</h2>
+        <p>Les stages apparaissent ici une fois confirmés, par la liste définitive d’une offre ou la validation d’une déclaration.</p>
+      </div>
+    } @else {
+      <p class="aide" aria-live="polite">{{ liste.length }} organisme{{ liste.length > 1 ? 's' : '' }} · {{ totalStagiaires(liste) }} stagiaire{{ totalStagiaires(liste) > 1 ? 's' : '' }}</p>
+      <ul class="organismes">
+        @for (o of liste; track o.organismeId ?? o.nom) {
+          <li class="organisme carte-cliquable">
+            <app-avatar-membre [urlPhoto]="o.logoUrl" [prenom]="o.nom" nom="" roleMembre="ORGANISME" [taille]="2.75" />
+            <div class="texte">
+              <h2><a class="lien-etire" routerLink="/admin/stages/suivi/organisme" [queryParams]="lien(o)">{{ o.nom }}</a></h2>
+              <p class="compte">{{ o.stagiaires }} stagiaire{{ o.stagiaires > 1 ? 's' : '' }}@if (!o.organismeId) { · organisme proposé par l’étudiant }</p>
+              @if (o.sansEncadrant || o.conventionsIncompletes || o.evaluationsARemettre || o.rapportsAttendus) {
+                <ul class="pastilles" aria-label="À faire">
+                  @if (o.sansEncadrant) { <li>{{ o.sansEncadrant }} sans encadrant</li> }
+                  @if (o.conventionsIncompletes) { <li>{{ o.conventionsIncompletes }} convention{{ o.conventionsIncompletes > 1 ? 's' : '' }} incomplète{{ o.conventionsIncompletes > 1 ? 's' : '' }}</li> }
+                  @if (o.evaluationsARemettre) { <li>{{ o.evaluationsARemettre }} évaluation{{ o.evaluationsARemettre > 1 ? 's' : '' }} à remettre</li> }
+                  @if (o.rapportsAttendus) { <li>{{ o.rapportsAttendus }} rapport{{ o.rapportsAttendus > 1 ? 's' : '' }} attendu{{ o.rapportsAttendus > 1 ? 's' : '' }}</li> }
+                </ul>
+              } @else { <p class="a-jour">Tout est à jour</p> }
+            </div>
+            <i class="pi pi-chevron-right" aria-hidden="true"></i>
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement des organismes"></div>
+  }
+</app-page-admin>

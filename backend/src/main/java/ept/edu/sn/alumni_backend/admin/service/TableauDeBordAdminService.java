@@ -8,6 +8,7 @@ import java.util.EnumSet;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import ept.edu.sn.alumni_backend.admin.dto.TableauDeBordAdminResponse;
 import ept.edu.sn.alumni_backend.admin.dto.TableauDeBordAdminResponse.AFaire;
 import ept.edu.sn.alumni_backend.admin.dto.TableauDeBordAdminResponse.Communaute;
@@ -41,7 +42,8 @@ public class TableauDeBordAdminService {
         AFaire aTraiter = new AFaire(
             utilisateurRepository.countByStatutCompteAndEmailVerifieTrue(StatutCompte.EN_ATTENTE),
             utilisateurRepository.findFirstByStatutCompteAndEmailVerifieTrueOrderByDateCreationAsc(StatutCompte.EN_ATTENTE)
-                .map(Utilisateur::getDateCreation).orElse(null));
+                .map(Utilisateur::getDateCreation).orElse(null),
+            utilisateurRepository.compterAdministrateursActifsAvec(PermissionAdmin.GERER_ADMINISTRATEURS));
         Communaute communaute = new Communaute(
             utilisateurRepository.countByStatutCompteAndEmailVerifieTrue(StatutCompte.ACTIF),
             utilisateurRepository.countByEmailVerifieTrueAndDateCreationGreaterThanEqual(

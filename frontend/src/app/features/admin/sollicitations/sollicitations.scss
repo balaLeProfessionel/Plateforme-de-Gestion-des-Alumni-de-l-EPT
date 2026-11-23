@@ -1,0 +1,25 @@
+.bloc { display: grid; gap: 0.75rem; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 8px; background: var(--ept-surface);
+  h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1.05rem; } }
+.aide { margin: 0; color: var(--ept-text-secondary); font-size: 0.88rem; overflow-wrap: anywhere; }
+.types { display: flex; flex-wrap: wrap; gap: 0.5rem;
+  [aria-pressed='true'] { background: var(--ept-primary); color: var(--ept-text-on-dark); } }
+.bouton.petit { min-height: 2.25rem; padding: 0.3rem 0.75rem; font-size: 0.82rem; }
+.boutons { margin-top: 0; }
+.destinataires { display: grid; gap: 0.5rem; min-width: 0; margin: 0; padding: 0; border: 0;
+  legend { margin-bottom: 0.4rem; color: var(--ept-primary-dark); font-size: 0.85rem; font-weight: 600; span { color: var(--ept-text-secondary); font-weight: 400; } }
+  ul { display: grid; gap: 0.25rem; max-height: 18rem; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+  label { display: flex; align-items: center; gap: 0.5rem; min-height: 2.25rem; cursor: pointer; }
+  input { flex: none; width: 1.05rem; height: 1.05rem; accent-color: var(--ept-primary); }
+  input:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+  span { display: grid; min-width: 0; color: var(--ept-primary-dark); font-size: 0.88rem; overflow-wrap: anywhere; }
+  small { color: var(--ept-text-secondary); } }
+.confirmation { display: grid; gap: 0.6rem; padding: 0.9rem; border: 1px solid var(--ept-gold); border-radius: 8px; background: var(--ept-gold-light);
+  p { margin: 0; color: var(--ept-primary-dark); } }
+.historique { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none;
+  li { border: 1px solid var(--ept-border); border-radius: 8px; } }
+.ligne { display: grid; gap: 0.2rem; width: 100%; padding: 0.7rem 0.9rem; border: 0; border-radius: 8px; background: none; text-align: left; font: inherit; cursor: pointer;
+  strong { color: var(--ept-primary-dark); overflow-wrap: anywhere; }
+  span { color: var(--ept-text-secondary); font-size: 0.85rem; }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+.detail { display: grid; gap: 0.5rem; padding: 0 0.9rem 0.8rem; }
+.texte { margin: 0; white-space: pre-line; color: var(--ept-primary-dark); font-size: 0.88rem; }

@@ -21,7 +21,7 @@ describe('MentoratPage', () => {
       imports: [MentoratPage],
       providers: [
         provideRouter([]),
-        { provide: AuthService, useValue: { utilisateur } },
+        { provide: AuthService, useValue: { utilisateur, aPermission: (permission: string) => permission === 'GERER_MENTORAT' && utilisateur()?.role === 'ADMIN' } },
         { provide: CompteurDemandesMentorat, useValue: { nombre, actualiser } },
       ],
     });
@@ -39,7 +39,7 @@ describe('MentoratPage', () => {
     onglets: [...groupe.querySelectorAll('a')].map((lien) => lien.textContent?.trim()),
   }));
 
-  it.each(['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'VISITEUR'])('donne les deux casquettes à tout membre (%s)', (role) => {
+  it.each(['ETUDIANT', 'ALUMNI'])('donne les deux casquettes aux étudiants et aux alumni (%s)', (role) => {
     nombre.set(3);
     const racine = afficher(role);
     expect(groupes(racine)).toEqual([
@@ -62,7 +62,7 @@ describe('MentoratPage', () => {
     const gestion = MENTORAT_ROUTES.filter((route) => route.path?.startsWith('gestion-programmes'));
     expect(gestion.map((route) => route.path)).toEqual(
       ['gestion-programmes', 'gestion-programmes/nouveau', 'gestion-programmes/:id/tableau', 'gestion-programmes/:id']);
-    for (const route of gestion) expect(route.data?.['roles']).toEqual(['ADMIN']);
+    for (const route of gestion) expect(route.data?.['permission']).toBe('GERER_MENTORAT');
   });
 
   it.each(['ORGANISME', 'ADMIN'])('présente le module aux comptes qui n’y participent pas (%s)', (role) => {
@@ -76,8 +76,8 @@ describe('MentoratPage', () => {
   it.each([
     ['ETUDIANT', 'trouver'],
     ['ALUMNI', 'mentores'],
-    ['PERSONNEL', 'trouver'],
-    ['VISITEUR', 'trouver'],
+    ['PERSONNEL', 'presentation'],
+    ['VISITEUR', 'presentation'],
     ['ORGANISME', 'presentation'],
   ])('ouvre l’onglet adapté au rôle %s', (role, onglet) => {
     utilisateur.set({ role });

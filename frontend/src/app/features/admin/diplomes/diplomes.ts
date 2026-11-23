@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, signal } from '@angular/core';
+import { afterNextRender, Component, computed, ElementRef, inject, Injector, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { form, FormField, required, validate } from '@angular/forms/signals';
 import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
@@ -26,6 +26,10 @@ export class Diplomes {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly service = inject(AdminComptesService);
+  private readonly injector = inject(Injector);
+  private readonly boutonConfirmer = viewChild<ElementRef<HTMLElement>>('boutonConfirmer');
+  private readonly boutonMarquer = viewChild<ElementRef<HTMLElement>>('boutonMarquer');
+  private readonly messageResultat = viewChild<ElementRef<HTMLElement>>('messageResultat');
 
   protected readonly nomDuCompte = nomDuCompte;
   private readonly version = signal(0);
@@ -104,6 +108,16 @@ export class Diplomes {
     this.formulaire().markAsTouched();
     if (this.formulaire().invalid() || this.selection().size === 0) return;
     this.confirmation.set(true);
+    this.focaliser(() => this.boutonConfirmer()?.nativeElement);
+  }
+
+  protected annulerConfirmation(): void {
+    this.confirmation.set(false);
+    this.focaliser(() => this.boutonMarquer()?.nativeElement);
+  }
+
+  private focaliser(cible: () => HTMLElement | undefined): void {
+    afterNextRender(() => cible()?.focus(), { injector: this.injector });
   }
 
   protected marquer(): void {
@@ -115,6 +129,7 @@ export class Diplomes {
         this.enCours.set(false);
         this.resultat.set({ annee, resultat });
         this.version.update((version) => version + 1);
+        this.focaliser(() => this.messageResultat()?.nativeElement);
       },
       error: (erreur: HttpErrorResponse) => {
         this.enCours.set(false);

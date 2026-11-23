@@ -9,7 +9,7 @@ import { vi } from 'vitest';
 import { CompteurInscriptions } from '../../../core/services/admin/compteur-inscriptions';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { ResumeComptes } from '../../../core/services/models/admin.model';
-import { compte, pageDe as page } from '../testing/donnees-admin';
+import { authAdmin, compte, pageDe as page } from '../testing/donnees-admin';
 import { Comptes } from './comptes';
 
 describe('Comptes', () => {
@@ -31,7 +31,7 @@ describe('Comptes', () => {
         provideRouter([]),
         { provide: ActivatedRoute, useValue: { queryParamMap: parametres, snapshot: { queryParamMap: parametres.value } } },
         { provide: CompteurInscriptions, useValue: { resume, actualiser } },
-        { provide: AuthService, useValue: { utilisateur: signal({ id: 'moi' }) } },
+        { provide: AuthService, useValue: authAdmin() },
       ],
     });
     http = TestBed.inject(HttpTestingController);

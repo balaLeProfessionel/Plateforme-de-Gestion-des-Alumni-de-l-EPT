@@ -19,6 +19,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.util.unit.DataSize;
 
+import ept.edu.sn.alumni_backend.common.stockage.DepotFichiersDisque;
 import ept.edu.sn.alumni_backend.evenement.exception.ImageEvenementIntrouvableException;
 import ept.edu.sn.alumni_backend.evenement.service.StockageImageEvenement;
 
@@ -93,7 +94,7 @@ class StockageImageEvenementTests {
         assertThrows(IllegalArgumentException.class, () -> stockage.stocker(
             fichier("image.svg", "image/png", image("png", 10, 10))));
         assertThrows(IllegalArgumentException.class, () -> new StockageImageEvenement(
-            repertoire.toString(), DataSize.ofBytes(1024)).stocker(
+            new DepotFichiersDisque(repertoire.toString()), DataSize.ofBytes(1024)).stocker(
             fichier("grosse.png", "image/png", new byte[1025])));
     }
 
@@ -124,7 +125,7 @@ class StockageImageEvenementTests {
     }
 
     private StockageImageEvenement stockage() {
-        return new StockageImageEvenement(repertoire.toString(), DataSize.ofMegabytes(5));
+        return new StockageImageEvenement(new DepotFichiersDisque(repertoire.toString()), DataSize.ofMegabytes(5));
     }
 
     private MockMultipartFile fichier(String nom, String type, byte[] contenu) {

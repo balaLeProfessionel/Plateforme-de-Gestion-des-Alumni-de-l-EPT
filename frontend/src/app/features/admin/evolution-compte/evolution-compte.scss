@@ -1,3 +1,4 @@
 .panneau { display: grid; gap: 0.5rem; }
-.alerte { color: var(--ept-gold-dark); font-weight: 600; }
 .boutons { margin-top: 0.5rem; }
+.confirmation { padding: 0.9rem 1rem; border: 1px solid var(--ept-gold); border-radius: 8px; background: var(--ept-gold-light); }
+.question { margin: 0 0 0.35rem; color: var(--ept-primary-dark); font-weight: 700; }

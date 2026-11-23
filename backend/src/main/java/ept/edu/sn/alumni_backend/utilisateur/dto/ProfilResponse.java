@@ -19,6 +19,7 @@ public record ProfilResponse(
     String telephone,
     LocalDate dateNaissance,
     String filiere,
+    String classe,
     Integer anneeSortie,
     boolean recherchePublique
 ) {}

@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.auth;
 
+import ept.edu.sn.alumni_backend.filiere.service.FiliereService;
 import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -53,6 +54,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final EmailService emailService;
     private final RefreshTokenService refreshTokenService;
+    private final FiliereService filiereService;
 
     // ==================== INSCRIPTION ====================
 
@@ -85,7 +87,7 @@ public class AuthService {
         utilisateur.setStatutCompte(StatutCompte.EN_ATTENTE);
         utilisateur.setTelephone(request.telephone());
         utilisateur.setAnneeSortie(request.anneeSortie());
-        utilisateur.setFiliere(request.filiere());
+        utilisateur.setFiliere(filiereService.exigerExistante(request.filiere()));
 
         if (request.role() == TypeRole.ORGANISME) {
             Organisme organisme = new Organisme();
@@ -254,6 +256,12 @@ public class AuthService {
 
     @Transactional
     public CompteCreeResponse creerCompteParAdmin(CreerCompteRequest request) {
+        return creerCompteParAdmin(request, null);
+    }
+
+    /** L'auteur est noté comme créateur d'une filière saisie avec « Autre… » (TRA-14). */
+    @Transactional
+    public CompteCreeResponse creerCompteParAdmin(CreerCompteRequest request, Utilisateur auteur) {
         String email = normaliser(request.email());
         if (utilisateurRepository.existsByEmail(email)) {
             throw new EmailDejaUtiliseException("Cet email est déjà utilisé");
@@ -273,7 +281,8 @@ public class AuthService {
         utilisateur.setDoitChangerMotDePasse(true);
         utilisateur.setAnneeEntree(request.anneeEntree());
         utilisateur.setAnneeSortie(request.anneeSortie());
-        utilisateur.setFiliere(request.filiere() == null || request.filiere().isBlank() ? null : request.filiere().trim());
+        utilisateur.setFiliere(filiereService.trouverOuCreer(request.filiere(), auteur));
+        utilisateur.setClasse(request.role() == TypeRole.ETUDIANT ? request.classe() : null);
 
         utilisateur = utilisateurRepository.save(utilisateur);
 
@@ -300,7 +309,7 @@ public class AuthService {
             utilisateur.isDoitChangerMotDePasse(),
             utilisateur.getUrlPhoto(),
             null,
-            PermissionAdmin.noms(utilisateur.getRole())
+            PermissionAdmin.noms(utilisateur)
         );
     }
 
@@ -318,6 +327,18 @@ public class AuthService {
             throw new TokenInvalideException("Le refresh token ne correspond pas à la session active");
         }
 
+        // Le mot de passe provisoire est connu d'un tiers (l'administration, ou l'exploitant pour le premier admin).
+        if (passwordEncoder.matches(request.nouveauMotDePasse(), utilisateur.getPassword())) {
+            throw new IllegalArgumentException("Choisissez un mot de passe différent du mot de passe provisoire.");
+        }
+        if (utilisateur.getRole() == TypeRole.ADMIN) {
+            if (request.prenom() != null && !request.prenom().isBlank()) {
+                utilisateur.setPrenom(request.prenom().trim());
+            }
+            if (request.nom() != null && !request.nom().isBlank()) {
+                utilisateur.setNom(request.nom().trim());
+            }
+        }
         utilisateur.setPassword(passwordEncoder.encode(request.nouveauMotDePasse()));
         utilisateur.setDoitChangerMotDePasse(false);
         utilisateur = utilisateurRepository.save(utilisateur);
@@ -390,7 +411,7 @@ public class AuthService {
     private AuthResponse construireReponse(String accessToken, String refreshToken, Utilisateur u, String message) {
         return new AuthResponse(accessToken, refreshToken, u.getId(), u.getEmail(), u.getNom(), u.getPrenom(),
                 u.getRole().name(), u.getStatutCompte().name(), u.isDoitChangerMotDePasse(), u.getUrlPhoto(), message,
-                PermissionAdmin.noms(u.getRole()));
+                PermissionAdmin.noms(u));
     }
 
     public void deconnecter(String refreshToken) {

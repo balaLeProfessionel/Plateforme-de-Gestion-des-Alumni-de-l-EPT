@@ -18,6 +18,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.evenement.AudienceEvenement;
@@ -62,6 +63,7 @@ class ContenuPublicIntegrationTests {
         organisateur.setEmail(UUID.randomUUID() + "@exemple.test");
         organisateur.setPassword("mot-de-passe");
         organisateur.setRole(TypeRole.ADMIN);
+        organisateur.getPermissionsAdmin().add(PermissionAdmin.GERER_ADMINISTRATEURS);
         organisateur.setStatutCompte(StatutCompte.ACTIF);
         organisateur.setEmailVerifie(true);
         organisateur = utilisateurRepository.save(organisateur);

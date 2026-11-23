@@ -51,6 +51,7 @@ class MessagerieCommunautesIntegrationTests {
     @Autowired private MessageRepository messages;
     @Autowired private NotificationRepository notifications;
     @Autowired private ept.edu.sn.alumni_backend.messagerie.service.CommunauteService communauteService;
+    @Autowired private ept.edu.sn.alumni_backend.filiere.repository.FiliereRepository filiereRepository;
 
     @AfterEach
     void nettoyer() {
@@ -277,6 +278,11 @@ class MessagerieCommunautesIntegrationTests {
     @Test
     void c08_lAdministrationListeCreeEtModifieLesCommunautesSansEnEtreMembre() throws Exception {
         Utilisateur admin = membre("Admin", TypeRole.ADMIN, null, null);
+        // Un administrateur à qui cette responsabilité n'a pas été confiée n'y a pas accès.
+        Utilisateur autreAdmin = membre("Autre", TypeRole.ADMIN, null, null);
+        autreAdmin.getPermissionsAdmin().clear();
+        utilisateurs.saveAndFlush(autreAdmin);
+        mockMvc.perform(authentifie(get(ADMIN), autreAdmin)).andExpect(status().isForbidden());
         Utilisateur awa = alumni("Awa", 1996, "Génie Civil");
         communautes(awa);
         String promo = idCommunaute(awa, "PROMO");
@@ -444,7 +450,9 @@ class MessagerieCommunautesIntegrationTests {
         utilisateur.setStatutCompte(StatutCompte.ACTIF);
         utilisateur.setEmailVerifie(true);
         utilisateur.setAnneeSortie(anneeSortie);
-        utilisateur.setFiliere(filiere);
+        utilisateur.setFiliere(filiere == null ? null : FilieresDeTest.filiere(filiereRepository, filiere));
+        // Un compte d'administration n'a que les responsabilités cochées pour lui : ici, les communautés.
+        if (role == TypeRole.ADMIN) utilisateur.getPermissionsAdmin().add(ept.edu.sn.alumni_backend.admin.PermissionAdmin.GERER_COMMUNAUTES);
         return utilisateurs.saveAndFlush(utilisateur);
     }
 

@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend.annuaire;
 
+import ept.edu.sn.alumni_backend.filiere.entity.Filiere;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -63,9 +64,9 @@ public class AnnuaireService {
             );
         }
         if (aDuTexte(filiere)) {
-            String valeur = normaliser(filiere);
+            String cle = Filiere.cle(filiere);
             specification = specification.and((racine, requete, cb) ->
-                cb.equal(cb.lower(racine.get("filiere")), valeur)
+                cb.equal(racine.get("filiere").get("cle"), cle)
             );
         }
         if (aDuTexte(ville)) {
@@ -114,8 +115,9 @@ public class AnnuaireService {
 
     /** Un point par information utile dans l'annuaire : photo, poste, ville, filière et présentation. */
     private static Expression<Integer> scoreCompletude(Root<Utilisateur> racine, CriteriaBuilder cb) {
-        Expression<Integer> score = cb.literal(0);
-        for (String champ : List.of("urlPhoto", "posteActuel", "villeResidence", "filiere", "bio")) {
+        // La filière est une entité : elle compte dès qu'elle est renseignée.
+        Expression<Integer> score = cb.<Integer>selectCase().when(cb.isNotNull(racine.get("filiere")), 1).otherwise(0);
+        for (String champ : List.of("urlPhoto", "posteActuel", "villeResidence", "bio")) {
             Expression<String> valeur = racine.get(champ);
             score = cb.sum(score, cb.<Integer>selectCase()
                 .when(cb.greaterThan(cb.length(cb.trim(cb.coalesce(valeur, ""))), 0), 1)
@@ -144,7 +146,7 @@ public class AnnuaireService {
 
         return utilisateurRepository.findAll(specification, pagination).stream()
             .map(membre -> new DiplomePublicResponse(
-                membre.getPrenom(), membre.getNom(), membre.getAnneeSortie(), membre.getFiliere()))
+                membre.getPrenom(), membre.getNom(), membre.getAnneeSortie(), membre.getNomFiliere()))
             .toList();
     }
 

@@ -1,0 +1,19 @@
+@let o = offre();
+<article class="carte carte-cliquable" [class.close]="!o.candidaturesOuvertes">
+  <div class="haut">
+    <span class="type">{{ types[o.type] }}</span>
+    @if (!o.candidaturesOuvertes) { <span class="etat-candidatures">Candidatures closes</span> }
+  </div>
+  <h2><a class="lien-etire" [routerLink]="['/mobilites/offres', o.id]">{{ o.titre }}</a></h2>
+  <p class="organisme">{{ o.organisme.nom }}</p>
+  <ul class="infos">
+    <li><i class="pi pi-map-marker" aria-hidden="true"></i>{{ o.ville ? o.ville + ', ' : '' }}{{ o.pays }}</li>
+    <li><i class="pi pi-clock" aria-hidden="true"></i>{{ periode(o) }}</li>
+    <li><i class="pi pi-users" aria-hidden="true"></i>{{ o.nombrePlaces }} place{{ o.nombrePlaces > 1 ? 's' : '' }}</li>
+    <li><i class="pi pi-calendar" aria-hidden="true"></i>
+      {{ o.candidaturesOuvertes ? 'Candidatures jusqu’au' : 'Candidatures closes le' }} {{ o.dateLimite | date: 'd MMMM y' }}</li>
+  </ul>
+  @if (o.eligibilite && !o.eligibilite.eligible) {
+    <p class="ineligible">{{ o.eligibilite.raison }}</p>
+  }
+</article>

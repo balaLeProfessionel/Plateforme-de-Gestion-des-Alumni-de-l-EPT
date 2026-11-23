@@ -1,12 +1,11 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { CompteAdmin } from '../../../core/services/models/admin.model';
-import { compte } from '../testing/donnees-admin';
+import { authAdmin, compte } from '../testing/donnees-admin';
 import { LigneCompte } from './ligne-compte';
 
 describe('LigneCompte', () => {
@@ -22,7 +21,7 @@ describe('LigneCompte', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
-        { provide: AuthService, useValue: { utilisateur: signal({ id: 'moi' }) } },
+        { provide: AuthService, useValue: authAdmin() },
       ],
     });
     http = TestBed.inject(HttpTestingController);

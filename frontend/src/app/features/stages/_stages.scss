@@ -1,0 +1,38 @@
+// Gabarit commun des pages du module Stages : largeur, en-tête, champs, boutons, états.
+@use 'responsive' as *;
+@use 'accessibilite';
+
+.page-stages { width: min(100% - 2rem, 1100px); margin: 0 auto; padding: 1.25rem 0 clamp(2.5rem, 6vw, 4rem);
+  @include a-partir-de(tablette) { width: min(100% - 3rem, 1100px); padding-top: 1.5rem; } }
+.entete { margin-bottom: 1rem; }
+.titre { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; }
+h1 { margin: 0; color: var(--ept-primary-dark); font-size: clamp(1.5rem, 3vw, 1.9rem); line-height: 1.15; overflow-wrap: anywhere; }
+.introduction { max-width: 50rem; margin: 0.4rem 0 0; color: var(--ept-text-secondary); font-size: 0.95rem; line-height: 1.5; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.champ { display: grid; gap: 0.3rem; min-width: 0; align-content: start; }
+.champ label { color: var(--ept-primary-dark); font-size: 0.85rem; font-weight: 600; }
+.champ :is(input, select, textarea) {
+  width: 100%; min-height: 2.6rem; padding: 0.5rem 0.7rem; border: 1px solid var(--ept-border-champ); border-radius: 8px;
+  background: var(--ept-surface); color: var(--ept-primary-dark); font: inherit;
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 1px; }
+}
+
+.bouton {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: 2.6rem; padding: 0.5rem 1rem;
+  border: 1px solid var(--ept-primary); border-radius: 8px; background: var(--ept-surface); color: var(--ept-primary);
+  font: inherit; font-size: 0.88rem; font-weight: 700; text-decoration: none; cursor: pointer;
+  &.principal { background: var(--ept-primary); color: var(--ept-text-on-dark); }
+  &:disabled { opacity: 0.6; cursor: wait; }
+  &:hover:not(:disabled) { background: var(--ept-primary-light); }
+  &.principal:hover:not(:disabled) { background: var(--ept-primary-dark); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+}
+
+.etat {
+  display: grid; justify-items: center; gap: 0.5rem; padding: 3rem 1rem; border: 1px dashed var(--ept-border); border-radius: 12px; text-align: center;
+  > i { color: var(--ept-primary); font-size: 1.6rem; }
+  h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1.1rem; }
+  p { max-width: 30rem; margin: 0; color: var(--ept-text-secondary); }
+}
+

@@ -4,7 +4,6 @@
     <div>
       <p class="sur-titre">Mon profil</p>
       <h1>Modifier mon profil</h1>
-      <p>Votre photo, vos informations, votre parcours et la sécurité de votre compte, au même endroit.</p>
     </div>
     <a class="voir-profil" routerLink="/profil"><i class="pi pi-eye" aria-hidden="true"></i>Voir mon profil</a>
   </header>
@@ -66,6 +65,7 @@
       <div class="champs-lecture-seule" aria-label="Informations non modifiables">
         <div><span>Email</span><strong>{{ membre.email }}</strong></div>
         <div><span>Type de membre</span><strong>{{ typeMembre() }}</strong></div>
+        @if (libelleClasse(membre.classe); as classe) { <div><span>Classe</span><strong>{{ classe }}</strong></div> }
         @if (membre.filiere) { <div><span>Filière</span><strong>{{ membre.filiere }}</strong></div> }
         @if (membre.anneeSortie) { <div><span>Promotion</span><strong>{{ membre.anneeSortie }}</strong></div> }
       </div>

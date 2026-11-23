@@ -1,0 +1,21 @@
+package ept.edu.sn.alumni_backend.mobilite;
+
+/** Opérations consignées dans l'historique des mobilités (qui, quand, pourquoi). */
+public enum ActionHistorique {
+    PUBLICATION_OFFRE,
+    MODIFICATION_OFFRE,
+    CLOTURE_OFFRE,
+    RETRAIT_OFFRE,
+    SOUMISSION_CANDIDATURE,
+    RETRAIT_CANDIDATURE,
+    DECISION_CANDIDATURE,
+    PUBLICATION_LISTE,
+    DESISTEMENT,
+    PROMOTION_LISTE_ATTENTE,
+    CREATION_MOBILITE,
+    CHANGEMENT_STATUT_MOBILITE,
+    PROPOSITION_ACCUEIL,
+    MODIFICATION_ACCUEIL,
+    ACCEPTATION_ACCUEIL,
+    REFUS_ACCUEIL
+}

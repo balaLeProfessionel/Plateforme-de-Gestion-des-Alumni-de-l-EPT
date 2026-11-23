@@ -238,7 +238,7 @@ describe('ParametresProfil', () => {
       id: 'membre-1', nom: 'Diop', prenom: 'Awa', email: 'awa.diop@example.com',
       role: 'ALUMNI', statutCompte: 'ACTIF', bio: null, villeResidence: 'Thiès',
       posteActuel: null, lienLinkedin: null, lienPortfolio: null, urlPhoto: null,
-      telephone: null, dateNaissance: null, filiere: 'GIT', anneeSortie: 2024, recherchePublique: true
+      telephone: null, dateNaissance: null, filiere: 'GIT', classe: null, anneeSortie: 2024, recherchePublique: true
     };
   }
 });

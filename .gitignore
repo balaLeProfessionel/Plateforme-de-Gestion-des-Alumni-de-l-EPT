@@ -44,3 +44,12 @@ Thumbs.db
 
 # Cache des photos libres de droits des données de démonstration
 /scripts/donnees-demo/.cache-photos/
+
+# Conventions locales de stages
+/docs/conventions-d'stage/
+    
+# Sauvegardes locales (scripts/sauvegarde)
+/sauvegardes/
+
+# Conventions de stage réelles (données personnelles), servent seulement de référence
+docs/conventions-d'stage/

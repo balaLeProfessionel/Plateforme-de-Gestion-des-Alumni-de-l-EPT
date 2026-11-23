@@ -24,6 +24,11 @@ def uid(*parties):
 def q(texte):
     return 'null' if texte is None else "'" + str(texte).replace("'", "''") + "'"
 
+def filiere_sql(nom):
+    """Filière d'un compte : la table filiere est remplie par le backend au démarrage (TRA-14)."""
+    return f"(select id from filiere where nom = {q(nom)})" if nom else 'null'
+
+
 
 def slug(texte):
     texte = unicodedata.normalize('NFKD', texte).encode('ascii', 'ignore').decode().lower()
@@ -196,9 +201,9 @@ for cle, nom in [('kerdata', 'Kër Data'), ('baobab-energie', 'Baobab Énergie')
 def inserer_membre(m, prenom, nom, role, feminin, filiere, entree, sortie, ville, poste, bio, url_photo, jours, portfolio=None):
     diplome = "'INGENIEUR'" if role == 'ALUMNI' else 'null'
     lignes.append(
-        f"insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, url_photo, lien_portfolio, date_creation)\n"
+        f"insert into utilisateur (id, email, email_verifie, password, doit_changer_mot_de_passe, prenom, nom, role, statut_compte, filiere_id, annee_entree, annee_sortie, diplome, ville_residence, poste_actuel, bio, telephone, url_photo, lien_portfolio, date_creation)\n"
         f"select {q(m)}, {q(email_unique(prenom, nom))}, true, {MOT_DE_PASSE}, false,\n"
-        f"  {q(prenom)}, {q(nom)}, '{role}', 'ACTIF', {q(filiere)}, {entree or 'null'}, {sortie or 'null'}, {diplome}, {q(ville)}, {q(poste)}, {q(bio)}, '+221 77 000 00 00', {q(url_photo)}, {q(portfolio)}, now() - interval '{jours} days'\n"
+        f"  {q(prenom)}, {q(nom)}, '{role}', 'ACTIF', {filiere_sql(filiere)}, {entree or 'null'}, {sortie or 'null'}, {diplome}, {q(ville)}, {q(poste)}, {q(bio)}, '+221 77 000 00 00', {q(url_photo)}, {q(portfolio)}, now() - interval '{jours} days'\n"
         f"on conflict do nothing;")
 
 

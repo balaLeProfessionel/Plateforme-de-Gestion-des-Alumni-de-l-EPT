@@ -1,4 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
+import { fournirFilieres } from '../../core/services/filieres/filieres.testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
@@ -23,6 +24,7 @@ describe('Annuaire', () => {
     await TestBed.configureTestingModule({
       imports: [Annuaire],
       providers: [
+        fournirFilieres(),
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: ActivatedRoute, useValue: route },

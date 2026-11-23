@@ -1,0 +1,35 @@
+.candidature { display: grid; gap: 0.75rem; padding: 1rem; border: 1px solid var(--ept-primary); border-radius: 10px; background: var(--ept-primary-light); }
+h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1.05rem; }
+p { margin: 0; color: var(--ept-primary-dark); line-height: 1.5; }
+.etat-candidature { display: grid; gap: 0.4rem; &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+.etat-candidature i { margin-right: 0.35rem; color: var(--ept-primary); }
+.message { font-weight: 600; color: var(--ept-success-dark); }
+.lien { padding: 0; border: 0; background: none; color: var(--ept-primary); font: inherit; font-weight: 600; text-decoration: underline; overflow-wrap: anywhere; cursor: pointer;
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+details summary { color: var(--ept-primary); font-weight: 600; cursor: pointer; }
+.lettre { margin-top: 0.4rem; white-space: pre-line; overflow-wrap: anywhere; }
+.formulaire { display: grid; gap: 0.75rem; padding-top: 0.75rem; border-top: 1px solid color-mix(in srgb, var(--ept-primary) 15%, transparent); }
+.champ { display: grid; gap: 0.3rem; min-width: 0; }
+.champ label { color: var(--ept-primary-dark); font-size: 0.85rem; font-weight: 600; }
+.champ :is(input, textarea) {
+  width: 100%; padding: 0.5rem 0.7rem; border: 1px solid var(--ept-border-champ); border-radius: 8px; background: var(--ept-surface);
+  color: var(--ept-primary-dark); font: inherit;
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 1px; }
+}
+textarea { resize: vertical; line-height: 1.5; }
+.aide { color: var(--ept-text-secondary); font-size: 0.8rem; &.depasse { color: var(--ept-error-dark); font-weight: 600; } }
+.erreur { color: var(--ept-error-dark); font-weight: 600; }
+.confirmation { display: grid; gap: 0.5rem; padding: 0.75rem; border: 1px solid var(--ept-primary); border-radius: 8px; background: var(--ept-surface); }
+.boutons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.bouton {
+  justify-self: start; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: 2.6rem; padding: 0.5rem 1rem;
+  border: 1px solid var(--ept-primary); border-radius: 8px; background: var(--ept-surface); color: var(--ept-primary); font: inherit; font-size: 0.88rem; font-weight: 700; cursor: pointer;
+  &.principal { background: var(--ept-primary); color: var(--ept-text-on-dark); }
+  &:disabled { opacity: 0.6; cursor: wait; }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+}
+.suivi { justify-self: start; color: var(--ept-primary); font-size: 0.85rem; font-weight: 600;
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+.resultat { padding: 0.5rem 0.7rem; border-radius: 8px; background: var(--ept-surface); font-weight: 600;
+  &.retenue { background: var(--ept-success-light); color: var(--ept-success-dark); i { color: var(--ept-success-dark); } }
+  a { color: inherit; } }

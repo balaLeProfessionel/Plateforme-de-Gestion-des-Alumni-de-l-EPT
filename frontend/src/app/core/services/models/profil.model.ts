@@ -24,6 +24,8 @@ export interface Profil {
   telephone: string | null;
   dateNaissance: string | null; // format ISO yyyy-MM-dd
   filiere: string | null;
+  /** Code de la classe, pour un étudiant (voir LIBELLES_CLASSE). */
+  classe: string | null;
   anneeSortie: number | null;
   recherchePublique: boolean;
 }
@@ -41,6 +43,7 @@ export interface ProfilPublic {
   lienPortfolio: string | null;
   urlPhoto: string | null;
   filiere: string | null;
+  classe: string | null;
   anneeSortie: number | null;
   experiences: Experience[];
   formations: Formation[];

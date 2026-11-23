@@ -71,7 +71,7 @@ describe('TableauProgrammePage', () => {
   it('explique un programme encore sans mentorat', async () => {
     await repondre({ ...unTableau(), enAttente: 0, enCours: 0, terminees: 0, sansSuite: 0, progressionMoyenne: 0,
       etapes: unTableau().etapes.map((etape) => ({ ...etape, franchies: 0, suivis: 0 })), mentorats: [], mentors: [] });
-    expect(racine.textContent).toContain('aucun mentorat n’est encore en cours');
+    expect(racine.textContent).toContain('Aucun mentorat en cours');
     expect(racine.textContent).toContain('Aucune demande n’a encore été faite dans ce programme.');
     expect(racine.textContent).toContain('Aucun mentor volontaire pour l’instant.');
   });

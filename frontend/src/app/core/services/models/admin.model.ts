@@ -1,7 +1,10 @@
+import { Classe } from './classe.model';
+
 export type StatutCompte = 'EN_ATTENTE' | 'ACTIF' | 'SUSPENDU';
 export type RoleCompte = 'ETUDIANT' | 'ALUMNI' | 'PERSONNEL' | 'ORGANISME' | 'ADMIN' | 'VISITEUR';
 export type TypeActionAdmin = 'VALIDATION_INSCRIPTION' | 'REFUS_INSCRIPTION' | 'SUSPENSION' | 'REACTIVATION'
-  | 'CREATION_COMPTE' | 'CHANGEMENT_ROLE' | 'DIPLOMATION';
+  | 'CREATION_COMPTE' | 'CHANGEMENT_ROLE' | 'DIPLOMATION' | 'MODIFICATION_IDENTITE' | 'MODIFICATION_RESPONSABILITES'
+  | 'DESIGNATION_CHEF_DEPARTEMENT' | 'RETRAIT_CHEF_DEPARTEMENT' | 'MODIFICATION_CLASSE';
 
 /** Miroir de CompteAdminResponse : un compte vu par l’administration, coordonnées comprises. */
 export interface CompteAdmin {
@@ -13,6 +16,8 @@ export interface CompteAdmin {
   role: RoleCompte;
   statutCompte: StatutCompte;
   filiere: string | null;
+  /** Code de la classe (DIC1, MASTER2…), pour un étudiant. */
+  classe: Classe | null;
   anneeEntree: number | null;
   anneeSortie: number | null;
   nomOrganisme: string | null;
@@ -49,6 +54,9 @@ export interface CriteresComptes {
   sansAnneeEntree?: boolean;
   filiere?: string | null;
   sansFiliere?: boolean;
+  /** Classe (passage annuel) ; « sansClasse » cible les étudiants sans classe renseignée. */
+  classe?: Classe | null;
+  sansClasse?: boolean;
 }
 
 /** Rôles qu’on peut créer ou attribuer depuis l’administration (un organisme a sa propre inscription). */
@@ -63,6 +71,8 @@ export interface CreationCompte {
   filiere: string | null;
   anneeEntree: number | null;
   anneeSortie: number | null;
+  /** Pour un étudiant seulement. */
+  classe: Classe | null;
 }
 
 export interface CompteCree {
@@ -81,6 +91,8 @@ export interface LigneImport {
   filiere: string | null;
   anneeEntree: number | null;
   anneeSortie: number | null;
+  /** Texte du fichier (« DIC1 », « Master 2 »…), interprété par le serveur. */
+  classe: string | null;
 }
 
 export interface ResultatImport {
@@ -90,6 +102,18 @@ export interface ResultatImport {
 
 export interface ResultatDiplomation {
   diplomes: number;
+  ignores: { id: string; nom: string | null; raison: string }[];
+}
+
+/** Miroir de ClasseEtudianteResponse : étudiants d’une classe et d’une filière (null : non renseignée). */
+export interface ClasseEtudiante {
+  classe: Classe | null;
+  filiere: string | null;
+  nombre: number;
+}
+
+export interface ResultatPassage {
+  passes: number;
   ignores: { id: string; nom: string | null; raison: string }[];
 }
 
@@ -117,11 +141,38 @@ export function lienFicheCompte(compte: CompteAdmin): string[] | null {
   return ROLES_AVEC_PROFIL.includes(compte.role) ? ['/profil', compte.id] : null;
 }
 
-/** Miroir de PermissionAdmin : chaque rubrique de l’administration exige l’une d’elles. */
+/**
+ * Miroir de PermissionAdmin : chaque rubrique de l’administration exige l’une d’elles. Le tableau de bord est
+ * ouvert à tout administrateur ; les autres sont les responsabilités que le super administrateur coche.
+ */
 export type PermissionAdmin = 'CONSULTER_TABLEAU_DE_BORD' | 'GERER_COMPTES' | 'CONSULTER_JOURNAL'
-  | 'PUBLIER_ANNONCES' | 'MODERER_PUBLICATIONS' | 'GERER_COMMUNAUTES';
-export const TOUTES_LES_PERMISSIONS: readonly PermissionAdmin[] = ['CONSULTER_TABLEAU_DE_BORD', 'GERER_COMPTES', 'CONSULTER_JOURNAL',
-  'PUBLIER_ANNONCES', 'MODERER_PUBLICATIONS', 'GERER_COMMUNAUTES'];
+  | 'PUBLIER_ANNONCES' | 'MODERER_PUBLICATIONS' | 'GERER_STAGES'
+  | 'GERER_MOBILITES' | 'GERER_PARTENARIATS' | 'GERER_EVENEMENTS' | 'GERER_MENTORAT' | 'GERER_ADMINISTRATEURS' | 'GERER_COMMUNAUTES';
+export const TOUTES_LES_PERMISSIONS: readonly PermissionAdmin[] = [
+  'CONSULTER_TABLEAU_DE_BORD', 'GERER_COMPTES', 'CONSULTER_JOURNAL',
+  'PUBLIER_ANNONCES', 'MODERER_PUBLICATIONS', 'GERER_STAGES', 'GERER_MOBILITES',
+  'GERER_PARTENARIATS', 'GERER_EVENEMENTS', 'GERER_MENTORAT', 'GERER_COMMUNAUTES', 'GERER_ADMINISTRATEURS',
+];
+/** Permissions d’une session ouverte avant leur envoi par le serveur : celles que tout administrateur avait alors. */
+export const PERMISSIONS_ANCIENNE_SESSION: readonly PermissionAdmin[] = ['CONSULTER_TABLEAU_DE_BORD', 'GERER_COMPTES', 'CONSULTER_JOURNAL'];
+
+/** Responsabilités qu’un super administrateur attribue, dans l’ordre d’affichage. */
+export type Responsabilite = Exclude<PermissionAdmin, 'CONSULTER_TABLEAU_DE_BORD' | 'GERER_ADMINISTRATEURS'>;
+export const RESPONSABILITES: readonly { valeur: Responsabilite; libelle: string; description: string }[] = [
+  { valeur: 'GERER_COMPTES', libelle: 'Comptes', description: 'Inscriptions, création et import de comptes, diplômés, suspensions.' },
+  { valeur: 'GERER_STAGES', libelle: 'Stages', description: 'Offres, listes définitives, conventions et suivi des stages.' },
+  { valeur: 'GERER_MOBILITES', libelle: 'Mobilités', description: 'Demandes et conventions de mobilité.' },
+  { valeur: 'GERER_PARTENARIATS', libelle: 'Partenariats', description: 'Organismes partenaires et conventions cadres.' },
+  { valeur: 'GERER_EVENEMENTS', libelle: 'Événements', description: 'Événements officiels et gestion des événements des membres.' },
+  { valeur: 'GERER_MENTORAT', libelle: 'Mentorat', description: 'Programmes de mentorat.' },
+  { valeur: 'GERER_COMMUNAUTES', libelle: 'Communautés', description: 'Communautés de la messagerie : création, accès et modification.' },
+  { valeur: 'CONSULTER_JOURNAL', libelle: 'Journal', description: 'Lecture du journal des décisions.' },
+];
+export const LIBELLES_PERMISSION: Record<PermissionAdmin, string> = {
+  CONSULTER_TABLEAU_DE_BORD: 'Tableau de bord',
+  GERER_ADMINISTRATEURS: 'Super administrateur',
+  ...Object.fromEntries(RESPONSABILITES.map((r) => [r.valeur, r.libelle])) as Record<Responsabilite, string>,
+};
 
 export interface FicheCompte {
   compte: CompteAdmin;
@@ -135,6 +186,8 @@ export interface FicheCompte {
   doitChangerMotDePasse: boolean;
   nombreFormations: number;
   nombreExperiences: number;
+  /** Responsabilités enregistrées d’un compte d’administration (vide pour un membre). */
+  responsabilites: PermissionAdmin[];
 }
 
 export interface EntreeJournal {
@@ -150,7 +203,8 @@ export interface EntreeJournal {
 }
 
 export interface TableauDeBordAdmin {
-  aTraiter: { inscriptionsEnAttente: number; plusAncienneInscription: string | null };
+  /** superAdministrateursActifs : à 1, plus personne ne peut gérer les administrateurs si ce compte perd son accès. */
+  aTraiter: { inscriptionsEnAttente: number; plusAncienneInscription: string | null; superAdministrateursActifs: number };
   communaute: {
     comptesActifs: number;
     inscritsCeMois: number;
@@ -176,7 +230,7 @@ export const LIBELLES_ROLE_COMPTE: Record<RoleCompte, string> = {
   ALUMNI: 'Alumni',
   PERSONNEL: 'Personnel EPT',
   ORGANISME: 'Organisme',
-  ADMIN: 'Administration',
+  ADMIN: 'Administrateur',
   VISITEUR: 'Visiteur',
 };
 
@@ -188,10 +242,16 @@ export const LIBELLES_ACTION_ADMIN: Record<TypeActionAdmin, string> = {
   CREATION_COMPTE: 'Compte créé',
   CHANGEMENT_ROLE: 'Rôle changé',
   DIPLOMATION: 'Diplôme enregistré',
+  MODIFICATION_IDENTITE: 'Nom corrigé',
+  MODIFICATION_RESPONSABILITES: 'Responsabilités modifiées',
+  DESIGNATION_CHEF_DEPARTEMENT: 'Désigné chef de département',
+  RETRAIT_CHEF_DEPARTEMENT: 'N’est plus chef de département',
+  MODIFICATION_CLASSE: 'Classe modifiée',
 };
 
-/** Détails lisibles : les rôles techniques (« ALUMNI → ADMIN ») deviennent leurs libellés. */
+/** Détails lisibles : rôles et responsabilités techniques (« ALUMNI → ADMIN », « GERER_STAGES ») deviennent leurs libellés. */
 export function detailsLisibles(details: string | null): string | null {
   if (!details) return null;
-  return details.replace(/[A-Z_]{4,}/g, (role) => LIBELLES_ROLE_COMPTE[role as RoleCompte] ?? role);
+  return details.replace(/[A-Z_]{4,}/g, (code) =>
+    LIBELLES_ROLE_COMPTE[code as RoleCompte] ?? LIBELLES_PERMISSION[code as PermissionAdmin] ?? code);
 }

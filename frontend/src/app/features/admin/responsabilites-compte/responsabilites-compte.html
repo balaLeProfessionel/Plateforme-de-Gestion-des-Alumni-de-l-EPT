@@ -1,0 +1,49 @@
+<section class="carte" aria-labelledby="titre-responsabilites">
+  <h2 id="titre-responsabilites">Responsabilités d’administration</h2>
+  @if (erreur(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+
+  @if (edition()) {
+    <fieldset class="choix" (keydown.escape)="fermer()" [disabled]="enCours()">
+      <legend class="sr-only">Responsabilités de {{ prenom() || 'ce compte' }}</legend>
+      <label class="case super">
+        <input #premiereCase type="checkbox" [checked]="superCoche()" (change)="superCoche.set(!superCoche())"
+          aria-describedby="aide-super" />
+        <span><strong>Super administrateur</strong>
+          <small id="aide-super">Toutes les responsabilités, plus la création des administrateurs et le choix de leurs responsabilités.</small></span>
+      </label>
+      <div class="cases">
+        @for (r of liste; track r.valeur) {
+          <label class="case">
+            <input type="checkbox" [checked]="estCochee(r.valeur)" [disabled]="superCoche()" (change)="basculer(r.valeur)"
+              [attr.aria-describedby]="'aide-' + r.valeur" />
+            <span><strong>{{ r.libelle }}</strong><small [id]="'aide-' + r.valeur">{{ r.description }}</small></span>
+          </label>
+        }
+      </div>
+    </fieldset>
+    <div class="boutons">
+      <button type="button" class="bouton principal" [disabled]="enCours()" (click)="enregistrer()">Enregistrer les responsabilités</button>
+      <button type="button" class="bouton" (click)="fermer()">Annuler</button>
+    </div>
+  } @else {
+    @if (estSuper()) {
+      <p class="resume"><span class="pastille super">Super administrateur</span>
+        Toutes les responsabilités, et la gestion des administrateurs.</p>
+    } @else if (attribuees().length) {
+      <ul class="pastilles" aria-label="Responsabilités attribuées">
+        @for (r of attribuees(); track r.valeur) { <li class="pastille">{{ r.libelle }}</li> }
+      </ul>
+    } @else {
+      <p class="aide">Aucune responsabilité : ce compte ne voit que le tableau de bord.</p>
+    }
+    @if (peutModifier()) {
+      <div class="boutons">
+        <button #boutonModifier type="button" class="bouton" (click)="ouvrir()">
+          <i class="pi pi-sliders-h" aria-hidden="true"></i>Modifier les responsabilités
+        </button>
+      </div>
+    } @else if (estMoi()) {
+      <p class="aide">Un autre super administrateur peut modifier vos responsabilités.</p>
+    }
+  }
+</section>

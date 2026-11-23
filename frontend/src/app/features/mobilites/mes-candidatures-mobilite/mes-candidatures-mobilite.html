@@ -1,0 +1,61 @@
+<div class="page-stages">
+  <app-fil-ariane [etapes]="etapes" />
+  <header class="entete">
+    <h1>Mes candidatures de mobilité</h1>
+    <p class="introduction">L’école examine les dossiers après la date limite de chaque offre ; vous êtes prévenu de sa décision.</p>
+  </header>
+
+  <p class="statut-message" role="status">{{ message() }}</p>
+
+  @if (erreurChargement()) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Vos candidatures n’ont pas pu être chargées</h2>
+      <button type="button" class="bouton" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (candidatures(); as liste) {
+    @if (liste.length === 0) {
+      <div class="etat">
+        <i class="pi pi-send" aria-hidden="true"></i>
+        <h2>Aucune candidature pour l’instant</h2>
+        <p><a routerLink="/mobilites">Consultez les offres de mobilité</a> et déposez votre dossier depuis la page d’une offre.</p>
+      </div>
+    } @else {
+      <ul class="liste">
+        @for (c of liste; track c.id) {
+          <li class="ligne">
+            <div class="principal">
+              <h2><a [routerLink]="['/mobilites/offres', c.offre.id]">{{ c.offre.titre }}</a></h2>
+              <p class="details">{{ c.offre.organisme }} · {{ types[c.offre.type] }} · {{ periode(c.offre) }}</p>
+              <p class="details">
+                @if (c.statut === 'RETIREE') { Retirée le {{ c.retireeLe | date: 'd MMMM y' }} }
+                @else { Envoyée le {{ c.soumiseLe | date: 'd MMMM y' }} }
+                · candidatures {{ c.offre.candidaturesOuvertes ? 'jusqu’au' : 'closes le' }} {{ c.offre.dateLimite | date: 'd MMMM y' }}
+              </p>
+              <app-frise class="frise" [etapes]="frise(c)" [libelle]="'Avancement de la candidature ' + c.offre.titre" />
+              @if (c.statut === 'RETENUE' && c.offre.statut === 'LISTE_PUBLIEE') {
+                <div class="desister">
+                  @if (aDesister() === c.id) {
+                    <div role="group" [attr.aria-label]="'Se désister de ' + c.offre.titre">
+                      <p>Renoncer à cette mobilité ? Votre place sera proposée au candidat suivant ; ce choix est définitif.</p>
+                      @if (erreurDesistement(); as e) { <p class="erreur" role="alert">{{ e }}</p> }
+                      <div class="boutons">
+                        <button type="button" class="bouton principal" [disabled]="enCours()" (click)="desister(c)">Me désister</button>
+                        <button type="button" class="bouton" (click)="aDesister.set(null)">Ne rien changer</button>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="boutons"><button type="button" class="bouton" (click)="aDesister.set(c.id); erreurDesistement.set(null)">Me désister…</button></div>
+                  }
+                </div>
+              }
+            </div>
+            <span class="statut" [attr.data-statut]="c.statut">{{ statuts[c.statut] }}</span>
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement de vos candidatures"></div>
+  }
+</div>

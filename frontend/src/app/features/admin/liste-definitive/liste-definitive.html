@@ -1,0 +1,90 @@
+<app-page-admin titre="Liste définitive" [parents]="parents"
+  introduction="Placez sur la liste les étudiants qui effectueront ce stage, qu’ils aient postulé ou non et quel que soit l’avis de l’organisme.">
+
+  <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
+
+  @if (erreurChargement(); as erreur) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ erreur }}</p></div>
+  } @else if (liste(); as l) {
+    <section class="carte resume" aria-labelledby="titre-offre">
+      <h2 id="titre-offre"><a [routerLink]="['/stages/offres', l.offreId]">{{ l.titreOffre }}</a></h2>
+      <p class="details">{{ l.organisme }} · {{ statutsOffre[l.statutOffre] }} · candidatures jusqu’au {{ l.dateLimiteCandidature | date: 'd MMMM y' }}
+        @if (l.nombrePlaces) { · {{ l.nombrePlaces }} place{{ l.nombrePlaces > 1 ? 's' : '' }} indiquée{{ l.nombrePlaces > 1 ? 's' : '' }} }</p>
+      @if (publiee()) {
+        <p class="bandeau publie"><i class="pi pi-check-circle" aria-hidden="true"></i>
+          Liste publiée le {{ l.listePublieeLe | date: 'd MMMM y' }}. Un ajout est confirmé aussitôt, une annulation demande un motif ;
+          l’étudiant et l’organisme sont prévenus par e-mail.</p>
+      } @else if (modifiable()) {
+        <p class="bandeau"><i class="pi pi-eye-slash" aria-hidden="true"></i>
+          Brouillon : ni l’organisme ni les étudiants ne voient cette liste avant sa publication.
+          @if (candidaturesOuvertes()) { Les candidatures restent ouvertes jusqu’à la date limite, ou jusqu’à la publication. }</p>
+      } @else {
+        <p class="bandeau">Cette offre n’est pas publiée : sa liste ne se prépare pas.</p>
+      }
+    </section>
+
+    <section class="bloc" aria-labelledby="titre-liste">
+      <h2 id="titre-liste">Étudiants retenus <span class="compte">{{ retenus() }}</span></h2>
+      @if (l.lignes.length === 0) {
+        <p class="vide">Aucun étudiant pour l’instant. Ajoutez des candidats ci-dessous, ou recherchez un étudiant.</p>
+      } @else {
+        <ul class="lignes">
+          @for (ligne of l.lignes; track ligne.id) {
+            <li><app-ligne-liste [ligne]="ligne" (modifie)="miseAJour($event)" /></li>
+          }
+        </ul>
+      }
+
+      @if (modifiable() && !publiee()) {
+        <div class="publication">
+          @if (confirmationPublication()) {
+            <div class="zone" role="group" aria-label="Publier la liste définitive">
+              <p><strong>Publier la liste ?</strong>
+                {{ retenus() === 0 ? 'Aucun étudiant ne sera retenu.' : retenus() + ' stage' + (retenus() > 1 ? 's seront confirmés' : ' sera confirmé') + ' et chaque étudiant prévenu par e-mail.' }}
+                L’organisme reçoit la liste, les autres candidats voient « non retenue » et les candidatures sont closes.</p>
+              @if (erreurAction(); as erreur) { <p class="erreur-champ" role="alert">{{ erreur }}</p> }
+              <div class="boutons">
+                <button type="button" class="bouton principal" [disabled]="enCours() === 'publication'" (click)="publier()">Publier la liste</button>
+                <button type="button" class="bouton" (click)="confirmationPublication.set(false)">Ne rien changer</button>
+              </div>
+            </div>
+          } @else {
+            @if (sansDates() > 0) {
+              <p class="aide alerte" id="alerte-dates">{{ sansDates() }} étudiant{{ sansDates() > 1 ? 's n’ont' : ' n’a' }} pas encore de dates de stage : renseignez-les avant de publier (« Modifier les dates » sur chaque ligne).</p>
+            }
+            <button type="button" class="bouton principal" [disabled]="sansDates() > 0" [attr.aria-describedby]="sansDates() > 0 ? 'alerte-dates' : null"
+              (click)="confirmationPublication.set(true); erreurAction.set(null)">
+              <i class="pi pi-send" aria-hidden="true"></i>Publier la liste…</button>
+          }
+        </div>
+      }
+    </section>
+
+    @if (modifiable()) {
+      <section class="bloc" aria-labelledby="titre-candidats">
+        <h2 id="titre-candidats">Candidats hors de la liste <span class="compte">{{ candidatsHorsListe().length }}</span></h2>
+        @if (erreurAction() && !confirmationPublication()) { <p class="erreur-champ" role="alert">{{ erreurAction() }}</p> }
+        @if (candidatsHorsListe().length === 0) {
+          <p class="vide">Tous les candidats sont sur la liste, ou personne n’a postulé.</p>
+        } @else {
+          <ul class="candidats">
+            @for (c of candidatsHorsListe(); track c.id) {
+              <li>
+                <app-avatar-membre [urlPhoto]="c.etudiant.urlPhoto" [prenom]="c.etudiant.prenom" [nom]="c.etudiant.nom" roleMembre="ETUDIANT" [taille]="2" />
+                <span class="nom">{{ c.etudiant.prenom }} {{ c.etudiant.nom }}
+                  <small>{{ libelleClasse(c.etudiant.classe) ?? 'Classe non renseignée' }} · avis de l’organisme :
+                    <span [attr.data-avis]="c.avisOrganisme">{{ avis[c.avisOrganisme] }}</span></small></span>
+                <button type="button" class="bouton petit" [disabled]="enCours() === c.id" (click)="ajouterCandidat(c)"
+                  [attr.aria-label]="'Ajouter ' + c.etudiant.prenom + ' ' + c.etudiant.nom + ' à la liste'">Ajouter</button>
+              </li>
+            }
+          </ul>
+        }
+        <a class="lien" [routerLink]="['/admin/stages/offres', l.offreId, 'candidatures']">Lire les CV et lettres de motivation</a>
+        <app-ajout-etudiant [offreId]="l.offreId" [exclus]="surLaListe()" (ajoute)="miseAJour($event, 'L’étudiant est ajouté à la liste.')" />
+      </section>
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement de la liste"></div>
+  }
+</app-page-admin>

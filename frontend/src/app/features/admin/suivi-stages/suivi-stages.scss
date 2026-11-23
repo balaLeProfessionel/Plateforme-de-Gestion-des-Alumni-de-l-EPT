@@ -1,0 +1,19 @@
+@use 'responsive' as *;
+
+.filtres { display: grid; gap: 0.6rem; align-items: end; margin-bottom: 1rem;
+  @include a-partir-de(tablette) { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) auto; } }
+.case { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.6rem; color: var(--ept-primary-dark); font-size: 0.88rem; font-weight: 600; cursor: pointer;
+  input { width: 1.1rem; height: 1.1rem; accent-color: var(--ept-primary); }
+  input:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+.aide { margin: 0 0 0.5rem; }
+.organismes { display: grid; gap: 0.75rem; margin: 0; padding: 0; list-style: none;
+  @include a-partir-de(bureau) { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.organisme { display: flex; align-items: center; gap: 0.85rem; min-width: 0; padding: 0.9rem 1rem; border: 1px solid var(--ept-border); border-radius: 8px; background: var(--ept-surface);
+  .texte { display: grid; gap: 0.3rem; flex: 1; min-width: 0; }
+  h2 { margin: 0; font-size: 1rem; overflow-wrap: anywhere; a { color: var(--ept-primary-dark); text-decoration: none; } a:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+  .compte { margin: 0; color: var(--ept-text-secondary); font-size: 0.85rem; }
+  .a-jour { margin: 0; color: var(--ept-success-dark); font-size: 0.82rem; font-weight: 600; }
+  > .pi { flex: none; color: var(--ept-text-secondary); } }
+.organisme:hover { border-color: var(--ept-primary); }
+.pastilles { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0; padding: 0; list-style: none;
+  li { padding: 0.1rem 0.55rem; border-radius: 999px; background: var(--ept-gold-light); color: var(--ept-gold-dark); font-size: 0.75rem; font-weight: 700; } }

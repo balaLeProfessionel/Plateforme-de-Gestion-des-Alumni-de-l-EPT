@@ -1,0 +1,51 @@
+@let s = stage();
+<div class="entete-fiche">
+  <app-avatar-membre [urlPhoto]="s.etudiant.urlPhoto" [prenom]="s.etudiant.prenom" [nom]="s.etudiant.nom" roleMembre="ETUDIANT" [taille]="2.5" />
+  <div class="texte">
+    <!-- Niveau donné par la page : h2 sous le h1 d'une page de stage, h3 dans une section du suivi. -->
+    @if (niveauTitre() === 2) {
+      <h2><a [routerLink]="['/profil', s.etudiant.id]">{{ s.etudiant.prenom }} {{ s.etudiant.nom }}</a></h2>
+    } @else {
+      <h3><a [routerLink]="['/profil', s.etudiant.id]">{{ s.etudiant.prenom }} {{ s.etudiant.nom }}</a></h3>
+    }
+    <p class="details">{{ libelleClasse(s.etudiant.classe) ?? 'Classe non renseignée' }} · {{ s.etudiant.filiere ?? 'Filière non renseignée' }}
+      @if (s.email) { · <a [href]="'mailto:' + s.email">{{ s.email }}</a> }</p>
+  </div>
+  <span class="deroulement" [attr.data-deroulement]="s.deroulement">{{ deroulements[s.deroulement] }}</span>
+</div>
+<app-etapes-stage [convention]="s.convention" [evaluation]="s.evaluation" [stageValide]="s.stageValide" />
+@if (s.convention === 'COMPLETE') {
+  <p class="details"><button type="button" class="lien" (click)="telechargerConvention()">Télécharger la convention signée</button>
+    @if (erreurConvention()) { <span class="erreur" role="alert">Téléchargement impossible. Réessayez.</span> }</p>
+}
+<dl>
+  <dt>Stage</dt>
+  <dd><strong>@if (s.offreId) { <a [routerLink]="['/stages/offres', s.offreId]">{{ s.sujet }}</a> } @else { {{ s.sujet }} }</strong>
+    · {{ types[s.typeStage] }}@if (s.declare) { · trouvé par l’étudiant }</dd>
+  <dt>Organisme</dt><dd>{{ s.organisme }}@if (s.lieu) { · {{ s.lieu }} }</dd>
+  <dt>Dates</dt><dd>Du {{ s.dateDebut | date: 'd MMMM y' }} au {{ s.dateFin | date: 'd MMMM y' }}</dd>
+  <dt>Encadrant à l’EPT</dt>
+  <dd [class.vide]="!s.encadrant">@if (s.encadrant; as e) { {{ e.prenom }} {{ e.nom }} · <a [href]="'mailto:' + e.email">{{ e.email }}</a> } @else { Pas encore désigné }</dd>
+  <dt>Maître de stage</dt>
+  <dd [class.vide]="!s.tuteurNom">
+    @if (s.tuteurNom) {
+      {{ s.tuteurNom }}@if (s.tuteurFonction) { , {{ s.tuteurFonction }} }
+      @if (s.tuteurEmail) { · <a [href]="'mailto:' + s.tuteurEmail">{{ s.tuteurEmail }}</a> }
+      @if (s.tuteurTelephone) { · {{ s.tuteurTelephone }} }
+    } @else { Non renseigné }
+  </dd>
+  <dt>Rapport</dt>
+  <dd [class.vide]="s.rapport.etat === 'SANS_DATE'">
+    @switch (s.rapport.etat) {
+      @case ('SANS_DATE') { Date limite non fixée }
+      @case ('ATTENDU') { Attendu au plus tard le {{ s.rapport.dateLimite | date: 'd MMMM y' }} }
+      @case ('EN_RETARD') { Non déposé, date limite du {{ s.rapport.dateLimite | date: 'd MMMM y' }} dépassée }
+      @case ('DEPOSE') {
+        Déposé le {{ s.rapport.deposeLe | date: 'd MMMM y' }} ·
+        <button type="button" class="lien" (click)="telechargerRapport()">{{ s.rapport.nomFichier }}</button>
+        @if (erreurRapport()) { <span class="erreur" role="alert">Téléchargement impossible. Réessayez.</span> }
+      }
+    }
+  </dd>
+</dl>
+<ng-content />

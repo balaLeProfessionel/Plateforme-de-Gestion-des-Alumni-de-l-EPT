@@ -35,11 +35,12 @@ export class DetailEvenement {
   protected readonly erreurAction = signal<string | null>(null);
   protected readonly reponseEnCours = signal<ReponseParticipation | null>(null);
   protected readonly erreurReponse = signal<string | null>(null);
-  protected readonly estAdmin = computed(() => this.authService.utilisateur()?.role === 'ADMIN');
+  /** L’administration gère tous les événements avec la responsabilité Événements ; un membre, les siens (règle du serveur). */
   protected readonly peutGerer = computed(() => {
     const evenement = this.evenement();
     const utilisateur = this.authService.utilisateur();
-    return !!evenement && (!!utilisateur && (utilisateur.role === 'ADMIN' || utilisateur.id === evenement.organisateurId));
+    return !!evenement && !!utilisateur
+      && (this.authService.aPermission('GERER_EVENEMENTS') || utilisateur.id === evenement.organisateurId);
   });
 
   constructor() {

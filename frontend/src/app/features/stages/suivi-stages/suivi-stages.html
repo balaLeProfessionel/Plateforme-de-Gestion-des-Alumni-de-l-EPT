@@ -1,0 +1,57 @@
+<div class="page-stages">
+  <app-fil-ariane [etapes]="etapes" />
+  <header class="entete">
+    <h1>Suivi des stages</h1>
+    <p class="introduction">
+      @if (estOrganisme()) { Les étudiants de l’EPT que votre organisme accueille, avec leur encadrant à l’école. }
+      @else { Les stages que vous encadrez pour l’école et, si vous dirigez un département, ceux des étudiants de votre filière. }
+    </p>
+  </header>
+
+  @if (erreur()) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Le suivi n’a pas pu être chargé</h2>
+      <button type="button" class="bouton" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (suivis(); as s) {
+    @if (estOrganisme()) {
+      <section aria-labelledby="titre-accueillis">
+        <h2 id="titre-accueillis">Stagiaires accueillis <span class="compte">{{ s.accueillis.length }}</span></h2>
+        @for (stage of s.accueillis; track stage.id) {
+          <app-fiche-suivi [stage]="stage">
+            @if (stage.convention === 'COMPLETE' || stage.evaluation !== 'AUCUNE') {
+              <a class="lien-evaluation" [routerLink]="['/stages/suivi', stage.id, 'evaluation']"><i class="pi pi-file-edit" aria-hidden="true"></i>
+                {{ stage.evaluation === 'SOUMISE' ? 'Voir l’évaluation' : 'Évaluer le stagiaire' }}</a>
+            } @else { <p class="attente">L’évaluation s’ouvrira quand la convention sera complète.</p> }
+          </app-fiche-suivi>
+        }
+        @empty { <p class="vide">Aucun stagiaire pour l’instant. <a routerLink="/stages/mes-offres">Voir mes offres</a></p> }
+      </section>
+    } @else {
+      <section aria-labelledby="titre-encadres">
+        <h2 id="titre-encadres">Stages que j’encadre <span class="compte">{{ s.encadres.length }}</span></h2>
+        @for (stage of s.encadres; track stage.id) {
+          <app-fiche-suivi [stage]="stage">
+            @if (stage.evaluation === 'SOUMISE') {
+              <a class="lien-evaluation" [routerLink]="['/stages/suivi', stage.id, 'evaluation']"><i class="pi pi-eye" aria-hidden="true"></i>Voir l’évaluation</a> }
+          </app-fiche-suivi>
+        }
+        @empty { <p class="vide">L’école ne vous a désigné encadrant d’aucun stage pour l’instant.</p> }
+      </section>
+      @if (s.departement.length) {
+        <section aria-labelledby="titre-departement">
+          <h2 id="titre-departement">Stages de mon département <span class="compte">{{ s.departement.length }}</span></h2>
+          @for (stage of s.departement; track stage.id) {
+          <app-fiche-suivi [stage]="stage">
+            @if (stage.evaluation === 'SOUMISE') {
+              <a class="lien-evaluation" [routerLink]="['/stages/suivi', stage.id, 'evaluation']"><i class="pi pi-eye" aria-hidden="true"></i>Voir l’évaluation</a> }
+          </app-fiche-suivi>
+        }
+        </section>
+      }
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement du suivi"></div>
+  }
+</div>

@@ -50,7 +50,7 @@
             <p class="vide">Ce programme n’a pas encore d’étape.</p>
           } @else {
             @if (tableau.etapes[0].suivis === 0) {
-              <p class="aide">Les étapes se valident une fois le mentorat accepté : aucun mentorat n’est encore en cours.</p>
+              <p class="aide">Aucun mentorat en cours.</p>
             }
             <ol class="etapes">
               @for (etape of tableau.etapes; track etape.id) {
@@ -90,7 +90,6 @@
 
       <section class="bloc" aria-labelledby="titre-mentorats">
         <h2 id="titre-mentorats">Mentorats du programme</h2>
-        <p class="aide">Objectifs, séances et évaluations restent entre mentor et mentoré : seul l’avancement apparaît ici.</p>
         <div class="filtres" role="group" aria-label="Filtrer les mentorats par statut">
           @for (option of filtres(); track option.valeur) {
             <button type="button" [attr.aria-pressed]="filtre() === option.valeur" (click)="filtre.set(option.valeur)">

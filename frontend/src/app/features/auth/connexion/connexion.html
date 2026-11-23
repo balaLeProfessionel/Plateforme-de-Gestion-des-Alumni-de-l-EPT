@@ -8,7 +8,7 @@
     <div class="voile" aria-hidden="true"></div>
     <div class="marque-contenu">
       <div class="logo">
-        <img src="/images/logo-ept.png" alt="" />
+        <img src="/images/logo-reseau-alumni-160.png" alt="" />
         <span>EPT Alumni</span>
       </div>
       <p class="tagline">Le réseau des diplômés de l’EPT</p>
@@ -36,6 +36,7 @@
         <p-message severity="success" class="message-erreur">{{ messageSucces() }}</p-message>
       }
 
+      <form (submit)="seConnecter($event)" novalidate>
       <div class="champ">
         <label for="email">Email <span class="marque-obligatoire" aria-hidden="true">*</span></label>
         <input
@@ -78,13 +79,13 @@
       <a class="lien-mot-de-passe" routerLink="/mot-de-passe-oublie">Mot de passe oublié ?</a>
 
       <button
-        type="button"
-        (click)="seConnecter()"
+        type="submit"
         [disabled]="enChargement()"
         class="btn-ept"
         [attr.aria-busy]="enChargement()">
         {{ enChargement() ? 'Connexion…' : 'Se connecter' }}
       </button>
+      </form>
 
       <p class="lien-inscription">
         Pas encore de compte ? <a routerLink="/inscription">Créer un compte</a>
