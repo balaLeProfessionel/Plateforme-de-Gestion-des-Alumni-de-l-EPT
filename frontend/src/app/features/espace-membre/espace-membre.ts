@@ -22,6 +22,7 @@ import { MenuMobile, RubriqueAVenir, RubriqueMenu } from './menu-mobile/menu-mob
 import { NavigationMobile } from './navigation-mobile/navigation-mobile';
 import { ClocheNotifications } from './cloche-notifications/cloche-notifications';
 import { NotificationService } from '../../core/services/notifications/notifications';
+import { CompteurMessages } from '../../core/services/messagerie/compteur-messages';
 
 interface LienNavigation extends RubriqueMenu {
   exact: boolean;
@@ -52,6 +53,7 @@ export class EspaceMembre implements OnDestroy {
   protected readonly menuOuvert = signal(false);
   protected readonly sidebarOuverte = signal(!this.formatNavigation?.matches);
   protected readonly compteurMentorat = inject(CompteurDemandesMentorat);
+  private readonly compteurMessages = inject(CompteurMessages);
   private readonly mentorat = computed(() => participeAuMentorat(this.authService.utilisateur()?.role));
   private readonly compteurInscriptions = inject(CompteurInscriptions);
   private readonly compteurSignalements = inject(CompteurSignalements);
@@ -78,6 +80,10 @@ export class EspaceMembre implements OnDestroy {
       return [{ titre: 'Navigation', liens: [
         { libelle: 'Accueil', icone: 'pi-home', route: '/accueil', exact: true },
         { libelle: 'Annuaire', icone: 'pi-users', route: '/annuaire', exact: false },
+        {
+          libelle: 'Messagerie', icone: 'pi-comments', route: '/messagerie', exact: false,
+          compteur: this.compteurMessages.nombre(), libelleCompteur: 'messages non lus',
+        },
         { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
         { libelle: 'Articles', icone: 'pi-book', route: '/articles', exact: false },
         // Un compte organisme publie, écrit et organise, mais ne prend pas part au mentorat.
@@ -129,6 +135,8 @@ export class EspaceMembre implements OnDestroy {
           libelle: 'Signalements', icone: 'pi-flag', route: '/admin/signalements', exact: false,
           compteur: this.compteurSignalements.nombre(), libelleCompteur: 'signalements à examiner',
         }] : []),
+        ...(peut('GERER_COMMUNAUTES')
+          ? [{ libelle: 'Communautés', icone: 'pi-comments', route: '/admin/communautes', exact: false }] : []),
         { libelle: 'Événements', icone: 'pi-calendar', route: '/evenements', exact: false },
         ...(peut('GERER_MENTORAT')
           ? [{ libelle: 'Programmes de mentorat', icone: 'pi-sitemap', route: '/mentorat/gestion-programmes', exact: false }] : []),
@@ -156,6 +164,10 @@ export class EspaceMembre implements OnDestroy {
       .flatMap((groupe) => groupe.liens)
       .filter((lien) => !['/annuaire', '/evenements'].includes(lien.route))
     : [
+      {
+        libelle: 'Messagerie', icone: 'pi-comments', route: '/messagerie',
+        compteur: this.compteurMessages.nombre(), libelleCompteur: 'messages non lus',
+      },
       { libelle: 'Articles', icone: 'pi-book', route: '/articles' },
       ...(this.mentorat()
         ? [{ libelle: 'Mentorat', icone: 'pi-sitemap', route: '/mentorat', compteur: this.compteurMentorat.nombre() }] : []),
@@ -222,6 +234,7 @@ export class EspaceMembre implements OnDestroy {
     if (this.authService.aPermission('GERER_COMPTES')) this.compteurInscriptions.actualiser();
     if (this.authService.aPermission('MODERER_PUBLICATIONS')) this.compteurSignalements.actualiser();
     this.notificationService.demarrer();
+    if (!this.administration()) this.compteurMessages.demarrer();
     if (this.authService.aPermission('GERER_STAGES')) {
       this.compteurOffres.actualiser();
       this.compteurDeclarations.actualiser();
@@ -231,6 +244,7 @@ export class EspaceMembre implements OnDestroy {
   ngOnDestroy(): void {
     this.formatNavigation?.removeEventListener('change', this.changementFormatNavigation);
     this.notificationService.arreter();
+    this.compteurMessages.arreter();
   }
 
   protected seDeconnecter(): void {

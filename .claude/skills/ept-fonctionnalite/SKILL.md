@@ -75,5 +75,5 @@ Compte rendu en français, structuré :
 
 Ne jamais commiter ni pousser sans demande explicite. Commits : convention
 `type(portée): description` en français (`feat(mentorat): …`, `fix(styles): …`), un commit par
-lot cohérent, message terminé par la ligne `Co-Authored-By` fournie par l'environnement.
+lot cohérent, sans ligne `Co-Authored-By` ni autre attribution à la fin du message.
 Ne pas mélanger dans un commit des fichiers qu'une autre session est en train de modifier.

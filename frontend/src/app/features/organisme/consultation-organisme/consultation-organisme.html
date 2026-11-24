@@ -16,7 +16,8 @@
     </section>
   } @else if (organisme(); as fiche) {
     <app-entete-organisme [fiche]="fiche" [typeLibelle]="typeOrganisme()" [siteWeb]="siteWebValide()"
-      [estMaFiche]="estMaFiche()" [reseau]="reseau()" />
+      [estMaFiche]="estMaFiche()" [reseau]="reseau()" [peutEcrire]="peutEcrire()"
+      [ecritureEnCours]="ouvertureMessagerie()" [erreurEcriture]="erreurMessagerie()" (ecrire)="ecrire(fiche.id)" />
 
     <div class="grille-detail">
       <div class="colonne-principale">

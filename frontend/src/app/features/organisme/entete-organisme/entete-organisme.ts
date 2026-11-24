@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { booleanAttribute, Component, computed, inject, input } from '@angular/core';
+import { booleanAttribute, Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { OrganismePublic, ResumeReseauOrganisme } from '../../../core/services/models/organisme.model';
@@ -21,6 +21,11 @@ export class EnteteOrganisme {
   readonly siteWeb = input<string | null>(null);
   readonly estMaFiche = input(false, { transform: booleanAttribute });
   readonly reseau = input<ResumeReseauOrganisme | null>(null);
+  /** Bouton « Écrire » : sur la fiche d'un autre organisme, pour ouvrir une conversation avec lui. */
+  readonly peutEcrire = input(false, { transform: booleanAttribute });
+  readonly ecritureEnCours = input(false, { transform: booleanAttribute });
+  readonly erreurEcriture = input<string | null>(null);
+  readonly ecrire = output<void>();
 
   protected readonly localisation = computed(() =>
     [this.fiche().adresse, this.fiche().pays].filter((partie) => !!partie).join(', '));

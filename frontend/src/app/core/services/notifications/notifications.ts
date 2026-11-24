@@ -32,6 +32,12 @@ export class NotificationService {
     return this.http.post<void>('/api/notifications/lues', null).pipe(tap(() => this.nonLuesSignal.set(0)));
   }
 
+  /** Relit le compteur tout de suite, sans attendre la relève (une conversation lue éteint sa notification). */
+  actualiser(): void {
+    this.http.get<{ nombre: number }>('/api/notifications/non-lues').pipe(catchError(() => EMPTY))
+      .subscribe(({ nombre }) => this.nonLuesSignal.set(nombre));
+  }
+
   /** Relève immédiate puis régulière ; rien n’est demandé tant que l’onglet est caché. */
   demarrer(): void {
     if (this.releve) return;

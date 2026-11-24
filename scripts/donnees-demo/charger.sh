@@ -25,6 +25,9 @@ docker exec -i alumni-db psql -q -U root -d alumni_db < "$dossier/donnees-demo-t
 docker exec -i alumni-db psql -q -U root -d alumni_db < "$dossier/donnees-demo-publications.sql"
 # Articles de fond et leur publication porteuse dans le fil.
 docker exec -i alumni-db psql -q -U root -d alumni_db < "$dossier/donnees-demo-articles.sql"
+# Messagerie : communautés de ville, de secteur et d'intérêt, groupes privés, conversations directes. Le compte modèle
+# y est invité (quelques communautés, deux groupes, des messages non lus).
+docker exec -i alumni-db psql -q -U root -d alumni_db -v compte_modele="$compte_modele" < "$dossier/donnees-demo-messagerie.sql"
 # Images des publications et des événements (rejouable : seuls ceux sans image sont complétés).
 docker exec -i alumni-db psql -q -U root -d alumni_db < "$temporaire/photos-libres.sql"
 # Module stages : PDF de démonstration (CV, conventions signées, rapports) puis données (offres, stages…).

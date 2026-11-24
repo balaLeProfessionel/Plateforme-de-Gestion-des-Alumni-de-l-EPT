@@ -1,0 +1,88 @@
+<app-page-admin titre="Communautés"
+  introduction="Les communautés de la messagerie : celles de promo et de filière naissent des profils, celles de ville, de secteur ou d’intérêt se créent ici. L’administration n’en devient pas membre ; les alumni et les étudiants les rejoignent depuis « À découvrir ».">
+  <button actionsPage type="button" class="principal" (click)="ouvrir(null, $event)">
+    <i class="pi pi-plus" aria-hidden="true"></i> Nouvelle communauté
+  </button>
+
+  <form class="filtres" role="search" aria-label="Filtrer les communautés" (submit)="$event.preventDefault()">
+    <div class="recherche">
+      <label for="recherche-communautes-admin" class="sr-only">Rechercher une communauté par son nom</label>
+      <i class="pi pi-search" aria-hidden="true"></i>
+      <input id="recherche-communautes-admin" type="search" autocomplete="off" placeholder="Rechercher par nom"
+        [formField]="formulaire.recherche" />
+    </div>
+    <div class="categories" role="group" aria-label="Catégorie">
+      @for (filtre of filtres(); track filtre.valeur) {
+        <button type="button" class="categorie" [attr.data-categorie]="filtre.valeur || 'TOUTES'"
+          [attr.aria-pressed]="modele().categorie === filtre.valeur" (click)="choisirCategorie(filtre.valeur)">
+          @if (filtre.icone) { <i class="pi" [class]="filtre.icone" aria-hidden="true"></i> }
+          {{ filtre.libelle }}
+          @if (filtre.nombre !== null) { <span class="nombre">{{ filtre.nombre }}</span> }
+        </button>
+      }
+    </div>
+  </form>
+
+  <p class="sr-only" role="status">{{ annonceResultats() }}</p>
+  <p class="sr-only" role="status">{{ message() }}</p>
+  @if (message()) { <p class="message" aria-hidden="true"><i class="pi pi-check-circle"></i> {{ message() }}</p> }
+
+  <section aria-label="Liste des communautés" [attr.aria-busy]="chargement()">
+    @if (chargement() && !resultat()) {
+      <div class="squelette" aria-hidden="true"></div><div class="squelette" aria-hidden="true"></div>
+    } @else if (erreur(); as erreur) {
+      <div class="etat" role="alert">
+        <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+        <h2>{{ erreur }}</h2>
+        <button type="button" class="secondaire" (click)="reessayer()">Réessayer</button>
+      </div>
+    } @else if (communautes().length === 0) {
+      <div class="etat">
+        <i class="pi pi-comments" aria-hidden="true"></i>
+        @if (filtre()) {
+          <h2>Aucune communauté ne correspond</h2>
+          <p>{{ sansResultat() }}</p>
+          <button type="button" class="secondaire" (click)="effacerFiltres()">Effacer les filtres</button>
+        } @else {
+          <h2>Aucune communauté pour l’instant</h2>
+          <p>Celles des promos et des filières apparaîtront avec les premiers profils complétés.</p>
+        }
+      </div>
+    } @else {
+      <p id="resume-communautes" class="resume" tabindex="-1">{{ resume() }}</p>
+      <ul class="liste" [class.actualisation]="chargement()">
+        @for (communaute of communautes(); track communaute.id) {
+          <li class="ligne" [attr.data-communaute]="communaute.id">
+            <app-avatar-groupe [urlPhoto]="communaute.urlPhoto" [nom]="communaute.nom" [taille]="2.75"
+              [icone]="icones[communaute.categorie]" />
+            <div class="identite">
+              <h2 class="nom">{{ communaute.nom }}</h2>
+              <p class="details">
+                <span>{{ libelles[communaute.categorie] }}</span>
+                <span>{{ communaute.nombreMembres }} membre{{ communaute.nombreMembres > 1 ? 's' : '' }}</span>
+                <span>Active <time [attr.datetime]="communaute.derniereActivite">{{ communaute.derniereActivite | dateRelative }}</time></span>
+              </p>
+              @if (communaute.description) { <p class="description">{{ communaute.description }}</p> }
+            </div>
+            <span class="acces" [class.automatique]="communaute.automatique" [class.sur-demande]="communaute.acces === 'SUR_DEMANDE'">
+              @if (communaute.automatique) { <i class="pi pi-sync" aria-hidden="true"></i> Automatique }
+              @else if (communaute.acces === 'OUVERTE') { <i class="pi pi-lock-open" aria-hidden="true"></i> Ouverte }
+              @else { <i class="pi pi-lock" aria-hidden="true"></i> Sur demande }
+            </span>
+            <button type="button" class="secondaire modifier" [attr.aria-label]="'Modifier ' + communaute.nom"
+              (click)="ouvrir(communaute, $event)">
+              <i class="pi pi-pencil" aria-hidden="true"></i> Modifier
+            </button>
+          </li>
+        }
+      </ul>
+      <app-pagination-admin [page]="page()" [totalPages]="resultat()?.totalPages ?? 0" libelle="Pages des communautés"
+        (changer)="changerPage($event)" />
+    }
+  </section>
+
+  @if (edition(); as fenetre) {
+    <app-fenetre-communaute [communaute]="fenetre.communaute" (enregistree)="enregistree($event, fenetre.communaute === null)"
+      (fermee)="fermee()" />
+  }
+</app-page-admin>

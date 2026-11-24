@@ -1,0 +1,47 @@
+<dialog #dialogue class="fenetre" aria-labelledby="titre-bloques" (close)="fermee.emit()">
+  <header>
+    <h2 id="titre-bloques" tabindex="-1">Membres bloqués</h2>
+    <button type="button" class="fermer" aria-label="Fermer" (click)="dialogue.close()">
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </header>
+
+  <div class="corps" [attr.aria-busy]="chargement()">
+    <p class="consigne">
+      Vous ne pouvez plus vous écrire avec ces personnes. Elles n’en sont pas prévenues ; vos groupes communs ne changent pas.
+    </p>
+
+    @if (chargement()) {
+      <app-squelette-lignes libelle="Chargement des membres bloqués…" />
+    } @else if (erreurChargement(); as message) {
+      <div class="etat" role="alert">
+        <p>{{ message }}</p>
+        <button type="button" class="secondaire" (click)="charger()">Réessayer</button>
+      </div>
+    } @else if (membres().length === 0) {
+      <p class="etat vide">Vous n’avez bloqué personne.</p>
+    } @else {
+      <ul class="membres">
+        @for (membre of membres(); track membre.id) {
+          <li>
+            <app-avatar-membre [urlPhoto]="membre.urlPhoto" [prenom]="membre.prenom" [nom]="membre.nom"
+              [roleMembre]="membre.role" [taille]="2.5" />
+            <span class="identite">
+              <strong>{{ membre.nomAffiche }}</strong>
+              <small>Depuis le {{ membre.bloqueLe | date: 'd MMMM y' }}</small>
+            </span>
+            <button type="button" class="secondaire" [disabled]="enCours() !== null"
+              [attr.aria-label]="'Débloquer ' + membre.nomAffiche" (click)="debloquer(membre)">Débloquer</button>
+          </li>
+        }
+      </ul>
+    }
+
+    <p class="confirmation-texte" role="status">{{ confirmation() }}</p>
+    @if (erreur(); as message) { <p class="erreur" role="alert">{{ message }}</p> }
+  </div>
+
+  <footer>
+    <button type="button" class="secondaire" (click)="dialogue.close()">Fermer</button>
+  </footer>
+</dialog>

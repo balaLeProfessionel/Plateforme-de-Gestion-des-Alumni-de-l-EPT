@@ -1,0 +1,139 @@
+<section class="fil" aria-labelledby="titre-fil">
+  @if (erreur(); as erreur) {
+    <h2 id="titre-fil" class="sr-only">Conversation</h2>
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <p>{{ erreur }}</p>
+      <a class="lien-action" routerLink="/messagerie">Retour aux conversations</a>
+    </div>
+  } @else {
+    <header class="entete-fil">
+      <a class="retour" routerLink="/messagerie" aria-label="Retour aux conversations" title="Retour aux conversations">
+        <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      </a>
+      @if (detail(); as detail) {
+        <!-- Photo, nom et sous-titre forment une seule zone cliquable (infos du groupe ou profil) : le lien
+             ou le bouton du nom s’étend sur toute la zone (voir .identite dans le SCSS). -->
+        <div class="identite" [class.cliquable]="estGroupe() || lienProfil()">
+        @if (interlocuteur(); as autre) {
+          <app-avatar-membre [urlPhoto]="autre.urlPhoto" [prenom]="autre.prenom" [nom]="autre.nom"
+            [roleMembre]="autre.role" [taille]="2.5" />
+        } @else {
+          <app-avatar-groupe [urlPhoto]="detail.urlPhoto" [nom]="detail.nom" [taille]="2.5" [icone]="iconeCommunaute()" />
+        }
+        <div class="titre">
+          <h2 id="titre-fil">
+            @if (lienProfil(); as lien) {
+              <a [routerLink]="lien" title="Voir le profil">{{ detail.nom }}</a>
+            } @else if (estGroupe()) {
+              <!-- Comme dans les messageries : toucher le nom du groupe ouvre ses infos. -->
+              <button type="button" class="nom-groupe" aria-haspopup="dialog" [title]="libelleInfos()"
+                (click)="ouvrirDetails()">{{ detail.nom }}</button>
+            } @else {
+              {{ detail.nom }}
+            }
+          </h2>
+          <p>{{ sousTitre() }}</p>
+        </div>
+        </div>
+        <!-- Même menu « ⋯ » pour tous les types : détails d’un groupe, profil et blocage d’une conversation privée. -->
+        @if (estGroupe() || lienProfil() || ecriture() !== 'J_AI_BLOQUE') {
+          <div class="menu-actions" (focusout)="menuQuitte($event)" (keydown.escape)="fermerMenu(true)">
+            <button type="button" class="action-entete bouton-plus" aria-label="Plus d’actions" title="Plus d’actions"
+              aria-controls="menu-fil" [attr.aria-expanded]="menuOuvert()" (click)="menuOuvert.set(!menuOuvert())">
+              <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
+            </button>
+            @if (menuOuvert()) {
+              <ul id="menu-fil" class="menu">
+                @if (estGroupe()) {
+                  <li>
+                    <button type="button" aria-haspopup="dialog" (click)="ouvrirDetails()">
+                      <i class="pi pi-info-circle" aria-hidden="true"></i>{{ libelleInfos() }}
+                    </button>
+                  </li>
+                }
+                @if (detail.categorie) {
+                  <li>
+                    <a [routerLink]="['/messagerie', detail.id, 'membres']">
+                      <i class="pi pi-users" aria-hidden="true"></i>Annuaire des membres
+                    </a>
+                  </li>
+                }
+                @if (lienProfil(); as lien) {
+                  <li><a [routerLink]="lien"><i class="pi pi-user" aria-hidden="true"></i>Voir le profil</a></li>
+                }
+                @if (!estGroupe() && ecriture() !== 'J_AI_BLOQUE') {
+                  <li>
+                    <button type="button" class="danger" (click)="demanderBlocage()">
+                      <i class="pi pi-ban" aria-hidden="true"></i>Bloquer {{ detail.nom }}
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+      } @else {
+        <span class="squelette-entete" aria-hidden="true"></span>
+        <h2 id="titre-fil" class="sr-only">Chargement de la conversation</h2>
+      }
+    </header>
+
+    <div #zone class="zone-messages" role="log" aria-labelledby="titre-fil" tabindex="0" [attr.aria-busy]="chargement()"
+      (scroll)="suivreDefilement()">
+      @if (chargement()) {
+        <app-squelette-fil />
+      } @else {
+        @if (plusAnciens()) {
+          <div class="anciens">
+            <button type="button" class="lien-action" [disabled]="chargementAnciens()" (click)="chargerAnciens()">
+              @if (chargementAnciens()) { <i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement… } @else { Messages plus anciens }
+            </button>
+            @if (erreurAnciens()) { <p class="erreur" role="alert">{{ erreurAnciens() }}</p> }
+          </div>
+        }
+        <!-- Communauté où personne n’a encore écrit (au plus des arrivées) : on présente le lieu avant le fil. -->
+        @if (accueilCommunaute(); as communaute) {
+          <app-accueil-communaute [detail]="communaute" />
+        }
+        @if (lignes().length === 0) {
+          @if (!accueilCommunaute()) {
+          <div class="etat vide">
+            <i class="pi pi-comments" aria-hidden="true"></i>
+            <p>Aucun message pour l’instant. Écrivez le premier.</p>
+          </div>
+          }
+        } @else {
+          <ol class="messages">
+            @for (ligne of lignes(); track ligne.message.id) {
+              <li>
+                @if (ligne.jour) { <h3 class="jour"><span>{{ ligne.jour }}</span></h3> }
+                @if (ligne.message.systeme) {
+                  <app-message-systeme [message]="ligne.message" />
+                } @else {
+                  <app-message-fil [message]="ligne.message" [conversationId]="conversationId()" [groupe]="estGroupe()"
+                    [suite]="ligne.suite" [supprimes]="ligne.supprimes" (supprime)="messageSupprime($event)" />
+                }
+              </li>
+            }
+          </ol>
+        }
+      }
+    </div>
+
+    @if (!chargement()) {
+      @if (ecriture() === 'OUVERTE' && !confirmerBlocage()) {
+        <app-zone-saisie [conversationId]="conversationId()" (envoye)="messageEnvoye($event)"
+          (refuse)="envoiRefuse()" />
+      } @else if (interlocuteur(); as autre) {
+        <app-bandeau-blocage [interlocuteur]="autre" [ecriture]="ecriture()" [(confirmer)]="confirmerBlocage"
+          (modifie)="blocageModifie()" (annule)="blocageAnnule()" />
+      }
+    }
+  }
+</section>
+
+@if (estGroupe()) {
+  <app-details-groupe [detail]="detail()" [ouvert]="detailsOuverts()" (fermee)="detailsFermes()"
+    (modifie)="groupeModifie($event)" (quitte)="groupeQuitte()" />
+}
