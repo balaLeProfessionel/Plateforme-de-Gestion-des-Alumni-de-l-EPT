@@ -40,9 +40,18 @@ describe('ReinitialiserMotDePasse', () => {
     });
 
     component['reinitialiser']();
+    fixture.detectChanges();
 
-    expect(component['messageErreur']()).toBe('Les mots de passe ne correspondent pas.');
+    expect(fixture.nativeElement.querySelector('#confirmation-message')?.textContent)
+      .toContain('Les deux mots de passe ne correspondent pas');
     http.verify();
+  });
+
+  it('n affiche aucune erreur à l arrivée sur la page', () => {
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelectorAll('[aria-invalid="true"]').length).toBe(0);
+    expect(element.querySelectorAll('.champ-formulaire__message--erreur').length).toBe(0);
   });
 
   it('reinitialise puis retourne a la connexion', () => {
