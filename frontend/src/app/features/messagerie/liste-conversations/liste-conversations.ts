@@ -21,7 +21,8 @@ export const LONGUEUR_MAX_RECHERCHE_CONVERSATIONS = 100;
   selector: 'app-liste-conversations',
   imports: [FormField, RouterLink, RouterLinkActive, AvatarMembre, AvatarGroupe, DateRelativePipe],
   templateUrl: './liste-conversations.html',
-  styleUrl: './liste-conversations.scss',
+  // Styles partagés des lignes de la colonne de gauche, puis ceux du composant
+  styleUrls: ['../_lignes.scss', './liste-conversations.scss'],
 })
 export class ListeConversations {
   protected readonly etat = inject(EtatConversations);

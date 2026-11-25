@@ -47,12 +47,3 @@
   label { color: var(--ept-primary-dark); font-weight: 600; cursor: pointer; }
   small { grid-column: 2; color: var(--ept-text-secondary); }
 }
-.avertissement-image {
-  display: flex;
-  gap: 0.4rem;
-  color: var(--ept-gold-dark);
-  font-size: 0.85rem;
-  line-height: 1.45;
-
-  i { margin-top: 0.15rem; }
-}

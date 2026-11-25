@@ -113,16 +113,8 @@
       </div>
 
       @if (imageARecadrer(); as image) {
-        <dialog #dialogueRecadrage class="dialogue-recadrage" aria-labelledby="titre-recadrage-publication"
-          (cancel)="annulerRecadrage()">
-          <div class="entete-recadrage">
-            <h2 id="titre-recadrage-publication">Recadrer l’image</h2>
-            <button type="button" aria-label="Fermer le recadrage" (click)="annulerRecadrage()">×</button>
-          </div>
-          <app-recadreur-image [image]="image" [format]="formatPublication"
-            libelle="Recadrer l’image de la publication au format vertical 4:5"
-            (recadree)="appliquerRecadrage($event)" (annulee)="annulerRecadrage()" />
-        </dialog>
+        <app-dialogue-recadrage-publication [image]="image"
+          (recadree)="appliquerRecadrage($event)" (annulee)="annulerRecadrage()" />
       }
 
       @if (modele().lien.trim()) {

@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import {
-  afterNextRender, Component, computed, DestroyRef, effect, ElementRef, inject, Injector, input, linkedSignal, output, signal, viewChild,
+  afterNextRender, Component, computed, DestroyRef, ElementRef, inject, Injector, input, linkedSignal, output, signal, viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormField, form, maxLength, required } from '@angular/forms/signals';
@@ -10,7 +10,7 @@ import {
 } from '../../../core/services/publications/publication';
 import { chargerImagePourRecadrage } from '../../images/charger-image';
 import { FORMAT_PUBLICATION } from '../../images/recadrage';
-import { RecadreurImage } from '../../images/recadreur-image';
+import { DialogueRecadragePublication } from '../dialogue-recadrage-publication/dialogue-recadrage-publication';
 import { ApercuLienImporte } from './apercu-lien-importe';
 
 export const MESSAGES_SUCCES: Record<TypePublication, string> = {
@@ -32,7 +32,7 @@ const TITRES_FORMULAIRE: Record<TypePublicationRedigee, string> = {
  */
 @Component({
   selector: 'app-redaction-publication',
-  imports: [RecadreurImage, FormField, ApercuLienImporte],
+  imports: [DialogueRecadragePublication, FormField, ApercuLienImporte],
   templateUrl: './redaction-publication.html',
   styleUrls: ['./redaction-publication.scss', './redaction-plein-ecran.scss'],
 })
@@ -56,7 +56,6 @@ export class RedactionPublication {
   private readonly apercuLienService = inject(ApercuLienService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
-  private readonly dialogueRecadrage = viewChild<ElementRef<HTMLDialogElement>>('dialogueRecadrage');
   private readonly champImage = viewChild<ElementRef<HTMLInputElement>>('champImage');
   private readonly boutonRepositionner = viewChild<ElementRef<HTMLButtonElement>>('boutonRepositionner');
   private readonly champContenu = viewChild<ElementRef<HTMLTextAreaElement>>('champContenu');
@@ -74,7 +73,6 @@ export class RedactionPublication {
   protected readonly fichierSourceRecadrage = signal<File | undefined>(undefined);
   protected readonly imageOriginale = signal<File | undefined>(undefined);
   protected readonly chargementImage = signal(false);
-  protected readonly formatPublication = FORMAT_PUBLICATION;
   /** Import depuis un lien : l’aperçu lu, et ce que le membre doit savoir de ce qui a été repris. */
   protected readonly apercuLien = signal<ApercuLien | null>(null);
   protected readonly importEnCours = signal(false);
@@ -96,12 +94,6 @@ export class RedactionPublication {
   private sequenceChargementImage = 0;
 
   constructor() {
-    effect(() => {
-      const dialogue = this.dialogueRecadrage()?.nativeElement;
-      if (!dialogue) return;
-      if (this.imageARecadrer() && !dialogue.open) dialogue.showModal();
-      else if (!this.imageARecadrer() && dialogue.open) dialogue.close();
-    });
     this.destroyRef.onDestroy(() => { this.retirerImage(); this.fermerRecadrage(); });
     afterNextRender(() => { if (this.integree()) this.champContenu()?.nativeElement.focus(); });
   }

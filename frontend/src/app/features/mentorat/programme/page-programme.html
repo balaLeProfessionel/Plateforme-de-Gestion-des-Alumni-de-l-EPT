@@ -90,7 +90,7 @@
           } @else {
             <ul class="grille">
               @for (mentor of liste; track mentor.profilId) {
-                <li><app-carte-mentor [mentor]="mentor" [limiteAtteinte]="compteur.limiteAtteinte()" (demander)="mentorSollicite.set($event)" /></li>
+                <li><app-carte-mentor [mentor]="mentor" [limiteAtteinte]="compteur.limiteAtteinte()" [peutDemander]="participe()" (demander)="mentorSollicite.set($event)" /></li>
               }
             </ul>
             @if (totalMentors() > liste.length) {

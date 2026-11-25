@@ -1,0 +1,20 @@
+<nav class="pagination-evenements" aria-label="Pagination des événements">
+  <button type="button" (click)="changer.emit(page() - 1)"
+    [disabled]="page() === 0" aria-label="Page précédente">
+    <i class="pi pi-chevron-left" aria-hidden="true"></i>
+  </button>
+  @for (numero of pagesVisibles(); track $index) {
+    @if (numero === 'ellipsis') {
+      <span class="ellipse" aria-hidden="true">…</span>
+    } @else {
+      <button type="button" (click)="changer.emit(numero)"
+        [class.page-active]="numero === page()"
+        [attr.aria-current]="numero === page() ? 'page' : null"
+        [attr.aria-label]="'Page ' + (numero + 1)">{{ numero + 1 }}</button>
+    }
+  }
+  <button type="button" (click)="changer.emit(page() + 1)"
+    [disabled]="page() + 1 >= totalPages()" aria-label="Page suivante">
+    <i class="pi pi-chevron-right" aria-hidden="true"></i>
+  </button>
+</nav>

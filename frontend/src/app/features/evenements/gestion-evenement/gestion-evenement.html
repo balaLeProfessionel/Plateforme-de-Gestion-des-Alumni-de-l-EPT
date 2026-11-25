@@ -1,0 +1,25 @@
+<section class="gestion-evenement" aria-label="Gestion de l’événement">
+  <h2>Gestion</h2>
+  <div class="actions-gestion">
+    <a class="action-secondaire" [routerLink]="['/evenements', evenement().id, 'modifier']"
+      [state]="{ returnUrl: router.url, originReturnUrl: urlRetour() }">
+      <i class="pi pi-pencil" aria-hidden="true"></i>Modifier
+    </a>
+    @if (evenement().statut === 'PUBLIE') {
+      <button class="action-danger" type="button" (click)="demanderConfirmationAnnulation()">
+        <i class="pi pi-ban" aria-hidden="true"></i>Annuler l’événement
+      </button>
+    }
+  </div>
+  @if (confirmationAnnulation()) {
+    <div class="confirmation-detail" role="group" aria-label="Confirmation d’annulation">
+      <p>Annuler cet événement ? Il restera dans votre historique et ses réponses seront conservées.</p>
+      @if (erreurAction()) { <p class="erreur-action" role="alert">{{ erreurAction() }}</p> }
+      <button class="action-danger" type="button" [disabled]="actionEnCours()"
+        (click)="confirmerAnnulation()">{{ actionEnCours() ? 'Annulation…' : 'Confirmer l’annulation' }}</button>
+      <button class="action-secondaire" type="button" (click)="abandonnerAnnulation()">Garder l’événement</button>
+    </div>
+  } @else if (erreurAction()) {
+    <p class="erreur-action" role="alert">{{ erreurAction() }}</p>
+  }
+</section>

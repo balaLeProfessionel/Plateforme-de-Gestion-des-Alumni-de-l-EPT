@@ -30,6 +30,7 @@
       }
     </ul>
 
+    @if (peutDemander()) {
     <button type="button" class="demander" [disabled]="blocage() !== null"
       [attr.aria-label]="blocage() ? null : 'Demander un mentorat à ' + nomAffiche()"
       (click)="demander.emit(mentor())">
@@ -40,5 +41,6 @@
         Demander un mentorat
       }
     </button>
+    }
   </div>
 </article>

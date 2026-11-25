@@ -130,7 +130,7 @@
 .etat-centre { border-radius: var(--ept-radius); display: grid; justify-items: center; gap: 0.5rem; padding: 4rem 1rem; border: 1px dashed var(--ept-border); text-align: center; }
 .etat-centre h2, .etat-centre p { margin: 0; }
 .etat-centre p { color: var(--ept-text-secondary); }
-.etat-centre button { margin-top: 0.75rem; }
+.etat-centre button { min-height: 2.8rem; margin-top: 0.75rem; padding: 0.65rem 1.1rem; border: 1px solid var(--ept-primary); border-radius: var(--ept-radius-sm); background: var(--ept-primary); color: white; font: inherit; font-weight: 700; cursor: pointer; }
 
 .pagination { display: flex; align-items: center; justify-content: center; gap: 0.4rem; margin-top: 3rem; }
 .pagination button { flex: 0 0 auto; min-width: 2.75rem; height: 2.75rem; padding-inline: 0.5rem; }

@@ -10,12 +10,13 @@ import { ProgrammeService } from '../../../core/services/mentorat/programmes';
 import { CriteresMentors, Mentor, Page } from '../../../core/services/models/mentorat.model';
 import { CarteMentor } from '../carte-mentor/carte-mentor';
 import { DialogueDemande } from '../dialogue-demande/dialogue-demande';
+import { ProgrammesOuverts } from '../programmes-ouverts/programmes-ouverts';
 
 const DELAI_SAISIE_MS = 300;
 
 @Component({
   selector: 'app-trouver-mentor',
-  imports: [FormField, RouterLink, CarteMentor, DialogueDemande],
+  imports: [FormField, RouterLink, CarteMentor, DialogueDemande, ProgrammesOuverts],
   templateUrl: './trouver-mentor.html',
   styleUrl: './trouver-mentor.scss',
 })

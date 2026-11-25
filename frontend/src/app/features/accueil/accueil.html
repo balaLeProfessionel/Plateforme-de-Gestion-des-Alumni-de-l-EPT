@@ -18,6 +18,8 @@
         <div class="erreur" role="alert"><p>Impossible de charger le fil d’actualité.</p>
           <button type="button" (click)="charger()">Réessayer</button></div>
       } @else if (!cartes().length) { <p class="etat-vide">Il n’y a rien à afficher pour le moment.</p> }
+      <!-- Titre pour les lecteurs d'écran : les cartes portent des titres de niveau 3 -->
+      @if (cartes().length) { <h2 class="visuellement-cache">Publications et événements</h2> }
       <ul class="cartes">
         @for (carte of cartes(); track cle(carte)) {
           <li>
