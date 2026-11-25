@@ -1,7 +1,27 @@
-import Aura from '@primeuix/themes/aura';
-import { definePreset } from "@primeuix/themes";
+import { definePreset } from '@primeuix/themes';
+import base from '@primeuix/themes/aura/base';
+import badge from '@primeuix/themes/aura/badge';
+import button from '@primeuix/themes/aura/button';
+import inputtext from '@primeuix/themes/aura/inputtext';
+import menu from '@primeuix/themes/aura/menu';
+import message from '@primeuix/themes/aura/message';
+import ripple from '@primeuix/themes/aura/ripple';
+import sidebar from '@primeuix/themes/aura/sidebar';
+import skeleton from '@primeuix/themes/aura/skeleton';
+import tag from '@primeuix/themes/aura/tag';
+import tooltip from '@primeuix/themes/aura/tooltip';
 
-export const EptPreset = definePreset(Aura, {
+/**
+ * Aura limité aux composants PrimeNG de l'application (et à badge et ripple, qu'ils chargent) :
+ * le preset complet importe les jetons de plus de 90 composants et pèse 114 kB dans le bundle initial.
+ * Un nouveau composant PrimeNG doit être ajouté ici, sinon il s'affiche sans style.
+ */
+const AuraUtilise = {
+  ...base,
+  components: { badge, button, inputtext, menu, message, ripple, sidebar, skeleton, tag, tooltip }
+};
+
+export const EptPreset = definePreset(AuraUtilise, {
   // Mêmes rayons que la plateforme (--ept-radius-sm / --ept-radius / --ept-radius-lg) :
   // champs et boutons PrimeNG à 10px, panneaux à 14px, fenêtres à 18px.
   primitive: {
