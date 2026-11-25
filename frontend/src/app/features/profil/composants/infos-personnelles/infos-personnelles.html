@@ -7,6 +7,12 @@
     </p>
   </header>
 
+  @if (completeParCv()) {
+    <p class="note-cv">
+      Certains champs vides ont été remplis à partir de votre CV. Vérifiez-les avant d'enregistrer.
+    </p>
+  }
+
   <div class="ligne-double">
     <div class="champ">
       <label for="prenom">Prénom <span class="marque-obligatoire" aria-hidden="true">*</span></label>
@@ -45,6 +51,29 @@
       <input pInputText id="villeResidence" [formField]="formulaire.villeResidence"
              placeholder="Ex : Dakar" fluid />
     </div>
+  </div>
+
+  <div class="ligne-double">
+    <div class="champ">
+      <label for="paysResidence">Pays de résidence</label>
+      <select id="paysResidence" class="select-ept" [formField]="formulaire.paysResidence">
+        <option value="">Non renseigné</option>
+        @for (p of pays; track p.code) {
+          <option [value]="p.code">{{ p.nom }}</option>
+        }
+      </select>
+    </div>
+    @if (afficherSituation()) {
+      <div class="champ">
+        <label for="situationActuelle">Situation actuelle</label>
+        <select id="situationActuelle" class="select-ept" [formField]="formulaire.situationActuelle">
+          <option value="">Non renseignée</option>
+          @for (s of situations; track s.valeur) {
+            <option [value]="s.valeur">{{ s.libelle }}</option>
+          }
+        </select>
+      </div>
+    }
   </div>
 
   <div class="ligne-double">

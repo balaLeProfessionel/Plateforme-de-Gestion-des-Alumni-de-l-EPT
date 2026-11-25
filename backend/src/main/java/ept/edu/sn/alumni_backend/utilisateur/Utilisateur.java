@@ -88,7 +88,16 @@ public class Utilisateur {
     @Enumerated(EnumType.STRING)
     @Column(length = 12)
     private Classe classe;
-    
+
+    /** Situation déclarée par un alumni (en poste, en recherche…) ; facultative. */
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private SituationActuelle situationActuelle;
+
+    /** Pays de résidence, code ISO 3166-1 alpha-2 (SN, FR…) ; complète la ville. */
+    @Column(length = 2)
+    private String paysResidence;
+
     private LocalDateTime dateCreation;
 
     @OneToMany(mappedBy = "utilisateur")

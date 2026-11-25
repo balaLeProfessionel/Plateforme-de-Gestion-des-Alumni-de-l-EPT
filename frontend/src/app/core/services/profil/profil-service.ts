@@ -9,6 +9,7 @@ import {
   ProfilPublic,
   ProfilRequest
 } from '../models/profil.model';
+import { CompetencesLangues, CompetenceSuggestion } from '../models/competences.model';
 
 // Seul point de contact avec les endpoints de profil du backend.
 // Volontairement sans etat : il expose des Observable, ce sont les pages
@@ -80,5 +81,20 @@ export class ProfilService {
 
   supprimerFormation(id: string) {
     return this.http.delete<void>(`/api/formations/${id}`);
+  }
+
+  // ===== Competences et langues =====
+
+  lireCompetencesLangues() {
+    return this.http.get<CompetencesLangues>('/api/profil/me/competences-langues');
+  }
+
+  // Remplacement complet : la liste envoyee devient la liste du profil
+  remplacerCompetencesLangues(donnees: CompetencesLangues) {
+    return this.http.put<CompetencesLangues>('/api/profil/me/competences-langues', donnees);
+  }
+
+  suggererCompetences(texte: string) {
+    return this.http.get<CompetenceSuggestion[]>('/api/competences', { params: { q: texte } });
   }
 }

@@ -23,11 +23,21 @@ import { FenetreParcours, ParcoursOuvert } from './fenetre-parcours/fenetre-parc
 import { libelleClasse } from '../../../core/services/models/classe.model';
 import { ElementParcours, FriseParcours, parametresEtape } from './frise-parcours/frise-parcours';
 import { ParcoursVide } from './parcours-vide';
+import { nomPays } from '../../../core/data/pays';
+import { libelleNiveau, nomLangue } from '../../../core/data/langues';
+import { libelleSituation } from '../../../core/data/situations';
+import { CompetencesLangues } from '../../../core/services/models/competences.model';
+
+function estLarge(valeur: string): boolean {
+  return valeur.length > 18 || valeur.split(/\s+/).some((mot) => mot.length > 10);
+}
 
 interface Tuile {
   libelle: string;
   valeur: string;
   icone: string;
+  /** Valeur longue, ou mot trop long pour une tuile étroite (« Informatique ») : la tuile s'élargit. */
+  large: boolean;
 }
 
 interface ProfilAffiche extends ProfilPublic {
@@ -86,13 +96,19 @@ export class ConsultationProfil {
   protected readonly tuiles = computed((): Tuile[] => {
     const profil = this.profil();
     if (!profil) return [];
-    const tuiles: Tuile[] = [];
+    const tuiles: Omit<Tuile, 'large'>[] = [];
     if (profil.anneeSortie) tuiles.push({ libelle: 'Promotion', valeur: String(profil.anneeSortie), icone: 'pi-graduation-cap' });
     const classe = libelleClasse(profil.classe);
     if (classe) tuiles.push({ libelle: 'Classe', valeur: classe, icone: 'pi-users' });
     if (profil.filiere) tuiles.push({ libelle: 'Filière', valeur: profil.filiere, icone: 'pi-building-columns' });
-    if (profil.villeResidence) tuiles.push({ libelle: 'Ville', valeur: profil.villeResidence, icone: 'pi-map-marker' });
-    return tuiles;
+    const pays = nomPays(profil.paysResidence);
+    if (profil.villeResidence || pays) {
+      const lieu = [profil.villeResidence, pays].filter(Boolean).join(', ');
+      tuiles.push({ libelle: 'Lieu', valeur: lieu, icone: 'pi-map-marker' });
+    }
+    const situation = libelleSituation(profil.situationActuelle);
+    if (situation) tuiles.push({ libelle: 'Situation', valeur: situation, icone: 'pi-briefcase' });
+    return tuiles.map((tuile) => ({ ...tuile, large: estLarge(tuile.valeur) }));
   });
 
   /** Expériences et formations sur une seule frise, l’EPT mise en valeur. */
@@ -233,6 +249,9 @@ export class ConsultationProfil {
     return fin && fin !== debut ? `${debut} – ${fin}` : debut;
   }
 
+  protected readonly nomLangue = nomLangue;
+  protected readonly libelleNiveau = libelleNiveau;
+
   protected libelleContrat(type: Experience['typeContrat']): string {
     return ({
       CDI: 'CDI', CDD: 'CDD', STAGE: 'Stage', FREELANCE: 'Freelance',
@@ -251,12 +270,15 @@ export class ConsultationProfil {
     return forkJoin({
       profil: this.profilService.obtenirProfil(),
       experiences: this.profilService.listerExperiences(),
-      formations: this.profilService.listerFormations()
-    }).pipe(map(({ profil, experiences, formations }) => this.assembler(profil, experiences, formations)));
+      formations: this.profilService.listerFormations(),
+      competencesLangues: this.profilService.lireCompetencesLangues()
+    }).pipe(map(({ profil, experiences, formations, competencesLangues }) =>
+      this.assembler(profil, experiences, formations, competencesLangues)));
   }
 
-  private assembler(profil: Profil, experiences: Experience[], formations: Formation[]): ProfilAffiche {
-    return { ...profil, experiences, formations };
+  private assembler(profil: Profil, experiences: Experience[], formations: Formation[],
+                    { competences, langues }: CompetencesLangues): ProfilAffiche {
+    return { ...profil, experiences, formations, competences, langues };
   }
 
   private cleTri(item: Experience | Formation): string {

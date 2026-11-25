@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import ept.edu.sn.alumni_backend.competence.dto.CompetencesLanguesResponse;
+import ept.edu.sn.alumni_backend.utilisateur.SituationActuelle;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.dto.ProfilRequest;
 import ept.edu.sn.alumni_backend.utilisateur.dto.ProfilResponse;
@@ -33,14 +35,17 @@ public class ProfilMapper {
             u.getNomFiliere(),
             u.getClasse() == null ? null : u.getClasse().name(),
             u.getAnneeSortie(),
-            u.isRecherchePublique()
+            u.isRecherchePublique(),
+            u.getSituationActuelle() == null ? null : u.getSituationActuelle().name(),
+            u.getPaysResidence()
         );
     }
 
     public ProfilPublicResponse versResponsePublique(
             Utilisateur utilisateur,
             List<ExperienceResponse> experiences,
-            List<FormationResponse> formations) {
+            List<FormationResponse> formations,
+            CompetencesLanguesResponse competencesLangues) {
         return new ProfilPublicResponse(
             utilisateur.getId(),
             utilisateur.getNom(),
@@ -57,7 +62,11 @@ public class ProfilMapper {
             utilisateur.getClasse() == null ? null : utilisateur.getClasse().name(),
             utilisateur.getAnneeSortie(),
             experiences,
-            formations
+            formations,
+            utilisateur.getSituationActuelle() == null ? null : utilisateur.getSituationActuelle().name(),
+            utilisateur.getPaysResidence(),
+            competencesLangues.competences(),
+            competencesLangues.langues()
         );
     }
 
@@ -75,6 +84,13 @@ public class ProfilMapper {
             u.setDateNaissance(null);
         } else if (request.dateNaissance() != null) {
             u.setDateNaissance(request.dateNaissance());
+        }
+        if (request.situationActuelle() != null) {
+            u.setSituationActuelle(request.situationActuelle().isEmpty()
+                ? null : SituationActuelle.valueOf(request.situationActuelle()));
+        }
+        if (request.paysResidence() != null) {
+            u.setPaysResidence(request.paysResidence().isEmpty() ? null : request.paysResidence());
         }
     }
 }

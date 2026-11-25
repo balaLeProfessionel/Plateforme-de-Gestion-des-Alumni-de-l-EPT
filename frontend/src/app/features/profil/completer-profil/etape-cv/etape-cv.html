@@ -1,0 +1,90 @@
+<section class="depot" aria-labelledby="titre-depot">
+  <h2 id="titre-depot">Importer mon CV</h2>
+
+  @switch (etat()) {
+    @case ('analyse') {
+      <div class="analyse" role="status" aria-live="polite">
+        <span class="indicateur" aria-hidden="true"></span>
+        <p class="titre-analyse">Analyse de votre CV en cours…</p>
+        <p class="aide">Cela prend en général moins d’une minute. Vous relirez tout avant d’enregistrer.</p>
+        <button type="button" class="btn-discret" (click)="annuler()">Annuler</button>
+      </div>
+    }
+    @case ('echec') {
+      <div class="alerte alerte-erreur" role="alert">{{ erreur() }}</div>
+      <div class="actions">
+        <button type="button" class="btn-ept" (click)="recommencer()">Réessayer avec un autre fichier</button>
+        <button type="button" class="btn-discret" (click)="remplirSoiMeme()">Remplir mon profil moi-même</button>
+      </div>
+    }
+    @default {
+      @if (disponibilite(); as dispo) {
+        <p class="aide">
+          @if (dispo.imagesAcceptees) {
+            Déposez votre CV en PDF ou en Word, ou jusqu’à {{ dispo.fichiersMax }} images : photos de votre CV,
+            captures de votre profil LinkedIn…
+          } @else {
+            Déposez votre CV en PDF (avec du texte, pas une image scannée) ou en Word (.docx).
+          }
+        </p>
+        <p class="conseil">
+          Astuce LinkedIn : sur votre profil, « Plus » puis « Enregistrer au format PDF » donne un meilleur
+          résultat que des captures d’écran.
+        </p>
+
+        <div class="champ">
+          <label for="fichiers-cv">Votre CV</label>
+          <input id="fichiers-cv" type="file" [attr.accept]="formatsAcceptes()"
+                 [attr.multiple]="dispo.imagesAcceptees ? '' : null"
+                 [disabled]="etat() === 'envoi'"
+                 aria-describedby="limites-fichiers"
+                 (change)="choisir($event)" />
+          <small id="limites-fichiers" class="limites">10 Mo par fichier, 30 Mo en tout.</small>
+        </div>
+
+        @if (fichiers().length > 0) {
+          <ul class="fichiers" aria-label="Fichiers choisis">
+            @for (fichier of fichiers(); track $index; let i = $index) {
+              <li>
+                <span class="nom-fichier">{{ fichier.name }}</span>
+                <span class="taille">{{ tailleLisible(fichier) }}</span>
+                <button type="button" class="btn-retirer" (click)="retirer(i)"
+                        [disabled]="etat() === 'envoi'" [attr.aria-label]="'Retirer ' + fichier.name">
+                  Retirer
+                </button>
+              </li>
+            }
+          </ul>
+        }
+
+        <div class="consentement">
+          <input id="consentement-cv" type="checkbox" [checked]="consentement()"
+                 [disabled]="etat() === 'envoi'" (change)="majConsentement($event)" />
+          <label for="consentement-cv">
+            J’accepte que mon CV soit lu par {{ dispo.fournisseur }} pour pré-remplir mon profil.
+            Le fichier n’est pas conservé ; ce qui en est tiré est effacé dès ma relecture terminée,
+            ou au bout de 7 jours.
+          </label>
+        </div>
+
+        <div class="zone-message" aria-live="polite">
+          @if (erreur(); as texte) {
+            <div class="alerte alerte-erreur">{{ texte }}</div>
+          }
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn-ept" (click)="envoyer()" [disabled]="!peutEnvoyer()"
+                  [attr.aria-busy]="etat() === 'envoi'">
+            {{ etat() === 'envoi' ? 'Envoi…' : 'Analyser mon CV' }}
+          </button>
+          <a class="btn-discret" routerLink="/completer-profil/infos">Remplir moi-même</a>
+        </div>
+      } @else if (erreur(); as texte) {
+        <div class="alerte alerte-erreur" role="alert">{{ texte }}</div>
+      } @else {
+        <p class="aide" role="status">Chargement…</p>
+      }
+    }
+  }
+</section>

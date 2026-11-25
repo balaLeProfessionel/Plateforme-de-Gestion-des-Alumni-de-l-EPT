@@ -1,0 +1,16 @@
+<app-competences-langues
+  [valeur]="valeur()"
+  [prerempli]="prerempli()"
+  [suggestions]="suggestions()"
+  [enSauvegarde]="enSauvegarde()"
+  [message]="message()"
+  [afficherBouton]="false"
+  (rechercher)="rechercher($event)"
+  (sauvegarder)="enregistrer($event)" />
+
+<app-navigation-etapes
+  libellePrincipal="Enregistrer et terminer"
+  libelleSecondaire="Terminer sans enregistrer"
+  [enCours]="enSauvegarde()"
+  (principal)="terminer()"
+  (secondaire)="passer()" />

@@ -9,7 +9,9 @@
       </p>
     </header>
 
-    <app-indicateur-etapes [etape]="etape()" />
+    @if (etape() > 0) {
+      <app-indicateur-etapes [etape]="etape()" />
+    }
 
     <router-outlet />
 

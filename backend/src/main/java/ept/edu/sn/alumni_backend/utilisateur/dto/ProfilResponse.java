@@ -21,5 +21,7 @@ public record ProfilResponse(
     String filiere,
     String classe,
     Integer anneeSortie,
-    boolean recherchePublique
+    boolean recherchePublique,
+    String situationActuelle,
+    String paysResidence
 ) {}

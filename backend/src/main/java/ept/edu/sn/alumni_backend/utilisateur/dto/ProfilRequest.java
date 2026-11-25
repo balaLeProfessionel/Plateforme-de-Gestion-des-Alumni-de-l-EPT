@@ -32,5 +32,11 @@ public record ProfilRequest(
     String telephone,
     @Past(message = "La date de naissance doit être dans le passé")
     LocalDate dateNaissance,
-    Boolean effacerDateNaissance
+    Boolean effacerDateNaissance,
+    // Chaîne vide : efface la valeur
+    @Pattern(regexp = "^(EN_POSTE|EN_RECHERCHE|EN_ETUDES|ENTREPRENEUR|AUTRE)?$",
+        message = "Situation actuelle inconnue")
+    String situationActuelle,
+    @Pattern(regexp = "^([A-Z]{2})?$", message = "Le pays doit être un code ISO à deux lettres (SN, FR…)")
+    String paysResidence
 ) {}

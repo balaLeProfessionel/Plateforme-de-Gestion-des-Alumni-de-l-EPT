@@ -1,6 +1,7 @@
 import { Component, input, output, signal, viewChildren } from '@angular/core';
 import { Formation, FormationRequest } from '../../../../core/services/models/profil.model';
 import { OrganismeSuggestion } from '../../../../core/services/models/organisme.model';
+import { ParcoursPrerempli } from '../prerempli';
 import { EtatCartes, ETAT_CARTES_VIDE } from '../etat-carte.model';
 import { MessageSection } from '../message-section.model';
 import { DemandeEnregistrement, ModeEnregistrement } from '../demande-enregistrement.model';
@@ -26,6 +27,8 @@ export class ListeFormations {
   readonly formations = input<Formation[]>([]);
   // Cles des cartes vierges en cours de saisie
   readonly brouillons = input<string[]>([]);
+  // Valeurs initiales des brouillons venus d'un CV, par cle de brouillon
+  readonly preremplis = input<Readonly<Record<string, ParcoursPrerempli>>>({});
 
   readonly modeEnregistrement = input<ModeEnregistrement>('parCarte');
   readonly libelleEnregistrerTout = input('Enregistrer mes formations');

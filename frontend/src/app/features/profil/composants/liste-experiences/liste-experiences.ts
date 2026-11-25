@@ -1,6 +1,7 @@
 import { Component, input, output, signal, viewChildren } from '@angular/core';
 import { Experience, ExperienceRequest } from '../../../../core/services/models/profil.model';
 import { OrganismeSuggestion } from '../../../../core/services/models/organisme.model';
+import { ParcoursPrerempli } from '../prerempli';
 import { EtatCartes, ETAT_CARTES_VIDE } from '../etat-carte.model';
 import { MessageSection } from '../message-section.model';
 import {
@@ -29,6 +30,8 @@ export class ListeExperiences {
   readonly experiences = input<Experience[]>([]);
   // Cles des cartes vierges en cours de saisie
   readonly brouillons = input<string[]>([]);
+  // Valeurs initiales des brouillons venus d'un CV, par cle de brouillon
+  readonly preremplis = input<Readonly<Record<string, ParcoursPrerempli>>>({});
 
   readonly modeEnregistrement = input<ModeEnregistrement>('parCarte');
   readonly libelleEnregistrerTout = input('Enregistrer mes expériences');

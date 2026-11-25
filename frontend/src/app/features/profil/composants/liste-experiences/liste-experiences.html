@@ -34,6 +34,7 @@
 
     @for (cle of brouillons(); track cle) {
       <app-carte-experience
+        [prerempli]="preremplis()[cle] ?? null"
         [cle]="cle"
         [modeEnregistrement]="modeEnregistrement()"
         [suggestions]="suggestions()"

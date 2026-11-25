@@ -1,11 +1,13 @@
 <app-infos-personnelles
   [profil]="profil()"
+  [prerempli]="identiteCv()"
   [enSauvegarde]="enSauvegarde()"
   [message]="message()"
   (sauvegarder)="enregistrer($event)" />
 
 <app-navigation-etapes
-  libellePrincipal="Continuer"
+  [libellePrincipal]="libelleContinuer()"
   libelleSecondaire="Passer cette étape"
-  (principal)="etapeSuivante()"
+  [enCours]="enSauvegarde()"
+  (principal)="continuer()"
   (secondaire)="etapeSuivante()" />

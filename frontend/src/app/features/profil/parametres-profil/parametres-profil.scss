@@ -39,3 +39,6 @@ button:disabled { opacity: .6; cursor: wait; }
 .etat-erreur { padding: 2rem; text-align: center; border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: white; }
 @keyframes charge { to { background-position: -200% 0; } }
 @media (max-width: 640px) { .page-parametres { width: min(100% - 1rem, 960px); padding-top: 1rem; }.entete-page { display: grid; }.navigation-sections { position: static; display: grid; grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr)); width: 100%; box-sizing: border-box; }.carte-parametres { scroll-margin-top: 1rem; }.navigation-sections a { text-align: center; padding-inline: .5rem; }.gestion-photo { align-items: flex-start; }.champs-lecture-seule { grid-template-columns: minmax(0, 1fr); } }
+.liens-entete { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: flex-end; }
+.bloc-competences { margin-bottom: 1.25rem; scroll-margin-top: 5.5rem; }
+@media (max-width: 640px) { .liens-entete { justify-content: flex-start; } .bloc-competences { scroll-margin-top: 1rem; } }

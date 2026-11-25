@@ -39,6 +39,7 @@ export class ParcoursCompletion {
   private etapeCourante(): number {
     const brut = this.route.firstChild?.snapshot?.data?.['etape'];
     const etape = Number(brut);
-    return Number.isInteger(etape) && etape > 0 ? etape : ETAPE_PAR_DEFAUT;
+    // L'etape 0 (choix du mode de saisie, depot du CV) n'affiche pas d'indicateur
+    return brut !== undefined && Number.isInteger(etape) && etape >= 0 ? etape : ETAPE_PAR_DEFAUT;
   }
 }

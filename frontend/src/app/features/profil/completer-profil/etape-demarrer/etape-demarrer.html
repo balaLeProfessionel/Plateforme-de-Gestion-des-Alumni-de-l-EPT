@@ -1,0 +1,32 @@
+@if (pret()) {
+  <section class="choix" aria-labelledby="titre-choix">
+    <h2 id="titre-choix">Comment voulez-vous remplir votre profil ?</h2>
+
+    @if (brouillonEnAttente()) {
+      <div class="reprise" role="status">
+        <p>Votre CV a déjà été analysé : il reste à relire ce qui en a été tiré.</p>
+        <a class="btn-ept" routerLink="/completer-profil/infos">Reprendre la relecture</a>
+      </div>
+    }
+
+    <div class="cartes-choix">
+      <a class="carte-choix carte-recommandee" routerLink="/completer-profil/cv">
+        <span class="pastille">Le plus rapide</span>
+        <span class="titre-carte">Importer mon CV</span>
+        <span class="texte-carte">
+          Déposez votre CV (PDF, Word) ou des captures de votre profil LinkedIn : vos formations,
+          expériences, compétences et langues sont pré-remplies. Vous relisez tout avant d'enregistrer.
+        </span>
+      </a>
+
+      <button type="button" class="carte-choix" (click)="remplirSoiMeme()">
+        <span class="titre-carte">Remplir moi-même</span>
+        <span class="texte-carte">
+          Saisissez vos informations étape par étape. Vous pourrez importer un CV plus tard depuis vos paramètres.
+        </span>
+      </button>
+    </div>
+  </section>
+} @else {
+  <p class="chargement" role="status">Chargement…</p>
+}

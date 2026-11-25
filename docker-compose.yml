@@ -41,6 +41,15 @@ services:
       APP_PUBLICATION_CREATION_LIMIT_24H: ${APP_PUBLICATION_CREATION_LIMIT_24H:-10}
       APP_PREMIER_ADMIN_EMAIL: ${APP_PREMIER_ADMIN_EMAIL:-}
       APP_PREMIER_ADMIN_PASSWORD: ${APP_PREMIER_ADMIN_PASSWORD:-}
+      # Développement : le site est aussi ouvert via 127.0.0.1 (vérifications sans toucher à la session localhost)
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200}
+      # Import de CV : en développement, « demo » renvoie un profil fictif sans appeler d'IA
+      CV_IA_FOURNISSEUR: ${CV_IA_FOURNISSEUR:-demo}
+      CV_IA_MODELE: ${CV_IA_MODELE:-}
+      CV_IA_CLE: ${CV_IA_CLE:-}
+      CV_IA_URL: ${CV_IA_URL:-https://api.openai.com}
+      CV_IA_IMAGES: ${CV_IA_IMAGES:-true}
+      CV_IA_NOM_FOURNISSEUR: ${CV_IA_NOM_FOURNISSEUR:-}
     volumes:
       - profile_photos:/data/alumni/photos
     develop:

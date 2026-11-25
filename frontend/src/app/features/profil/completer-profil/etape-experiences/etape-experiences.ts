@@ -6,6 +6,8 @@ import { OrganismeService } from '../../../../core/services/organisme/organisme-
 import { Experience } from '../../../../core/services/models/profil.model';
 import { OrganismeSuggestion } from '../../../../core/services/models/organisme.model';
 import { MessageSection } from '../../composants/message-section.model';
+import { BrouillonCv } from '../../../../core/services/import-cv/brouillon-cv';
+import { experiencesPreremplies, ParcoursPrerempli } from '../../composants/prerempli';
 import { EtatCartes, ETAT_CARTES_VIDE } from '../../composants/etat-carte.model';
 import {
   DemandeExperience,
@@ -19,6 +21,7 @@ type Resultat =
   | { cle: string; id: string | null; ok: false; texte: string };
 
 // Etape 3 du parcours : les experiences professionnelles.
+// Ensuite : l'etape des competences et des langues.
 // Enregistrement global : l'utilisateur ajoute autant de cartes qu'il veut
 // et les enregistre en une fois.
 @Component({
@@ -32,6 +35,7 @@ export class EtapeExperiences {
   private readonly organismeService = inject(OrganismeService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly brouillonCv = inject(BrouillonCv);
 
   protected readonly experiences = signal<Experience[]>([]);
   // Cartes vierges en cours de saisie. Elles vivent ici et non dans la liste :
@@ -39,6 +43,8 @@ export class EtapeExperiences {
   protected readonly brouillons = signal<string[]>([]);
   protected readonly etat = signal<EtatCartes>(ETAT_CARTES_VIDE);
   private compteurBrouillons = 0;
+  // Cartes pre-remplies depuis un CV, par cle de brouillon
+  protected readonly preremplis = signal<Record<string, ParcoursPrerempli>>({});
 
   // L'autocomplete ne fait aucun appel : c'est ici qu'on interroge le service
   // et qu'on redescend les resultats par input.
@@ -140,7 +146,7 @@ export class EtapeExperiences {
   }
 
   protected terminer(): void {
-    this.router.navigate(['/accueil']);
+    this.router.navigate(['/completer-profil/competences']);
   }
 
   // On met a jour la liste a partir des reponses du serveur, sans la
@@ -199,6 +205,7 @@ export class EtapeExperiences {
     this.profilService.listerExperiences().subscribe({
       next: (liste) => {
         this.experiences.set(liste);
+        this.ajouterPreremplis(liste);
         this.mettreEnAvant(liste);
       },
       error: () =>
@@ -210,6 +217,22 @@ export class EtapeExperiences {
             texte: 'Impossible de charger vos expériences.'
           }
         })
+    });
+  }
+
+  // Les experiences lues dans un CV deviennent des cartes a relire, sauf celles
+  // deja presentes dans le profil.
+  private ajouterPreremplis(liste: Experience[]): void {
+    this.brouillonCv.charger().subscribe(() => {
+      const cartes = experiencesPreremplies(this.brouillonCv.profil(), liste);
+      if (cartes.length === 0) return;
+      const parCle: Record<string, ParcoursPrerempli> = {};
+      for (const carte of cartes) {
+        this.compteurBrouillons += 1;
+        parCle[`cv-experience-${this.compteurBrouillons}`] = carte;
+      }
+      this.preremplis.set(parCle);
+      this.brouillons.update((cles) => [...cles, ...Object.keys(parCle)]);
     });
   }
 

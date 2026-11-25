@@ -1,5 +1,16 @@
 <article class="carte">
 
+  @if (prerempli() && estNouvelle()) {
+    <p class="note-cv">
+      Pré-rempli depuis votre CV.
+      @if (prerempli()?.dateApproximative) {
+        Le CV ne donnait que l'année : vérifiez le mois.
+      } @else {
+        Vérifiez avant d'enregistrer.
+      }
+    </p>
+  }
+
   <div class="champ">
     <label [attr.for]="cle() + '-poste'">Poste occupé <span class="marque-obligatoire" aria-hidden="true">*</span></label>
     <input pInputText [id]="cle() + '-poste'" [formField]="formulaire.poste"

@@ -40,7 +40,8 @@ describe('InfosPersonnelles', () => {
     const sauvegarde = vi.spyOn(composant.sauvegarder, 'emit');
     composant['modele'].set({
       nom: ' Diop ', prenom: ' Awa ', bio: '', villeResidence: '', posteActuel: '',
-      lienLinkedin: '', lienPortfolio: '', telephone: '', dateNaissance: ''
+      lienLinkedin: '', lienPortfolio: '', telephone: '', dateNaissance: '',
+      paysResidence: '', situationActuelle: ''
     });
 
     composant['valider']();
@@ -48,8 +49,27 @@ describe('InfosPersonnelles', () => {
     expect(sauvegarde).toHaveBeenCalledWith({
       nom: 'Diop', prenom: 'Awa', bio: '', villeResidence: '', posteActuel: '',
       lienLinkedin: '', lienPortfolio: '', telephone: '', dateNaissance: undefined,
+      paysResidence: '', situationActuelle: '',
       effacerDateNaissance: true
     });
+  });
+
+  it('ne complète depuis le CV que les champs vides, une fois le profil reçu', () => {
+    const cv = {
+      prenom: 'Autre', nom: 'Personne', telephone: null, villeResidence: 'Dakar', paysResidence: 'SN',
+      posteActuel: null, bio: null, lienLinkedin: null, lienPortfolio: null
+    };
+    fixture.componentRef.setInput('profil', null);
+    fixture.componentRef.setInput('prerempli', cv);
+    fixture.detectChanges();
+    expect(composant['modele']().prenom).toBe('');
+
+    fixture.componentRef.setInput('profil', { ...profil(), villeResidence: null });
+    fixture.detectChanges();
+    expect(composant['modele']()).toEqual(expect.objectContaining({
+      prenom: 'Awa', nom: 'Diop', villeResidence: 'Dakar', paysResidence: 'SN', bio: 'Bio'
+    }));
+    expect(composant['completeParCv']()).toBe(true);
   });
 
   function profil(): Profil {
@@ -58,7 +78,8 @@ describe('InfosPersonnelles', () => {
       role: 'ALUMNI', statutCompte: 'ACTIF', bio: 'Bio', villeResidence: 'Thiès',
       posteActuel: 'Ingénieure', lienLinkedin: 'https://linkedin.com/in/awa',
       lienPortfolio: 'https://awa.example.com', urlPhoto: null, telephone: '770000000',
-      dateNaissance: '2000-01-01', filiere: 'GIT', classe: null, anneeSortie: 2024, recherchePublique: true
+      dateNaissance: '2000-01-01', filiere: 'GIT', classe: null, anneeSortie: 2024, recherchePublique: true,
+      situationActuelle: null, paysResidence: null
     };
   }
 });

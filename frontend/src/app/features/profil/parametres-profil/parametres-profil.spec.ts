@@ -7,6 +7,7 @@ import { AuthService } from '../../../core/services/auth/auth-service';
 import { Profil } from '../../../core/services/models/profil.model';
 import { OrganismeService } from '../../../core/services/organisme/organisme-service';
 import { ProfilService } from '../../../core/services/profil/profil-service';
+import { ImportCvService } from '../../../core/services/import-cv/import-cv-service';
 import { ParametresProfil } from './parametres-profil';
 
 describe('ParametresProfil', () => {
@@ -25,11 +26,13 @@ describe('ParametresProfil', () => {
   };
 
   beforeEach(async () => {
+    // writable : sans lui, la propriété devient en lecture seule et casse les tests
+    // suivants qui remplacent aussi ces fonctions (ordre d'exécution variable)
     Object.defineProperty(URL, 'createObjectURL', {
-      configurable: true, value: vi.fn().mockReturnValue('blob:apercu-photo')
+      configurable: true, writable: true, value: vi.fn().mockReturnValue('blob:apercu-photo')
     });
     Object.defineProperty(URL, 'revokeObjectURL', {
-      configurable: true, value: vi.fn()
+      configurable: true, writable: true, value: vi.fn()
     });
     profilService = {
       obtenirProfil: vi.fn().mockReturnValue(of(profil())),
@@ -38,7 +41,9 @@ describe('ParametresProfil', () => {
       modifierPhoto: vi.fn().mockReturnValue(of({ ...profil(), urlPhoto: '/api/photos/photo.png' })),
       supprimerPhoto: vi.fn().mockReturnValue(of({ ...profil(), urlPhoto: null })),
       listerExperiences: vi.fn().mockReturnValue(of([])),
-      listerFormations: vi.fn().mockReturnValue(of([]))
+      listerFormations: vi.fn().mockReturnValue(of([])),
+      lireCompetencesLangues: vi.fn().mockReturnValue(of({ competences: [], langues: [] })),
+      suggererCompetences: vi.fn().mockReturnValue(of([]))
     } as typeof profilService;
     authService = {
       synchroniserProfil: vi.fn(),
@@ -51,7 +56,8 @@ describe('ParametresProfil', () => {
         provideRouter([]),
         { provide: ProfilService, useValue: profilService },
         { provide: AuthService, useValue: authService },
-        { provide: OrganismeService, useValue: { rechercherOrganismes: vi.fn().mockReturnValue(of([])) } }
+        { provide: OrganismeService, useValue: { rechercherOrganismes: vi.fn().mockReturnValue(of([])) } },
+        { provide: ImportCvService, useValue: { disponibilite: vi.fn().mockReturnValue(of({ disponible: false })) } }
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(ParametresProfil);
@@ -63,7 +69,7 @@ describe('ParametresProfil', () => {
     const contenu = fixture.nativeElement.textContent;
     expect(fixture.nativeElement.querySelector('h1')?.textContent).toContain('Modifier mon profil');
     expect([...fixture.nativeElement.querySelectorAll('.navigation-sections a')].map((a: Element) => a.textContent?.trim()))
-      .toEqual(['Photo', 'Informations', 'Parcours', 'Confidentialité', 'Sécurité']);
+      .toEqual(['Photo', 'Informations', 'Parcours', 'Compétences', 'Confidentialité', 'Sécurité']);
     expect(fixture.nativeElement.querySelector('.voir-profil')?.getAttribute('href')).toBe('/profil');
     expect(contenu).toContain('Expériences professionnelles');
     expect(contenu).toContain('Formations');
@@ -229,7 +235,7 @@ describe('ParametresProfil', () => {
       .map((lien: HTMLAnchorElement) => lien.getAttribute('href'));
 
     expect(liens).toEqual([
-      '/profil/parametres#photo', '/profil/parametres#informations', '/profil/parametres#parcours', '/profil/parametres#confidentialite', '/profil/parametres#securite'
+      '/profil/parametres#photo', '/profil/parametres#informations', '/profil/parametres#parcours', '/profil/parametres#competences', '/profil/parametres#confidentialite', '/profil/parametres#securite'
     ]);
   });
 
@@ -238,7 +244,8 @@ describe('ParametresProfil', () => {
       id: 'membre-1', nom: 'Diop', prenom: 'Awa', email: 'awa.diop@example.com',
       role: 'ALUMNI', statutCompte: 'ACTIF', bio: null, villeResidence: 'Thiès',
       posteActuel: null, lienLinkedin: null, lienPortfolio: null, urlPhoto: null,
-      telephone: null, dateNaissance: null, filiere: 'GIT', classe: null, anneeSortie: 2024, recherchePublique: true
+      telephone: null, dateNaissance: null, filiere: 'GIT', classe: null, anneeSortie: 2024, recherchePublique: true,
+      situationActuelle: null, paysResidence: null
     };
   }
 });

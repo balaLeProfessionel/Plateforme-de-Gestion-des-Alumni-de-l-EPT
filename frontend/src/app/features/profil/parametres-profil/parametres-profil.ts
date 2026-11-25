@@ -16,6 +16,8 @@ import { RecadreurImage } from '../../../shared/images/recadreur-image';
 import { InfosPersonnelles } from '../composants/infos-personnelles/infos-personnelles';
 import { MessageSection } from '../composants/message-section.model';
 import { SectionParcours } from './section-parcours/section-parcours';
+import { SectionCompetences } from './section-competences/section-competences';
+import { ImportCvService } from '../../../core/services/import-cv/import-cv-service';
 
 interface ModeleMotDePasse {
   actuel: string;
@@ -25,7 +27,8 @@ interface ModeleMotDePasse {
 
 @Component({
   selector: 'app-parametres-profil',
-  imports: [FormField, InfosPersonnelles, InputText, RouterLink, BoutonRetour, AvatarMembre, RecadreurImage, SectionParcours],
+  imports: [FormField, InfosPersonnelles, InputText, RouterLink, BoutonRetour, AvatarMembre, RecadreurImage, SectionParcours,
+    SectionCompetences],
   templateUrl: './parametres-profil.html',
   styleUrl: './parametres-profil.scss'
 })
@@ -35,8 +38,11 @@ export class ParametresProfil implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
+  private readonly importCv = inject(ImportCvService);
 
   protected readonly libelleClasse = libelleClasse;
+  /** Lien « Mettre à jour depuis mon CV », seulement si un service d’analyse est configuré. */
+  protected readonly importCvDisponible = signal(false);
   protected readonly profil = signal<Profil | null>(null);
   protected readonly enChargement = signal(true);
   protected readonly erreurChargement = signal<string | null>(null);
@@ -78,6 +84,10 @@ export class ParametresProfil implements OnDestroy {
 
   constructor() {
     this.charger();
+    this.importCv.disponibilite().subscribe({
+      next: (disponibilite) => this.importCvDisponible.set(disponibilite.disponible),
+      error: () => this.importCvDisponible.set(false)
+    });
   }
 
   /**
