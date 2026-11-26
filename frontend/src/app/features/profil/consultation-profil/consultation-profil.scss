@@ -109,3 +109,11 @@ app-parcours-vide { margin-top: 1rem; }
 }
 
 @media (prefers-reduced-motion: reduce) { .squelette { animation: none; } }
+
+// Competences et langues
+.etiquettes { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0 0; padding: 0; list-style: none; }
+.etiquettes li { padding: 0.3rem 0.75rem; border-radius: 999px; background: var(--ept-primary-light); color: var(--ept-primary-dark); font-size: 0.88rem; overflow-wrap: anywhere; }
+.langues { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin: 1rem 0 0; padding: 0; list-style: none; }
+.langues li { display: flex; align-items: baseline; gap: 0.4rem; }
+.nom-langue { font-weight: 600; }
+.niveau-langue { color: var(--ept-text-secondary); font-size: 0.85rem; }

@@ -33,7 +33,8 @@ interface ActionMembre {
   selector: 'app-details-groupe',
   imports: [FormField, RouterLink, AvatarMembre, PhotoGroupe, SelectionMembres],
   templateUrl: './details-groupe.html',
-  styleUrl: './details-groupe.scss',
+  // Styles partagés des fenêtres de la messagerie, puis ceux du composant
+  styleUrls: ['../_fenetre.scss', './details-groupe.scss'],
 })
 export class DetailsGroupe {
   private readonly messagerie = inject(MessagerieService);

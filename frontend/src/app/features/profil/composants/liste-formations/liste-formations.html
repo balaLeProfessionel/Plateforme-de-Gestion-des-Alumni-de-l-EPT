@@ -17,6 +17,11 @@
 
   <div class="cartes">
     @for (formation of formations(); track formation.id) {
+      @if (replie() && ouverte() !== formation.id) {
+        <app-resume-parcours [cle]="formation.id" [titre]="formation.libelle" [organisme]="formation.nomOrganisme"
+          [etiquette]="libelleType(formation.typeFormation)" [debut]="formation.dateDebut" [fin]="formation.dateFin"
+          [message]="messagePour(formation.id)" (modifier)="repli.ouvrir(formation.id)" />
+      } @else {
       <app-carte-formation
         [attr.id]="'formation-' + formation.id"
         tabindex="-1"
@@ -30,10 +35,15 @@
         (rechercherOrganisme)="rechercherOrganisme.emit($event)"
         (enregistrer)="enregistrerCarte.emit({ id: formation.id, cle: formation.id, donnees: $event })"
         (supprimer)="supprimer.emit(formation.id)" />
+        @if (replie()) {
+          <button type="button" class="btn-fermer" (click)="repli.fermer(formation.id)">Fermer sans enregistrer</button>
+        }
+      }
     }
 
     @for (cle of brouillons(); track cle) {
       <app-carte-formation
+        [prerempli]="preremplis()[cle] ?? null"
         [cle]="cle"
         [modeEnregistrement]="modeEnregistrement()"
         [suggestions]="suggestions()"

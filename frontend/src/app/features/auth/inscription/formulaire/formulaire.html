@@ -1,121 +1,112 @@
-<div class="formulaire-page">
-  <div class="formulaire-carte">
+<app-cadre-inscription [etape]="numeroEtape()">
 
     <header class="entete">
-      <a routerLink="/inscription" class="retour">
-        <i class="pi pi-arrow-left"></i> Changer de profil
-      </a>
-      <h1>Inscription — {{ libelleRole() }}</h1>
-      <p class="sous-titre">Renseignez vos informations</p>
+      <div class="progression" role="img" [attr.aria-label]="'Étape ' + numeroEtape() + ' sur 4'">
+        @for (n of [1, 2, 3, 4]; track n) {
+          <span class="segment" [class.fait]="n <= numeroEtape()"></span>
+        }
+      </div>
+      <div class="ligne-etape">
+        <p class="etape">Étape {{ numeroEtape() }} sur 4</p>
+        <a routerLink="/inscription" class="profil">{{ libelleRole() }} · <span>changer</span></a>
+      </div>
+      <h1 #titre tabindex="-1">{{ etape() === 'identite' ? 'Faisons connaissance' : 'Votre compte' }}</h1>
+      <p class="sous-titre">
+        {{ etape() === 'identite'
+          ? (estOrganisme() ? 'Votre organisme et la personne à contacter.' : 'Ces informations apparaîtront sur votre profil.')
+          : 'Dernière étape avant la vérification de votre email.' }}
+      </p>
     </header>
 
-    @if (messageErreur()) {
-      <p-message severity="error" class="message-erreur">{{ messageErreur() }}</p-message>
-    }
-
-    <!-- Nom de l'organisme (organisme uniquement) -->
-    @if (estOrganisme()) {
-      <div class="champ">
-      <label for="nomOrganisme">Nom de l'organisme <span class="marque-obligatoire" aria-hidden="true">*</span></label>
-        <input pInputText id="nomOrganisme" [formField]="formulaire.nomOrganisme"
-              placeholder="Ex : Sonatel" fluid />
-        @if (formulaire.nomOrganisme().touched() && formulaire.nomOrganisme().invalid()) {
-          <small class="erreur-champ">{{ formulaire.nomOrganisme().errors()[0]?.message }}</small>
-        }
-      </div>
-    }
-
-    <!-- Nom et prénom (contact pour l'organisme, personne sinon) -->
-    <div class="ligne-double">
-      <div class="champ">
-        <label for="prenom">{{ estOrganisme() ? 'Prénom du contact' : 'Prénom' }} <span class="marque-obligatoire" aria-hidden="true">*</span></label>
-        <input pInputText id="prenom" [formField]="formulaire.prenom" fluid />
-        @if (formulaire.prenom().touched() && formulaire.prenom().invalid()) {
-          <small class="erreur-champ">{{ formulaire.prenom().errors()[0]?.message }}</small>
-        }
-      </div>
-      <div class="champ">
-        <label for="nom">{{ estOrganisme() ? 'Nom du contact' : 'Nom' }} <span class="marque-obligatoire" aria-hidden="true">*</span></label>
-        <input pInputText id="nom" [formField]="formulaire.nom" fluid />
-        @if (formulaire.nom().touched() && formulaire.nom().invalid()) {
-          <small class="erreur-champ">{{ formulaire.nom().errors()[0]?.message }}</small>
-        }
-      </div>
-    </div>
-
-    <!-- Email -->
-    <div class="champ">
-      <label for="email">Email <span class="marque-obligatoire" aria-hidden="true">*</span></label>
-      <input pInputText id="email" type="email" [formField]="formulaire.email"
-            placeholder="vous@exemple.com" autocomplete="email" fluid />
-      @if (formulaire.email().touched() && formulaire.email().invalid()) {
-        <small class="erreur-champ">{{ formulaire.email().errors()[0]?.message }}</small>
+    <div aria-live="polite">
+      @if (messageErreur(); as texte) {
+        <p class="alerte alerte-erreur" role="alert">{{ texte }}</p>
       }
     </div>
 
-    <!-- Filière (alumni et enseignant) -->
-    @if (montreFiliere()) {
-      <div class="champ">
-        <label for="filiere">Filière</label>
-        <select pInputText id="filiere" [formField]="formulaire.filiere" fluid>
-          <option value="" disabled>Choisissez votre filière</option>
-          @for (f of filieres(); track f.id) {
-            <option [value]="f.nom">{{ f.nom }}</option>
-          }
-        </select>
-      </div>
-    }
+    @if (etape() === 'identite') {
+      @if (estOrganisme()) {
+        <app-champ-formulaire #cOrg="champ" pour="nomOrganisme" libelle="Nom de l'organisme" icone="pi-building"
+                              [obligatoire]="true" [erreur]="erreur('nomOrganisme')" [valide]="valide('nomOrganisme')">
+          <input id="nomOrganisme" [formField]="formulaire.nomOrganisme" [attr.aria-invalid]="erreur('nomOrganisme') ? 'true' : null" placeholder="ex. Sonatel" autocomplete="organization"
+                 [attr.aria-describedby]="cOrg.idMessage" />
+        </app-champ-formulaire>
+      }
 
-    <!-- Année de sortie (alumni uniquement) -->
-    @if (montreAnnee()) {
-      <div class="champ">
-        <label for="annee">Année de sortie</label>
-        <input pInputText id="annee" type="number" [formField]="formulaire.anneeSortie"
-              placeholder="Ex : 2021" fluid />
+      <div class="ligne-double">
+        <app-champ-formulaire #cPrenom="champ" pour="prenom" [libelle]="estOrganisme() ? 'Prénom du contact' : 'Prénom'"
+                              icone="pi-user" [obligatoire]="true" [erreur]="erreur('prenom')" [valide]="valide('prenom')">
+          <input id="prenom" [formField]="formulaire.prenom" [attr.aria-invalid]="erreur('prenom') ? 'true' : null" autocomplete="given-name"
+                 [attr.aria-describedby]="cPrenom.idMessage" />
+        </app-champ-formulaire>
+        <app-champ-formulaire #cNom="champ" pour="nom" [libelle]="estOrganisme() ? 'Nom du contact' : 'Nom'" icone="pi-id-card"
+                              [obligatoire]="true" [erreur]="erreur('nom')" [valide]="valide('nom')">
+          <input id="nom" [formField]="formulaire.nom" [attr.aria-invalid]="erreur('nom') ? 'true' : null" autocomplete="family-name"
+                 [attr.aria-describedby]="cNom.idMessage" />
+        </app-champ-formulaire>
       </div>
-    }
 
-    <!-- Téléphone (optionnel, tous sauf visiteur) -->
-    @if (role() !== 'VISITEUR') {
-      <div class="champ">
-        <label for="telephone">Téléphone <span class="optionnel">(optionnel)</span></label>
-        <input pInputText id="telephone" [formField]="formulaire.telephone"
-              placeholder="77 123 45 67" fluid />
-      </div>
-    }
+      <app-champ-formulaire #cEmail="champ" pour="email" libelle="Email" icone="pi-envelope" [obligatoire]="true"
+                            [erreur]="erreur('email')" [valide]="valide('email')"
+                            aide="Un code de vérification y sera envoyé.">
+        <input id="email" type="email" [formField]="formulaire.email" [attr.aria-invalid]="erreur('email') ? 'true' : null" placeholder="ex. vous@exemple.com"
+               autocomplete="email" inputmode="email" [attr.aria-describedby]="cEmail.idMessage" />
+      </app-champ-formulaire>
 
-    <!-- Mot de passe -->
-    <div class="champ">
-        <label for="password">Mot de passe <span class="marque-obligatoire" aria-hidden="true">*</span></label>
-      <div class="champ-mdp">
-        <input pInputText id="password"
-              [type]="afficherMdp() ? 'text' : 'password'"
-              [formField]="formulaire.password"
-              placeholder="Au moins 8 caractères"
-              autocomplete="new-password" fluid />
-        <button type="button" class="bascule-mdp"
-                (click)="afficherMdp.set(!afficherMdp())"
-                [attr.aria-label]="afficherMdp() ? 'Masquer' : 'Afficher'">
-          <i class="pi" [class.pi-eye]="!afficherMdp()" [class.pi-eye-slash]="afficherMdp()"></i>
+      @if (montreTelephone()) {
+        <app-champ-formulaire #cTel="champ" pour="telephone" libelle="Téléphone · facultatif" icone="pi-phone"
+                              [erreur]="erreur('telephone')" [valide]="valide('telephone')">
+          <input id="telephone" type="tel" [formField]="formulaire.telephone" [attr.aria-invalid]="erreur('telephone') ? 'true' : null" placeholder="ex. 77 123 45 67"
+                 autocomplete="tel" inputmode="tel" [attr.aria-describedby]="cTel.idMessage" />
+        </app-champ-formulaire>
+      }
+
+      <button type="button" class="btn-ept" (click)="continuer()">Continuer</button>
+    } @else {
+      @if (montreFiliere()) {
+        <app-champ-formulaire pour="filiere" [libelle]="montreAnnee() ? 'Filière suivie' : 'Filière'" icone="pi-sitemap">
+          <select id="filiere" [formField]="formulaire.filiere" [attr.aria-invalid]="erreur('filiere') ? 'true' : null">
+            <option value="">Choisissez une filière</option>
+            @for (f of filieres(); track f.id) {
+              <option [value]="f.nom">{{ f.nom }}</option>
+            }
+          </select>
+          <i suffixe class="pi pi-chevron-down chevron" aria-hidden="true"></i>
+        </app-champ-formulaire>
+      }
+
+      @if (montreAnnee()) {
+        <app-champ-formulaire #cAnnee="champ" pour="anneeSortie" libelle="Année de sortie" icone="pi-calendar"
+                              [erreur]="erreur('anneeSortie')" aide="Pour vous retrouver avec votre promotion.">
+          <input id="anneeSortie" [formField]="formulaire.anneeSortie" [attr.aria-invalid]="erreur('anneeSortie') ? 'true' : null" placeholder="ex. 2021" inputmode="numeric"
+                 [attr.aria-describedby]="cAnnee.idMessage" />
+        </app-champ-formulaire>
+      }
+
+      <app-champ-formulaire #cMdp="champ" pour="password" libelle="Mot de passe" icone="pi-lock" [obligatoire]="true"
+                            [erreur]="erreur('password')" [aide]="aideMotDePasse()">
+        <input id="password" [type]="afficherMdp() ? 'text' : 'password'" [formField]="formulaire.password" [attr.aria-invalid]="erreur('password') ? 'true' : null"
+               autocomplete="new-password" [attr.aria-describedby]="cMdp.idMessage" />
+        <button suffixe type="button" (click)="afficherMdp.set(!afficherMdp())"
+                [attr.aria-label]="afficherMdp() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+                [attr.aria-pressed]="afficherMdp()">
+          <i class="pi" [class.pi-eye]="!afficherMdp()" [class.pi-eye-slash]="afficherMdp()" aria-hidden="true"></i>
+        </button>
+      </app-champ-formulaire>
+
+      <div class="actions">
+        <button type="button" class="btn-retour" (click)="retour()">
+          <i class="pi pi-arrow-left" aria-hidden="true"></i>Retour
+        </button>
+        <button type="button" (click)="sInscrire()" [disabled]="enChargement()" class="btn-ept"
+                [attr.aria-busy]="enChargement()">
+          {{ enChargement() ? 'Création…' : 'Créer mon compte' }}
         </button>
       </div>
-      @if (formulaire.password().touched() && formulaire.password().invalid()) {
-        <small class="erreur-champ">{{ formulaire.password().errors()[0]?.message }}</small>
-      }
-    </div>
-
-    <button
-      type="button"
-      (click)="sInscrire()"
-      [disabled]="enChargement()"
-      class="btn-ept"
-      [attr.aria-busy]="enChargement()">
-      {{ enChargement() ? 'Création…' : 'Créer mon compte' }}
-    </button>
+    }
 
     <p class="lien-connexion">
       Déjà un compte ? <a routerLink="/connexion">Se connecter</a>
     </p>
 
-  </div>
-</div>
+</app-cadre-inscription>

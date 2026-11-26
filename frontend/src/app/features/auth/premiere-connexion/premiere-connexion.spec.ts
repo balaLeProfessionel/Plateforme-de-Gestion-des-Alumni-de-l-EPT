@@ -90,7 +90,7 @@ describe('PremiereConnexion', () => {
     const requete = http.expectOne('/api/auth/changer-mot-de-passe-initial');
     expect(requete.request.body).toEqual({ nouveauMotDePasse: 'NouveauPass2026!', refreshToken: 'ancien-refresh-token' });
     requete.flush(reponse('ETUDIANT', 'Awa', 'Diop'));
-    expect(navigation).toHaveBeenCalledWith(['/completer-profil/infos']);
+    expect(navigation).toHaveBeenCalledWith(['/completer-profil']);
   });
 
   it('demande au premier administrateur son vrai nom, sans préremplir le nom de service', async () => {

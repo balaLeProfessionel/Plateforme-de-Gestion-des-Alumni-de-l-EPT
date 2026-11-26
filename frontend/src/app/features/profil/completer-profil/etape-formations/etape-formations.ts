@@ -6,6 +6,8 @@ import { OrganismeService } from '../../../../core/services/organisme/organisme-
 import { Formation } from '../../../../core/services/models/profil.model';
 import { OrganismeSuggestion } from '../../../../core/services/models/organisme.model';
 import { MessageSection } from '../../composants/message-section.model';
+import { BrouillonCv } from '../../../../core/services/import-cv/brouillon-cv';
+import { formationsPreremplies, ParcoursPrerempli } from '../../composants/prerempli';
 import { EtatCartes, ETAT_CARTES_VIDE } from '../../composants/etat-carte.model';
 import {
   DemandeFormation,
@@ -32,6 +34,7 @@ export class EtapeFormations {
   private readonly organismeService = inject(OrganismeService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly brouillonCv = inject(BrouillonCv);
 
   protected readonly formations = signal<Formation[]>([]);
   // Cartes vierges en cours de saisie. Elles vivent ici et non dans la liste :
@@ -39,6 +42,8 @@ export class EtapeFormations {
   protected readonly brouillons = signal<string[]>([]);
   protected readonly etat = signal<EtatCartes>(ETAT_CARTES_VIDE);
   private compteurBrouillons = 0;
+  // Cartes pre-remplies depuis un CV, par cle de brouillon
+  protected readonly preremplis = signal<Record<string, ParcoursPrerempli>>({});
 
   // L'autocomplete ne fait aucun appel : c'est ici qu'on interroge le service
   // et qu'on redescend les resultats par input.
@@ -199,6 +204,7 @@ export class EtapeFormations {
     this.profilService.listerFormations().subscribe({
       next: (liste) => {
         this.formations.set(liste);
+        this.ajouterPreremplis(liste);
         this.mettreEnAvant(liste);
       },
       error: () =>
@@ -210,6 +216,22 @@ export class EtapeFormations {
             texte: 'Impossible de charger vos formations.'
           }
         })
+    });
+  }
+
+  // Les formations lues dans un CV deviennent des cartes a relire, sauf celles
+  // deja presentes dans le profil.
+  private ajouterPreremplis(liste: Formation[]): void {
+    this.brouillonCv.charger().subscribe(() => {
+      const cartes = formationsPreremplies(this.brouillonCv.profil(), liste);
+      if (cartes.length === 0) return;
+      const parCle: Record<string, ParcoursPrerempli> = {};
+      for (const carte of cartes) {
+        this.compteurBrouillons += 1;
+        parCle[`cv-formation-${this.compteurBrouillons}`] = carte;
+      }
+      this.preremplis.set(parCle);
+      this.brouillons.update((cles) => [...cles, ...Object.keys(parCle)]);
     });
   }
 

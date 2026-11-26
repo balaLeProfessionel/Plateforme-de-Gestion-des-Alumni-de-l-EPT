@@ -60,6 +60,11 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
             // Le rafraîchissement a échoué : session vraiment expirée, on déconnecte
             rafraichissementEnCours = false;
             authService.logout();
+            // Route publique (inscription, vitrine) : la page reste utilisable sans compte,
+            // on rejoue la requête sans jeton au lieu d'envoyer vers la connexion
+            if (req.url.includes('/api/public/')) {
+              return next(req);
+            }
             router.navigate(['/connexion']);
             return throwError(() => erreurRefresh);
           })

@@ -42,6 +42,9 @@ import ept.edu.sn.alumni_backend.evenement.exception.CapaciteEvenementAtteinteEx
 import ept.edu.sn.alumni_backend.evenement.exception.LimiteCreationEvenementAtteinteException;
 import ept.edu.sn.alumni_backend.mentorat.exception.ConflitMentoratException;
 import ept.edu.sn.alumni_backend.mentorat.exception.MentoratIntrouvableException;
+import ept.edu.sn.alumni_backend.cv.exception.ConflitImportCvException;
+import ept.edu.sn.alumni_backend.cv.exception.ImportCvIndisponibleException;
+import ept.edu.sn.alumni_backend.cv.exception.ImportCvIntrouvableException;
 import ept.edu.sn.alumni_backend.messagerie.exception.ConflitMessagerieException;
 import ept.edu.sn.alumni_backend.messagerie.exception.LimiteEnvoisAtteinteException;
 import ept.edu.sn.alumni_backend.messagerie.exception.MessagerieIntrouvableException;
@@ -285,6 +288,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConflitMobiliteException.class)
     public ResponseEntity<Map<String, String>> gererConflitMobilite(ConflitMobiliteException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ImportCvIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> gererImportCvIntrouvable(ImportCvIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ConflitImportCvException.class)
+    public ResponseEntity<Map<String, String>> gererConflitImportCv(ConflitImportCvException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ImportCvIndisponibleException.class)
+    public ResponseEntity<Map<String, String>> gererImportCvIndisponible(ImportCvIndisponibleException e) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of("message", e.getMessage()));
     }
 
     @ExceptionHandler(FichierIntrouvableException.class)

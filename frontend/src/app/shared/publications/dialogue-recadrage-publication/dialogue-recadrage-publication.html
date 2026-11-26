@@ -1,0 +1,10 @@
+<dialog #dialogue class="dialogue-recadrage" aria-labelledby="titre-recadrage-publication"
+  (cancel)="annulee.emit()">
+  <div class="entete-recadrage">
+    <h2 id="titre-recadrage-publication">Recadrer l’image</h2>
+    <button type="button" aria-label="Fermer le recadrage" (click)="annulee.emit()">×</button>
+  </div>
+  <app-recadreur-image [image]="image()" [format]="formatPublication"
+    libelle="Recadrer l’image de la publication au format vertical 4:5"
+    (recadree)="recadree.emit($event)" (annulee)="annulee.emit()" />
+</dialog>

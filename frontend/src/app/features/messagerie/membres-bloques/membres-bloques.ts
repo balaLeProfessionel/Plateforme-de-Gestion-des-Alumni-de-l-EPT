@@ -16,7 +16,8 @@ import { messageServeur } from '../message-erreur';
   selector: 'app-membres-bloques',
   imports: [AvatarMembre, DatePipe, SqueletteLignes],
   templateUrl: './membres-bloques.html',
-  styleUrl: './membres-bloques.scss',
+  // Styles partagés des fenêtres de la messagerie, puis ceux du composant
+  styleUrls: ['../_fenetre.scss', '../_fenetre-pied.scss', './membres-bloques.scss'],
 })
 export class MembresBloques {
   private readonly messagerie = inject(MessagerieService);

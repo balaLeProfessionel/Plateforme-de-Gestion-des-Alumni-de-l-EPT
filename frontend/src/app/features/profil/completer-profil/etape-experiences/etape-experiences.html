@@ -1,8 +1,9 @@
 <app-liste-experiences
   modeEnregistrement="global"
-  libelleEnregistrerTout="Enregistrer et terminer"
+  libelleEnregistrerTout="Enregistrer et continuer"
   [experiences]="experiences()"
   [brouillons]="brouillons()"
+  [preremplis]="preremplis()"
   [suggestions]="suggestions()"
   [enRecherche]="enRechercheOrganisme()"
   [etat]="etat()"
@@ -13,5 +14,5 @@
   (rechercherOrganisme)="rechercherOrganismes($event)" />
 
 <app-navigation-etapes
-  libelleSecondaire="Remplir plus tard"
+  libelleSecondaire="Passer cette étape"
   (secondaire)="terminer()" />

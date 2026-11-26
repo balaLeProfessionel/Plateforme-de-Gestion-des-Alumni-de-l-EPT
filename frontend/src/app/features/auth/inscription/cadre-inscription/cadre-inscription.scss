@@ -1,0 +1,207 @@
+@use 'responsive' as *;
+
+// Téléphone : le contenu seul, sur le fond de page.
+// Tablette : le contenu dans une carte centrée.
+// Bureau : panneau des étapes à gauche, formulaire à droite sur fond blanc.
+.cadre {
+  min-height: 100vh;
+  background: var(--ept-bg);
+
+  @include a-partir-de(bureau) {
+    display: grid;
+    grid-template-columns: minmax(320px, 5fr) 7fr;
+    background: var(--ept-surface);
+  }
+}
+
+.panneau {
+  display: none;
+
+  @include a-partir-de(bureau) {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    height: 100vh;
+    // Écran peu haut (portable 13") : marges réduites, et défilement en dernier recours
+    overflow-y: auto;
+    padding: clamp(1.5rem, 6vh, 3rem) clamp(2rem, 4vw, 4.5rem);
+    background: linear-gradient(160deg, var(--ept-primary) 0%, var(--ept-primary-dark) 100%);
+    color: var(--ept-text-on-dark);
+  }
+}
+
+.panneau-contenu {
+  width: 100%;
+  max-width: 400px;
+  margin-left: auto;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-family: var(--ept-font-heading);
+  font-size: 1.6rem;
+  font-weight: 700;
+
+  img {
+    padding: 0.25rem;
+    border-radius: var(--ept-radius-sm);
+    background: white;
+    object-fit: contain;
+  }
+}
+
+.accroche {
+  margin: 1rem 0 clamp(1.25rem, 4vh, 2.5rem);
+  color: var(--ept-sky-on-dark);
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.etapes {
+  margin: 0 0 clamp(1.25rem, 4vh, 2.5rem);
+  padding: 0;
+  list-style: none;
+
+  li {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding-bottom: clamp(1rem, 3vh, 1.6rem);
+    color: rgba(255, 255, 255, 0.78);
+
+    // Trait vertical qui relie les pastilles
+    &:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 2.1rem;
+      bottom: 0.3rem;
+      left: calc(1rem - 1px);
+      width: 2px;
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    &.faite::after { background: var(--ept-sky); }
+    &.courante { color: var(--ept-text-on-dark); font-weight: 700; }
+  }
+}
+
+.pastille {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 700;
+
+  .faite & {
+    border-color: var(--ept-sky);
+    background: var(--ept-sky);
+    color: var(--ept-sky-text-on);
+  }
+
+  .courante & {
+    border-color: white;
+    background: white;
+    color: var(--ept-primary);
+    box-shadow: 0 0 0 4px rgba(115, 219, 242, 0.35);
+  }
+
+  .pi { font-size: 0.8rem; font-weight: 700; }
+}
+
+.atouts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin: 0;
+  padding: 1.5rem 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  list-style: none;
+  font-size: 0.92rem;
+
+  li { display: flex; align-items: center; gap: 0.7rem; }
+  .pi { color: var(--ept-sky-on-dark); }
+}
+
+.zone {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+
+  @include a-partir-de(tablette) {
+    align-items: center;
+    min-height: 100vh;
+    padding: 3rem 1.5rem;
+  }
+
+  @include a-partir-de(bureau) {
+    padding: 3rem clamp(2rem, 5vw, 5rem);
+  }
+}
+
+.carte {
+  width: 100%;
+  max-width: 480px;
+
+  @include a-partir-de(tablette) {
+    padding: 2.5rem;
+    background: var(--ept-surface);
+    border-radius: var(--ept-radius);
+    box-shadow: var(--ept-shadow);
+  }
+
+  // Sur bureau, la page entière est blanche : plus besoin d'une carte
+  @include a-partir-de(bureau) {
+    max-width: 500px;
+    padding: 0;
+    box-shadow: none;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+// Variante large (complétion du profil) : formulaires plus larges, sur le fond de page.
+// Le panneau n'apparaît qu'à partir des grands écrans pour laisser la place au contenu.
+.cadre.large {
+  @include a-partir-de(bureau) {
+    display: block;
+    background: var(--ept-bg);
+  }
+
+  @include a-partir-de(large) {
+    display: grid;
+    grid-template-columns: minmax(340px, 4fr) 8fr;
+  }
+
+  .panneau { display: none; }
+  @include a-partir-de(large) { .panneau { display: flex; } }
+
+  // Sept étapes : sans les atouts (déjà vus à l'inscription), le panneau tient sur un portable 13".
+  .atouts { display: none; }
+  .etapes { margin-bottom: 0; }
+  .etapes li { padding-bottom: clamp(0.8rem, 2.4vh, 1.4rem); }
+
+  .zone { align-items: flex-start; }
+
+  .carte {
+    max-width: 720px;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+  }
+}

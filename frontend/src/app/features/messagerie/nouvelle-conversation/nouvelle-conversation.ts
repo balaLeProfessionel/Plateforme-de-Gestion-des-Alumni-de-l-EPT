@@ -16,7 +16,8 @@ import { messageServeur } from '../message-erreur';
   selector: 'app-nouvelle-conversation',
   imports: [FormField, SelectionMembres],
   templateUrl: './nouvelle-conversation.html',
-  styleUrl: './nouvelle-conversation.scss',
+  // Styles partagés des fenêtres de la messagerie, puis ceux du composant
+  styleUrls: ['../_fenetre.scss', '../_fenetre-pied.scss', './nouvelle-conversation.scss'],
 })
 export class NouvelleConversation {
   private readonly messagerie = inject(MessagerieService);

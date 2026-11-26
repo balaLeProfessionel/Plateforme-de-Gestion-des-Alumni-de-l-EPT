@@ -6,31 +6,22 @@
       Indiquez l’adresse email de votre compte. Vous recevrez un code valable 10 minutes.
     </p>
 
-    @if (messageErreur()) {
-      <p-message severity="error" class="message">{{ messageErreur() }}</p-message>
-    }
-
-    <div class="champ">
-      <label for="emailReinitialisation">Email <span class="marque-obligatoire" aria-hidden="true">*</span></label>
-      <input
-        pInputText
-        id="emailReinitialisation"
-        type="email"
-        [formField]="formulaire.email"
-        autocomplete="email"
-        placeholder="vous@exemple.com"
-        fluid />
-      @if (formulaire.email().touched() && formulaire.email().invalid()) {
-        <small class="erreur-champ">{{ formulaire.email().errors()[0]?.message }}</small>
+    <div aria-live="polite">
+      @if (messageErreur(); as texte) {
+        <p class="alerte alerte-erreur" role="alert">{{ texte }}</p>
       }
     </div>
 
-    <button
-      type="button"
-      class="btn-ept"
-      [disabled]="enChargement()"
-      [attr.aria-busy]="enChargement()"
-      (click)="envoyerCode()">
+    <app-champ-formulaire #cEmail="champ" pour="emailReinitialisation" libelle="Email" icone="pi-envelope"
+                          [obligatoire]="true" [erreur]="erreurEmail()">
+      <input id="emailReinitialisation" type="email" [formField]="formulaire.email" autocomplete="email"
+             inputmode="email" placeholder="ex. vous@exemple.com"
+             [attr.aria-invalid]="erreurEmail() ? 'true' : null" [attr.aria-describedby]="cEmail.idMessage"
+             (keydown.enter)="envoyerCode()" />
+    </app-champ-formulaire>
+
+    <button type="button" class="btn-ept" [disabled]="enChargement()"
+            [attr.aria-busy]="enChargement()" (click)="envoyerCode()">
       {{ enChargement() ? 'Envoi…' : 'Recevoir un code' }}
     </button>
 

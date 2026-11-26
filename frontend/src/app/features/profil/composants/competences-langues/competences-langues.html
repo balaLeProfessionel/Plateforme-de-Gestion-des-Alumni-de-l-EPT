@@ -1,0 +1,124 @@
+<section class="section-profil" aria-labelledby="titre-competences">
+
+  <header class="section-entete">
+    <h2 id="titre-competences">Compétences et langues</h2>
+    <p class="section-aide">
+      Elles aident les autres membres, les recruteurs et l'école à trouver les bons profils.
+    </p>
+  </header>
+
+  @if (completeParCv()) {
+    <p class="note-cv">
+      Les compétences et les langues lues dans votre CV ont été ajoutées. Retirez ce qui ne vous correspond pas.
+    </p>
+  }
+
+  <h3 class="sous-titre" id="titre-liste-competences">Compétences</h3>
+
+  @if (competences().length > 0) {
+    <ul class="etiquettes" aria-labelledby="titre-liste-competences">
+      @for (competence of competences(); track competence; let i = $index) {
+        <li class="etiquette">
+          <span>{{ competence }}</span>
+          <button type="button" class="retirer" (click)="retirerCompetence(i)"
+                  [attr.aria-label]="'Retirer ' + competence">
+            <span aria-hidden="true">×</span>
+          </button>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="liste-vide">Aucune compétence pour le moment.</p>
+  }
+
+  <form class="ajout-competence" (submit)="ajouterCompetence($event)">
+    <div class="champ">
+      <label for="nouvelle-competence">Ajouter une compétence</label>
+      <input pInputText id="nouvelle-competence" list="suggestions-competences"
+             [value]="saisie()" (input)="majSaisie($any($event.target).value)"
+             [attr.maxlength]="longueurMax" autocomplete="off"
+             placeholder="Ex : Java, Gestion de projet, Topographie…"
+             [attr.aria-invalid]="erreurCompetence() ? 'true' : null"
+             [attr.aria-describedby]="erreurCompetence() ? 'erreur-competence' : 'aide-competence'" />
+      <datalist id="suggestions-competences">
+        @for (suggestion of suggestions(); track suggestion) {
+          <option [value]="suggestion"></option>
+        }
+      </datalist>
+      @if (erreurCompetence(); as erreur) {
+        <small class="erreur-champ" id="erreur-competence" role="alert">{{ erreur }}</small>
+      } @else {
+        <small class="aide" id="aide-competence">
+          Appuyez sur Entrée pour ajouter. {{ competences().length }} sur {{ competencesMax }}.
+        </small>
+      }
+    </div>
+    <button type="submit" class="btn-secondaire">Ajouter</button>
+  </form>
+
+  <h3 class="sous-titre">Langues</h3>
+
+  @if (langues().length === 0) {
+    <p class="liste-vide">Aucune langue pour le moment.</p>
+  }
+
+  <ul class="langues">
+    @for (ligne of langues(); track ligne.cle; let i = $index) {
+      <li class="ligne-langue">
+        <div class="champ">
+          <label [attr.for]="'langue-' + ligne.cle">Langue {{ i + 1 }}</label>
+          <select [id]="'langue-' + ligne.cle" class="select-ept"
+                  [value]="ligne.code" (change)="majLangue(ligne.cle, 'code', $any($event.target).value)">
+            <option value="" disabled [selected]="!ligne.code">Choisissez</option>
+            @for (langue of languesProposees(); track langue.code) {
+              <option [value]="langue.code" [selected]="langue.code === ligne.code">{{ langue.nom }}</option>
+            }
+          </select>
+        </div>
+        <div class="champ">
+          <label [attr.for]="'niveau-' + ligne.cle">Niveau</label>
+          <select [id]="'niveau-' + ligne.cle" class="select-ept"
+                  [value]="ligne.niveau" (change)="majLangue(ligne.cle, 'niveau', $any($event.target).value)">
+            <option value="" disabled [selected]="!ligne.niveau">Choisissez</option>
+            @for (niveau of niveaux; track niveau.valeur) {
+              <option [value]="niveau.valeur" [selected]="niveau.valeur === ligne.niveau">{{ niveau.libelle }}</option>
+            }
+          </select>
+        </div>
+        <button type="button" class="btn-retirer-langue" (click)="retirerLangue(ligne.cle)"
+                [attr.aria-label]="'Retirer la langue ' + (ligne.code ? nomLangue(ligne.code) : (i + 1))">
+          Retirer
+        </button>
+      </li>
+    }
+  </ul>
+
+  <button type="button" class="btn-ajouter" (click)="ajouterLangue()">
+    <span aria-hidden="true">+</span> Ajouter une langue
+  </button>
+
+  <div class="zone-message" aria-live="polite">
+    @if (erreurLangues(); as erreur) {
+      <div class="alerte alerte-erreur">{{ erreur }}</div>
+    }
+    @if (message(); as m) {
+      <div class="alerte" [class.alerte-erreur]="m.type === 'erreur'"
+           [class.alerte-succes]="m.type === 'succes'">
+        {{ m.texte }}
+      </div>
+    }
+  </div>
+
+  @if (afficherBouton() && (!boutonSiModifie() || modifie() || enSauvegarde())) {
+    <div class="actions-enregistrement">
+      <button type="button" class="btn-ept" (click)="valider()" [disabled]="enSauvegarde()"
+              [attr.aria-busy]="enSauvegarde()">
+        {{ enSauvegarde() ? 'Enregistrement…' : 'Enregistrer mes compétences et langues' }}
+      </button>
+      @if (boutonSiModifie() && !enSauvegarde()) {
+        <button type="button" class="btn-annuler" (click)="annuler()">Annuler les modifications</button>
+      }
+    </div>
+  }
+
+</section>

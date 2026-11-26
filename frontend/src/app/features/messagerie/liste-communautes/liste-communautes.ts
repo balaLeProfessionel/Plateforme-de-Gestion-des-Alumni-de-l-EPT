@@ -36,7 +36,8 @@ function correspond(termes: readonly string[], ...textes: (string | null | undef
   selector: 'app-liste-communautes',
   imports: [FormField, RouterLink, RouterLinkActive, AvatarGroupe, DateRelativePipe],
   templateUrl: './liste-communautes.html',
-  styleUrl: './liste-communautes.scss',
+  // Styles partagés des lignes de la colonne de gauche, puis ceux du composant
+  styleUrls: ['../_lignes.scss', './liste-communautes.scss'],
 })
 export class ListeCommunautes {
   protected readonly etat = inject(EtatCommunautes);

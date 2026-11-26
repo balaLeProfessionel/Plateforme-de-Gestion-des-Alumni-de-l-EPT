@@ -3,7 +3,7 @@
   <aside class="panneau-marque">
     <!-- Photo décorative (alt vide), rendue seulement quand le panneau est affiché : rien n’est téléchargé sur mobile. -->
     @if (grandEcran()) {
-      <img class="photo-campus" ngSrc="/images/connexion-campus.jpg" fill priority sizes="50vw" alt="" />
+      <img class="photo-campus" ngSrc="/images/campus-vue-aerienne.jpg" fill priority sizes="50vw" alt="" />
     }
     <div class="voile" aria-hidden="true"></div>
     <div class="marque-contenu">
@@ -26,55 +26,42 @@
 
   <main class="panneau-formulaire">
     <div class="formulaire-contenu">
+      <!-- Téléphone et tablette : le panneau de marque est masqué, la marque ramène à l’accueil. -->
+      <a class="marque-mobile" routerLink="/">
+        <img ngSrc="/images/logo-reseau-alumni-160.png" width="44" height="44" alt="" />
+        <span>EPT Alumni</span>
+      </a>
       <h1>Connexion</h1>
       <p class="sous-titre">Accédez à votre espace alumni</p>
 
-      @if (messageErreur()) {
-        <p-message severity="error" class="message-erreur">{{ messageErreur() }}</p-message>
-      }
-      @if (messageSucces()) {
-        <p-message severity="success" class="message-erreur">{{ messageSucces() }}</p-message>
-      }
+      <div aria-live="polite">
+        @if (messageErreur(); as texte) {
+          <p class="alerte alerte-erreur" role="alert">{{ texte }}</p>
+        }
+        @if (messageSucces(); as texte) {
+          <p class="alerte alerte-succes">{{ texte }}</p>
+        }
+      </div>
 
       <form (submit)="seConnecter($event)" novalidate>
-      <div class="champ">
-        <label for="email">Email <span class="marque-obligatoire" aria-hidden="true">*</span></label>
-        <input
-          pInputText
-          id="email"
-          type="email"
-          [formField]="formulaire.email"
-          placeholder="vous@exemple.com"
-          autocomplete="email"
-          fluid />
-        @if (formulaire.email().touched() && formulaire.email().invalid()) {
-          <small class="erreur-champ">{{ formulaire.email().errors()[0]?.message }}</small>
-        }
-      </div>
+      <app-champ-formulaire #cEmail="champ" pour="email" libelle="Email" icone="pi-envelope"
+                            [obligatoire]="true" [erreur]="erreur('email')">
+        <input id="email" type="email" autocomplete="email"
+               [formField]="formulaire.email" placeholder="ex. vous@exemple.com"
+               [attr.aria-invalid]="erreur('email') ? 'true' : null" [attr.aria-describedby]="cEmail.idMessage" />
+      </app-champ-formulaire>
 
-      <div class="champ">
-        <label for="password">Mot de passe <span class="marque-obligatoire" aria-hidden="true">*</span></label>
-        <div class="champ-mdp">
-          <input
-            pInputText
-            id="password"
-            [type]="afficherMdp() ? 'text' : 'password'"
-            [formField]="formulaire.password"
-            placeholder="Votre mot de passe"
-            autocomplete="current-password"
-            fluid />
-          <button
-            type="button"
-            class="bascule-mdp"
-            (click)="afficherMdp.set(!afficherMdp())"
-            [attr.aria-label]="afficherMdp() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
-            <i class="pi" [class.pi-eye]="!afficherMdp()" [class.pi-eye-slash]="afficherMdp()"></i>
-          </button>
-        </div>
-        @if (formulaire.password().touched() && formulaire.password().invalid()) {
-          <small class="erreur-champ">{{ formulaire.password().errors()[0]?.message }}</small>
-        }
-      </div>
+      <app-champ-formulaire #cMdp="champ" pour="password" libelle="Mot de passe" icone="pi-lock"
+                            [obligatoire]="true" [erreur]="erreur('password')">
+        <input id="password" [type]="afficherMdp() ? 'text' : 'password'" autocomplete="current-password"
+               [formField]="formulaire.password"
+               [attr.aria-invalid]="erreur('password') ? 'true' : null" [attr.aria-describedby]="cMdp.idMessage" />
+        <button suffixe type="button" (click)="afficherMdp.set(!afficherMdp())"
+                [attr.aria-label]="afficherMdp() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+                [attr.aria-pressed]="afficherMdp()">
+          <i class="pi" [class.pi-eye]="!afficherMdp()" [class.pi-eye-slash]="afficherMdp()" aria-hidden="true"></i>
+        </button>
+      </app-champ-formulaire>
 
       <a class="lien-mot-de-passe" routerLink="/mot-de-passe-oublie">Mot de passe oublié ?</a>
 

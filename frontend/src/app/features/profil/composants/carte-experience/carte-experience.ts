@@ -10,6 +10,7 @@ import {
 } from '../../../../core/services/models/profil.model';
 import { OrganismeSuggestion } from '../../../../core/services/models/organisme.model';
 import { MessageSection } from '../message-section.model';
+import { ParcoursPrerempli } from '../prerempli';
 import {
   ModeEnregistrement,
   ResultatCollecte
@@ -28,7 +29,18 @@ interface ModeleExperience {
   estStage: boolean;
 }
 
-function versModele(experience: Experience | null): ModeleExperience {
+function versModele(experience: Experience | null, prerempli: ParcoursPrerempli | null = null): ModeleExperience {
+  if (!experience && prerempli) {
+    return {
+      poste: prerempli.intitule,
+      description: prerempli.description,
+      typeContrat: prerempli.type as TypeContrat | '',
+      dateDebut: prerempli.dateDebut,
+      dateFin: prerempli.dateFin,
+      enCours: prerempli.enCours,
+      estStage: prerempli.estStage
+    };
+  }
   if (!experience) {
     return {
       poste: '',
@@ -51,7 +63,11 @@ function versModele(experience: Experience | null): ModeleExperience {
   };
 }
 
-function versLien(experience: Experience | null): LienOrganisme {
+function versLien(experience: Experience | null, prerempli: ParcoursPrerempli | null = null): LienOrganisme {
+  if (!experience && prerempli?.nomOrganisme) {
+    // Le backend reutilise l'organisme de meme nom s'il existe, sinon le cree (a valider)
+    return { nomNouvelOrganisme: prerempli.nomOrganisme };
+  }
   return experience ? { organismeId: experience.organismeId } : {};
 }
 
@@ -68,6 +84,8 @@ export class CarteExperience {
   readonly cle = input.required<string>();
   // null : carte vierge, pas encore enregistree
   readonly experience = input<Experience | null>(null);
+  // Carte vierge pre-remplie depuis un CV (ignore si experience est fourni)
+  readonly prerempli = input<ParcoursPrerempli | null>(null);
 
   // En mode global, la carte n'affiche pas son propre bouton d'enregistrement :
   // c'est la liste qui collecte toutes les cartes d'un coup.
@@ -85,7 +103,7 @@ export class CarteExperience {
 
   protected readonly typesContrat = TYPES_CONTRAT;
 
-  protected readonly modele = linkedSignal(() => versModele(this.experience()));
+  protected readonly modele = linkedSignal(() => versModele(this.experience(), this.prerempli()));
 
   protected readonly formulaire = form(this.modele, (champ) => {
     required(champ.poste, { message: 'Le poste est obligatoire' });
@@ -100,9 +118,11 @@ export class CarteExperience {
   // L'organisme vit hors du formulaire : il ne se saisit pas au clavier dans
   // un champ simple mais se choisit dans l'autocomplete, qui emet deja le
   // format attendu par le backend.
-  protected readonly lien = linkedSignal<LienOrganisme>(() => versLien(this.experience()));
+  protected readonly lien = linkedSignal<LienOrganisme>(() => versLien(this.experience(), this.prerempli()));
 
-  protected readonly nomOrganismeInitial = computed(() => this.experience()?.nomOrganisme ?? '');
+  protected readonly nomOrganismeInitial = computed(
+    () => this.experience()?.nomOrganisme ?? this.prerempli()?.nomOrganisme ?? ''
+  );
 
   protected readonly organismeManquant = signal(false);
   protected readonly datesInvalides = signal(false);
@@ -117,7 +137,10 @@ export class CarteExperience {
   // Empreinte de l'etat initial, pour ne pas rejouer une requete sur une
   // carte que l'utilisateur n'a pas touchee.
   private readonly empreinteInitiale = computed(() =>
-    this.empreinte(versModele(this.experience()), versLien(this.experience()))
+    this.empreinte(
+      versModele(this.experience(), this.prerempli()),
+      versLien(this.experience(), this.prerempli())
+    )
   );
 
   protected readonly estModifiee = computed(

@@ -76,7 +76,7 @@ export class PremiereConnexion {
     this.authService.changerMotDePasseInitial(nouveauMotDePasse, identite).subscribe({
       next: () => {
         this.enChargement.set(false);
-        this.router.navigate([this.estAdmin ? '/admin' : '/completer-profil/infos']);
+        this.router.navigate([this.estAdmin ? '/admin' : '/completer-profil']);
       },
       error: (erreur: HttpErrorResponse) => {
         this.enChargement.set(false);

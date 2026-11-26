@@ -104,6 +104,7 @@ describe('Page des notifications', () => {
       .mockReturnValueOnce(of(page([])));
     const { fixture, racine } = creer();
     expect(racine.querySelector('[role="alert"]')?.textContent).toContain('n’ont pas pu être chargées');
+    expect(racine.textContent).not.toContain('Vous êtes à jour');
 
     (racine.querySelector('[role="alert"] button') as HTMLButtonElement).click();
     fixture.detectChanges();

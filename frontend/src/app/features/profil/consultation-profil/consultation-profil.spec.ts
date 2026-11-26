@@ -20,6 +20,7 @@ describe('ConsultationProfil', () => {
     obtenirProfil: ReturnType<typeof vi.fn>;
     listerExperiences: ReturnType<typeof vi.fn>;
     listerFormations: ReturnType<typeof vi.fn>;
+    lireCompetencesLangues: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
@@ -31,7 +32,8 @@ describe('ConsultationProfil', () => {
         ...profilPublic(), email: 'awa@example.com', telephone: null, dateNaissance: null
       })),
       listerExperiences: vi.fn().mockReturnValue(of([])),
-      listerFormations: vi.fn().mockReturnValue(of([]))
+      listerFormations: vi.fn().mockReturnValue(of([])),
+      lireCompetencesLangues: vi.fn().mockReturnValue(of({ competences: [], langues: [] }))
     };
 
     await TestBed.configureTestingModule({
@@ -58,6 +60,21 @@ describe('ConsultationProfil', () => {
     expect(contenu).not.toContain('awa@example.com');
     expect(fixture.nativeElement.querySelector('.modifier')).toBeNull();
     expect(fixture.nativeElement.querySelector('app-bouton-retour')?.textContent).toContain('Retour');
+  });
+
+  it('élargit la tuile dont un mot ne tiendrait pas dans une tuile étroite', async () => {
+    service.obtenirProfilPublic.mockReturnValue(of({
+      ...profilPublic(), filiere: 'Génie Informatique', anneeSortie: 2024, villeResidence: 'Dakar Plateau'
+    }));
+    creerComposant();
+    await fixture.whenStable();
+
+    const tuiles = [...(fixture.nativeElement as HTMLElement).querySelectorAll('.tuiles > div')];
+    const tuile = (libelle: string) => tuiles.find((t) => t.querySelector('dt')?.textContent?.includes(libelle));
+    expect(tuile('Filière')?.classList).toContain('large');
+    expect(tuile('Promotion')?.classList).not.toContain('large');
+    // Mots courts séparés par une espace : la tuile reste étroite.
+    expect(tuile('Lieu')?.classList).not.toContain('large');
   });
 
   it('affiche les coordonnées privées et les états vides sur son propre profil', async () => {
@@ -186,7 +203,8 @@ function profilPublic(): ProfilPublic {
       id: 'membre-1', nom: 'Diop', prenom: 'Awa', role: 'ALUMNI', statutCompte: 'ACTIF',
       bio: null, villeResidence: 'Thiès', posteActuel: null, lienLinkedin: null,
       lienPortfolio: null, urlPhoto: null, filiere: null, classe: null, anneeSortie: null,
-      experiences: [], formations: []
+      experiences: [], formations: [], situationActuelle: null, paysResidence: null,
+      competences: [], langues: []
     };
   }
 });

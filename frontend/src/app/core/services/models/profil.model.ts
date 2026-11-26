@@ -1,10 +1,14 @@
 // Miroirs TypeScript des DTO du backend (package parcours et utilisateur).
+import { Langue } from './competences.model';
+
 // Les enums sont typees en unions litterales : le compilateur refuse alors
 // toute valeur hors liste, y compris dans les <option> des <select>.
 
 export type TypeFormation = 'DIPLOMANTE' | 'CERTIFICATION' | 'SEMINAIRE' | 'AUTRE';
 
 export type TypeContrat = 'CDI' | 'CDD' | 'STAGE' | 'FREELANCE' | 'FONCTION_PUBLIQUE';
+
+export type SituationActuelle = 'EN_POSTE' | 'EN_RECHERCHE' | 'EN_ETUDES' | 'ENTREPRENEUR' | 'AUTRE';
 
 // ===== Infos personnelles : GET / PATCH /api/profil/me =====
 
@@ -28,6 +32,9 @@ export interface Profil {
   classe: string | null;
   anneeSortie: number | null;
   recherchePublique: boolean;
+  situationActuelle: SituationActuelle | null;
+  /** Code pays ISO 3166-1 alpha-2 (SN, FR…). */
+  paysResidence: string | null;
 }
 
 export interface ProfilPublic {
@@ -47,6 +54,10 @@ export interface ProfilPublic {
   anneeSortie: number | null;
   experiences: Experience[];
   formations: Formation[];
+  situationActuelle: SituationActuelle | null;
+  paysResidence: string | null;
+  competences: string[];
+  langues: Langue[];
 }
 
 // Le backend fait une mise a jour partielle : tous les champs sont optionnels.
@@ -61,6 +72,9 @@ export interface ProfilRequest {
   telephone?: string;
   dateNaissance?: string;
   effacerDateNaissance?: boolean;
+  // Chaine vide : efface la valeur
+  situationActuelle?: SituationActuelle | '';
+  paysResidence?: string;
 }
 
 // ===== Lien vers un organisme, partage par les experiences et les formations =====

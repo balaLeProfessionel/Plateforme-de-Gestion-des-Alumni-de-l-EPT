@@ -123,7 +123,21 @@ export const routes: Routes = [
         (m) => m.ParcoursCompletion
       ),
     children: [
-      { path: '', redirectTo: 'infos', pathMatch: 'full' },
+      { path: '', redirectTo: 'demarrer', pathMatch: 'full' },
+      {
+        path: 'demarrer',
+        data: { etape: 0 },
+        loadComponent: () =>
+          import('./features/profil/completer-profil/etape-demarrer/etape-demarrer').then(
+            (m) => m.EtapeDemarrer
+          )
+      },
+      {
+        path: 'cv',
+        data: { etape: 0 },
+        loadComponent: () =>
+          import('./features/profil/completer-profil/etape-cv/etape-cv').then((m) => m.EtapeCv)
+      },
       {
         path: 'infos',
         data: { etape: 1 },
@@ -146,6 +160,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/profil/completer-profil/etape-experiences/etape-experiences').then(
             (m) => m.EtapeExperiences
+          )
+      },
+      {
+        path: 'competences',
+        data: { etape: 4 },
+        loadComponent: () =>
+          import('./features/profil/completer-profil/etape-competences/etape-competences').then(
+            (m) => m.EtapeCompetences
           )
       }
     ]

@@ -13,7 +13,8 @@ export class IndicateurEtapes {
   readonly libelles = input<readonly string[]>([
     'Informations',
     'Formations',
-    'Expériences'
+    'Expériences',
+    'Compétences'
   ]);
 
   protected readonly total = computed(() => this.libelles().length);

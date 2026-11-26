@@ -2,7 +2,8 @@
   <header class="entete">
     <div>
       <h1>Notifications</h1>
-      <p>{{ resume() }}</p>
+      <!-- Sans la liste, le compteur ne prouve pas qu’on est à jour : on ne l’affirme pas. -->
+      @if (!erreur()) { <p>{{ resume() }}</p> }
     </div>
     @if (nonLues() > 0) {
       <button type="button" class="tout-lire" (click)="toutMarquerLu()">

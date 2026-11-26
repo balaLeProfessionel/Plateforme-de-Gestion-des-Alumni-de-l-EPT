@@ -12,10 +12,11 @@ import {
   AUCUN_FILTRE, Evenement, FiltresEvenements, PageEvenements, PeriodeEvenement,
 } from '../../../core/services/models/evenement';
 import { BarreFiltresEvenements } from '../filtres-evenements/filtres-evenements';
+import { PaginationEvenements } from '../pagination-evenements/pagination-evenements';
 
 @Component({
   selector: 'app-liste-evenements',
-  imports: [RouterLink, VisuelEvenement, BarreFiltresEvenements, Onglets],
+  imports: [RouterLink, VisuelEvenement, BarreFiltresEvenements, Onglets, PaginationEvenements],
   templateUrl: './liste-evenements.html',
   styleUrl: './liste-evenements.scss',
 })
@@ -43,20 +44,6 @@ export class ListeEvenements {
   protected readonly confirmationAnnulation = signal<string | null>(null);
   protected readonly actionEnCours = signal<string | null>(null);
   protected readonly messageErreurAction = signal<string | null>(null);
-  protected readonly pagesVisibles = computed<(number | 'ellipsis')[]>(() => {
-    const resultat = this.page();
-    if (!resultat || resultat.totalPages <= 1) return [];
-    if (resultat.totalPages <= 5) {
-      return Array.from({ length: resultat.totalPages }, (_, index) => index);
-    }
-    const candidates = new Set([0, resultat.page - 1, resultat.page, resultat.page + 1,
-      resultat.totalPages - 1]);
-    const pages = [...candidates].filter((index) => index >= 0 && index < resultat.totalPages)
-      .sort((a, b) => a - b);
-    return pages.flatMap((index, position) => position > 0 && index - pages[position - 1] > 1
-      ? ['ellipsis' as const, index]
-      : [index]);
-  });
 
   constructor() {
     combineLatest([

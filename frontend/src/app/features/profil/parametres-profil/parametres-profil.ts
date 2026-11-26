@@ -2,6 +2,7 @@ import { DOCUMENT } from '@angular/common';
 import { Component, Injector, OnDestroy, afterNextRender, computed, inject, signal } from '@angular/core';
 import { form, FormField, minLength, required } from '@angular/forms/signals';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { InputText } from 'primeng/inputtext';
 
 import { AuthService } from '../../../core/services/auth/auth-service';
@@ -16,6 +17,18 @@ import { RecadreurImage } from '../../../shared/images/recadreur-image';
 import { InfosPersonnelles } from '../composants/infos-personnelles/infos-personnelles';
 import { MessageSection } from '../composants/message-section.model';
 import { SectionParcours } from './section-parcours/section-parcours';
+import { SectionCompetences } from './section-competences/section-competences';
+import { ImportCvService } from '../../../core/services/import-cv/import-cv-service';
+
+type Onglet = 'profil' | 'parcours' | 'competences' | 'compte';
+
+/** Ancres des anciens liens (« #formations », « #securite »…) ramenées à leur onglet. */
+const ONGLET_PAR_ANCRE: Readonly<Record<string, Onglet>> = {
+  profil: 'profil', photo: 'profil', informations: 'profil',
+  parcours: 'parcours', experiences: 'parcours', formations: 'parcours',
+  competences: 'competences',
+  compte: 'compte', confidentialite: 'compte', securite: 'compte'
+};
 
 interface ModeleMotDePasse {
   actuel: string;
@@ -25,7 +38,8 @@ interface ModeleMotDePasse {
 
 @Component({
   selector: 'app-parametres-profil',
-  imports: [FormField, InfosPersonnelles, InputText, RouterLink, BoutonRetour, AvatarMembre, RecadreurImage, SectionParcours],
+  imports: [FormField, InfosPersonnelles, InputText, RouterLink, BoutonRetour, AvatarMembre, RecadreurImage, SectionParcours,
+    SectionCompetences],
   templateUrl: './parametres-profil.html',
   styleUrl: './parametres-profil.scss'
 })
@@ -35,8 +49,20 @@ export class ParametresProfil implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
+  private readonly importCv = inject(ImportCvService);
+
+  protected readonly onglets: ReadonlyArray<{ cle: Onglet; libelle: string }> = [
+    { cle: 'profil', libelle: 'Profil' },
+    { cle: 'parcours', libelle: 'Parcours' },
+    { cle: 'competences', libelle: 'Compétences' },
+    { cle: 'compte', libelle: 'Compte' }
+  ];
+  private readonly ancre = toSignal(this.route.fragment, { initialValue: this.route.snapshot.fragment });
+  protected readonly onglet = computed<Onglet>(() => ONGLET_PAR_ANCRE[this.ancre() ?? ''] ?? 'profil');
 
   protected readonly libelleClasse = libelleClasse;
+  /** Lien « Importer un CV », seulement si un service d’analyse est configuré. */
+  protected readonly importCvDisponible = signal(false);
   protected readonly profil = signal<Profil | null>(null);
   protected readonly enChargement = signal(true);
   protected readonly erreurChargement = signal<string | null>(null);
@@ -78,6 +104,10 @@ export class ParametresProfil implements OnDestroy {
 
   constructor() {
     this.charger();
+    this.importCv.disponibilite().subscribe({
+      next: (disponibilite) => this.importCvDisponible.set(disponibilite.disponible),
+      error: () => this.importCvDisponible.set(false)
+    });
   }
 
   /**

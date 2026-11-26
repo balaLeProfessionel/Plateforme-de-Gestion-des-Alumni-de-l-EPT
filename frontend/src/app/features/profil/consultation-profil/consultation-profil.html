@@ -14,6 +14,9 @@
       <p>{{ messageErreur() }}</p>
     </section>
   } @else if (profil(); as membre) {
+    @if (depuisCv && estMonProfil()) {
+      <app-bandeau-profil-cv />
+    }
     <!-- Carte de visite : qui c’est, ce qu’on peut faire, l’essentiel en chiffres. -->
     <header class="carte" [attr.data-role]="membre.role">
       <div class="bandeau" aria-hidden="true"></div>
@@ -68,7 +71,7 @@
       @if (tuiles().length) {
         <dl class="tuiles">
           @for (tuile of tuiles(); track tuile.libelle) {
-            <div [class.large]="tuile.valeur.length > 18"><dt><i [class]="'pi ' + tuile.icone" aria-hidden="true"></i>{{ tuile.libelle }}</dt><dd>{{ tuile.valeur }}</dd></div>
+            <div [class.large]="tuile.large"><dt><i [class]="'pi ' + tuile.icone" aria-hidden="true"></i>{{ tuile.libelle }}</dt><dd>{{ tuile.valeur }}</dd></div>
           }
         </dl>
       }
@@ -104,6 +107,36 @@
           <section class="section-profil">
             <h2>À propos</h2>
             <p class="bio">{{ membre.bio }}</p>
+          </section>
+        }
+
+        @if (membre.competences.length || membre.langues.length) {
+          <section class="section-profil" aria-labelledby="titre-competences">
+            <div class="titre-section">
+              <h2 id="titre-competences">Compétences et langues</h2>
+              @if (estMonProfil()) {
+                <span class="liens-gestion">
+                  <a routerLink="/profil/parametres" fragment="competences">Modifier</a>
+                </span>
+              }
+            </div>
+            @if (membre.competences.length) {
+              <ul class="etiquettes" aria-label="Compétences">
+                @for (competence of membre.competences; track competence) {
+                  <li>{{ competence }}</li>
+                }
+              </ul>
+            }
+            @if (membre.langues.length) {
+              <ul class="langues" aria-label="Langues">
+                @for (langue of membre.langues; track langue.code) {
+                  <li>
+                    <span class="nom-langue">{{ nomLangue(langue.code) }}</span>
+                    @if (langue.niveau) { <span class="niveau-langue">{{ libelleNiveau(langue.niveau) }}</span> }
+                  </li>
+                }
+              </ul>
+            }
           </section>
         }
 

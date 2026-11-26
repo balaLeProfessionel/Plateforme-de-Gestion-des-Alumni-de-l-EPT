@@ -57,6 +57,29 @@ describe('Verification', () => {
       doitChangerMotDePasse: false
     });
 
-    expect(navigation).toHaveBeenCalledWith(['/completer-profil/infos']);
+    expect(navigation).toHaveBeenCalledWith(['/completer-profil']);
+  });
+
+  it('garde les chiffres d un code collé et le vérifie dès le 6e chiffre', () => {
+    const http = TestBed.inject(HttpTestingController);
+    component.majCode('12 34 5');
+    expect(component['code']()).toBe('12345');
+    http.expectNone('/api/auth/verifier-otp');
+
+    component.majCode('123 456');
+    const requete = http.expectOne('/api/auth/verifier-otp');
+    expect(requete.request.body).toEqual({ email: 'test@example.com', code: '123456' });
+  });
+
+  it('n autorise un nouveau code qu après le délai', () => {
+    const http = TestBed.inject(HttpTestingController);
+    expect(component['attenteRenvoi']()).toBe(60);
+    component.renvoyer();
+    http.expectNone('/api/auth/renvoyer-otp');
+
+    component['attenteRenvoi'].set(0);
+    component.renvoyer();
+    http.expectOne('/api/auth/renvoyer-otp').flush({});
+    expect(component['attenteRenvoi']()).toBe(60);
   });
 });

@@ -10,6 +10,7 @@ import {
 } from '../../../../core/services/models/profil.model';
 import { OrganismeSuggestion } from '../../../../core/services/models/organisme.model';
 import { MessageSection } from '../message-section.model';
+import { ParcoursPrerempli } from '../prerempli';
 import { ModeEnregistrement, ResultatCollecte } from '../demande-enregistrement.model';
 import { AutocompleteOrganisme } from '../autocomplete-organisme/autocomplete-organisme';
 
@@ -25,7 +26,18 @@ interface ModeleFormation {
   estStage: boolean;
 }
 
-function versModele(formation: Formation | null): ModeleFormation {
+function versModele(formation: Formation | null, prerempli: ParcoursPrerempli | null = null): ModeleFormation {
+  if (!formation && prerempli) {
+    return {
+      libelle: prerempli.intitule,
+      description: prerempli.description,
+      typeFormation: prerempli.type as TypeFormation | '',
+      dateDebut: prerempli.dateDebut,
+      dateFin: prerempli.dateFin,
+      enCours: prerempli.enCours,
+      estStage: prerempli.estStage
+    };
+  }
   if (!formation) {
     return {
       libelle: '',
@@ -48,7 +60,11 @@ function versModele(formation: Formation | null): ModeleFormation {
   };
 }
 
-function versLien(formation: Formation | null): LienOrganisme {
+function versLien(formation: Formation | null, prerempli: ParcoursPrerempli | null = null): LienOrganisme {
+  if (!formation && prerempli?.nomOrganisme) {
+    // Le backend reutilise l'organisme de meme nom s'il existe, sinon le cree (a valider)
+    return { nomNouvelOrganisme: prerempli.nomOrganisme };
+  }
   return formation ? { organismeId: formation.organismeId } : {};
 }
 
@@ -65,6 +81,8 @@ export class CarteFormation {
   readonly cle = input.required<string>();
   // null : carte vierge, pas encore enregistree
   readonly formation = input<Formation | null>(null);
+  // Carte vierge pre-remplie depuis un CV (ignore si formation est fourni)
+  readonly prerempli = input<ParcoursPrerempli | null>(null);
 
   // En mode global, la carte n'affiche pas son propre bouton d'enregistrement :
   // c'est la liste qui collecte toutes les cartes d'un coup.
@@ -82,7 +100,7 @@ export class CarteFormation {
 
   protected readonly typesFormation = TYPES_FORMATION;
 
-  protected readonly modele = linkedSignal(() => versModele(this.formation()));
+  protected readonly modele = linkedSignal(() => versModele(this.formation(), this.prerempli()));
 
   protected readonly formulaire = form(this.modele, (champ) => {
     required(champ.libelle, { message: 'L’intitulé est obligatoire' });
@@ -96,9 +114,11 @@ export class CarteFormation {
 
   // L'organisme vit hors du formulaire : il se choisit dans l'autocomplete,
   // qui emet deja le format attendu par le backend.
-  protected readonly lien = linkedSignal<LienOrganisme>(() => versLien(this.formation()));
+  protected readonly lien = linkedSignal<LienOrganisme>(() => versLien(this.formation(), this.prerempli()));
 
-  protected readonly nomOrganismeInitial = computed(() => this.formation()?.nomOrganisme ?? '');
+  protected readonly nomOrganismeInitial = computed(
+    () => this.formation()?.nomOrganisme ?? this.prerempli()?.nomOrganisme ?? ''
+  );
 
   protected readonly organismeManquant = signal(false);
   protected readonly datesInvalides = signal(false);
@@ -113,7 +133,10 @@ export class CarteFormation {
   // Empreinte de l'etat initial, pour ne pas rejouer une requete sur une
   // carte que l'utilisateur n'a pas touchee.
   private readonly empreinteInitiale = computed(() =>
-    this.empreinte(versModele(this.formation()), versLien(this.formation()))
+    this.empreinte(
+      versModele(this.formation(), this.prerempli()),
+      versLien(this.formation(), this.prerempli())
+    )
   );
 
   protected readonly estModifiee = computed(

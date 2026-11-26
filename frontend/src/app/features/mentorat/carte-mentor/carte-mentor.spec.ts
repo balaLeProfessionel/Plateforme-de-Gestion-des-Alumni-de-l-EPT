@@ -34,6 +34,14 @@ describe('CarteMentor', () => {
     expect(demandes).toHaveLength(1);
   });
 
+  it('n’offre pas de demande à qui ne participe pas au mentorat', () => {
+    const racine = afficher(unMentor({ placesRestantes: 1 }));
+    fixture.componentRef.setInput('peutDemander', false);
+    fixture.detectChanges();
+    expect(racine.querySelector('.demander')).toBeNull();
+    expect(racine.querySelector('.disponibilite')?.textContent).toContain('Disponible · 1 place');
+  });
+
   it('désactive la demande quand ma limite de demandes en attente est atteinte', () => {
     const racine = afficher(unMentor());
     fixture.componentRef.setInput('limiteAtteinte', true);

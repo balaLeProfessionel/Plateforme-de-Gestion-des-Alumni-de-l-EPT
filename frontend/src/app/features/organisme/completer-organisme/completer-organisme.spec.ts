@@ -44,11 +44,33 @@ describe('CompleterOrganisme', () => {
     fixture.detectChanges();
 
     expect(organismeService.obtenirMonProfil).toHaveBeenCalled();
-    expect(component['profilCharge']()).toBe(true);
+    expect(component['profilComplet']()).toBe(true);
     expect((fixture.nativeElement.querySelector('#secteur') as HTMLInputElement).value)
       .toBe('Télécoms');
     expect(fixture.nativeElement.textContent).toContain('Profil de mon organisme');
     expect(fixture.nativeElement.textContent).toContain('Enregistrer les modifications');
+  });
+
+  it('présente un profil vide, juste après l’inscription, comme à compléter et sans erreur', () => {
+    organismeService.obtenirMonProfil.mockReturnValue(of({
+      ...profil, description: null, secteurActivite: null, typeOrganisme: null
+    }));
+    fixture = TestBed.createComponent(CompleterOrganisme);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component['profilComplet']()).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('Complétez le profil de votre organisme');
+    expect(fixture.nativeElement.textContent).toContain('Enregistrer et continuer');
+    const secteur: HTMLInputElement = fixture.nativeElement.querySelector('#secteur');
+    expect(secteur.classList).not.toContain('est-invalide');
+    expect(secteur.getAttribute('aria-invalid')).toBeNull();
+
+    component['valider']();
+    fixture.detectChanges();
+    expect(secteur.classList).toContain('est-invalide');
+    expect(secteur.getAttribute('aria-invalid')).toBe('true');
+    expect(fixture.nativeElement.textContent).toContain("Le type d'organisme est obligatoire");
   });
 
   it('affiche les erreurs des champs requis après une validation vide', () => {

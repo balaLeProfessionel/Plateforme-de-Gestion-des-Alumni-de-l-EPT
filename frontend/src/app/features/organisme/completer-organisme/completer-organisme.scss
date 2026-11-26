@@ -35,7 +35,8 @@
 .ligne-double {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 1fr;
-  gap: 1rem;
+  // Espacement vertical déjà porté par la marge de chaque .champ
+  gap: 0 1rem;
 
   @media (max-width: 480px) {
     grid-template-columns: minmax(0, 1fr);
@@ -63,8 +64,7 @@
   }
 }
 
-.textarea-ept,
-.select-ept {
+.champ-ept {
   width: 100%;
   padding: 0.65rem 0.85rem;
   border: 1px solid var(--ept-border);
@@ -74,9 +74,15 @@
   color: var(--ept-text);
   background: var(--ept-surface);
 
-  &:focus {
-    outline: none;
+  &:focus-visible {
+    outline: 2px solid var(--ept-sky);
+    outline-offset: 1px;
     border-color: var(--ept-primary);
+  }
+
+  // Rouge seulement après passage dans le champ ou tentative d'enregistrement
+  &.est-invalide {
+    border-color: var(--ept-error);
   }
 }
 

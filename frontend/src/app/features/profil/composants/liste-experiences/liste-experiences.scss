@@ -83,3 +83,23 @@
     min-height: 48px;
   }
 }
+
+.btn-fermer {
+  align-self: flex-start;
+  min-height: 44px;
+  margin-top: -0.5rem;
+  padding: 0 0.75rem;
+  border: none;
+  background: transparent;
+  color: var(--ept-text-secondary);
+  font: inherit;
+  font-size: 0.88rem;
+  text-decoration: underline;
+  cursor: pointer;
+  border-radius: var(--ept-radius-sm);
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-focus-clair);
+    outline-offset: 2px;
+  }
+}

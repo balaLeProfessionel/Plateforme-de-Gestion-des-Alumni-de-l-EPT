@@ -1,17 +1,19 @@
-<div class="page-parcours">
+<app-cadre-inscription [etapes]="etapesParcours()" [etape]="etape() + 3" [large]="true"
+  accroche="Votre compte est prêt. Un profil complet vous rend visible auprès de votre promotion."
+  libellePanneau="Progression de votre arrivée sur EPT Alumni">
   <div class="contenu">
-
     <header class="entete">
       <h1>Complétez votre profil</h1>
       <p class="sous-titre">
-        Renseignez ce que vous souhaitez : vous pourrez revenir compléter
-        votre profil à tout moment.
+        Vous pourrez le compléter à tout moment.
       </p>
     </header>
 
-    <app-indicateur-etapes [etape]="etape()" />
+    @if (etape() > 0) {
+      <!-- Sur grand écran, le panneau de gauche montre déjà l'étape -->
+      <app-indicateur-etapes class="indicateur-local" [etape]="etape()" />
+    }
 
     <router-outlet />
-
   </div>
-</div>
+</app-cadre-inscription>

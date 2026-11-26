@@ -138,26 +138,7 @@
       </ul>
 
       @if (resultat.totalPages > 1) {
-        <nav class="pagination-evenements" aria-label="Pagination des événements">
-          <button type="button" (click)="changerPage(resultat.page - 1)"
-            [disabled]="resultat.page === 0" aria-label="Page précédente">
-            <i class="pi pi-chevron-left" aria-hidden="true"></i>
-          </button>
-          @for (numero of pagesVisibles(); track $index) {
-            @if (numero === 'ellipsis') {
-              <span class="ellipse" aria-hidden="true">…</span>
-            } @else {
-              <button type="button" (click)="changerPage(numero)"
-                [class.page-active]="numero === resultat.page"
-                [attr.aria-current]="numero === resultat.page ? 'page' : null"
-                [attr.aria-label]="'Page ' + (numero + 1)">{{ numero + 1 }}</button>
-            }
-          }
-          <button type="button" (click)="changerPage(resultat.page + 1)"
-            [disabled]="resultat.page + 1 >= resultat.totalPages" aria-label="Page suivante">
-            <i class="pi pi-chevron-right" aria-hidden="true"></i>
-          </button>
-        </nav>
+        <app-pagination-evenements [page]="resultat.page" [totalPages]="resultat.totalPages" (changer)="changerPage($event)" />
       }
     }
   </section>

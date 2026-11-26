@@ -2,13 +2,12 @@ import { Component, inject, signal } from '@angular/core';
 import { TYPES_ORGANISME } from '../../../core/data/types-organisme';
 import { Router } from '@angular/router';
 import { OrganismeService } from '../../../core/services/organisme/organisme-service';
-import { form, FormField, required } from '@angular/forms/signals';
-import { InputText } from 'primeng/inputtext';
+import { FieldTree, form, FormField, required } from '@angular/forms/signals';
 import { OrganismePublic } from '../../../core/services/models/organisme.model';
 
 @Component({
   selector: 'app-completer-organisme',
-  imports: [FormField, InputText],
+  imports: [FormField],
   templateUrl: './completer-organisme.html',
   styleUrl: './completer-organisme.scss',
 })
@@ -35,7 +34,9 @@ export class CompleterOrganisme {
 
   protected readonly enChargement = signal(false);
   protected readonly chargementProfil = signal(true);
-  protected readonly profilCharge = signal(false);
+  // Vrai quand les champs obligatoires sont déjà enregistrés : on modifie un profil existant.
+  // Le profil vide créé à l'inscription ne compte pas.
+  protected readonly profilComplet = signal(false);
   protected readonly messageErreur = signal<string | null>(null);
 
   constructor() {
@@ -48,7 +49,6 @@ export class CompleterOrganisme {
     this.organismeService.obtenirMonProfil().subscribe({
       next: (profil) => {
         this.appliquerProfil(profil);
-        this.profilCharge.set(true);
         this.chargementProfil.set(false);
       },
       error: (erreur) => {
@@ -56,6 +56,10 @@ export class CompleterOrganisme {
         this.messageErreur.set(erreur?.error?.message ?? 'Impossible de charger le profil de l’organisme.');
       }
     });
+  }
+
+  protected enErreur(champ: FieldTree<string>): boolean {
+    return champ().touched() && champ().invalid();
   }
 
   valider(): void {
@@ -71,7 +75,6 @@ export class CompleterOrganisme {
     this.organismeService.completerMonProfilOrganisme(this.modele()).subscribe({
       next: (profil) => {
         this.appliquerProfil(profil);
-        this.profilCharge.set(true);
         this.enChargement.set(false);
         this.router.navigate(['/accueil']);
       },
@@ -96,5 +99,6 @@ export class CompleterOrganisme {
       siteWeb: profil.siteWeb ?? '',
       pays: profil.pays ?? ''
     });
+    this.profilComplet.set(!!(profil.description && profil.secteurActivite && profil.typeOrganisme));
   }
 }
