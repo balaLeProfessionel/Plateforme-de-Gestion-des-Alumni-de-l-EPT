@@ -1,14 +1,14 @@
-<div class="cadre">
-  <aside class="panneau" aria-label="Progression de l’inscription">
+<div class="cadre" [class.large]="large()">
+  <aside class="panneau" [attr.aria-label]="libellePanneau()">
     <div class="panneau-contenu">
       <div class="logo">
         <img ngSrc="/images/logo-reseau-alumni-160.png" alt="" width="56" height="56" />
         <span>EPT Alumni</span>
       </div>
-      <p class="accroche">Rejoignez le réseau des diplômés de l’École Polytechnique de Thiès.</p>
+      <p class="accroche">{{ accroche() }}</p>
 
       <ol class="etapes">
-        @for (libelle of etapes; track libelle; let i = $index) {
+        @for (libelle of etapes(); track libelle; let i = $index) {
           <li [class.faite]="i + 1 < etape()" [class.courante]="i + 1 === etape()"
               [attr.aria-current]="i + 1 === etape() ? 'step' : null">
             <span class="pastille" aria-hidden="true">

@@ -1,3 +1,4 @@
+import { BandeauProfilCv } from './bandeau-profil-cv';
 import { DatePipe, DOCUMENT, Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
@@ -49,7 +50,7 @@ interface ProfilAffiche extends ProfilPublic {
 @Component({
   selector: 'app-consultation-profil',
   imports: [DatePipe, RouterLink, BoutonRetour, AvatarMembre, CompletudeProfil, OffreMentoratProfil, FenetreParcours, FriseParcours,
-    ParcoursVide],
+    ParcoursVide, BandeauProfilCv],
   templateUrl: './consultation-profil.html',
   styleUrl: './consultation-profil.scss'
 })

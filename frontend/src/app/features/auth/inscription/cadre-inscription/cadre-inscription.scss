@@ -174,3 +174,34 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+// Variante large (complétion du profil) : formulaires plus larges, sur le fond de page.
+// Le panneau n'apparaît qu'à partir des grands écrans pour laisser la place au contenu.
+.cadre.large {
+  @include a-partir-de(bureau) {
+    display: block;
+    background: var(--ept-bg);
+  }
+
+  @include a-partir-de(large) {
+    display: grid;
+    grid-template-columns: minmax(340px, 4fr) 8fr;
+  }
+
+  .panneau { display: none; }
+  @include a-partir-de(large) { .panneau { display: flex; } }
+
+  // Sept étapes : sans les atouts (déjà vus à l'inscription), le panneau tient sur un portable 13".
+  .atouts { display: none; }
+  .etapes { margin-bottom: 0; }
+  .etapes li { padding-bottom: clamp(0.8rem, 2.4vh, 1.4rem); }
+
+  .zone { align-items: flex-start; }
+
+  .carte {
+    max-width: 720px;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+  }
+}

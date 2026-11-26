@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
+import { CadreInscription } from '../../../auth/inscription/cadre-inscription/cadre-inscription';
 import { IndicateurEtapes } from '../../composants/indicateur-etapes/indicateur-etapes';
 
 // Etape affichee tant que la route enfant n'est pas encore resolue
@@ -13,13 +14,28 @@ const ETAPE_PAR_DEFAUT = 1;
 // etape ne demande donc qu'une ligne de route.
 @Component({
   selector: 'app-parcours-completion',
-  imports: [RouterOutlet, IndicateurEtapes],
+  imports: [RouterOutlet, IndicateurEtapes, CadreInscription],
   templateUrl: './parcours-completion.html',
   styleUrl: './parcours-completion.scss'
 })
 export class ParcoursCompletion {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+
+  // Suite du parcours d'inscription : les deux premières étapes sont déjà franchies.
+  // L'étape 0 (choix du mode, import du CV) correspond à « Mode de remplissage ».
+  // Sur le chemin du CV, le profil est rempli d'un coup puis relu sur la page profil.
+  private readonly surCv = toSignal(
+    this.router.events.pipe(
+      filter((evenement) => evenement instanceof NavigationEnd),
+      startWith(null),
+      map(() => this.router.url.startsWith('/completer-profil/cv'))
+    ),
+    { initialValue: this.router.url.startsWith('/completer-profil/cv') }
+  );
+  protected readonly etapesParcours = computed(() => this.surCv()
+    ? ['Compte créé', 'Email vérifié', 'Import du CV', 'Relecture du profil']
+    : ['Compte créé', 'Email vérifié', 'Mode de remplissage', 'Informations', 'Formations', 'Expériences', 'Compétences']);
 
   protected readonly etape = toSignal(
     this.router.events.pipe(

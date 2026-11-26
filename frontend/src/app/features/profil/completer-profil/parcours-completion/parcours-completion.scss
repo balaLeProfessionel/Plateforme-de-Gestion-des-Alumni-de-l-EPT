@@ -1,23 +1,19 @@
-.page-parcours {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  padding: 3rem 1.5rem;
-  background: var(--ept-bg);
-}
+@use 'responsive' as *;
 
 .contenu {
-  width: 100%;
-  max-width: 720px;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+
+  @include a-partir-de(tablette) { padding-top: 1.5rem; }
 }
 
 .entete {
   h1 {
-    font-size: 1.6rem;
+    font-size: 1.35rem;
     margin: 0 0 0.5rem;
+
+    @include a-partir-de(tablette) { font-size: 1.6rem; }
   }
 
   .sous-titre {
@@ -29,16 +25,6 @@
   }
 }
 
-@media (max-width: 560px) {
-  .page-parcours {
-    padding: 1.5rem 1rem;
-  }
-
-  .contenu {
-    gap: 1.25rem;
-  }
-
-  .entete h1 {
-    font-size: 1.35rem;
-  }
+.indicateur-local {
+  @include a-partir-de(large) { display: none; }
 }
