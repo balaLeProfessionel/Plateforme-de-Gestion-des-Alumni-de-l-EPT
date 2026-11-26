@@ -15,7 +15,8 @@ import org.springframework.context.annotation.Configuration;
  * <ul>
  *   <li>{@code anthropic} : Claude, en natif ;</li>
  *   <li>{@code openai} : toute API compatible OpenAI (OpenAI, Mistral, Gemini, OpenRouter, Ollama…),
- *       avec CV_IA_URL ;</li>
+ *       avec CV_IA_URL, adresse de base complète version comprise (ex. https://api.mistral.ai/v1),
+ *       à laquelle le client ajoute seulement /chat/completions ;</li>
  *   <li>{@code demo} : profil fictif, sans IA (développement) ;</li>
  *   <li>autre ou vide : import de CV désactivé.</li>
  * </ul>

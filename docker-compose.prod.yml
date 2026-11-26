@@ -41,7 +41,7 @@ services:
       CV_IA_FOURNISSEUR: ${CV_IA_FOURNISSEUR:-}
       CV_IA_MODELE: ${CV_IA_MODELE:-}
       CV_IA_CLE: ${CV_IA_CLE:-}
-      CV_IA_URL: ${CV_IA_URL:-https://api.openai.com}
+      CV_IA_URL: ${CV_IA_URL:-https://api.openai.com/v1}
       CV_IA_IMAGES: ${CV_IA_IMAGES:-true}
       CV_IA_NOM_FOURNISSEUR: ${CV_IA_NOM_FOURNISSEUR:-}
     volumes:
