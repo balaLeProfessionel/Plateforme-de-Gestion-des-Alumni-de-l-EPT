@@ -21,6 +21,7 @@
 
     <div class="grille-detail">
       <div class="colonne-principale">
+        <app-partenariat-organisme [organismeId]="fiche.id" />
         <section class="section-detail" aria-labelledby="titre-a-propos">
           <h2 id="titre-a-propos">À propos</h2>
           @if (fiche.description) {

@@ -1,0 +1,7 @@
+@use '../partenariats';
+
+.decision { display: grid; gap: 0.75rem; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--ept-primary); border-radius: 12px; background: var(--ept-primary-light); }
+h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1.05rem; }
+.boutons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.confirmation { display: grid; gap: 0.6rem; p { margin: 0; color: var(--ept-primary-dark); } }
+.erreur { margin: 0; color: var(--ept-error-dark); font-weight: 600; }

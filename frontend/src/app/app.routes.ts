@@ -50,6 +50,8 @@ export const routes: Routes = [
     data: { rubrique: path },
     // La messagerie existe dans l’espace membre : connecté, on passe à la route suivante au lieu de l’accueil.
     canMatch: path === 'messagerie' ? [() => !inject(AuthService).estConnecte()] : [],
+    // Connecté, /partenariats mène à la rubrique de l'organisme (conventions-cadres) : la page d'attente ne vaut que sans compte.
+    ...(path === 'partenariats' ? { canMatch: [visiteurMatch] } : {}),
     canActivate: [visiteurGuard],
     loadComponent: () => import('./features/vitrine/page-bientot/page-bientot').then((m) => m.PageBientot)
   })),
@@ -316,6 +318,18 @@ export const routes: Routes = [
         path: 'mobilites',
         canActivate: [authGuard, changementInitialRequisGuard],
         loadChildren: () => import('./features/mobilites/mobilites.routes').then((m) => m.MOBILITES_ROUTES)
+      },
+      {
+        path: 'partenaires',
+        title: 'Partenaires de l’EPT | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard, roleGuard],
+        data: { roles: ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'ADMIN'] },
+        loadComponent: () => import('./features/partenaires/liste-partenaires/liste-partenaires').then((m) => m.ListePartenaires)
+      },
+      {
+        path: 'partenariats',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadChildren: () => import('./features/partenariats/partenariats.routes').then((m) => m.PARTENARIATS_ROUTES)
       },
       {
         path: 'admin',

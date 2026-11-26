@@ -1,0 +1,8 @@
+:host { display: grid; gap: 1rem; }
+.infos { display: grid; gap: 0.75rem; margin: 0; grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+  div { display: grid; gap: 0.15rem; min-width: 0; } .large { grid-column: 1 / -1; }
+  dt { color: var(--ept-text-secondary); font-size: 0.78rem; }
+  dd { margin: 0; color: var(--ept-primary-dark); font-weight: 600; overflow-wrap: anywhere; }
+  .texte { font-weight: 400; line-height: 1.5; white-space: pre-line; }
+  .alerte { color: var(--ept-gold-dark); }
+  a { color: var(--ept-primary); &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } } }

@@ -1,0 +1,28 @@
+<form class="carte" (submit)="envoyer($event)" novalidate>
+  @if (erreur(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+  <div class="grille">
+    <div class="champ large">
+      <label for="convention-objet">Objet de la convention</label>
+      <input id="convention-objet" type="text" autocomplete="off" placeholder="Coopération en formation et en recherche" [formField]="formulaire.objet"
+        [attr.aria-invalid]="formulaire.objet().touched() && formulaire.objet().invalid()" aria-describedby="erreur-convention-objet" />
+      @if (formulaire.objet().touched() && formulaire.objet().errors()[0]; as e) { <small id="erreur-convention-objet" class="erreur-champ">{{ e.message }}</small> }
+    </div>
+    <div class="champ large">
+      <label for="convention-domaines">Domaines de coopération (facultatif)</label>
+      <input id="convention-domaines" type="text" autocomplete="off" placeholder="Stages, recherche, mobilité, interventions…" [formField]="formulaire.domaines"
+        [attr.aria-invalid]="formulaire.domaines().touched() && formulaire.domaines().invalid()" aria-describedby="erreur-convention-domaines" />
+      @if (formulaire.domaines().touched() && formulaire.domaines().errors()[0]; as e) { <small id="erreur-convention-domaines" class="erreur-champ">{{ e.message }}</small> }
+    </div>
+    <div class="champ large">
+      <label for="convention-message">Présentation de la demande</label>
+      <textarea id="convention-message" rows="6" [formField]="formulaire.message"
+        [attr.aria-invalid]="formulaire.message().touched() && formulaire.message().invalid()" aria-describedby="aide-convention-message erreur-convention-message"></textarea>
+      <small id="aide-convention-message" class="aide">Ce que votre organisme attend du partenariat et ce qu’il propose à l’EPT.</small>
+      @if (formulaire.message().touched() && formulaire.message().errors()[0]; as e) { <small id="erreur-convention-message" class="erreur-champ">{{ e.message }}</small> }
+    </div>
+  </div>
+  <div class="boutons">
+    <button type="submit" class="bouton principal" [disabled]="enCours()">{{ initial() ? 'Enregistrer la correction' : 'Envoyer la demande' }}</button>
+    <button type="button" class="bouton" (click)="annulee.emit()">Ne rien changer</button>
+  </div>
+</form>

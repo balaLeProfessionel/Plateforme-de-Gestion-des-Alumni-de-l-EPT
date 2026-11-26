@@ -77,7 +77,7 @@ describe('Navigation de l’espace membre', () => {
     const liens = [...racine.querySelectorAll('.barre-laterale nav a')]
       .map((lien) => lien.getAttribute('href'));
 
-    expect(liens).toEqual(['/accueil', '/annuaire', '/messagerie', '/evenements', '/articles', '/mentorat', '/stages']);
+    expect(liens).toEqual(['/accueil', '/annuaire', '/messagerie', '/evenements', '/articles', '/mentorat', '/stages', '/partenaires']);
     expect(racine.querySelector('.barre-laterale .marque')?.getAttribute('href')).toBe('/accueil');
     expect([...racine.querySelectorAll('.barre-laterale nav button[aria-disabled="true"]')]
       .map((lien) => lien.getAttribute('aria-label')))
@@ -174,6 +174,9 @@ describe('Navigation de l’espace membre', () => {
     expect(racine.querySelector('a[href="/stages"]')).not.toBeNull();
     // Un institut partenaire gère ses offres de mobilité ; il ne voit pas la liste des candidats.
     expect(racine.querySelector('a[href="/mobilites/mes-offres"]')).not.toBeNull();
+    // Il suit ses conventions de partenariat avec l’EPT.
+    expect(racine.querySelector('a[href="/partenariats"]')).not.toBeNull();
+    expect(racine.querySelector('a[href="/partenaires"]')).toBeNull();
     expect(racine.querySelector('.menu-mobile a[aria-label="Paramètres du profil"]')).toBeNull();
     // Un organisme publie, écrit et organise ; le mentorat ne le concerne pas.
     expect(racine.querySelector('a[href="/mentorat"]')).toBeNull();
@@ -256,11 +259,12 @@ describe('Navigation de l’espace membre', () => {
     expect(actualiserSignalements).toHaveBeenCalledOnce();
     expect(actualiserCompteur).not.toHaveBeenCalled();
     expect([...racine.querySelectorAll('.barre-laterale p-sidebar-group-label')].map((titre) => titre.textContent?.trim()))
-      .toEqual(['Pilotage', 'Membres', 'Stages', 'Mobilités', 'Contenus', 'Système', 'Plateforme', 'À découvrir bientôt']);
+      .toEqual(['Pilotage', 'Membres', 'Stages', 'Mobilités', 'Partenariats', 'Contenus', 'Système', 'Plateforme', 'À découvrir bientôt']);
     expect([...racine.querySelectorAll('.barre-laterale nav a')].map((lien) => lien.getAttribute('href'))).toEqual([
       '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/passage-classe', '/admin/diplomes', '/admin/filieres',
       '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations', '/admin/mobilites/offres', '/admin/mobilites/suivi', '/admin/mobilites/flux',
-      '/admin/publications', '/admin/signalements', '/admin/communautes', '/evenements', '/mentorat/gestion-programmes', '/admin/journal', '/annuaire',
+      '/admin/partenariats', '/admin/partenariats/conventions', '/admin/partenariats/accords',
+      '/admin/publications', '/admin/signalements', '/admin/communautes', '/evenements', '/mentorat/gestion-programmes', '/admin/journal', '/annuaire', '/partenaires',
     ]);
     expect(racine.querySelector('.barre-laterale a[href="/admin/signalements"]')?.textContent).toContain('2 signalements à examiner');
     expect(racine.querySelector('.barre-laterale a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
@@ -273,7 +277,8 @@ describe('Navigation de l’espace membre', () => {
     expect([...racine.querySelectorAll('.menu-mobile a')].map((lien) => lien.getAttribute('href'))).toEqual([
       '/admin/mon-compte', '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/passage-classe', '/admin/diplomes', '/admin/filieres',
       '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations', '/admin/mobilites/offres', '/admin/mobilites/suivi', '/admin/mobilites/flux',
-      '/admin/publications', '/admin/signalements', '/admin/communautes', '/mentorat/gestion-programmes', '/admin/journal',
+      '/admin/partenariats', '/admin/partenariats/conventions', '/admin/partenariats/accords',
+      '/admin/publications', '/admin/signalements', '/admin/communautes', '/mentorat/gestion-programmes', '/admin/journal', '/partenaires',
     ]);
     expect(racine.querySelector('.menu-mobile a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
     expect(racine.querySelectorAll('.navigation-mobile a')).toHaveLength(3);

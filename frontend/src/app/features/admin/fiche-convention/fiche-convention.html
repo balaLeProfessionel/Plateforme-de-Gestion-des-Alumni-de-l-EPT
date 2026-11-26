@@ -1,0 +1,16 @@
+@let c = convention();
+<app-page-admin [titre]="c ? c.organismeNom : 'Convention'" [introduction]="c ? c.objet : ''" [parents]="parents">
+  @if (erreur(); as e) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ e }}</p></div>
+  } @else if (c) {
+    <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
+    <section class="carte" aria-label="Convention"><app-infos-convention [convention]="c" [lienOrganisme]="true" /></section>
+    <app-actions-convention [convention]="c" (modifiee)="miseAJour($event.convention, $event.message)" />
+    <app-resiliation-convention [convention]="c" [admin]="true" (modifiee)="miseAJour($event.convention, $event.message)" />
+    <app-visibilite-partenaire [convention]="c" (modifiee)="chargerHistoriqueApresVisibilite()" />
+    <div class="carte"><app-pieces-convention [dossier]="c" [admin]="true" [ajoutable]="ajoutable(c)" (modifiee)="miseAJour($event)" /></div>
+    <div class="carte"><app-historique-convention [lignes]="historique()" /></div>
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement de la convention"></div>
+  }
+</app-page-admin>

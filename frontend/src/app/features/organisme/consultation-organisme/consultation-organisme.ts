@@ -13,10 +13,11 @@ import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { EnteteOrganisme } from '../entete-organisme/entete-organisme';
 import { EvenementsOrganisme } from '../evenements-organisme/evenements-organisme';
 import { MembresOrganisme } from '../membres-organisme/membres-organisme';
+import { PartenariatOrganisme } from '../../partenaires/partenariat-organisme/partenariat-organisme';
 
 @Component({
   selector: 'app-consultation-organisme',
-  imports: [DatePipe, BoutonRetour, EnteteOrganisme, MembresOrganisme, EvenementsOrganisme],
+  imports: [DatePipe, BoutonRetour, EnteteOrganisme, MembresOrganisme, EvenementsOrganisme, PartenariatOrganisme],
   templateUrl: './consultation-organisme.html',
   styleUrl: './consultation-organisme.scss',
 })
