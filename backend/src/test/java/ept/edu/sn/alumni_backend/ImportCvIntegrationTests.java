@@ -213,7 +213,16 @@ class ImportCvIntegrationTests {
                 "2022-03", null, true, false, "Pipelines")),
             List.of("Python", "SQL"),
             List.of(new ProfilExtrait.LangueExtraite("fr", "COURANT"), new ProfilExtrait.LangueExtraite("wo", null)));
-        when(extracteur.extraire(any())).thenReturn(resultat(profil));
+        // Seconde lecture du même CV : l'IA nomme autrement les mêmes éléments (mêmes périodes)
+        ProfilExtrait relecture = new ProfilExtrait(
+            profil.identite(),
+            List.of(new ProfilExtrait.FormationExtraite("Master en informatique et réseaux", ORGANISME_FORMATION,
+                "DIPLOMANTE", "2017-09", "2019-07", false, null)),
+            List.of(new ProfilExtrait.ExperienceExtraite("Ingénieure données", ORGANISME_EXPERIENCE, null,
+                "2022-03", null, true, false, null)),
+            profil.competences(),
+            profil.langues());
+        when(extracteur.extraire(any())).thenReturn(resultat(profil), resultat(relecture));
 
         for (int essai = 0; essai < 2; essai++) {
             UUID id = idDepose(mockMvc.perform(depot(alumni, true, pdfTexte())).andExpect(status().isAccepted())
@@ -238,6 +247,8 @@ class ImportCvIntegrationTests {
             .hasToString("2017-01-01");
         assertThat(jdbc.queryForObject("select type_contrat from experience_professionelle where utilisateur_id = ?", String.class, uid))
             .as("contrat absent du CV : CDI par défaut").isEqualTo("CDI");
+        assertThat(jdbc.queryForObject("select count(*) from experience_professionelle where utilisateur_id = ?", Integer.class, uid))
+            .as("même période, autre intitulé : pas de doublon").isEqualTo(1);
         assertThat(jdbc.queryForObject("select count(*) from experience_professionelle where utilisateur_id = ? and date_fin is null", Integer.class, uid))
             .isEqualTo(1);
         assertThat(jdbc.queryForObject("select count(*) from utilisateur_competences where utilisateur_id = ?", Integer.class, uid))

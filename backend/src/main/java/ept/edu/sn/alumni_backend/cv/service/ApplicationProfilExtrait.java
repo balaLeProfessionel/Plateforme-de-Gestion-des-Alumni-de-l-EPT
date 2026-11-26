@@ -2,12 +2,12 @@ package ept.edu.sn.alumni_backend.cv.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,21 +80,29 @@ class ApplicationProfilExtrait {
     }
 
     private void formations(Utilisateur membre, List<FormationExtraite> extraites) {
-        Set<String> existantes = formations.listerPour(membre).stream()
-            .map(f -> cle(f.libelle(), f.nomOrganisme()))
-            .collect(Collectors.toSet());
+        // Une formation est déjà là si son intitulé et son établissement correspondent, ou si elle couvre
+        // les mêmes années : l'IA ne nomme pas toujours un diplôme de la même façon d'une lecture à l'autre.
+        Set<String> existantes = new HashSet<>();
+        formations.listerPour(membre).forEach(f -> {
+            existantes.add(cle(f.libelle(), f.nomOrganisme()));
+            existantes.add(periode(f.dateDebut(), f.dateFin(), true));
+        });
         for (FormationExtraite f : liste(extraites)) {
             LocalDate debut = debut(f.dateDebut(), f.dateFin());
             // Sans établissement ni date, la formation ne peut pas être enregistrée : le membre l'ajoutera
-            if (f.etablissement() == null || debut == null || !existantes.add(cle(f.libelle(), f.etablissement()))) {
+            if (f.etablissement() == null || debut == null) continue;
+            LocalDate finLue = Boolean.TRUE.equals(f.enCours()) ? null : fin(f.dateFin(), debut);
+            if (existantes.contains(cle(f.libelle(), f.etablissement())) || existantes.contains(periode(debut, finLue, true))) {
                 continue;
             }
+            existantes.add(cle(f.libelle(), f.etablissement()));
+            existantes.add(periode(debut, finLue, true));
             formations.creer(membre, new FormationRequest(
                 f.libelle(),
                 f.description(),
                 f.typeFormation() == null ? TypeFormation.AUTRE : TypeFormation.valueOf(f.typeFormation()),
                 debut,
-                Boolean.TRUE.equals(f.enCours()) ? null : fin(f.dateFin(), debut),
+                finLue,
                 false,
                 null,
                 f.etablissement()));
@@ -102,21 +110,28 @@ class ApplicationProfilExtrait {
     }
 
     private void experiences(Utilisateur membre, List<ExperienceExtraite> extraites) {
-        Set<String> existantes = experiences.listerPour(membre).stream()
-            .map(e -> cle(e.poste(), e.nomOrganisme()))
-            .collect(Collectors.toSet());
+        // Même règle que les formations, au mois près : deux postes commencés et finis le même mois sont le même poste.
+        Set<String> existantes = new HashSet<>();
+        experiences.listerPour(membre).forEach(e -> {
+            existantes.add(cle(e.poste(), e.nomOrganisme()));
+            existantes.add(periode(e.dateDebut(), e.dateFin(), false));
+        });
         for (ExperienceExtraite e : liste(extraites)) {
             LocalDate debut = debut(e.dateDebut(), e.dateFin());
-            if (e.organisme() == null || debut == null || !existantes.add(cle(e.poste(), e.organisme()))) {
+            if (e.organisme() == null || debut == null) continue;
+            LocalDate finLue = Boolean.TRUE.equals(e.enCours()) ? null : fin(e.dateFin(), debut);
+            if (existantes.contains(cle(e.poste(), e.organisme())) || existantes.contains(periode(debut, finLue, false))) {
                 continue;
             }
+            existantes.add(cle(e.poste(), e.organisme()));
+            existantes.add(periode(debut, finLue, false));
             boolean stage = Boolean.TRUE.equals(e.estStage());
             experiences.creer(membre, new ExperienceRequest(
                 e.poste(),
                 e.description(),
                 typeContrat(e.typeContrat(), stage),
                 debut,
-                Boolean.TRUE.equals(e.enCours()) ? null : fin(e.dateFin(), debut),
+                finLue,
                 stage,
                 null,
                 e.organisme()));
@@ -178,6 +193,12 @@ class ApplicationProfilExtrait {
 
     private static String siVide(String actuelle, String lue) {
         return actuelle == null || actuelle.isBlank() ? lue : null;
+    }
+
+    /** Période d'un élément du parcours : à l'année pour une formation, au mois pour une expérience. */
+    static String periode(LocalDate debut, LocalDate fin, boolean alAnnee) {
+        return "periode|" + (alAnnee ? String.valueOf(debut.getYear()) : debut.toString().substring(0, 7)) + "|"
+            + (fin == null ? "en-cours" : alAnnee ? String.valueOf(fin.getYear()) : fin.toString().substring(0, 7));
     }
 
     private static String cle(String intitule, String organisme) {
