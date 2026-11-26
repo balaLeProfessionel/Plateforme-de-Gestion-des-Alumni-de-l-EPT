@@ -1,6 +1,8 @@
 @if (type() === 'experience') {
   <app-liste-experiences
     modeEnregistrement="parCarte"
+    [replie]="true"
+    [(ouverte)]="ouverte"
     [experiences]="experiences()"
     [brouillons]="brouillons()"
     [suggestions]="suggestions()"
@@ -14,6 +16,8 @@
 } @else {
   <app-liste-formations
     modeEnregistrement="parCarte"
+    [replie]="true"
+    [(ouverte)]="ouverte"
     [formations]="formations()"
     [brouillons]="brouillons()"
     [suggestions]="suggestions()"

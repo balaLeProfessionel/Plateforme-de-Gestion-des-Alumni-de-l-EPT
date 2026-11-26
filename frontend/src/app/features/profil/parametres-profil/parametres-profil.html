@@ -7,7 +7,7 @@
     </div>
     <div class="liens-entete">
       @if (importCvDisponible()) {
-        <a class="voir-profil" routerLink="/completer-profil/cv"><i class="pi pi-file-import" aria-hidden="true"></i>Mettre à jour depuis mon CV</a>
+        <a class="voir-profil" routerLink="/completer-profil/cv"><i class="pi pi-file-import" aria-hidden="true"></i>Importer un CV</a>
       }
       <a class="voir-profil" routerLink="/profil"><i class="pi pi-eye" aria-hidden="true"></i>Voir mon profil</a>
     </div>
@@ -21,16 +21,16 @@
       <button type="button" (click)="charger()">Réessayer</button>
     </section>
   } @else if (profil(); as membre) {
-    <nav class="navigation-sections" aria-label="Sections des paramètres">
-      <a routerLink="/profil/parametres" fragment="photo">Photo</a>
-      <a routerLink="/profil/parametres" fragment="informations">Informations</a>
-      <a routerLink="/profil/parametres" fragment="parcours">Parcours</a>
-      <a routerLink="/profil/parametres" fragment="competences">Compétences</a>
-      @if (membre.role === 'ALUMNI') {
-        <a routerLink="/profil/parametres" fragment="confidentialite">Confidentialité</a>
+    <nav class="onglets" aria-label="Rubriques du profil">
+      @for (o of onglets; track o.cle) {
+        <a routerLink="/profil/parametres" [fragment]="o.cle" [class.actif]="onglet() === o.cle"
+          [attr.aria-current]="onglet() === o.cle ? 'page' : null">{{ o.libelle }}</a>
       }
-      <a routerLink="/profil/parametres" fragment="securite">Sécurité</a>
     </nav>
+
+    @switch (onglet()) {
+    @case ('profil') {
+    <div class="panneau">
 
     <section class="carte-parametres" id="photo" aria-labelledby="titre-photo">
       <div class="titre-section"><div><h2 id="titre-photo">Photo de profil</h2>
@@ -64,11 +64,8 @@
       </div>
     </section>
 
-    <section class="carte-parametres" id="informations" aria-labelledby="titre-identite">
-      <div class="titre-section">
-        <div><h2 id="titre-identite">Identité et informations</h2><p>Les champs facultatifs peuvent rester vides.</p></div>
-      </div>
-      <div class="champs-lecture-seule" aria-label="Informations non modifiables">
+    <section class="carte-parametres" id="informations" aria-labelledby="titre-infos">
+      <div class="champs-lecture-seule" role="group" aria-label="Informations non modifiables">
         <div><span>Email</span><strong>{{ membre.email }}</strong></div>
         <div><span>Type de membre</span><strong>{{ typeMembre() }}</strong></div>
         @if (libelleClasse(membre.classe); as classe) { <div><span>Classe</span><strong>{{ classe }}</strong></div> }
@@ -76,21 +73,33 @@
         @if (membre.anneeSortie) { <div><span>Promotion</span><strong>{{ membre.anneeSortie }}</strong></div> }
       </div>
       <app-infos-personnelles [profil]="membre" [enSauvegarde]="enSauvegarde()"
-        [message]="messageInformations()" (sauvegarder)="enregistrerInformations($event)" />
+        [message]="messageInformations()" [boutonSiModifie]="true" (sauvegarder)="enregistrerInformations($event)" />
     </section>
+    </div>
+    }
 
     <!-- Parcours : chaque liste est déjà une section nommée par son titre (« Expériences professionnelles »,
          « Formations ») ; une seconde section du même nom autour ferait un doublon de zone. -->
-    <div class="carte-parametres" id="parcours">
+    @case ('parcours') {
+    <div class="panneau">
+    <div class="bloc-parcours" id="experiences">
       <app-section-parcours type="experience" />
     </div>
-    <div class="carte-parametres" id="formations">
+    <div class="bloc-parcours" id="formations">
       <app-section-parcours type="formation" />
     </div>
 
-    <div class="bloc-competences" id="competences">
+    </div>
+    }
+
+    @case ('competences') {
+    <div class="panneau bloc-competences">
       <app-section-competences />
     </div>
+    }
+
+    @case ('compte') {
+    <div class="panneau">
 
     @if (membre.role === 'ALUMNI') {
       <section class="carte-parametres" id="confidentialite" aria-labelledby="titre-confidentialite">
@@ -157,5 +166,8 @@
         </button>
       </div>
     </section>
+    </div>
+    }
+    }
   }
 </div>

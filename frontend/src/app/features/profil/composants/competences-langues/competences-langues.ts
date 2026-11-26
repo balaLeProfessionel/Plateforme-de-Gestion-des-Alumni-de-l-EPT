@@ -78,6 +78,8 @@ export class CompetencesLanguesEditeur {
   readonly message = input<MessageSection | null>(null);
   // false : la page porte son propre bouton (« Enregistrer et terminer »)
   readonly afficherBouton = input(true);
+  /** « Modifier mon profil » : le bouton n'apparaît qu'une fois la liste modifiée, avec « Annuler ». */
+  readonly boutonSiModifie = input(false);
 
   readonly rechercher = output<string>();
   readonly sauvegarder = output<CompetencesLangues>();
@@ -100,6 +102,19 @@ export class CompetencesLanguesEditeur {
       .map((l) => ({ code: l.code, nom: nomLangue(l.code) }));
     return [...LANGUES, ...autres];
   });
+
+  protected readonly modifie = computed(() => {
+    const resume = (competences: string[], langues: LigneLangue[]) =>
+      JSON.stringify([competences, langues.map((l) => [l.code, l.niveau])]);
+    return resume(this.competences(), this.langues()) !== resume(versCompetences(this.valeur(), this.prerempli()), versLignes(this.valeur(), this.prerempli()));
+  });
+
+  protected annuler(): void {
+    this.competences.set(versCompetences(this.valeur(), this.prerempli()));
+    this.langues.set(versLignes(this.valeur(), this.prerempli()));
+    this.saisie.set('');
+    this.erreurLangues.set(null);
+  }
 
   protected readonly completeParCv = computed(() => {
     const cv = this.prerempli();

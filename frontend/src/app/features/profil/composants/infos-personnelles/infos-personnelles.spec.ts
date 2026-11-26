@@ -16,6 +16,22 @@ describe('InfosPersonnelles', () => {
     fixture.detectChanges();
   });
 
+  it('ne montre le bouton qu’après une modification, avec « Annuler »', () => {
+    fixture.componentRef.setInput('boutonSiModifie', true);
+    fixture.detectChanges();
+    const texte = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(texte()).not.toContain('Enregistrer mes informations');
+
+    composant['modele'].update((valeurs) => ({ ...valeurs, villeResidence: 'Dakar' }));
+    fixture.detectChanges();
+    expect(texte()).toContain('Enregistrer mes informations');
+
+    (fixture.nativeElement.querySelector('.btn-annuler') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(texte()).not.toContain('Enregistrer mes informations');
+    expect(composant['modele']().villeResidence).toBe(profil().villeResidence ?? '');
+  });
+
   it('refuse une identité vide ou trop longue', () => {
     const sauvegarde = vi.spyOn(composant.sauvegarder, 'emit');
     composant['modele'].update((valeurs) => ({ ...valeurs, nom: '', prenom: 'P'.repeat(101) }));

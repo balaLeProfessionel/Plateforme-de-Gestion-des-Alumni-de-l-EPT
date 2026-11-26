@@ -17,6 +17,11 @@
 
   <div class="cartes">
     @for (experience of experiences(); track experience.id) {
+      @if (replie() && ouverte() !== experience.id) {
+        <app-resume-parcours [cle]="experience.id" [titre]="experience.poste" [organisme]="experience.nomOrganisme"
+          [etiquette]="libelleContrat(experience.typeContrat)" [debut]="experience.dateDebut" [fin]="experience.dateFin"
+          [message]="messagePour(experience.id)" (modifier)="repli.ouvrir(experience.id)" />
+      } @else {
       <app-carte-experience
         [attr.id]="'experience-' + experience.id"
         tabindex="-1"
@@ -30,6 +35,10 @@
         (rechercherOrganisme)="rechercherOrganisme.emit($event)"
         (enregistrer)="enregistrerCarte.emit({ id: experience.id, cle: experience.id, donnees: $event })"
         (supprimer)="supprimer.emit(experience.id)" />
+        @if (replie()) {
+          <button type="button" class="btn-fermer" (click)="repli.fermer(experience.id)">Fermer sans enregistrer</button>
+        }
+      }
     }
 
     @for (cle of brouillons(); track cle) {

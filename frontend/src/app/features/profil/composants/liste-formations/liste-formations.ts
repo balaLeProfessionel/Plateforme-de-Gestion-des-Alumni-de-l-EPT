@@ -1,4 +1,4 @@
-import { Component, input, output, signal, viewChildren } from '@angular/core';
+import { Component, input, model, output, signal, viewChildren } from '@angular/core';
 import { Formation, FormationRequest } from '../../../../core/services/models/profil.model';
 import { OrganismeSuggestion } from '../../../../core/services/models/organisme.model';
 import { ParcoursPrerempli } from '../prerempli';
@@ -6,6 +6,9 @@ import { EtatCartes, ETAT_CARTES_VIDE } from '../etat-carte.model';
 import { MessageSection } from '../message-section.model';
 import { DemandeEnregistrement, ModeEnregistrement } from '../demande-enregistrement.model';
 import { CarteFormation } from '../carte-formation/carte-formation';
+import { ResumeParcours } from '../resume-parcours/resume-parcours';
+import { repliCartes } from '../repli-cartes';
+import { TYPES_FORMATION } from '../../../../core/data/types-formation';
 
 export type DemandeFormation = DemandeEnregistrement<FormationRequest>;
 
@@ -19,7 +22,7 @@ export type DemandeFormation = DemandeEnregistrement<FormationRequest>;
 //               (enregistrerTout)
 @Component({
   selector: 'app-liste-formations',
-  imports: [CarteFormation],
+  imports: [CarteFormation, ResumeParcours],
   templateUrl: './liste-formations.html',
   styleUrl: './liste-formations.scss'
 })
@@ -36,6 +39,11 @@ export class ListeFormations {
   readonly suggestions = input<OrganismeSuggestion[]>([]);
   readonly enRecherche = input(false);
   readonly etat = input<EtatCartes>(ETAT_CARTES_VIDE);
+  /** Cartes repliées en résumés, une seule ouverte à la fois (« Modifier mon profil »). */
+  readonly replie = input(false);
+  readonly ouverte = model<string | null>(null);
+  protected readonly repli = repliCartes(this.ouverte, this.etat, 'libelle');
+  protected readonly libelleType = (type: string) => TYPES_FORMATION.find((t) => t.value === type)?.label ?? null;
 
   readonly ajouter = output<void>();
   readonly abandonnerBrouillon = output<string>();

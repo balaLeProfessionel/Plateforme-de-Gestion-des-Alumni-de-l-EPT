@@ -126,8 +126,15 @@
     }
   </div>
 
-  <button type="button" class="btn-ept" (click)="valider()" [disabled]="enSauvegarde()">
-    {{ enSauvegarde() ? 'Enregistrement…' : 'Enregistrer mes informations' }}
-  </button>
+  @if (!boutonSiModifie() || modifie() || enSauvegarde()) {
+    <div class="actions-enregistrement">
+      <button type="button" class="btn-ept" (click)="valider()" [disabled]="enSauvegarde()">
+        {{ enSauvegarde() ? 'Enregistrement…' : 'Enregistrer mes informations' }}
+      </button>
+      @if (boutonSiModifie() && !enSauvegarde()) {
+        <button type="button" class="btn-annuler" (click)="annuler()">Annuler les modifications</button>
+      }
+    </div>
+  }
 
 </section>

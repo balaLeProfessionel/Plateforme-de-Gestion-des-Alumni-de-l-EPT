@@ -10,7 +10,7 @@ import { CompetencesLanguesEditeur } from '../../composants/competences-langues/
   imports: [CompetencesLanguesEditeur],
   template: `
     <app-competences-langues [valeur]="valeur()" [suggestions]="suggestions()" [enSauvegarde]="enSauvegarde()"
-      [message]="message()" (rechercher)="rechercher($event)" (sauvegarder)="enregistrer($event)" />
+      [message]="message()" [boutonSiModifie]="true" (rechercher)="rechercher($event)" (sauvegarder)="enregistrer($event)" />
   `
 })
 export class SectionCompetences {

@@ -108,6 +108,9 @@ export class InfosPersonnelles {
   readonly enSauvegarde = input(false);
   readonly message = input<MessageSection | null>(null);
 
+  /** « Modifier mon profil » : le bouton n'apparaît qu'une fois un champ modifié, avec « Annuler ». */
+  readonly boutonSiModifie = input(false);
+
   readonly sauvegarder = output<ProfilRequest>();
 
   protected readonly pays = PAYS;
@@ -123,6 +126,12 @@ export class InfosPersonnelles {
     // paraissent vides et l'identite du CV remplacerait celle du compte.
     completerDepuisCv(versModele(this.profil()), this.profil() ? this.prerempli() : null)
   );
+
+  protected readonly modifie = computed(() => JSON.stringify(this.modele()) !== JSON.stringify(versModele(this.profil())));
+
+  protected annuler(): void {
+    this.modele.set(versModele(this.profil()));
+  }
 
   // Au moins un champ vide a ete complete par le CV
   protected readonly completeParCv = computed(() => {

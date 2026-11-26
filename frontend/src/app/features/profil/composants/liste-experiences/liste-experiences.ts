@@ -1,4 +1,4 @@
-import { Component, input, output, signal, viewChildren } from '@angular/core';
+import { Component, input, model, output, signal, viewChildren } from '@angular/core';
 import { Experience, ExperienceRequest } from '../../../../core/services/models/profil.model';
 import { OrganismeSuggestion } from '../../../../core/services/models/organisme.model';
 import { ParcoursPrerempli } from '../prerempli';
@@ -9,6 +9,9 @@ import {
   ModeEnregistrement
 } from '../demande-enregistrement.model';
 import { CarteExperience } from '../carte-experience/carte-experience';
+import { ResumeParcours } from '../resume-parcours/resume-parcours';
+import { repliCartes } from '../repli-cartes';
+import { TYPES_CONTRAT } from '../../../../core/data/types-contrat';
 
 export type DemandeExperience = DemandeEnregistrement<ExperienceRequest>;
 
@@ -22,7 +25,7 @@ export type DemandeExperience = DemandeEnregistrement<ExperienceRequest>;
 //               (enregistrerTout)
 @Component({
   selector: 'app-liste-experiences',
-  imports: [CarteExperience],
+  imports: [CarteExperience, ResumeParcours],
   templateUrl: './liste-experiences.html',
   styleUrl: './liste-experiences.scss'
 })
@@ -39,6 +42,11 @@ export class ListeExperiences {
   readonly suggestions = input<OrganismeSuggestion[]>([]);
   readonly enRecherche = input(false);
   readonly etat = input<EtatCartes>(ETAT_CARTES_VIDE);
+  /** Cartes repliées en résumés, une seule ouverte à la fois (« Modifier mon profil »). */
+  readonly replie = input(false);
+  readonly ouverte = model<string | null>(null);
+  protected readonly repli = repliCartes(this.ouverte, this.etat, 'poste');
+  protected readonly libelleContrat = (type: string) => TYPES_CONTRAT.find((t) => t.value === type)?.label ?? null;
 
   readonly ajouter = output<void>();
   readonly abandonnerBrouillon = output<string>();

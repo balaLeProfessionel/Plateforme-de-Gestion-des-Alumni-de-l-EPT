@@ -109,11 +109,16 @@
     }
   </div>
 
-  @if (afficherBouton()) {
-    <button type="button" class="btn-ept" (click)="valider()" [disabled]="enSauvegarde()"
-            [attr.aria-busy]="enSauvegarde()">
-      {{ enSauvegarde() ? 'Enregistrement…' : 'Enregistrer mes compétences et langues' }}
-    </button>
+  @if (afficherBouton() && (!boutonSiModifie() || modifie() || enSauvegarde())) {
+    <div class="actions-enregistrement">
+      <button type="button" class="btn-ept" (click)="valider()" [disabled]="enSauvegarde()"
+              [attr.aria-busy]="enSauvegarde()">
+        {{ enSauvegarde() ? 'Enregistrement…' : 'Enregistrer mes compétences et langues' }}
+      </button>
+      @if (boutonSiModifie() && !enSauvegarde()) {
+        <button type="button" class="btn-annuler" (click)="annuler()">Annuler les modifications</button>
+      }
+    </div>
   }
 
 </section>
