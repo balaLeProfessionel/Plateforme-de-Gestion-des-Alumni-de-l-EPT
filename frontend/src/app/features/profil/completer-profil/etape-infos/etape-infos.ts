@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import { catchError, forkJoin, of, tap } from 'rxjs';
 import { ProfilService } from '../../../../core/services/profil/profil-service';
 import { BrouillonCv } from '../../../../core/services/import-cv/brouillon-cv';
 import { Profil, ProfilRequest } from '../../../../core/services/models/profil.model';
@@ -24,29 +25,34 @@ export class EtapeInfos {
   private readonly formulaire = viewChild(InfosPersonnelles);
 
   protected readonly profil = signal<Profil | null>(null);
+  protected readonly charge = signal(false);
   protected readonly enSauvegarde = signal(false);
   protected readonly message = signal<MessageSection | null>(null);
   protected readonly identiteCv = computed(() => this.brouillonCv.profil()?.identite ?? null);
 
-  // Avec un CV, les champs pre-remplis ne sont pas encore enregistres :
+  // Champs pre-remplis par un CV, ou saisis par le membre : pas encore enregistres.
   // « Continuer » enregistre d'abord, pour ne pas les perdre.
+  private readonly aEnregistrer = computed(() => !!this.identiteCv() || (this.formulaire()?.modifie() ?? false));
   protected readonly libelleContinuer = computed(() =>
-    this.identiteCv() ? 'Enregistrer et continuer' : 'Continuer'
+    this.aEnregistrer() ? 'Enregistrer et continuer' : 'Continuer'
   );
   private continuerApresEnregistrement = false;
 
   constructor() {
     // On charge le profil existant : l'ecran sert aussi bien a le completer
     // apres l'inscription qu'a le modifier plus tard.
-    this.profilService.obtenirProfil().subscribe({
-      next: (profil) => this.profil.set(profil),
-      error: () =>
-        this.message.set({
-          type: 'erreur',
-          texte: 'Impossible de charger votre profil.'
+    // Le formulaire n'apparait qu'une fois profil et brouillon recus : sinon leur arrivee
+    // reinitialiserait ce que le membre a deja commence a saisir.
+    forkJoin([
+      this.profilService.obtenirProfil().pipe(
+        tap((profil) => this.profil.set(profil)),
+        catchError(() => {
+          this.message.set({ type: 'erreur', texte: 'Impossible de charger votre profil.' });
+          return of(null);
         })
-    });
-    this.brouillonCv.charger().subscribe();
+      ),
+      this.brouillonCv.charger()
+    ]).subscribe(() => this.charge.set(true));
   }
 
   protected enregistrer(donnees: ProfilRequest): void {
@@ -75,11 +81,13 @@ export class EtapeInfos {
 
   protected continuer(): void {
     const formulaire = this.formulaire();
-    if (!this.identiteCv() || !formulaire) {
+    if (!formulaire || !this.aEnregistrer()) {
       this.etapeSuivante();
       return;
     }
-    this.continuerApresEnregistrement = formulaire.valider();
+    // Positionne avant l'envoi : la reponse peut arriver avant le retour de valider()
+    this.continuerApresEnregistrement = true;
+    if (!formulaire.valider()) this.continuerApresEnregistrement = false;
   }
 
   protected etapeSuivante(): void {

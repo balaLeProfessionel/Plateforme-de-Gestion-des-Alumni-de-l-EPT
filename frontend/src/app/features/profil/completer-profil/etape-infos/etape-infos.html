@@ -1,9 +1,13 @@
-<app-infos-personnelles
-  [profil]="profil()"
-  [prerempli]="identiteCv()"
-  [enSauvegarde]="enSauvegarde()"
-  [message]="message()"
-  (sauvegarder)="enregistrer($event)" />
+@if (charge()) {
+  <app-infos-personnelles
+    [profil]="profil()"
+    [prerempli]="identiteCv()"
+    [enSauvegarde]="enSauvegarde()"
+    [message]="message()"
+    (sauvegarder)="enregistrer($event)" />
+} @else {
+  <p class="chargement" role="status">Chargement de votre profil…</p>
+}
 
 <app-navigation-etapes
   [libellePrincipal]="libelleContinuer()"

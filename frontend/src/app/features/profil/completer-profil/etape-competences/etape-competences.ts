@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { switchMap } from 'rxjs';
+import { catchError, forkJoin, of, switchMap, tap } from 'rxjs';
 import { ProfilService } from '../../../../core/services/profil/profil-service';
 import { BrouillonCv } from '../../../../core/services/import-cv/brouillon-cv';
 import { CompetencesLangues } from '../../../../core/services/models/competences.model';
@@ -27,6 +27,7 @@ export class EtapeCompetences {
   private readonly editeur = viewChild(CompetencesLanguesEditeur);
 
   protected readonly valeur = signal<CompetencesLangues | null>(null);
+  protected readonly charge = signal(false);
   protected readonly suggestions = signal<string[]>([]);
   protected readonly enSauvegarde = signal(false);
   protected readonly message = signal<MessageSection | null>(null);
@@ -37,12 +38,17 @@ export class EtapeCompetences {
   });
 
   constructor() {
-    this.profilService.lireCompetencesLangues().subscribe({
-      next: (valeur) => this.valeur.set(valeur),
-      error: () =>
-        this.message.set({ type: 'erreur', texte: 'Impossible de charger vos compétences et langues.' })
-    });
-    this.brouillonCv.charger().subscribe();
+    // Meme precaution que l'etape des informations : pas de saisie avant la fin du chargement.
+    forkJoin([
+      this.profilService.lireCompetencesLangues().pipe(
+        tap((valeur) => this.valeur.set(valeur)),
+        catchError(() => {
+          this.message.set({ type: 'erreur', texte: 'Impossible de charger vos compétences et langues.' });
+          return of(null);
+        })
+      ),
+      this.brouillonCv.charger()
+    ]).subscribe(() => this.charge.set(true));
   }
 
   protected rechercher(texte: string): void {

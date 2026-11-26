@@ -9,22 +9,34 @@ import { CompetencesLanguesEditeur } from '../../composants/competences-langues/
   selector: 'app-section-competences',
   imports: [CompetencesLanguesEditeur],
   template: `
-    <app-competences-langues [valeur]="valeur()" [suggestions]="suggestions()" [enSauvegarde]="enSauvegarde()"
-      [message]="message()" [boutonSiModifie]="true" (rechercher)="rechercher($event)" (sauvegarder)="enregistrer($event)" />
+    @if (charge()) {
+      <app-competences-langues [valeur]="valeur()" [suggestions]="suggestions()" [enSauvegarde]="enSauvegarde()"
+        [message]="message()" [boutonSiModifie]="true" (rechercher)="rechercher($event)" (sauvegarder)="enregistrer($event)" />
+    } @else {
+      <p class="chargement" role="status">Chargement de vos compétences…</p>
+    }
   `
 })
 export class SectionCompetences {
   private readonly profilService = inject(ProfilService);
 
   protected readonly valeur = signal<CompetencesLangues | null>(null);
+  // Modifiable seulement une fois chargee : son arrivee effacerait une saisie deja commencee
+  protected readonly charge = signal(false);
   protected readonly suggestions = signal<string[]>([]);
   protected readonly enSauvegarde = signal(false);
   protected readonly message = signal<MessageSection | null>(null);
 
   constructor() {
     this.profilService.lireCompetencesLangues().subscribe({
-      next: (valeur) => this.valeur.set(valeur),
-      error: () => this.message.set({ type: 'erreur', texte: 'Impossible de charger vos compétences et langues.' })
+      next: (valeur) => {
+        this.valeur.set(valeur);
+        this.charge.set(true);
+      },
+      error: () => {
+        this.message.set({ type: 'erreur', texte: 'Impossible de charger vos compétences et langues.' });
+        this.charge.set(true);
+      }
     });
   }
 

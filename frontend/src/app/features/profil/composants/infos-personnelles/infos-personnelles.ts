@@ -127,7 +127,7 @@ export class InfosPersonnelles {
     completerDepuisCv(versModele(this.profil()), this.profil() ? this.prerempli() : null)
   );
 
-  protected readonly modifie = computed(() => JSON.stringify(this.modele()) !== JSON.stringify(versModele(this.profil())));
+  readonly modifie = computed(() => JSON.stringify(this.modele()) !== JSON.stringify(versModele(this.profil())));
 
   protected annuler(): void {
     this.modele.set(versModele(this.profil()));
