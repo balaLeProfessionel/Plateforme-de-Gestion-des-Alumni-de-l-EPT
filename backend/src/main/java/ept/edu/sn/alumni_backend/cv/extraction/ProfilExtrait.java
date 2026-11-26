@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 
 /**
  * Profil lu dans un CV. C'est aussi le schéma JSON demandé à l'IA : les descriptions guident l'extraction.
- * Tout champ absent du CV vaut null ; rien n'est inventé. Les dates sont « AAAA-MM » ou « AAAA ».
+ * Tout champ absent du CV vaut null, sauf les champs obligatoires du profil (valeur probable). Les dates sont « AAAA-MM » ou « AAAA ».
  */
 public record ProfilExtrait(
     Identite identite,
@@ -54,7 +54,7 @@ public record ProfilExtrait(
         String poste,
         @JsonPropertyDescription("Entreprise, administration ou organisation")
         String organisme,
-        @JsonPropertyDescription("CDI, CDD, STAGE, FREELANCE ou FONCTION_PUBLIQUE ; null si le CV ne permet pas de le savoir")
+        @JsonPropertyDescription("CDI, CDD, STAGE, FREELANCE ou FONCTION_PUBLIQUE ; valeur la plus probable si le CV ne le précise pas")
         String typeContrat,
         @JsonPropertyDescription("Début, au format AAAA-MM, ou AAAA si le mois est inconnu")
         String dateDebut,
@@ -69,7 +69,7 @@ public record ProfilExtrait(
     public record LangueExtraite(
         @JsonPropertyDescription("Code ISO 639-1 en minuscules (fr, en, wo, ar…) ; srr pour le sérère, dyo pour le diola, snk pour le soninké, mnk pour le mandingue")
         String code,
-        @JsonPropertyDescription("NOTIONS, INTERMEDIAIRE, COURANT, BILINGUE ou MATERNELLE")
+        @JsonPropertyDescription("NOTIONS, INTERMEDIAIRE, COURANT, BILINGUE ou MATERNELLE ; valeur la plus probable si le CV ne le précise pas")
         String niveau
     ) {}
 }

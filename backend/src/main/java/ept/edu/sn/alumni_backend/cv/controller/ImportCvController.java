@@ -60,6 +60,12 @@ public class ImportCvController {
         return service.valider(principal.getUtilisateur(), id);
     }
 
+    /** Écrit le résultat dans le profil, sans écraser ce que le membre a déjà saisi. */
+    @PatchMapping("/{id}/appliquer")
+    public ImportCvResponse appliquer(@AuthenticationPrincipal UtilisateurPrincipal principal, @PathVariable UUID id) {
+        return service.appliquer(principal.getUtilisateur(), id);
+    }
+
     @PatchMapping("/{id}/abandonner")
     public ImportCvResponse abandonner(@AuthenticationPrincipal UtilisateurPrincipal principal, @PathVariable UUID id) {
         return service.abandonner(principal.getUtilisateur(), id);

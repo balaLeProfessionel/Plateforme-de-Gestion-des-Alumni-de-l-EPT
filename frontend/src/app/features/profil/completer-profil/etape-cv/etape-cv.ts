@@ -163,17 +163,29 @@ export class EtapeCv {
   private traiter(importCv: ImportCv, delaiDepasse: boolean): void {
     this.importEnCours.set(importCv);
     if (importCv.statut === 'PRET') {
-      this.brouillonCv.definir(importCv);
-      this.router.navigate(['/completer-profil/infos']);
+      this.appliquer(importCv);
     } else if (importCv.statut === 'ECHEC' || importCv.statut === 'ABANDONNE') {
       this.etat.set('echec');
       this.erreur.set(importCv.message ?? 'L’analyse de votre CV n’a pas abouti.');
     } else if (delaiDepasse) {
       this.etat.set('echec');
-      this.erreur.set(
-        'L’analyse prend plus de temps que prévu. Revenez dans quelques minutes : elle sera reprise depuis « Complétez votre profil ».'
-      );
+      this.erreur.set('L’analyse prend trop de temps. Réessayez dans quelques minutes.');
     }
+  }
+
+  // Le profil est rempli directement ; le membre corrige depuis sa page profil.
+  // Si l'ecriture echoue, on repasse par la relecture etape par etape.
+  private appliquer(importCv: ImportCv): void {
+    this.importCv.appliquer(importCv.id).subscribe({
+      next: () => {
+        this.brouillonCv.oublier();
+        this.router.navigate(['/profil'], { state: { depuisCv: true } });
+      },
+      error: () => {
+        this.brouillonCv.definir(importCv);
+        this.router.navigate(['/completer-profil/infos']);
+      }
+    });
   }
 
   // Memes regles que le serveur, pour prevenir avant l'envoi

@@ -32,7 +32,7 @@ import tools.jackson.databind.json.JsonMapper;
 class AnalyseImportCv {
     private static final Logger LOG = LoggerFactory.getLogger(AnalyseImportCv.class);
     static final String MESSAGE_ECHEC =
-        "L'analyse de votre CV n'a pas abouti. Réessayez, ou remplissez votre profil à la main.";
+        "L'analyse de votre CV n'a pas abouti.";
     static final String MESSAGE_VIDE =
         "Aucune information de parcours n'a été trouvée dans ce document. Vérifiez qu'il s'agit bien de votre CV.";
 

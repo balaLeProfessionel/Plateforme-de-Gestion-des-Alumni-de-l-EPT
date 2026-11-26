@@ -28,7 +28,7 @@ import ept.edu.sn.alumni_backend.enums.TypeFormation;
 
 /**
  * Ne fait pas confiance à l'IA : chaque champ est contrôlé et ramené aux limites du profil
- * (longueurs, valeurs permises, dates, adresses web). Ce qui ne passe pas est vidé, jamais deviné.
+ * (longueurs, valeurs permises, dates, adresses web). Ce qui ne passe pas est vidé.
  */
 @Component
 class VerificationProfilExtrait {

@@ -14,6 +14,12 @@
       <p>{{ messageErreur() }}</p>
     </section>
   } @else if (profil(); as membre) {
+    @if (depuisCv && estMonProfil()) {
+      <p class="alerte alerte-succes" style="margin-top: 1rem" role="status">
+        Profil rempli à partir de votre CV. Vérifiez-le et
+        <a routerLink="/profil/parametres">corrigez si besoin</a>.
+      </p>
+    }
     <!-- Carte de visite : qui c’est, ce qu’on peut faire, l’essentiel en chiffres. -->
     <header class="carte" [attr.data-role]="membre.role">
       <div class="bandeau" aria-hidden="true"></div>

@@ -31,8 +31,8 @@ import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Import de CV pour pré-remplir le profil. Le membre relit toujours le résultat dans le parcours
- * « Complétez votre profil » : rien n'est écrit dans son profil ici.
+ * Import de CV pour remplir le profil. Le résultat est écrit dans le profil par {@link #appliquer},
+ * puis le membre le corrige depuis sa page profil.
  */
 @Service
 public class ImportCvService {
@@ -42,17 +42,20 @@ public class ImportCvService {
     private final ExtracteurCv extracteur;
     private final LecteurCv lecteur;
     private final AnalyseImportCv analyse;
+    private final ApplicationProfilExtrait application;
     private final ImportCvRepository imports;
     private final UtilisateurRepository utilisateurs;
     private final JsonMapper json;
     private final int limiteParJour;
 
     public ImportCvService(ExtracteurCv extracteur, LecteurCv lecteur, AnalyseImportCv analyse,
+            ApplicationProfilExtrait application,
             ImportCvRepository imports, UtilisateurRepository utilisateurs, JsonMapper json,
             @Value("${app.cv.limite-imports-24h:5}") int limiteParJour) {
         this.extracteur = extracteur;
         this.lecteur = lecteur;
         this.analyse = analyse;
+        this.application = application;
         this.imports = imports;
         this.utilisateurs = utilisateurs;
         this.json = json;
@@ -132,6 +135,20 @@ public class ImportCvService {
         }
         imp.cloturer(StatutImportCv.VALIDE);
         return versResponse(imp);
+    }
+
+    /** Écrit le résultat dans le profil (sans rien écraser) ; le membre corrige ensuite depuis sa page profil. */
+    @Transactional
+    public ImportCvResponse appliquer(Utilisateur utilisateur, UUID id) {
+        ImportCv imp = charger(utilisateur, id);
+        if (imp.getStatut() != StatutImportCv.PRET || imp.getResultat() == null) {
+            throw new ConflitImportCvException("Cet import n'est plus disponible.");
+        }
+        application.appliquer(utilisateur, json.readValue(imp.getResultat(), ProfilExtrait.class));
+        // Rechargé : le remplacement des compétences vide le contexte de persistance
+        ImportCv clos = charger(utilisateur, id);
+        clos.cloturer(StatutImportCv.VALIDE);
+        return versResponse(clos);
     }
 
     @Transactional

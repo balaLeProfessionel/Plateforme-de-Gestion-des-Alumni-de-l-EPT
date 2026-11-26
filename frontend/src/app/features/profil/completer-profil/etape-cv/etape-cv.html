@@ -5,33 +5,20 @@
     @case ('analyse') {
       <div class="analyse" role="status" aria-live="polite">
         <span class="indicateur" aria-hidden="true"></span>
-        <p class="titre-analyse">Analyse de votre CV en cours…</p>
-        <p class="aide">Cela prend en général moins d’une minute. Vous relirez tout avant d’enregistrer.</p>
+        <p class="titre-analyse">Analyse en cours…</p>
+        <p class="aide">Moins d’une minute en général.</p>
         <button type="button" class="btn-discret" (click)="annuler()">Annuler</button>
       </div>
     }
     @case ('echec') {
       <div class="alerte alerte-erreur" role="alert">{{ erreur() }}</div>
       <div class="actions">
-        <button type="button" class="btn-ept" (click)="recommencer()">Réessayer avec un autre fichier</button>
-        <button type="button" class="btn-discret" (click)="remplirSoiMeme()">Remplir mon profil moi-même</button>
+        <button type="button" class="btn-ept" (click)="recommencer()">Réessayer</button>
+        <button type="button" class="btn-discret" (click)="remplirSoiMeme()">Remplir moi-même</button>
       </div>
     }
     @default {
       @if (disponibilite(); as dispo) {
-        <p class="aide">
-          @if (dispo.imagesAcceptees) {
-            Déposez votre CV en PDF ou en Word, ou jusqu’à {{ dispo.fichiersMax }} images : photos de votre CV,
-            captures de votre profil LinkedIn…
-          } @else {
-            Déposez votre CV en PDF (avec du texte, pas une image scannée) ou en Word (.docx).
-          }
-        </p>
-        <p class="conseil">
-          Astuce LinkedIn : sur votre profil, « Plus » puis « Enregistrer au format PDF » donne un meilleur
-          résultat que des captures d’écran.
-        </p>
-
         <div class="champ">
           <label for="fichiers-cv">Votre CV</label>
           <input id="fichiers-cv" type="file" [attr.accept]="formatsAcceptes()"
@@ -39,7 +26,9 @@
                  [disabled]="etat() === 'envoi'"
                  aria-describedby="limites-fichiers"
                  (change)="choisir($event)" />
-          <small id="limites-fichiers" class="limites">10 Mo par fichier, 30 Mo en tout.</small>
+          <small id="limites-fichiers" class="limites">
+            {{ dispo.imagesAcceptees ? 'PDF, Word ou jusqu’à ' + dispo.fichiersMax + ' images' : 'PDF ou Word' }} · 10 Mo max.
+          </small>
         </div>
 
         @if (fichiers().length > 0) {
@@ -61,9 +50,7 @@
           <input id="consentement-cv" type="checkbox" [checked]="consentement()"
                  [disabled]="etat() === 'envoi'" (change)="majConsentement($event)" />
           <label for="consentement-cv">
-            J’accepte que mon CV soit lu par {{ dispo.fournisseur }} pour pré-remplir mon profil.
-            Le fichier n’est pas conservé ; ce qui en est tiré est effacé dès ma relecture terminée,
-            ou au bout de 7 jours.
+            J’accepte que {{ dispo.fournisseur }} lise mon CV pour remplir mon profil. Le fichier n’est pas conservé.
           </label>
         </div>
 

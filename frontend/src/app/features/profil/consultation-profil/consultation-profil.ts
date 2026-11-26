@@ -73,6 +73,8 @@ export class ConsultationProfil {
   protected readonly enChargement = signal(true);
   protected readonly messageErreur = signal<string | null>(null);
   protected readonly lienCopie = signal(false);
+  /** Arrivée juste après l’import d’un CV : on invite à relire le profil rempli. */
+  protected readonly depuisCv = (this.location.getState() as { depuisCv?: boolean } | null)?.depuisCv === true;
 
   protected readonly badgeRole = computed(() => ({
     ETUDIANT: 'Étudiant',

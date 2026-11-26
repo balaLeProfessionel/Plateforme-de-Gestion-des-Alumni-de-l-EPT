@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -69,6 +70,10 @@ class ImportCvIntegrationTests {
     @Autowired private JwtService jwtService;
     @Autowired private UtilisateurRepository utilisateurs;
     @Autowired private ImportCvRepository imports;
+    @Autowired private JdbcTemplate jdbc;
+
+    private static final String ORGANISME_FORMATION = "Universite fictive import cv";
+    private static final String ORGANISME_EXPERIENCE = "Entreprise fictive import cv";
 
     @MockitoBean private ExtracteurCv extracteur;
 
@@ -87,8 +92,12 @@ class ImportCvIntegrationTests {
     void nettoyer() {
         for (Utilisateur u : crees) {
             imports.deleteAll(imports.findByUtilisateurIdAndStatutIn(u.getId(), List.of(StatutImportCv.values())));
+            for (String table : List.of("formation", "experience_professionelle", "utilisateur_competences", "utilisateur_langues")) {
+                jdbc.update("delete from " + table + " where utilisateur_id = ?", u.getId());
+            }
             utilisateurs.deleteById(u.getId());
         }
+        jdbc.update("delete from organisme where nom in (?, ?)", ORGANISME_FORMATION, ORGANISME_EXPERIENCE);
     }
 
     @Test
@@ -193,6 +202,50 @@ class ImportCvIntegrationTests {
             .andExpect(status().isConflict());
     }
 
+
+    @Test
+    void appliquerEcritLeProfilSansEcraserNiDupliquer() throws Exception {
+        ProfilExtrait profil = new ProfilExtrait(
+            new ProfilExtrait.Identite("Awa", "Ndiaye", null, "Dakar", "SN", null, null, null, null),
+            List.of(new ProfilExtrait.FormationExtraite("Master informatique", ORGANISME_FORMATION, "DIPLOMANTE",
+                "2017", "2019", false, null)),
+            List.of(new ProfilExtrait.ExperienceExtraite("Data engineer", ORGANISME_EXPERIENCE, null,
+                "2022-03", null, true, false, "Pipelines")),
+            List.of("Python", "SQL"),
+            List.of(new ProfilExtrait.LangueExtraite("fr", "COURANT"), new ProfilExtrait.LangueExtraite("wo", null)));
+        when(extracteur.extraire(any())).thenReturn(resultat(profil));
+
+        for (int essai = 0; essai < 2; essai++) {
+            UUID id = idDepose(mockMvc.perform(depot(alumni, true, pdfTexte())).andExpect(status().isAccepted())
+                .andReturn().getResponse().getContentAsString());
+            attendreStatut(id, StatutImportCv.PRET);
+            mockMvc.perform(patch("/api/imports-cv/{id}/appliquer", id).header(HttpHeaders.AUTHORIZATION, jeton(alumni)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statut").value("VALIDE"));
+            mockMvc.perform(patch("/api/imports-cv/{id}/appliquer", id).header(HttpHeaders.AUTHORIZATION, jeton(alumni)))
+                .andExpect(status().isConflict());
+        }
+
+        Utilisateur relu = utilisateurs.findById(alumni.getId()).orElseThrow();
+        assertThat(relu.getPrenom()).as("le prénom déjà saisi est gardé").isEqualTo("Test");
+        assertThat(relu.getVilleResidence()).isEqualTo("Dakar");
+        assertThat(relu.getPosteActuel()).as("tiré de l'expérience en cours").isEqualTo("Data engineer");
+
+        UUID uid = alumni.getId();
+        assertThat(jdbc.queryForObject("select count(*) from formation where utilisateur_id = ?", Integer.class, uid))
+            .as("pas de doublon au second import").isEqualTo(1);
+        assertThat(jdbc.queryForObject("select date_debut from formation where utilisateur_id = ?", java.sql.Date.class, uid))
+            .hasToString("2017-01-01");
+        assertThat(jdbc.queryForObject("select type_contrat from experience_professionelle where utilisateur_id = ?", String.class, uid))
+            .as("contrat absent du CV : CDI par défaut").isEqualTo("CDI");
+        assertThat(jdbc.queryForObject("select count(*) from experience_professionelle where utilisateur_id = ? and date_fin is null", Integer.class, uid))
+            .isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from utilisateur_competences where utilisateur_id = ?", Integer.class, uid))
+            .isEqualTo(2);
+        assertThat(jdbc.queryForObject("select niveau from utilisateur_langues where utilisateur_id = ? and code_langue = 'wo'", String.class, uid))
+            .as("niveau absent : intermédiaire par défaut").isEqualTo("INTERMEDIAIRE");
+    }
+
     @Test
     void unPdfAvecDuTexteEnvoieLeTexteEtNonDesImages() throws Exception {
         when(extracteur.extraire(any())).thenReturn(resultat(profilBrut()));
@@ -230,7 +283,7 @@ class ImportCvIntegrationTests {
         verify(extracteur, times(2)).extraire(any());
         mockMvc.perform(get("/api/imports-cv/{id}", id).header(HttpHeaders.AUTHORIZATION, jeton(alumni)))
             .andExpect(jsonPath("$.statut").value("ECHEC"))
-            .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("à la main")));
+            .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("n'a pas abouti")));
     }
 
     @Test

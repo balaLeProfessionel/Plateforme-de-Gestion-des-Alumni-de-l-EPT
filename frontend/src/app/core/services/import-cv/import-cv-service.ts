@@ -37,6 +37,11 @@ export class ImportCvService {
     return this.http.patch<ImportCv>(`/api/imports-cv/${id}/valider`, null);
   }
 
+  /** Écrit le résultat dans le profil, sans écraser ce que le membre a déjà saisi. */
+  appliquer(id: string) {
+    return this.http.patch<ImportCv>(`/api/imports-cv/${id}/appliquer`, null);
+  }
+
   abandonner(id: string) {
     return this.http.patch<ImportCv>(`/api/imports-cv/${id}/abandonner`, null);
   }
