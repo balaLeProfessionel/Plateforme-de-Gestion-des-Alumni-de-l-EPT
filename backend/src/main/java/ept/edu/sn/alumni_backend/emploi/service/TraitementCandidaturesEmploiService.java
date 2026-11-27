@@ -118,12 +118,26 @@ public class TraitementCandidaturesEmploiService {
             throw new ConflitOffreEmploiException("Seule une offre publiée peut être clôturée.");
         }
         offre.setClotureeLe(Instant.now());
-        Utilisateur auteur = utilisateurRepository.getReferenceById(recruteur.getId());
-        List<CandidatureEmploi> ouvertes = candidatureRepository.findByOffreIdAndStatutIn(offreId,
+        return fermerCandidaturesOuvertes(offre, utilisateurRepository.getReferenceById(recruteur.getId()), false);
+    }
+
+    /**
+     * Passe en NON_RETENUE les candidatures sans décision et prévient chaque candidat : à la clôture du recrutement,
+     * ou au retrait de l'offre (par son organisme ou par l'administration, #224). Renvoie leur nombre.
+     */
+    @Transactional
+    public int fermerCandidaturesOuvertes(OffreEmploi offre, Utilisateur auteur, boolean offreRetiree) {
+        List<CandidatureEmploi> ouvertes = candidatureRepository.findByOffreIdAndStatutIn(offre.getId(),
             EnumSet.of(StatutCandidatureEmploi.RECUE, StatutCandidatureEmploi.PRESELECTIONNEE, StatutCandidatureEmploi.ENTRETIEN));
         for (CandidatureEmploi candidature : ouvertes) {
             candidature.passerA(StatutCandidatureEmploi.NON_RETENUE, auteur);
-            notifier(candidature, StatutCandidatureEmploi.NON_RETENUE);
+            if (offreRetiree) {
+                evenements.publishEvent(new NouvelleNotification(candidature.getCandidat().getId(), TypeNotification.EMPLOI,
+                    "Offre retirée", "L'offre « " + offre.getTitre() + " » chez " + offre.entrepriseAffichee()
+                        + " a été retirée : votre candidature est close.", "/offres-emploi/mes-candidatures"));
+            } else {
+                notifier(candidature, StatutCandidatureEmploi.NON_RETENUE);
+            }
         }
         return ouvertes.size();
     }

@@ -7,6 +7,7 @@ import { AuthService } from '../../core/services/auth/auth-service';
 import { CompteurInscriptions } from '../../core/services/admin/compteur-inscriptions';
 import { CompteurOffresAVerifier } from '../../core/services/stages/compteur-offres';
 import { CompteurSignalements } from '../../core/services/publications/moderation';
+import { CompteurOffresEmploiAModerer } from '../../core/services/offres-emploi/moderation-offres-emploi';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
 import { NotificationService } from '../../core/services/notifications/notifications';
 import { CompteurMessages } from '../../core/services/messagerie/compteur-messages';
@@ -31,6 +32,8 @@ describe('Navigation de l’espace membre', () => {
   const compteurMessages = { nombre: messagesNonLus, demarrer: vi.fn(), arreter: vi.fn(), actualiser: vi.fn() };
   const offresAVerifier = signal(0);
   const actualiserOffres = vi.fn();
+  const offresEmploiAModerer = signal(0);
+  const actualiserOffresEmploi = vi.fn();
 
   beforeEach(() => {
     utilisateur.set({ role: 'ALUMNI', nom: 'Diop', prenom: 'Awa' });
@@ -48,6 +51,8 @@ describe('Navigation de l’espace membre', () => {
     notifications.demarrer.mockClear();
     notifications.arreter.mockClear();
     offresAVerifier.set(0);
+    offresEmploiAModerer.set(0);
+    actualiserOffresEmploi.mockClear();
     actualiserOffres.mockClear();
     TestBed.configureTestingModule({
       imports: [EspaceMembre],
@@ -64,6 +69,7 @@ describe('Navigation de l’espace membre', () => {
         { provide: CompteurInscriptions, useValue: { nombre: inscriptionsEnAttente, actualiser: actualiserInscriptions } },
         { provide: CompteurOffresAVerifier, useValue: { nombre: offresAVerifier, actualiser: actualiserOffres } },
         { provide: CompteurSignalements, useValue: { nombre: signalementsEnAttente, actualiser: actualiserSignalements } },
+        { provide: CompteurOffresEmploiAModerer, useValue: { nombre: offresEmploiAModerer, actualiser: actualiserOffresEmploi } },
         { provide: NotificationService, useValue: notifications },
         { provide: CompteurMessages, useValue: compteurMessages }
       ]
@@ -250,6 +256,7 @@ describe('Navigation de l’espace membre', () => {
     inscriptionsEnAttente.set(4);
     signalementsEnAttente.set(2);
     offresAVerifier.set(2);
+    offresEmploiAModerer.set(3);
     const fixture = TestBed.createComponent(EspaceMembre);
     fixture.detectChanges();
     const racine = fixture.nativeElement as HTMLElement;
@@ -258,10 +265,10 @@ describe('Navigation de l’espace membre', () => {
     expect(actualiserSignalements).toHaveBeenCalledOnce();
     expect(actualiserCompteur).not.toHaveBeenCalled();
     expect([...racine.querySelectorAll('.barre-laterale p-sidebar-group-label')].map((titre) => titre.textContent?.trim()))
-      .toEqual(['Pilotage', 'Membres', 'Stages', 'Mobilités', 'Partenariats', 'Contenus', 'Système', 'Plateforme', 'À découvrir bientôt']);
+      .toEqual(['Pilotage', 'Membres', 'Stages', 'Emploi', 'Mobilités', 'Partenariats', 'Contenus', 'Système', 'Plateforme', 'À découvrir bientôt']);
     expect([...racine.querySelectorAll('.barre-laterale nav a')].map((lien) => lien.getAttribute('href'))).toEqual([
       '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/passage-classe', '/admin/diplomes', '/admin/filieres',
-      '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations', '/admin/mobilites/offres', '/admin/mobilites/suivi', '/admin/mobilites/flux',
+      '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations', '/admin/offres-emploi', '/admin/mobilites/offres', '/admin/mobilites/suivi', '/admin/mobilites/flux',
       '/admin/partenariats', '/admin/partenariats/conventions', '/admin/partenariats/accords',
       '/admin/publications', '/admin/signalements', '/admin/communautes', '/evenements', '/mentorat/gestion-programmes', '/admin/journal', '/annuaire', '/offres-emploi', '/partenaires',
     ]);
@@ -269,13 +276,15 @@ describe('Navigation de l’espace membre', () => {
     expect(racine.querySelector('.barre-laterale a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
     expect(actualiserOffres).toHaveBeenCalledOnce();
     expect(racine.querySelector('.barre-laterale a[href="/admin/stages/offres"]')?.textContent).toContain('2 offres à vérifier');
+    expect(actualiserOffresEmploi).toHaveBeenCalledOnce();
+    expect(racine.querySelector('.barre-laterale a[href="/admin/offres-emploi"]')?.textContent).toContain('3 offres d’emploi à modérer');
     // La gestion des rôles existe déjà (Comptes) : elle n’est plus annoncée « à venir ».
     expect(racine.querySelector('.barre-laterale')?.textContent).not.toContain('Rôles et accès');
     // Le panneau mobile reprend les rubriques d'administration ; Annuaire et Événements sont dans la barre du bas.
     expect(racine.querySelector('.menu-mobile a[href="/admin/mon-compte"]')?.textContent?.trim()).toBe('Mon compte');
     expect([...racine.querySelectorAll('.menu-mobile a')].map((lien) => lien.getAttribute('href'))).toEqual([
       '/admin/mon-compte', '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/passage-classe', '/admin/diplomes', '/admin/filieres',
-      '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations', '/admin/mobilites/offres', '/admin/mobilites/suivi', '/admin/mobilites/flux',
+      '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations', '/admin/offres-emploi', '/admin/mobilites/offres', '/admin/mobilites/suivi', '/admin/mobilites/flux',
       '/admin/partenariats', '/admin/partenariats/conventions', '/admin/partenariats/accords',
       '/admin/publications', '/admin/signalements', '/admin/communautes', '/mentorat/gestion-programmes', '/admin/journal', '/offres-emploi', '/partenaires',
     ]);

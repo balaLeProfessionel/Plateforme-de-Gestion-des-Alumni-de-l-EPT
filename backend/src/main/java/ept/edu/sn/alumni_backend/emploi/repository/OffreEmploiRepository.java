@@ -16,6 +16,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface OffreEmploiRepository extends JpaRepository<OffreEmploi, UUID>, JpaSpecificationExecutor<OffreEmploi> {
+    long countByStatut(ept.edu.sn.alumni_backend.emploi.StatutOffreEmploi statut);
+
     @Override
     @EntityGraph(attributePaths = {"auteur", "auteur.filiere", "organisme"})
     Page<OffreEmploi> findAll(Specification<OffreEmploi> specification, Pageable pageable);

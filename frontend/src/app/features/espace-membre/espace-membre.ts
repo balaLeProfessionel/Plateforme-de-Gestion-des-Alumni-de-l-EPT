@@ -14,6 +14,7 @@ import { CompteurInscriptions } from '../../core/services/admin/compteur-inscrip
 import { CompteurSignalements } from '../../core/services/publications/moderation';
 import { CompteurDeclarationsATraiter } from '../../core/services/stages/compteur-declarations';
 import { CompteurOffresAVerifier } from '../../core/services/stages/compteur-offres';
+import { CompteurOffresEmploiAModerer } from '../../core/services/offres-emploi/moderation-offres-emploi';
 import { PermissionAdmin, TOUTES_LES_PERMISSIONS } from '../../core/services/models/admin.model';
 import { CompteurDemandesMentorat } from '../../core/services/mentorat/compteur-demandes';
 import { participeAuMentorat } from '../../core/services/models/mentorat.model';
@@ -60,6 +61,7 @@ export class EspaceMembre implements OnDestroy {
   private readonly notificationService = inject(NotificationService);
   private readonly compteurOffres = inject(CompteurOffresAVerifier);
   private readonly compteurDeclarations = inject(CompteurDeclarationsATraiter);
+  private readonly compteurOffresEmploi = inject(CompteurOffresEmploiAModerer);
   /** Un compte d’administration navigue par domaine ; un membre garde les rubriques de la communauté. */
   private readonly administration = computed(() =>
     TOUTES_LES_PERMISSIONS.some((permission) => this.authService.aPermission(permission)));
@@ -124,6 +126,11 @@ export class EspaceMembre implements OnDestroy {
           compteur: this.compteurDeclarations.nombre(), libelleCompteur: 'stages déclarés à traiter',
         }, { libelle: 'Suivi des stages', icone: 'pi-eye', route: '/admin/stages/suivi', exact: false },
         { libelle: 'Solliciter les organismes', icone: 'pi-envelope', route: '/admin/stages/sollicitations', exact: false }] : [] },
+      { titre: 'Emploi', liens: peut('GERER_OFFRES_EMPLOI')
+        ? [{
+          libelle: 'Modération des offres', icone: 'pi-megaphone', route: '/admin/offres-emploi', exact: false,
+          compteur: this.compteurOffresEmploi.nombre(), libelleCompteur: 'offres d’emploi à modérer',
+        }] : [] },
       { titre: 'Mobilités', liens: peut('GERER_MOBILITES')
         ? [{ libelle: 'Offres de mobilité', icone: 'pi-globe', route: '/admin/mobilites/offres', exact: false },
           { libelle: 'Suivi des mobilités', icone: 'pi-eye', route: '/admin/mobilites/suivi', exact: false },
@@ -236,6 +243,7 @@ export class EspaceMembre implements OnDestroy {
     if (participeAuMentorat(this.authService.utilisateur()?.role)) this.compteurMentorat.actualiser();
     if (this.authService.aPermission('GERER_COMPTES')) this.compteurInscriptions.actualiser();
     if (this.authService.aPermission('MODERER_PUBLICATIONS')) this.compteurSignalements.actualiser();
+    if (this.authService.aPermission('GERER_OFFRES_EMPLOI')) this.compteurOffresEmploi.actualiser();
     this.notificationService.demarrer();
     if (!this.administration()) this.compteurMessages.demarrer();
     if (this.authService.aPermission('GERER_STAGES')) {

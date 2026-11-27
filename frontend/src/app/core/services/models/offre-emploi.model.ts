@@ -20,6 +20,20 @@ export const MOTIFS_SIGNALEMENT: readonly { valeur: MotifSignalementOffre; libel
   { valeur: 'AUTRE', libelle: 'Autre raison' },
 ];
 
+export const LIBELLES_MOTIF_SIGNALEMENT = Object.fromEntries(MOTIFS_SIGNALEMENT.map((m) => [m.valeur, m.libelle])) as
+  Record<MotifSignalementOffre, string>;
+
+/** Files de modération de l’administration (#224). */
+export type FileModerationOffres = 'A_VERIFIER' | 'SIGNALEES' | 'PUBLIEES';
+/** Motif d’un refus ou d’un retrait : envoyé à l’auteur de l’offre. */
+export const LONGUEUR_MOTIF_DECISION = 500;
+
+/** Offre vue par l’administration des offres, avec les signalements en attente (#224). */
+export interface OffreAModerer {
+  offre: OffreEmploi;
+  signalements: { id: string; motif: MotifSignalementOffre; commentaire: string | null; creeLe: string; auteur: string }[];
+}
+
 /** Une offre reste en ligne six mois au plus (même règle que le serveur). */
 export const DUREE_MAX_MOIS = 6;
 export const COMPETENCES_MAX = 15;

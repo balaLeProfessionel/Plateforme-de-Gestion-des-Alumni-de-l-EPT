@@ -80,6 +80,7 @@ public class OffresEmploiService {
     private final OrganismeRepository organismeRepository;
     private final CompetenceRepository competenceRepository;
     private final FiliereRepository filiereRepository;
+    private final TraitementCandidaturesEmploiService traitementCandidatures;
 
     @Transactional
     public OffreEmploiResponse relayer(OffreRelayeeRequest request, UtilisateurPrincipal principal) {
@@ -146,12 +147,18 @@ public class OffresEmploiService {
         return versReponse(offre, principal.getUtilisateur(), false);
     }
 
-    /** Qui gère l'offre la retire, publiée ou en attente : elle disparaît de la liste des membres. */
+    /**
+     * Qui gère l'offre la retire, publiée ou en attente : elle disparaît de la liste des membres. Les candidatures
+     * sans décision d'une offre gérée sont closes, et leurs candidats prévenus (#224).
+     */
     @Transactional
     public OffreEmploiResponse retirer(UUID id, UtilisateurPrincipal principal) {
         OffreEmploi offre = chargerPourGestion(id, principal.getUtilisateur());
         offre.setStatut(StatutOffreEmploi.RETIREE);
         offre.setMotifDecision(null);
+        if (offre.getMode() == ModeOffreEmploi.GEREE) {
+            traitementCandidatures.fermerCandidaturesOuvertes(offre, utilisateurRepository.getReferenceById(principal.getUtilisateur().getId()), true);
+        }
         return versReponse(offre, principal.getUtilisateur(), false);
     }
 
@@ -378,7 +385,7 @@ public class OffresEmploiService {
         return new LinkedHashSet<>(trouvees);
     }
 
-    private OffreEmploiResponse versReponse(OffreEmploi offre, Utilisateur lecteur, boolean signalable) {
+    OffreEmploiResponse versReponse(OffreEmploi offre, Utilisateur lecteur, boolean signalable) {
         boolean gestionnaire = gere(offre, lecteur);
         boolean gestionnaireOuAdmin = gestionnaire || PermissionAdmin.accordee(lecteur, PermissionAdmin.GERER_OFFRES_EMPLOI);
         Utilisateur auteur = offre.getAuteur();

@@ -82,6 +82,25 @@ describe('TableauDeBord', () => {
     expect(racine.querySelector('.seul-admin')).toBeNull();
   });
 
+  it('mène l’administration des offres d’emploi à sa file de modération, avec le nombre à traiter', async () => {
+    preparer();
+    const racine = await charger(tableau({
+      inscriptionsEnAttente: 0, plusAncienneInscription: null, superAdministrateursActifs: 2, offresEmploiAModerer: 3,
+    }));
+    const file = racine.querySelector('a[href="/admin/offres-emploi"]') as HTMLElement;
+    expect(file.classList).toContain('urgente');
+    expect(file.textContent).toContain('Offres d’emploi à modérer');
+    expect(file.querySelector('.nombre')?.textContent).toContain('3');
+  });
+
+  it('cache la file des offres d’emploi sans la responsabilité correspondante', async () => {
+    preparer(authAdmin(['CONSULTER_TABLEAU_DE_BORD', 'GERER_COMPTES']));
+    const racine = await charger(tableau({
+      inscriptionsEnAttente: 0, plusAncienneInscription: null, superAdministrateursActifs: 2, offresEmploiAModerer: 3,
+    }));
+    expect(racine.querySelector('a[href="/admin/offres-emploi"]')).toBeNull();
+  });
+
   it('signale un chargement impossible', async () => {
     preparer();
     http.expectOne('/api/admin/tableau-de-bord').flush({ message: 'Accès refusé' }, { status: 403, statusText: 'Forbidden' });
@@ -91,9 +110,11 @@ describe('TableauDeBord', () => {
   });
 });
 
-function tableau(aTraiter: TableauDeBordAdmin['aTraiter']): TableauDeBordAdmin {
+function tableau(
+  aTraiter: Omit<TableauDeBordAdmin['aTraiter'], 'offresEmploiAModerer'> & { offresEmploiAModerer?: number },
+): TableauDeBordAdmin {
   return {
-    aTraiter,
+    aTraiter: { offresEmploiAModerer: 0, ...aTraiter },
     communaute: { comptesActifs: 223, inscritsCeMois: 14, mentoratsEnCours: 31, programmesOuverts: 2, evenementsAVenir: 6 },
     dernieresDecisions: [{
       id: 'a1', type: 'SUSPENSION', motif: 'Spam', details: null, dateAction: '2026-10-24T10:00:00Z', auteur: 'Mame Diarra Ndour',

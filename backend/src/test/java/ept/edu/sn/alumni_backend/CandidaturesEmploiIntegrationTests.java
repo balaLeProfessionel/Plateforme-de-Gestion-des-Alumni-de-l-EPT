@@ -40,6 +40,10 @@ import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequ
 import com.jayway.jsonpath.JsonPath;
 
 import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
+import ept.edu.sn.alumni_backend.admin.TypeActionAdmin;
+import ept.edu.sn.alumni_backend.admin.entity.ActionAdmin;
+import ept.edu.sn.alumni_backend.admin.repository.ActionAdminRepository;
+import ept.edu.sn.alumni_backend.emploi.repository.SignalementOffreEmploiRepository;
 import ept.edu.sn.alumni_backend.emploi.StatutCandidatureEmploi;
 import ept.edu.sn.alumni_backend.emploi.repository.CandidatureEmploiRepository;
 import ept.edu.sn.alumni_backend.emploi.repository.OffreEmploiRepository;
@@ -56,7 +60,10 @@ import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 
-/** Offres gérées par un organisme, candidatures des étudiants et alumni (#222) et leur traitement par l'organisme (#223). */
+/**
+ * Offres gérées par un organisme, candidatures des étudiants et alumni (#222), leur traitement par l'organisme (#223)
+ * et la modération des offres par l'administration (#224).
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 class CandidaturesEmploiIntegrationTests {
@@ -75,6 +82,8 @@ class CandidaturesEmploiIntegrationTests {
     @Autowired private RefreshTokenRepository refreshTokenRepository;
     @Autowired private NotificationRepository notificationRepository;
     @Autowired private TraitementCandidaturesEmploiService traitementService;
+    @Autowired private SignalementOffreEmploiRepository signalementRepository;
+    @Autowired private ActionAdminRepository actionAdminRepository;
 
     private final List<UUID> organismesCrees = new ArrayList<>();
     private Utilisateur organisme;
@@ -92,6 +101,7 @@ class CandidaturesEmploiIntegrationTests {
 
     @AfterEach
     void nettoyer() {
+        signalementRepository.deleteAll();
         candidatureRepository.deleteAll();
         offreRepository.deleteAll();
         refreshTokenRepository.deleteAll();
@@ -409,6 +419,139 @@ class CandidaturesEmploiIntegrationTests {
             .andExpect(jsonPath("$[0].statut").value("NON_RETENUE"));
         envoyer(get("/api/offres-emploi/mon-dernier-cv"), alumni, null).andExpect(status().isNoContent());
         envoyer(get("/api/offres-emploi/candidatures/{id}/cv", idCandidature(recente, etudiant)), etudiant, null).andExpect(status().isOk());
+    }
+
+    @Test
+    void m01_seuleLAdministrationDesOffresModere() throws Exception {
+        String offre = publier(offreGeree(false, "[]"));
+        for (Utilisateur refuse : List.of(creerCompte(TypeRole.ADMIN, PermissionAdmin.GERER_STAGES), organisme, alumni)) {
+            envoyer(get("/api/admin/offres-emploi"), refuse, null).andExpect(status().isForbidden());
+            envoyer(get("/api/admin/offres-emploi/compteur"), refuse, null).andExpect(status().isForbidden());
+            envoyer(patch("/api/admin/offres-emploi/{id}/retirer", offre), refuse, "{\"motif\": \"Hors charte\"}")
+                .andExpect(status().isForbidden());
+        }
+        envoyer(get("/api/admin/offres-emploi?file=PUBLIEES"), moderateur(), null)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.contenu[0].offre.id").value(offre));
+        envoyer(get("/api/offres-emploi/{id}", offre), etudiant, null).andExpect(jsonPath("$.statut").value("PUBLIEE"));
+    }
+
+    @Test
+    void m02_uneOffreEnAttenteEstPublieeOuRefuseeAvecUnMotif() throws Exception {
+        Utilisateur nonValide = creerCompteOrganisme(StatutCompte.EN_ATTENTE);
+        Utilisateur moderateur = moderateur();
+        long avant = compteur(moderateur, "aVerifier");
+        String aRefuser = id(envoyer(post("/api/offres-emploi/gerees"), nonValide, offreGeree(false, "[]")).andExpect(status().isCreated()));
+        String aPublier = id(envoyer(post("/api/offres-emploi/gerees"), nonValide, offreGeree(false, "[]")).andExpect(status().isCreated()));
+        assertThat(compteur(moderateur, "aVerifier")).isEqualTo(avant + 2);
+        envoyer(get("/api/admin/tableau-de-bord"), creerCompte(TypeRole.ADMIN, PermissionAdmin.CONSULTER_TABLEAU_DE_BORD), null)
+            .andExpect(jsonPath("$.aTraiter.offresEmploiAModerer").value(org.hamcrest.Matchers.greaterThanOrEqualTo(2)));
+        envoyer(get("/api/admin/offres-emploi"), moderateur, null)
+            .andExpect(jsonPath("$.contenu[*].offre.id", org.hamcrest.Matchers.hasItems(aRefuser, aPublier)));
+
+        envoyer(patch("/api/admin/offres-emploi/{id}/refuser", aRefuser), moderateur, "{\"motif\": \"  \"}").andExpect(status().isBadRequest());
+        envoyer(patch("/api/admin/offres-emploi/{id}/refuser", aRefuser), moderateur, "{\"motif\": \" Entreprise introuvable \"}")
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.offre.statut").value("REFUSEE"))
+            .andExpect(jsonPath("$.offre.motifDecision").value("Entreprise introuvable"));
+        envoyer(patch("/api/admin/offres-emploi/{id}/refuser", aRefuser), moderateur, "{\"motif\": \"Encore\"}").andExpect(status().isConflict());
+        envoyer(patch("/api/admin/offres-emploi/{id}/publier", aRefuser), moderateur, null).andExpect(status().isConflict());
+        envoyer(get("/api/offres-emploi/mes-offres"), nonValide, null)
+            .andExpect(jsonPath("$[?(@.id == '" + aRefuser + "')].motifDecision").value("Entreprise introuvable"));
+
+        envoyer(patch("/api/admin/offres-emploi/{id}/publier", aPublier), moderateur, null)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.offre.statut").value("PUBLIEE"));
+        envoyer(get("/api/offres-emploi/{id}", aPublier), alumni, null).andExpect(status().isOk());
+        assertThat(compteur(moderateur, "aVerifier")).isEqualTo(avant);
+
+        assertThat(messagesPour(nonValide)).anyMatch(m -> m.contains("Motif : Entreprise introuvable"))
+            .anyMatch(m -> m.contains("a été vérifiée par l'école"));
+        assertThat(journal(nonValide)).extracting(ActionAdmin::getType)
+            .containsExactlyInAnyOrder(TypeActionAdmin.REFUS_OFFRE_EMPLOI, TypeActionAdmin.PUBLICATION_OFFRE_EMPLOI);
+        assertThat(journal(nonValide)).filteredOn(a -> a.getType() == TypeActionAdmin.REFUS_OFFRE_EMPLOI)
+            .extracting(ActionAdmin::getMotif).containsExactly("Entreprise introuvable");
+    }
+
+    @Test
+    void m03_lesSignalementsSontClassesEtLOffreResteePubliee() throws Exception {
+        String offre = publier(offreGeree(false, "[]"));
+        Utilisateur moderateur = moderateur();
+        long avant = compteur(moderateur, "signalees");
+        envoyer(post("/api/offres-emploi/{id}/signalements", offre), alumni, "{\"motif\": \"LIEN_MORT\"}").andExpect(status().is2xxSuccessful());
+        envoyer(post("/api/offres-emploi/{id}/signalements", offre), etudiant, "{\"motif\": \"AUTRE\", \"commentaire\": \"Doublon\"}")
+            .andExpect(status().is2xxSuccessful());
+        assertThat(compteur(moderateur, "signalees")).isEqualTo(avant + 1);
+        envoyer(get("/api/admin/offres-emploi?file=SIGNALEES"), moderateur, null)
+            .andExpect(jsonPath("$.contenu[?(@.offre.id == '" + offre + "')].signalements[*].motif", org.hamcrest.Matchers.contains("LIEN_MORT", "AUTRE")));
+
+        envoyer(patch("/api/admin/offres-emploi/{id}/classer-signalements", offre), moderateur, null)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.offre.statut").value("PUBLIEE"));
+        envoyer(patch("/api/admin/offres-emploi/{id}/classer-signalements", offre), moderateur, null).andExpect(status().isConflict());
+        assertThat(compteur(moderateur, "signalees")).isEqualTo(avant);
+        envoyer(get("/api/admin/offres-emploi?file=SIGNALEES"), moderateur, null)
+            .andExpect(jsonPath("$.contenu[?(@.offre.id == '" + offre + "')]", hasSize(0)));
+        assertThat(journal(organisme)).extracting(ActionAdmin::getType).containsExactly(TypeActionAdmin.CLASSEMENT_SIGNALEMENTS_OFFRE_EMPLOI);
+        assertThat(messagesPour(organisme)).isEmpty();
+    }
+
+    @Test
+    void m04_leRetraitParLEcoleFermeLesCandidaturesEtPrevientChacun() throws Exception {
+        String offre = publier(offreGeree(false, "[]"));
+        Utilisateur moderateur = moderateur();
+        postuler(offre, alumni, cv("cv.pdf"), false, null, "[]").andExpect(status().isOk());
+        postuler(offre, etudiant, cv("cv.pdf"), false, null, "[]").andExpect(status().isOk());
+        envoyer(patch("/api/offres-emploi/candidatures/{id}/statut", idCandidature(offre, etudiant)), organisme, statut("RETENUE"))
+            .andExpect(status().isOk());
+        envoyer(post("/api/offres-emploi/{id}/signalements", offre), autreOrganisme, "{\"motif\": \"ARNAQUE\"}").andExpect(status().is2xxSuccessful());
+
+        envoyer(patch("/api/admin/offres-emploi/{id}/retirer", offre), moderateur, "{}").andExpect(status().isBadRequest());
+        envoyer(patch("/api/admin/offres-emploi/{id}/retirer", offre), moderateur, "{\"motif\": \"Annonce trompeuse\"}")
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.offre.statut").value("RETIREE"))
+            .andExpect(jsonPath("$.offre.motifDecision").value("Annonce trompeuse"));
+        envoyer(patch("/api/admin/offres-emploi/{id}/retirer", offre), moderateur, "{\"motif\": \"Encore\"}").andExpect(status().isConflict());
+
+        envoyer(get("/api/offres-emploi/{id}", offre), alumni, null).andExpect(status().isNotFound());
+        assertThat(candidatureRepository.findByOffreIdAndCandidatId(UUID.fromString(offre), alumni.getId()).orElseThrow().getStatut())
+            .isEqualTo(StatutCandidatureEmploi.NON_RETENUE);
+        assertThat(candidatureRepository.findByOffreIdAndCandidatId(UUID.fromString(offre), etudiant.getId()).orElseThrow().getStatut())
+            .isEqualTo(StatutCandidatureEmploi.RETENUE);
+        assertThat(messagesPour(alumni)).anyMatch(m -> m.contains("a été retirée : votre candidature est close"));
+        assertThat(messagesPour(organisme)).anyMatch(m -> m.contains("Motif : Annonce trompeuse") && m.contains("candidatures sans décision sont closes"));
+        assertThat(signalementRepository.findByOffreIdAndTraiteLeIsNull(UUID.fromString(offre))).isEmpty();
+        assertThat(journal(organisme)).extracting(ActionAdmin::getType).containsExactly(TypeActionAdmin.RETRAIT_OFFRE_EMPLOI);
+    }
+
+    @Test
+    void m05_leRetraitParLOrganismeFermeAussiSesCandidatures() throws Exception {
+        String offre = publier(offreGeree(false, "[]"));
+        postuler(offre, alumni, cv("cv.pdf"), false, null, "[]").andExpect(status().isOk());
+        envoyer(patch("/api/offres-emploi/{id}/retirer", offre), organisme, null).andExpect(jsonPath("$.statut").value("RETIREE"));
+        assertThat(candidatureRepository.findByOffreIdAndCandidatId(UUID.fromString(offre), alumni.getId()).orElseThrow().getStatut())
+            .isEqualTo(StatutCandidatureEmploi.NON_RETENUE);
+        assertThat(messagesPour(alumni)).anyMatch(m -> m.contains("a été retirée"));
+        assertThat(journal(organisme)).isEmpty();
+    }
+
+    private Utilisateur moderateur() {
+        return creerCompte(TypeRole.ADMIN, PermissionAdmin.GERER_OFFRES_EMPLOI);
+    }
+
+    private long compteur(Utilisateur moderateur, String cle) throws Exception {
+        Number valeur = JsonPath.read(envoyer(get("/api/admin/offres-emploi/compteur"), moderateur, null)
+            .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(), "$." + cle);
+        return valeur.longValue();
+    }
+
+    private List<String> messagesPour(Utilisateur destinataire) {
+        return notificationRepository.findByDestinataire_IdOrderByCreeLeDescIdDesc(destinataire.getId(), PageRequest.of(0, 20))
+            .getContent().stream().map(n -> n.getMessage()).toList();
+    }
+
+    private List<ActionAdmin> journal(Utilisateur cible) {
+        return actionAdminRepository.findAll().stream().filter(a -> a.getCible().getId().equals(cible.getId())).toList();
     }
 
     private String idCandidature(String offreId, Utilisateur candidat) {

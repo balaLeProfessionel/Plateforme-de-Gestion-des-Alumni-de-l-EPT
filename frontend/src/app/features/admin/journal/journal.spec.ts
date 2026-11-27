@@ -42,7 +42,7 @@ describe('Journal', () => {
     fixture.detectChanges();
     const racine = fixture.nativeElement as HTMLElement;
 
-    expect([...racine.querySelectorAll('.filtres button')].map((b) => b.getAttribute('aria-pressed'))).toEqual(['false', 'false', 'true', 'false']);
+    expect([...racine.querySelectorAll('.filtres button')].map((b) => b.getAttribute('aria-pressed'))).toEqual(['false', 'false', 'true', 'false', 'false']);
     const entree = racine.querySelector('.journal li') as HTMLElement;
     expect(entree.textContent).toContain('Compte suspendu');
     expect(entree.textContent).toContain('par Mame Diarra Ndour');

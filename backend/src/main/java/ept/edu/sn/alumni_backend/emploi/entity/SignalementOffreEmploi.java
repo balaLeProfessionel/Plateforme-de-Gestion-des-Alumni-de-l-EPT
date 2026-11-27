@@ -51,6 +51,19 @@ public class SignalementOffreEmploi {
     @Column(name = "cree_le", nullable = false, updatable = false)
     private Instant creeLe;
 
+    /** Date à laquelle l'administration a traité le signalement (classé, ou offre retirée) ; null tant qu'il attend (#224). */
+    @Column(name = "traite_le")
+    private Instant traiteLe;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "traite_par_id")
+    private Utilisateur traitePar;
+
+    public void traiter(Utilisateur admin, Instant quand) {
+        traitePar = admin;
+        traiteLe = quand;
+    }
+
     @PrePersist
     void initialiserDate() {
         creeLe = Instant.now();

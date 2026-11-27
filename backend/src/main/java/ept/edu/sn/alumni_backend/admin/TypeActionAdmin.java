@@ -18,5 +18,13 @@ public enum TypeActionAdmin {
     /** Fin de la mission de chef de département : remplacé par un autre ou retiré. */
     RETRAIT_CHEF_DEPARTEMENT,
     /** Classe d'un étudiant modifiée par l'administration (passage en classe supérieure, correction) : « avant → après ». */
-    MODIFICATION_CLASSE
+    MODIFICATION_CLASSE,
+    /** Offre d'emploi d'un organisme non validé publiée après vérification (#224) ; la cible est son auteur, le détail son titre. */
+    PUBLICATION_OFFRE_EMPLOI,
+    /** Offre d'emploi en attente refusée, avec un motif (#224). */
+    REFUS_OFFRE_EMPLOI,
+    /** Offre d'emploi publiée retirée par l'administration, avec un motif (#224). */
+    RETRAIT_OFFRE_EMPLOI,
+    /** Signalements d'une offre d'emploi classés : l'offre reste publiée (#224). */
+    CLASSEMENT_SIGNALEMENTS_OFFRE_EMPLOI
 }

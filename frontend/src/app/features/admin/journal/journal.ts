@@ -23,6 +23,8 @@ const FILTRES: readonly FiltreJournal[] = [
   { cle: 'inscriptions', libelle: 'Inscriptions', types: ['VALIDATION_INSCRIPTION', 'REFUS_INSCRIPTION'] },
   { cle: 'suspensions', libelle: 'Suspensions', types: ['SUSPENSION', 'REACTIVATION'] },
   { cle: 'evolutions', libelle: 'Créations et rôles', types: ['CREATION_COMPTE', 'CHANGEMENT_ROLE', 'DIPLOMATION', 'MODIFICATION_IDENTITE'] },
+  { cle: 'offres-emploi', libelle: 'Offres d’emploi', types: [
+    'PUBLICATION_OFFRE_EMPLOI', 'REFUS_OFFRE_EMPLOI', 'RETRAIT_OFFRE_EMPLOI', 'CLASSEMENT_SIGNALEMENTS_OFFRE_EMPLOI'] },
 ];
 
 interface EtatJournal { filtre: FiltreJournal; page: number }

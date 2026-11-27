@@ -102,6 +102,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/stages/**").hasAuthority(PermissionAdmin.GERER_STAGES.name())
                 .requestMatchers("/api/admin/mobilites/**").hasAuthority(PermissionAdmin.GERER_MOBILITES.name())
                 .requestMatchers("/api/admin/partenariats/**").hasAuthority(PermissionAdmin.GERER_PARTENARIATS.name())
+                .requestMatchers("/api/admin/offres-emploi/**", "/api/admin/offres-emploi").hasAuthority(PermissionAdmin.GERER_OFFRES_EMPLOI.name())
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/stages/mes-offres", "/api/stages/mes-offres/**").hasRole("ORGANISME")
                 .requestMatchers("/api/mobilites/mes-offres", "/api/mobilites/mes-offres/**").hasRole("ORGANISME")

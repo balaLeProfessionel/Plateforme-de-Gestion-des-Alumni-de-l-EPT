@@ -1,0 +1,31 @@
+<app-page-admin titre="Offres d’emploi"
+  introduction="Vérifiez les offres des organismes non validés, traitez les signalements des membres et retirez une offre si besoin. L’auteur reçoit chaque décision, motif compris.">
+  <nav class="onglets" aria-label="Files de modération">
+    @for (o of onglets; track o.valeur) {
+      <button type="button" [attr.aria-pressed]="file() === o.valeur" (click)="choisirFile(o.valeur)">{{ o.libelle }}</button>
+    }
+  </nav>
+
+  <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
+
+  @if (erreurChargement(); as erreur) {
+    <div class="etat" role="alert"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><h2>Chargement impossible</h2><p>{{ erreur }}</p></div>
+  } @else if (page(); as p) {
+    @if (p.contenu.length === 0) {
+      <div class="etat">
+        <i class="pi pi-inbox" aria-hidden="true"></i>
+        <h2>{{ vides[file()].titre }}</h2>
+        <p>{{ vides[file()].texte }}</p>
+      </div>
+    } @else {
+      <ul class="liste">
+        @for (element of p.contenu; track element.offre.id) {
+          <li><app-carte-offre-a-moderer [element]="element" (traitee)="traitee($event)" /></li>
+        }
+      </ul>
+      <app-pagination-admin [page]="p.page" [totalPages]="p.totalPages" libelle="Pagination des offres" (changer)="changerPage($event)" />
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement des offres"></div>
+  }
+</app-page-admin>

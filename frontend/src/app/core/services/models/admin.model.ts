@@ -4,7 +4,8 @@ export type StatutCompte = 'EN_ATTENTE' | 'ACTIF' | 'SUSPENDU';
 export type RoleCompte = 'ETUDIANT' | 'ALUMNI' | 'PERSONNEL' | 'ORGANISME' | 'ADMIN' | 'VISITEUR';
 export type TypeActionAdmin = 'VALIDATION_INSCRIPTION' | 'REFUS_INSCRIPTION' | 'SUSPENSION' | 'REACTIVATION'
   | 'CREATION_COMPTE' | 'CHANGEMENT_ROLE' | 'DIPLOMATION' | 'MODIFICATION_IDENTITE' | 'MODIFICATION_RESPONSABILITES'
-  | 'DESIGNATION_CHEF_DEPARTEMENT' | 'RETRAIT_CHEF_DEPARTEMENT' | 'MODIFICATION_CLASSE';
+  | 'DESIGNATION_CHEF_DEPARTEMENT' | 'RETRAIT_CHEF_DEPARTEMENT' | 'MODIFICATION_CLASSE'
+  | 'PUBLICATION_OFFRE_EMPLOI' | 'REFUS_OFFRE_EMPLOI' | 'RETRAIT_OFFRE_EMPLOI' | 'CLASSEMENT_SIGNALEMENTS_OFFRE_EMPLOI';
 
 /** Miroir de CompteAdminResponse : un compte vu par l’administration, coordonnées comprises. */
 export interface CompteAdmin {
@@ -206,7 +207,10 @@ export interface EntreeJournal {
 
 export interface TableauDeBordAdmin {
   /** superAdministrateursActifs : à 1, plus personne ne peut gérer les administrateurs si ce compte perd son accès. */
-  aTraiter: { inscriptionsEnAttente: number; plusAncienneInscription: string | null; superAdministrateursActifs: number };
+  /** offresEmploiAModerer : offres d’emploi en attente de vérification, ou publiées et signalées (#224). */
+  aTraiter: {
+    inscriptionsEnAttente: number; plusAncienneInscription: string | null; superAdministrateursActifs: number; offresEmploiAModerer: number;
+  };
   communaute: {
     comptesActifs: number;
     inscritsCeMois: number;
@@ -249,6 +253,10 @@ export const LIBELLES_ACTION_ADMIN: Record<TypeActionAdmin, string> = {
   DESIGNATION_CHEF_DEPARTEMENT: 'Désigné chef de département',
   RETRAIT_CHEF_DEPARTEMENT: 'N’est plus chef de département',
   MODIFICATION_CLASSE: 'Classe modifiée',
+  PUBLICATION_OFFRE_EMPLOI: 'Offre d’emploi publiée',
+  REFUS_OFFRE_EMPLOI: 'Offre d’emploi refusée',
+  RETRAIT_OFFRE_EMPLOI: 'Offre d’emploi retirée',
+  CLASSEMENT_SIGNALEMENTS_OFFRE_EMPLOI: 'Signalements d’offre classés',
 };
 
 /** Détails lisibles : rôles et responsabilités techniques (« ALUMNI → ADMIN », « GERER_STAGES ») deviennent leurs libellés. */
