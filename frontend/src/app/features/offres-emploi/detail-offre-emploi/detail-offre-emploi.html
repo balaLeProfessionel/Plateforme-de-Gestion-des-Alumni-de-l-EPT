@@ -7,6 +7,7 @@
         <div class="pastilles">
           <span class="pastille type">{{ types[o.typeContrat] }}</span>
           @if (o.mode === 'RELAYEE') { <span class="pastille">Offre relayée</span> }
+          @else { <span class="pastille plateforme">Candidature sur la plateforme</span> }
           @if (o.statut !== 'PUBLIEE') { <span class="pastille">{{ statuts[o.statut] }}</span> }
           @else if (o.expiree) { <span class="pastille expiree">Expirée</span> }
         </div>
@@ -30,6 +31,15 @@
             </a>
           }
         </aside>
+      }
+
+      @if (o.mode === 'GEREE') {
+        @if (candidat()) {
+          <app-candidature-offre-emploi [offre]="o" />
+        } @else if (!o.modifiable) {
+          <p class="provenance"><i class="pi pi-info-circle" aria-hidden="true"></i>
+            {{ o.entreprise }} reçoit les candidatures dans la plateforme. Seuls les étudiants et les alumni de l’EPT peuvent postuler.</p>
+        }
       }
 
       <dl class="infos">
@@ -73,7 +83,7 @@
             </div>
           } @else {
             <div class="boutons">
-              <a class="bouton" [routerLink]="['/offres-emploi', o.id, 'modifier']"><i class="pi pi-pencil" aria-hidden="true"></i>Modifier ou prolonger</a>
+              <a class="bouton" [routerLink]="['/offres-emploi', o.id, o.mode === 'GEREE' ? 'modifier-offre' : 'modifier']"><i class="pi pi-pencil" aria-hidden="true"></i>Modifier ou prolonger</a>
               <button type="button" class="bouton" (click)="confirmerRetrait.set(true)"><i class="pi pi-times" aria-hidden="true"></i>Retirer</button>
             </div>
           }

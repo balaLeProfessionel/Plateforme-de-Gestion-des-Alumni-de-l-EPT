@@ -23,5 +23,5 @@ public record OffreRelayeeRequest(
     @Size(max = 60, message = "60 caractères au maximum.") String source,
     @Size(max = 15, message = "15 compétences au maximum.") List<@NotBlank @Size(max = 80, message = "80 caractères au maximum par compétence.") String> competences,
     @Size(max = 10, message = "10 filières au maximum.") List<@NotNull UUID> filieres
-) {
+) implements ContenuOffreRequest {
 }

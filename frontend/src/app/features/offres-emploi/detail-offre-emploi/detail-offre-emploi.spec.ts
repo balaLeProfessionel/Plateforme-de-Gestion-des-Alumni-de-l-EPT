@@ -3,19 +3,20 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 
+import { AuthService } from '../../../core/services/auth/auth-service';
 import { OffreEmploi } from '../../../core/services/models/offre-emploi.model';
-import { uneOffreEmploi } from '../testing/donnees-offres-emploi';
+import { authEmploi, uneOffreEmploi, uneOffreGeree } from '../testing/donnees-offres-emploi';
 import { DetailOffreEmploi } from './detail-offre-emploi';
 
 describe('DetailOffreEmploi', () => {
   let fixture: ComponentFixture<DetailOffreEmploi>;
   let http: HttpTestingController;
 
-  const afficher = (reponse: OffreEmploi | null) => {
+  const afficher = (reponse: OffreEmploi | null, role = 'PERSONNEL') => {
     TestBed.configureTestingModule({
       imports: [DetailOffreEmploi],
       providers: [
-        provideHttpClient(), provideHttpClientTesting(), provideRouter([]),
+        provideHttpClient(), provideHttpClientTesting(), provideRouter([]), { provide: AuthService, useValue: authEmploi(role) },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: 'e1' }) } } },
       ],
     });
@@ -89,5 +90,25 @@ describe('DetailOffreEmploi', () => {
   it('dit qu’une offre introuvable n’est pas disponible', () => {
     const racine = afficher(null);
     expect(racine.querySelector('.etat')?.textContent).toContain('n’existe pas ou n’est plus publiée');
+  });
+
+  it('ouvre la candidature sur une offre gérée pour un alumni', () => {
+    const racine = afficher(uneOffreGeree(), 'ALUMNI');
+    expect(racine.querySelector('.pastille.plateforme')?.textContent).toContain('Candidature sur la plateforme');
+    expect(racine.querySelector('.provenance')).toBeNull();
+    http.expectOne('/api/offres-emploi/g1/ma-candidature').flush(null, { status: 204, statusText: 'No Content' });
+    http.expectOne('/api/offres-emploi/mon-dernier-cv').flush(null, { status: 204, statusText: 'No Content' });
+    fixture.detectChanges();
+    expect(racine.querySelector('app-candidature-offre-emploi form')).not.toBeNull();
+  });
+
+  it('explique à un membre du personnel qu’il ne peut pas postuler, et mène l’organisme vers sa modification', () => {
+    const personnel = afficher(uneOffreGeree(), 'PERSONNEL');
+    expect(personnel.querySelector('app-candidature-offre-emploi')).toBeNull();
+    expect(personnel.textContent).toContain('Seuls les étudiants et les alumni de l’EPT peuvent postuler.');
+
+    TestBed.resetTestingModule();
+    const organisme = afficher(uneOffreGeree({ modifiable: true }), 'ORGANISME');
+    expect(organisme.querySelector('a[href="/offres-emploi/g1/modifier-offre"]')).not.toBeNull();
   });
 });

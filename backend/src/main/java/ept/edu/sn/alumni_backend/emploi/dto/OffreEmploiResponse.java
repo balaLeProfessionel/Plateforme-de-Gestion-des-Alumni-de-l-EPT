@@ -29,11 +29,18 @@ public record OffreEmploiResponse(
     Auteur auteur,
     Instant publieeLe,
     Instant creeeLe,
-    /** Le lecteur est l'auteur et l'offre se modifie encore (publiée ou en attente). */
+    /** Le lecteur gère l'offre (son auteur, ou son organisme pour une offre gérée) et elle se modifie encore. */
     boolean modifiable,
     /** Le lecteur peut signaler l'offre : publiée, d'un autre membre, pas encore signalée par lui. */
-    boolean signalable
+    boolean signalable,
+    /** Offre gérée : la lettre de motivation est exigée. */
+    boolean lettreExigee,
+    /** Offre gérée : questions posées aux candidats, dans l'ordre. */
+    List<Question> questions
 ) {
+    public record Question(UUID id, String intitule, String type, boolean obligatoire) {
+    }
+
     public record Filiere(UUID id, String nom) {
     }
 

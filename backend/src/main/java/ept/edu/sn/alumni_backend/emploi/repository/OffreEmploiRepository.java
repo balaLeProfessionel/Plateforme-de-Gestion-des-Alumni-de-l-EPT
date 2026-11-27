@@ -26,6 +26,9 @@ public interface OffreEmploiRepository extends JpaRepository<OffreEmploi, UUID>,
     @EntityGraph(attributePaths = {"auteur", "auteur.filiere", "organisme"})
     List<OffreEmploi> findByAuteurIdOrderByCreeeLeDesc(UUID auteurId);
 
+    @EntityGraph(attributePaths = {"auteur", "auteur.filiere", "organisme"})
+    List<OffreEmploi> findByOrganismeIdAndModeOrderByCreeeLeDesc(UUID organismeId, ept.edu.sn.alumni_backend.emploi.ModeOffreEmploi mode);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select o from OffreEmploi o join fetch o.auteur where o.id = :id")
     Optional<OffreEmploi> findByIdForUpdate(@Param("id") UUID id);

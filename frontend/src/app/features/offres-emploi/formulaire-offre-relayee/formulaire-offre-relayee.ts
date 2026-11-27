@@ -10,29 +10,12 @@ import {
 import { OffresEmploiService } from '../../../core/services/offres-emploi/offres-emploi';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { focaliserPremiereErreur } from '../../../shared/formulaires/focus-premiere-erreur';
+import { dateDans, decouper } from '../outils-formulaire';
 
 const VIERGE = {
   titre: '', entreprise: '', typeContrat: '' as TypeContrat | '', lieu: '', dateExpiration: '', lienSource: '', source: '',
   description: '', competences: '', filieres: [] as string[],
 };
-
-/** Date au format des champs date (fuseau du navigateur), décalée de quelques mois. */
-function dateDans(mois: number): string {
-  const jour = new Date();
-  jour.setMonth(jour.getMonth() + mois);
-  return new Date(jour.getTime() - jour.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
-}
-
-/** « Java, Spring Boot ; SQL » → ['Java', 'Spring Boot', 'SQL'], sans doublon. */
-function decouper(saisie: string): string[] {
-  const vues = new Set<string>();
-  return saisie.split(/[,;\n]/).map((c) => c.trim().replace(/\s+/g, ' ')).filter((c) => {
-    const cle = c.toLowerCase();
-    if (!c || vues.has(cle)) return false;
-    vues.add(cle);
-    return true;
-  });
-}
 
 /**
  * Relayer une offre vue ailleurs (#221), ou la modifier et la prolonger (route `:id/modifier`). L’offre est publiée

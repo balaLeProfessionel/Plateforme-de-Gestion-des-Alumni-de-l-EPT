@@ -1,12 +1,16 @@
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../../../core/services/auth/auth-service';
 import { LIBELLES_STATUT_OFFRE_EMPLOI, LIBELLES_TYPE_CONTRAT, OffreEmploi } from '../../../core/services/models/offre-emploi.model';
 import { OffresEmploiService } from '../../../core/services/offres-emploi/offres-emploi';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 
-/** Offres relayées par le membre connecté, tous statuts confondus : modification, prolongation, retrait (#221). */
+/**
+ * Offres du compte connecté, tous statuts confondus : modification, prolongation, retrait. Un membre y retrouve ses offres
+ * relayées (#221), un organisme les offres qu’il a publiées (#222).
+ */
 @Component({
   selector: 'app-mes-offres-emploi',
   imports: [DatePipe, RouterLink, BoutonRetour],
@@ -15,6 +19,9 @@ import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 })
 export class MesOffresEmploi implements OnInit {
   private readonly service = inject(OffresEmploiService);
+  private readonly authService = inject(AuthService);
+  /** Un organisme publie des offres gérées ; les autres rôles relaient. */
+  protected readonly organisme = computed(() => this.authService.utilisateur()?.role === 'ORGANISME');
 
   protected readonly types = LIBELLES_TYPE_CONTRAT;
   protected readonly statuts = LIBELLES_STATUT_OFFRE_EMPLOI;

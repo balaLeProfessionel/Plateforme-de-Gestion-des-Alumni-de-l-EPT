@@ -4,14 +4,25 @@
   <header class="entete">
     <div class="titre">
       <h1>Offres d’emploi</h1>
-      @if (relaie()) {
+      @if (organisme()) {
         <div class="actions">
+          <a class="bouton" routerLink="/offres-emploi/mes-offres"><i class="pi pi-list" aria-hidden="true"></i>Mes offres</a>
+          <a class="bouton principal" routerLink="/offres-emploi/publier"><i class="pi pi-plus" aria-hidden="true"></i>Publier une offre</a>
+        </div>
+      } @else if (relaie()) {
+        <div class="actions">
+          @if (candidat()) {
+            <a class="bouton" routerLink="/offres-emploi/mes-candidatures"><i class="pi pi-send" aria-hidden="true"></i>Mes candidatures</a>
+          }
           <a class="bouton" routerLink="/offres-emploi/mes-offres"><i class="pi pi-list" aria-hidden="true"></i>Mes offres relayées</a>
           <a class="bouton principal" routerLink="/offres-emploi/relayer"><i class="pi pi-share-alt" aria-hidden="true"></i>Relayer une offre</a>
         </div>
       }
     </div>
-    <p class="introduction">Des opportunités repérées par la communauté de l’EPT. Une offre relayée renvoie vers son annonce d’origine.</p>
+    <p class="introduction">
+      Des opportunités publiées par des organismes, qui reçoivent les candidatures dans la plateforme, ou repérées par la communauté :
+      une offre relayée renvoie vers son annonce d’origine.
+    </p>
   </header>
 
   <section class="filtres" aria-label="Filtrer les offres">

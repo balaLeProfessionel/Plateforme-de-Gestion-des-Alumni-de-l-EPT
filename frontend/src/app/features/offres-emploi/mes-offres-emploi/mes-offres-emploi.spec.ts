@@ -3,16 +3,18 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
+import { AuthService } from '../../../core/services/auth/auth-service';
 import { OffreEmploi } from '../../../core/services/models/offre-emploi.model';
-import { uneOffreEmploi } from '../testing/donnees-offres-emploi';
+import { authEmploi, uneOffreEmploi, uneOffreGeree } from '../testing/donnees-offres-emploi';
 import { MesOffresEmploi } from './mes-offres-emploi';
 
 describe('MesOffresEmploi', () => {
   let fixture: ComponentFixture<MesOffresEmploi>;
   let http: HttpTestingController;
 
-  const afficher = (offres: OffreEmploi[]) => {
-    TestBed.configureTestingModule({ imports: [MesOffresEmploi], providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
+  const afficher = (offres: OffreEmploi[], role = 'ALUMNI') => {
+    TestBed.configureTestingModule({ imports: [MesOffresEmploi], providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([]),
+      { provide: AuthService, useValue: authEmploi(role) }] });
     http = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(MesOffresEmploi);
     fixture.detectChanges();
@@ -54,5 +56,16 @@ describe('MesOffresEmploi', () => {
 
   it('invite à relayer une première offre', () => {
     expect(afficher([]).querySelector('.etat h2')?.textContent).toContain('Vous n’avez relayé aucune offre');
+  });
+
+  it('montre à un organisme ses offres publiées, avec la modification d’une offre gérée', () => {
+    const racine = afficher([uneOffreGeree({ modifiable: true })], 'ORGANISME');
+    expect(racine.querySelector('h1')?.textContent).toContain('Mes offres publiées');
+    expect(racine.querySelector('a[href="/offres-emploi/publier"]')).not.toBeNull();
+    expect(racine.querySelector('a[href="/offres-emploi/g1/modifier-offre"]')).not.toBeNull();
+  });
+
+  it('invite un organisme à publier une première offre', () => {
+    expect(afficher([], 'ORGANISME').querySelector('.etat h2')?.textContent).toContain('Vous n’avez publié aucune offre');
   });
 });

@@ -14,6 +14,7 @@ import { presenterAuteur } from '../auteur-offre';
       <div class="haut">
         <span class="pastille type">{{ types[o.typeContrat] }}</span>
         @if (o.mode === 'RELAYEE') { <span class="pastille">Offre relayée</span> }
+        @else { <span class="pastille plateforme">Candidature sur la plateforme</span> }
         @if (o.expiree) { <span class="pastille expiree">Expirée</span> }
       </div>
       <h2><a class="lien-etire" [routerLink]="['/offres-emploi', o.id]">{{ o.titre }}</a></h2>

@@ -7,6 +7,7 @@ import ept.edu.sn.alumni_backend.enums.TypeContrat;
 import ept.edu.sn.alumni_backend.filiere.entity.Filiere;
 import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -20,6 +21,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -27,7 +29,9 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import lombok.Getter;
@@ -117,6 +121,16 @@ public class OffreEmploi {
     @OrderBy("nom")
     @BatchSize(size = 50)
     private Set<Filiere> filieres = new LinkedHashSet<>();
+
+    /** Offre gérée : la lettre de motivation est exigée (sinon facultative). */
+    @Column(name = "lettre_exigee", nullable = false, columnDefinition = "boolean not null default false")
+    private boolean lettreExigee;
+
+    /** Offre gérée : questions posées aux candidats, dans l'ordre. */
+    @OneToMany(mappedBy = "offre", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("ordre")
+    @BatchSize(size = 50)
+    private List<QuestionOffreEmploi> questions = new ArrayList<>();
 
     @Column(name = "creee_le", nullable = false, updatable = false)
     private Instant creeeLe;

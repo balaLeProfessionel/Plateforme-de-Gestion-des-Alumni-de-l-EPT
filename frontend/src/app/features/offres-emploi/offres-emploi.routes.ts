@@ -3,8 +3,13 @@ import { roleGuard } from '../../core/guards/auth.guard';
 
 /** Rôles qui relaient une offre vue ailleurs (même règle que le serveur). */
 const ROLES_QUI_RELAIENT = ['ETUDIANT', 'ALUMNI', 'PERSONNEL'];
+/** Rôles qui postulent aux offres gérées (même règle que le serveur). */
+const ROLES_CANDIDATS = ['ETUDIANT', 'ALUMNI'];
 
-/** Offres d’emploi (#221) : la liste pour les membres liés à l’école, le relais et « Mes offres » pour ceux qui relaient. */
+/**
+ * Offres d’emploi : la liste pour les membres liés à l’école ; le relais et « Mes offres » pour ceux qui relaient (#221) ;
+ * la publication pour les organismes et « Mes candidatures » pour les candidats (#222).
+ */
 export const OFFRES_EMPLOI_ROUTES: Routes = [
   {
     path: '',
@@ -20,11 +25,25 @@ export const OFFRES_EMPLOI_ROUTES: Routes = [
     loadComponent: () => import('./formulaire-offre-relayee/formulaire-offre-relayee').then((m) => m.FormulaireOffreRelayee),
   },
   {
-    path: 'mes-offres',
-    title: 'Mes offres relayées | EPT Alumni',
+    path: 'publier',
+    title: 'Publier une offre d’emploi | EPT Alumni',
     canActivate: [roleGuard],
-    data: { roles: ROLES_QUI_RELAIENT },
+    data: { roles: ['ORGANISME'] },
+    loadComponent: () => import('./formulaire-offre-geree/formulaire-offre-geree').then((m) => m.FormulaireOffreGeree),
+  },
+  {
+    path: 'mes-offres',
+    title: 'Mes offres d’emploi | EPT Alumni',
+    canActivate: [roleGuard],
+    data: { roles: [...ROLES_QUI_RELAIENT, 'ORGANISME'] },
     loadComponent: () => import('./mes-offres-emploi/mes-offres-emploi').then((m) => m.MesOffresEmploi),
+  },
+  {
+    path: 'mes-candidatures',
+    title: 'Mes candidatures | EPT Alumni',
+    canActivate: [roleGuard],
+    data: { roles: ROLES_CANDIDATS },
+    loadComponent: () => import('./mes-candidatures-emploi/mes-candidatures-emploi').then((m) => m.MesCandidaturesEmploi),
   },
   {
     path: ':id/modifier',
@@ -32,6 +51,13 @@ export const OFFRES_EMPLOI_ROUTES: Routes = [
     canActivate: [roleGuard],
     data: { roles: ROLES_QUI_RELAIENT },
     loadComponent: () => import('./formulaire-offre-relayee/formulaire-offre-relayee').then((m) => m.FormulaireOffreRelayee),
+  },
+  {
+    path: ':id/modifier-offre',
+    title: 'Modifier une offre | EPT Alumni',
+    canActivate: [roleGuard],
+    data: { roles: ['ORGANISME'] },
+    loadComponent: () => import('./formulaire-offre-geree/formulaire-offre-geree').then((m) => m.FormulaireOffreGeree),
   },
   {
     path: ':id',

@@ -9,6 +9,7 @@
 .haut { display: flex; flex-wrap: wrap; gap: 0.35rem; }
 .pastille { padding: 0.15rem 0.55rem; border-radius: 999px; background: var(--ept-bg); color: var(--ept-primary-dark); font-size: 0.72rem; font-weight: 700;
   &.type { background: var(--ept-primary-light); }
+  &.plateforme { background: var(--ept-surface, #fff); box-shadow: inset 0 0 0 1px var(--ept-primary); }
   &.expiree { color: var(--ept-text-secondary); } }
 h2 { margin: 0; font-size: 1.05rem; line-height: 1.3; overflow-wrap: anywhere; }
 h2 a { color: var(--ept-primary-dark); text-decoration: none; }

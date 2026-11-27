@@ -39,6 +39,8 @@ public class SuppressionContraintesEnum implements ApplicationRunner {
         "offre_emploi.offre_emploi_mode_check",
         "offre_emploi.offre_emploi_type_contrat_check",
         "signalement_offre_emploi.signalement_offre_emploi_motif_check",
+        "question_offre_emploi.question_offre_emploi_type_check",
+        "candidature_emploi.candidature_emploi_statut_check",
         "mobilite.mobilite_statut_check",
         "mobilite.mobilite_type_mobilite_check");
 

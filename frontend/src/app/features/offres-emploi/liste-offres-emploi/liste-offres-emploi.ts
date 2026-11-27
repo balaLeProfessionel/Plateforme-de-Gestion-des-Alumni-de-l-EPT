@@ -35,7 +35,10 @@ export class ListeOffresEmploi {
   protected readonly types = TYPES_CONTRAT;
   protected readonly libellesType = LIBELLES_TYPE_CONTRAT;
   protected readonly filieres = inject(FilieresService).proposees();
-  protected readonly relaie = computed(() => ['ETUDIANT', 'ALUMNI', 'PERSONNEL'].includes(this.authService.utilisateur()?.role ?? ''));
+  private readonly role = computed(() => this.authService.utilisateur()?.role ?? '');
+  protected readonly relaie = computed(() => ['ETUDIANT', 'ALUMNI', 'PERSONNEL'].includes(this.role()));
+  protected readonly candidat = computed(() => ['ETUDIANT', 'ALUMNI'].includes(this.role()));
+  protected readonly organisme = computed(() => this.role() === 'ORGANISME');
 
   protected readonly modele = signal({ recherche: '', lieu: '' });
   protected readonly formulaire = form(this.modele);

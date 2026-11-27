@@ -12,7 +12,7 @@ h1 { margin: 0; color: var(--ept-primary-dark); font-size: clamp(1.5rem, 3vw, 1.
 
 .champ { display: grid; gap: 0.3rem; min-width: 0; align-content: start; }
 .champ label, .champ legend { color: var(--ept-primary-dark); font-size: 0.85rem; font-weight: 600; }
-.champ :is(input:not([type='checkbox']), select, textarea) {
+.champ :is(input:not([type='checkbox'], [type='radio']), select, textarea) {
   width: 100%; min-height: 2.6rem; padding: 0.5rem 0.7rem; border: 1px solid var(--ept-border-champ); border-radius: 8px;
   background: var(--ept-surface); color: var(--ept-primary-dark); font: inherit;
   &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 1px; }
@@ -40,6 +40,7 @@ h1 { margin: 0; color: var(--ept-primary-dark); font-size: clamp(1.5rem, 3vw, 1.
 }
 .pastille { padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; background: var(--ept-bg); color: var(--ept-primary-dark);
   &.type { background: var(--ept-primary-light); }
+  &.plateforme { background: var(--ept-surface, #fff); box-shadow: inset 0 0 0 1px var(--ept-primary); }
   &.expiree { color: var(--ept-text-secondary); } }
 .confirmation { padding: 0.75rem; border: 1px solid var(--ept-primary); border-radius: 8px; background: var(--ept-primary-light);
   p { margin: 0; color: var(--ept-primary-dark); }

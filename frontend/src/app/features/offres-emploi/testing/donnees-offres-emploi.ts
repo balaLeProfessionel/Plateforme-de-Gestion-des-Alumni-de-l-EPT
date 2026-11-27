@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { Page } from '../../../core/services/models/mentorat.model';
-import { OffreEmploi } from '../../../core/services/models/offre-emploi.model';
+import { MaCandidatureEmploi, OffreEmploi } from '../../../core/services/models/offre-emploi.model';
 
 /** Une offre relayée publiée ; `changement` remplace les champs voulus. */
 export function uneOffreEmploi(changement: Partial<OffreEmploi> = {}): OffreEmploi {
@@ -11,6 +11,7 @@ export function uneOffreEmploi(changement: Partial<OffreEmploi> = {}): OffreEmpl
     statut: 'PUBLIEE', motifDecision: null,
     auteur: { id: 'a1', prenom: 'Awa', nom: 'Diop', photo: null, role: 'ALUMNI', anneeSortie: 2019, filiere: 'Génie informatique', organismeId: null },
     publieeLe: '2026-11-20T10:00:00', creeeLe: '2026-11-20T10:00:00', modifiable: false, signalable: true,
+    lettreExigee: false, questions: [],
     ...changement,
   };
 }
@@ -22,4 +23,21 @@ export function pageDOffresEmploi(contenu: OffreEmploi[]): Page<OffreEmploi> {
 /** Doublure d’AuthService réduite au rôle. */
 export function authEmploi(role: string) {
   return { utilisateur: signal({ id: 'moi', role }), aPermission: () => false, estConnecte: () => true };
+}
+
+/** Une offre gérée publiée par l’organisme o1, sans lettre exigée ni question ; `changement` remplace les champs voulus. */
+export function uneOffreGeree(changement: Partial<OffreEmploi> = {}): OffreEmploi {
+  return uneOffreEmploi({
+    id: 'g1', mode: 'GEREE', titre: 'Ingénieur réseaux', entreprise: 'Sonatel', organismeId: 'o1', lienSource: null, source: null,
+    signalable: false, ...changement,
+  });
+}
+
+/** La candidature du membre connecté à l’offre g1, reçue ; `changement` remplace les champs voulus. */
+export function uneCandidatureEmploi(changement: Partial<MaCandidatureEmploi> = {}): MaCandidatureEmploi {
+  return {
+    id: 'c1', offreId: 'g1', titreOffre: 'Ingénieur réseaux', entreprise: 'Sonatel', dateExpiration: '2027-01-31', offreExpiree: false,
+    statut: 'RECUE', nomCv: 'cv-awa.pdf', lettreMotivation: null, reponses: [], envoyeeLe: '2026-11-25T09:00:00', retireeLe: null,
+    retirable: true, ...changement,
+  };
 }

@@ -56,11 +56,13 @@ describe('ListeOffresEmploi', () => {
     expect(navigate).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { type: 'CDI' }, replaceUrl: true }));
   });
 
-  it('propose de relayer à un alumni mais pas à un organisme', () => {
+  it('propose de relayer et de suivre ses candidatures à un alumni, de publier à un organisme', () => {
     const alumni = demarrer('ALUMNI');
     http.expectOne((r) => r.url === '/api/offres-emploi').flush(pageDOffresEmploi([]));
     fixture.detectChanges();
     expect(alumni.querySelector('a[href="/offres-emploi/relayer"]')).not.toBeNull();
+    expect(alumni.querySelector('a[href="/offres-emploi/mes-candidatures"]')).not.toBeNull();
+    expect(alumni.querySelector('a[href="/offres-emploi/publier"]')).toBeNull();
     expect(alumni.querySelector('.etat')?.textContent).toContain('Relayez-la');
 
     TestBed.resetTestingModule();
@@ -68,6 +70,8 @@ describe('ListeOffresEmploi', () => {
     http.expectOne((r) => r.url === '/api/offres-emploi').flush(pageDOffresEmploi([]));
     fixture.detectChanges();
     expect(organisme.querySelector('a[href="/offres-emploi/relayer"]')).toBeNull();
+    expect(organisme.querySelector('a[href="/offres-emploi/publier"]')).not.toBeNull();
+    expect(organisme.querySelector('a[href="/offres-emploi/mes-candidatures"]')).toBeNull();
   });
 
   it('dit quand le chargement échoue', () => {

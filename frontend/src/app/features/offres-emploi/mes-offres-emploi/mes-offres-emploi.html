@@ -2,8 +2,13 @@
   <app-bouton-retour secours="/offres-emploi" />
   <header class="entete">
     <div class="titre">
-      <h1>Mes offres relayées</h1>
-      <a class="bouton principal" routerLink="/offres-emploi/relayer"><i class="pi pi-plus" aria-hidden="true"></i>Relayer une offre</a>
+      @if (organisme()) {
+        <h1>Mes offres publiées</h1>
+        <a class="bouton principal" routerLink="/offres-emploi/publier"><i class="pi pi-plus" aria-hidden="true"></i>Publier une offre</a>
+      } @else {
+        <h1>Mes offres relayées</h1>
+        <a class="bouton principal" routerLink="/offres-emploi/relayer"><i class="pi pi-plus" aria-hidden="true"></i>Relayer une offre</a>
+      }
     </div>
   </header>
 
@@ -19,8 +24,13 @@
     @if (liste.length === 0) {
       <div class="etat">
         <i class="pi pi-megaphone" aria-hidden="true"></i>
-        <h2>Vous n’avez relayé aucune offre</h2>
-        <p>Une offre vue sur LinkedIn ou sur le site d’une entreprise ? Partagez-la avec la communauté de l’EPT.</p>
+        @if (organisme()) {
+          <h2>Vous n’avez publié aucune offre</h2>
+          <p>Publiez une offre : les étudiants et les alumni de l’EPT y postuleront directement dans la plateforme.</p>
+        } @else {
+          <h2>Vous n’avez relayé aucune offre</h2>
+          <p>Une offre vue sur LinkedIn ou sur le site d’une entreprise ? Partagez-la avec la communauté de l’EPT.</p>
+        }
       </div>
     } @else {
       <ul class="liste">
@@ -47,7 +57,7 @@
                 </div>
               } @else {
                 <div class="gestes">
-                  <a class="bouton petit" [routerLink]="['/offres-emploi', offre.id, 'modifier']"
+                  <a class="bouton petit" [routerLink]="['/offres-emploi', offre.id, offre.mode === 'GEREE' ? 'modifier-offre' : 'modifier']"
                     [attr.aria-label]="'Modifier ou prolonger ' + offre.titre">Modifier</a>
                   <button type="button" class="bouton petit" [attr.aria-label]="'Retirer ' + offre.titre"
                     (click)="demanderRetrait(offre.id)">Retirer</button>

@@ -3,6 +3,7 @@ package ept.edu.sn.alumni_backend.emploi.controller;
 import ept.edu.sn.alumni_backend.annuaire.dto.PageResponse;
 import ept.edu.sn.alumni_backend.emploi.ModeOffreEmploi;
 import ept.edu.sn.alumni_backend.emploi.dto.OffreEmploiResponse;
+import ept.edu.sn.alumni_backend.emploi.dto.OffreGereeRequest;
 import ept.edu.sn.alumni_backend.emploi.dto.OffreRelayeeRequest;
 import ept.edu.sn.alumni_backend.emploi.dto.SignalementOffreRequest;
 import ept.edu.sn.alumni_backend.emploi.service.OffresEmploiService;
@@ -66,6 +67,19 @@ public class OffreEmploiController {
             @AuthenticationPrincipal UtilisateurPrincipal principal) {
         OffreEmploiResponse offre = offresService.relayer(request, principal);
         return ResponseEntity.created(URI.create("/api/offres-emploi/" + offre.id())).body(offre);
+    }
+
+    @PostMapping("/gerees")
+    public ResponseEntity<OffreEmploiResponse> publierGeree(@Valid @RequestBody OffreGereeRequest request,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        OffreEmploiResponse offre = offresService.publierGeree(request, principal);
+        return ResponseEntity.created(URI.create("/api/offres-emploi/" + offre.id())).body(offre);
+    }
+
+    @PutMapping("/{id}/geree")
+    public ResponseEntity<OffreEmploiResponse> modifierGeree(@PathVariable UUID id, @Valid @RequestBody OffreGereeRequest request,
+            @AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return ResponseEntity.ok(offresService.modifierGeree(id, request, principal));
     }
 
     @PutMapping("/{id}")

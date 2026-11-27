@@ -8,13 +8,17 @@ import ept.edu.sn.alumni_backend.competence.repository.CompetenceRepository;
 import ept.edu.sn.alumni_backend.competence.service.CompetencesLanguesService;
 import ept.edu.sn.alumni_backend.emploi.ModeOffreEmploi;
 import ept.edu.sn.alumni_backend.emploi.StatutOffreEmploi;
+import ept.edu.sn.alumni_backend.emploi.dto.ContenuOffreRequest;
 import ept.edu.sn.alumni_backend.emploi.dto.OffreEmploiResponse;
+import ept.edu.sn.alumni_backend.emploi.dto.OffreGereeRequest;
 import ept.edu.sn.alumni_backend.emploi.dto.OffreRelayeeRequest;
 import ept.edu.sn.alumni_backend.emploi.dto.SignalementOffreRequest;
 import ept.edu.sn.alumni_backend.emploi.entity.OffreEmploi;
+import ept.edu.sn.alumni_backend.emploi.entity.QuestionOffreEmploi;
 import ept.edu.sn.alumni_backend.emploi.entity.SignalementOffreEmploi;
 import ept.edu.sn.alumni_backend.emploi.exception.ConflitOffreEmploiException;
 import ept.edu.sn.alumni_backend.emploi.exception.OffreEmploiIntrouvableException;
+import ept.edu.sn.alumni_backend.emploi.repository.CandidatureEmploiRepository;
 import ept.edu.sn.alumni_backend.emploi.repository.OffreEmploiRepository;
 import ept.edu.sn.alumni_backend.emploi.repository.SignalementOffreEmploiRepository;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
@@ -22,10 +26,13 @@ import ept.edu.sn.alumni_backend.enums.TypeContrat;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.filiere.entity.Filiere;
 import ept.edu.sn.alumni_backend.filiere.repository.FiliereRepository;
+import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
+import ept.edu.sn.alumni_backend.organisme.repository.OrganismeRepository;
 import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.IdentitePublique;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
+import jakarta.persistence.criteria.JoinType;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -47,13 +54,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Offres d'emploi (#221) : socle commun et offres relayées.
+ * Offres d'emploi : socle commun et offres relayées (#221), offres gérées (#222).
  * - Un alumni, un étudiant ou un membre du personnel actif relaie une offre vue ailleurs ; elle est publiée aussitôt.
- * - Une offre publiée est visible de tout membre connecté ; les autres, seulement de leur auteur et de
+ * - Un organisme publie une offre gérée : publiée s'il est validé, en attente (SOUMISE) sinon, refusée s'il est suspendu.
+ *   Tout compte de l'organisme la gère ensuite.
+ * - Une offre publiée est visible de tout membre connecté ; les autres, seulement de qui la gère et de
  *   l'administration (permission GERER_OFFRES_EMPLOI). Sinon : 404, pour ne pas révéler son existence.
- * - Seul l'auteur modifie, prolonge ou retire son offre, tant qu'elle est publiée ou en attente.
+ * - Qui gère l'offre la modifie, la prolonge ou la retire, tant qu'elle est publiée ou en attente. Les questions d'une
+ *   offre gérée ne changent plus dès qu'un candidat y a répondu.
  * - La date d'expiration va d'aujourd'hui à 6 mois ; une offre expirée reste publiée mais sort de la liste par défaut.
- * - Un membre signale une fois une offre publiée d'un autre membre.
+ * - Un membre signale une fois une offre publiée qu'il ne gère pas.
  */
 @Service
 @RequiredArgsConstructor
@@ -64,7 +74,9 @@ public class OffresEmploiService {
 
     private final OffreEmploiRepository offreRepository;
     private final SignalementOffreEmploiRepository signalementRepository;
+    private final CandidatureEmploiRepository candidatureRepository;
     private final UtilisateurRepository utilisateurRepository;
+    private final OrganismeRepository organismeRepository;
     private final CompetenceRepository competenceRepository;
     private final FiliereRepository filiereRepository;
 
@@ -81,25 +93,62 @@ public class OffresEmploiService {
         OffreEmploi offre = new OffreEmploi();
         offre.setMode(ModeOffreEmploi.RELAYEE);
         offre.setAuteur(auteur);
-        appliquer(offre, request);
+        appliquerRelayee(offre, request);
         offre.publier();
+        return versReponse(offreRepository.save(offre), auteur, false);
+    }
+
+    /** Offre gérée d'un organisme : publiée s'il est validé, en attente de l'administration sinon. */
+    @Transactional
+    public OffreEmploiResponse publierGeree(OffreGereeRequest request, UtilisateurPrincipal principal) {
+        Utilisateur auteur = utilisateurRepository.findById(principal.getUtilisateur().getId())
+            .orElseThrow(() -> new SecurityException("Compte introuvable."));
+        if (auteur.getRole() != TypeRole.ORGANISME || auteur.getOrganisme() == null || auteur.getStatutCompte() != StatutCompte.ACTIF) {
+            throw new SecurityException("Seul un compte organisme actif publie une offre qui reçoit des candidatures.");
+        }
+        // Le statut de l'organisme est relu dans la transaction : une suspension récente compte.
+        Organisme organisme = organismeRepository.findById(auteur.getOrganisme().getId())
+            .orElseThrow(() -> new SecurityException("Organisme introuvable."));
+        if (organisme.getStatutValidation() == StatutCompte.SUSPENDU) {
+            throw new SecurityException("Votre organisme est suspendu : il ne peut pas publier d'offre.");
+        }
+        OffreEmploi offre = new OffreEmploi();
+        offre.setMode(ModeOffreEmploi.GEREE);
+        offre.setAuteur(auteur);
+        offre.setOrganisme(organisme);
+        appliquerGeree(offre, request, false);
+        if (organisme.getStatutValidation() == StatutCompte.ACTIF) {
+            offre.publier();
+        } else {
+            offre.setStatut(StatutOffreEmploi.SOUMISE);
+        }
         return versReponse(offreRepository.save(offre), auteur, false);
     }
 
     @Transactional
     public OffreEmploiResponse modifier(UUID id, OffreRelayeeRequest request, UtilisateurPrincipal principal) {
-        OffreEmploi offre = chargerPourAuteur(id, principal.getUtilisateur());
+        OffreEmploi offre = chargerPourGestion(id, principal.getUtilisateur());
         if (offre.getMode() != ModeOffreEmploi.RELAYEE) {
             throw new ConflitOffreEmploiException("Seule une offre relayée se modifie ici.");
         }
-        appliquer(offre, request);
+        appliquerRelayee(offre, request);
         return versReponse(offre, principal.getUtilisateur(), false);
     }
 
-    /** L'auteur retire son offre, publiée ou en attente : elle disparaît de la liste des membres. */
+    @Transactional
+    public OffreEmploiResponse modifierGeree(UUID id, OffreGereeRequest request, UtilisateurPrincipal principal) {
+        OffreEmploi offre = chargerPourGestion(id, principal.getUtilisateur());
+        if (offre.getMode() != ModeOffreEmploi.GEREE) {
+            throw new ConflitOffreEmploiException("Seule une offre gérée se modifie ici.");
+        }
+        appliquerGeree(offre, request, candidatureRepository.existsByOffreId(id));
+        return versReponse(offre, principal.getUtilisateur(), false);
+    }
+
+    /** Qui gère l'offre la retire, publiée ou en attente : elle disparaît de la liste des membres. */
     @Transactional
     public OffreEmploiResponse retirer(UUID id, UtilisateurPrincipal principal) {
-        OffreEmploi offre = chargerPourAuteur(id, principal.getUtilisateur());
+        OffreEmploi offre = chargerPourGestion(id, principal.getUtilisateur());
         offre.setStatut(StatutOffreEmploi.RETIREE);
         offre.setMotifDecision(null);
         return versReponse(offre, principal.getUtilisateur(), false);
@@ -112,7 +161,7 @@ public class OffresEmploiService {
         if (offre.getStatut() != StatutOffreEmploi.PUBLIEE) {
             throw new ConflitOffreEmploiException("Seule une offre publiée peut être signalée.");
         }
-        if (offre.getAuteur().getId().equals(lecteur.getId())) {
+        if (gere(offre, lecteur)) {
             throw new ConflitOffreEmploiException("Vous ne pouvez pas signaler votre propre offre.");
         }
         if (signalementRepository.existsByOffreIdAndAuteurId(id, lecteur.getId())) {
@@ -136,10 +185,14 @@ public class OffresEmploiService {
         Specification<OffreEmploi> specification = visiblesDesMembres();
         if (recherche != null && !recherche.isBlank()) {
             String motif = contenant(recherche);
-            specification = specification.and((racine, requete, cb) -> cb.or(
-                cb.like(cb.lower(racine.get("titre")), motif),
-                cb.like(cb.lower(racine.get("nomEntreprise")), motif),
-                cb.like(cb.lower(racine.get("description")), motif)));
+            specification = specification.and((racine, requete, cb) -> {
+                var organisme = racine.join("organisme", JoinType.LEFT);
+                return cb.or(
+                    cb.like(cb.lower(racine.get("titre")), motif),
+                    cb.like(cb.lower(racine.get("nomEntreprise")), motif),
+                    cb.like(cb.lower(organisme.get("nom")), motif),
+                    cb.like(cb.lower(racine.get("description")), motif));
+            });
         }
         if (type != null) {
             specification = specification.and((racine, requete, cb) -> cb.equal(racine.get("typeContrat"), type));
@@ -175,39 +228,51 @@ public class OffresEmploiService {
         Utilisateur lecteur = principal.getUtilisateur();
         OffreEmploi offre = chargerVisible(id, lecteur);
         boolean signalable = offre.getStatut() == StatutOffreEmploi.PUBLIEE
-            && !offre.getAuteur().getId().equals(lecteur.getId())
+            && !gere(offre, lecteur)
             && !signalementRepository.existsByOffreIdAndAuteurId(id, lecteur.getId());
         return versReponse(offre, lecteur, signalable);
     }
 
+    /** Offres que le lecteur gère : celles de son organisme pour un compte organisme, ses offres relayées sinon. */
     @Transactional(readOnly = true)
     public List<OffreEmploiResponse> mesOffres(UtilisateurPrincipal principal) {
         Utilisateur lecteur = principal.getUtilisateur();
-        return offreRepository.findByAuteurIdOrderByCreeeLeDesc(lecteur.getId()).stream()
-            .map(offre -> versReponse(offre, lecteur, false))
-            .toList();
+        List<OffreEmploi> offres = lecteur.getRole() == TypeRole.ORGANISME && lecteur.getOrganisme() != null
+            ? offreRepository.findByOrganismeIdAndModeOrderByCreeeLeDesc(lecteur.getOrganisme().getId(), ModeOffreEmploi.GEREE)
+            : offreRepository.findByAuteurIdOrderByCreeeLeDesc(lecteur.getId());
+        return offres.stream().map(offre -> versReponse(offre, lecteur, false)).toList();
     }
 
+    /** Offres publiées, sans celles d'un auteur ou d'un organisme suspendu. */
     private static Specification<OffreEmploi> visiblesDesMembres() {
         return Specification.<OffreEmploi>unrestricted()
             .and((racine, requete, cb) -> cb.equal(racine.get("statut"), StatutOffreEmploi.PUBLIEE))
-            .and((racine, requete, cb) -> cb.notEqual(racine.get("auteur").get("statutCompte"), StatutCompte.SUSPENDU));
+            .and((racine, requete, cb) -> cb.notEqual(racine.get("auteur").get("statutCompte"), StatutCompte.SUSPENDU))
+            .and((racine, requete, cb) -> {
+                var organisme = racine.join("organisme", JoinType.LEFT);
+                return cb.or(cb.isNull(organisme.get("id")), cb.notEqual(organisme.get("statutValidation"), StatutCompte.SUSPENDU));
+            });
     }
 
-    private OffreEmploi chargerVisible(UUID id, Utilisateur lecteur) {
+    /** L'offre, si le lecteur peut la voir ; sinon 404. */
+    OffreEmploi chargerVisible(UUID id, Utilisateur lecteur) {
         OffreEmploi offre = offreRepository.findWithAuteurById(id).orElseThrow(OffreEmploiIntrouvableException::new);
-        boolean visible = offre.getStatut() == StatutOffreEmploi.PUBLIEE
-            && offre.getAuteur().getStatutCompte() != StatutCompte.SUSPENDU;
-        if (!visible && !estAuteur(offre, lecteur) && !PermissionAdmin.accordee(lecteur, PermissionAdmin.GERER_OFFRES_EMPLOI)) {
+        if (!visibleDesMembres(offre) && !gere(offre, lecteur) && !PermissionAdmin.accordee(lecteur, PermissionAdmin.GERER_OFFRES_EMPLOI)) {
             throw new OffreEmploiIntrouvableException();
         }
         return offre;
     }
 
-    /** L'offre verrouillée, pour son auteur, tant qu'elle est publiée ou en attente ; sinon 404 ou 409. */
-    private OffreEmploi chargerPourAuteur(UUID id, Utilisateur auteur) {
+    static boolean visibleDesMembres(OffreEmploi offre) {
+        return offre.getStatut() == StatutOffreEmploi.PUBLIEE
+            && offre.getAuteur().getStatutCompte() != StatutCompte.SUSPENDU
+            && (offre.getOrganisme() == null || offre.getOrganisme().getStatutValidation() != StatutCompte.SUSPENDU);
+    }
+
+    /** L'offre verrouillée, pour qui la gère, tant qu'elle est publiée ou en attente ; sinon 404 ou 409. */
+    private OffreEmploi chargerPourGestion(UUID id, Utilisateur lecteur) {
         OffreEmploi offre = offreRepository.findByIdForUpdate(id).orElseThrow(OffreEmploiIntrouvableException::new);
-        if (!estAuteur(offre, auteur)) {
+        if (!gere(offre, lecteur)) {
             throw new OffreEmploiIntrouvableException();
         }
         if (!modifiable(offre)) {
@@ -216,7 +281,41 @@ public class OffresEmploiService {
         return offre;
     }
 
-    private void appliquer(OffreEmploi offre, OffreRelayeeRequest request) {
+    private void appliquerRelayee(OffreEmploi offre, OffreRelayeeRequest request) {
+        appliquerContenu(offre, request);
+        offre.setNomEntreprise(request.entreprise().strip());
+        offre.setLienSource(GardeAdresse.normaliser(request.lienSource()).toString());
+        offre.setSource(request.source() == null || request.source().isBlank() ? null : request.source().strip());
+    }
+
+    /** Contenu d'une offre gérée ; ses questions restent figées dès qu'un candidat a postulé. */
+    private void appliquerGeree(OffreEmploi offre, OffreGereeRequest request, boolean questionsFigees) {
+        appliquerContenu(offre, request);
+        offre.setLettreExigee(request.lettreExigee());
+        List<OffreGereeRequest.Question> demandees = request.questions() == null ? List.of() : request.questions();
+        if (questionsFigees) {
+            if (!memesQuestions(offre.getQuestions(), demandees)) {
+                throw new ConflitOffreEmploiException("Des candidats ont déjà répondu : les questions ne peuvent plus changer.");
+            }
+            return;
+        }
+        offre.getQuestions().clear();
+        for (int i = 0; i < demandees.size(); i++) {
+            OffreGereeRequest.Question q = demandees.get(i);
+            offre.getQuestions().add(new QuestionOffreEmploi(offre, i, q.intitule().strip(), q.type(), q.obligatoire()));
+        }
+    }
+
+    private static boolean memesQuestions(List<QuestionOffreEmploi> actuelles, List<OffreGereeRequest.Question> demandees) {
+        if (actuelles.size() != demandees.size()) return false;
+        for (int i = 0; i < actuelles.size(); i++) {
+            OffreGereeRequest.Question q = demandees.get(i);
+            if (!actuelles.get(i).equivalente(q.intitule().strip(), q.type(), q.obligatoire())) return false;
+        }
+        return true;
+    }
+
+    private void appliquerContenu(OffreEmploi offre, ContenuOffreRequest request) {
         LocalDate aujourdhui = aujourdhui();
         if (request.dateExpiration().isBefore(aujourdhui)) {
             throw new IllegalArgumentException("La date d'expiration ne peut pas être passée.");
@@ -226,12 +325,9 @@ public class OffresEmploiService {
         }
         offre.setTitre(request.titre().strip());
         offre.setDescription(request.description().strip());
-        offre.setNomEntreprise(request.entreprise().strip());
         offre.setTypeContrat(request.typeContrat());
         offre.setLieu(request.lieu().strip());
         offre.setDateExpiration(request.dateExpiration());
-        offre.setLienSource(GardeAdresse.normaliser(request.lienSource()).toString());
-        offre.setSource(request.source() == null || request.source().isBlank() ? null : request.source().strip());
         offre.setCompetences(resoudreCompetences(request.competences()));
         offre.setFilieres(resoudreFilieres(request.filieres(), offre.getFilieres()));
     }
@@ -279,7 +375,8 @@ public class OffresEmploiService {
     }
 
     private OffreEmploiResponse versReponse(OffreEmploi offre, Utilisateur lecteur, boolean signalable) {
-        boolean auteurOuAdmin = estAuteur(offre, lecteur) || PermissionAdmin.accordee(lecteur, PermissionAdmin.GERER_OFFRES_EMPLOI);
+        boolean gestionnaire = gere(offre, lecteur);
+        boolean gestionnaireOuAdmin = gestionnaire || PermissionAdmin.accordee(lecteur, PermissionAdmin.GERER_OFFRES_EMPLOI);
         Utilisateur auteur = offre.getAuteur();
         IdentitePublique identite = IdentitePublique.de(auteur);
         var auteurReponse = new OffreEmploiResponse.Auteur(auteur.getId(), identite.prenom(), identite.nom(), identite.photo(),
@@ -287,6 +384,10 @@ public class OffresEmploiService {
             identite.organismeId());
         List<OffreEmploiResponse.Filiere> filieres = new ArrayList<>();
         offre.getFilieres().forEach(f -> filieres.add(new OffreEmploiResponse.Filiere(f.getId(), f.getNom())));
+        List<OffreEmploiResponse.Question> questions = offre.getMode() == ModeOffreEmploi.GEREE
+            ? offre.getQuestions().stream()
+                .map(q -> new OffreEmploiResponse.Question(q.getId(), q.getIntitule(), q.getType().name(), q.isObligatoire())).toList()
+            : List.of();
         return new OffreEmploiResponse(
             offre.getId(),
             offre.getMode().name(),
@@ -303,20 +404,28 @@ public class OffresEmploiService {
             offre.getCompetences().stream().map(Competence::getLibelle).toList(),
             filieres,
             offre.getStatut().name(),
-            auteurOuAdmin ? offre.getMotifDecision() : null,
+            gestionnaireOuAdmin ? offre.getMotifDecision() : null,
             auteurReponse,
             offre.getPublieeLe(),
             offre.getCreeeLe(),
-            estAuteur(offre, lecteur) && modifiable(offre),
-            signalable);
+            gestionnaire && modifiable(offre),
+            signalable,
+            offre.isLettreExigee(),
+            questions);
     }
 
     private static boolean modifiable(OffreEmploi offre) {
         return offre.getStatut() == StatutOffreEmploi.PUBLIEE || offre.getStatut() == StatutOffreEmploi.SOUMISE;
     }
 
-    private static boolean estAuteur(OffreEmploi offre, Utilisateur utilisateur) {
-        return utilisateur != null && offre.getAuteur().getId().equals(utilisateur.getId());
+    /** Qui gère l'offre : son auteur pour une offre relayée, tout compte de son organisme pour une offre gérée. */
+    static boolean gere(OffreEmploi offre, Utilisateur utilisateur) {
+        if (utilisateur == null) return false;
+        if (offre.getMode() == ModeOffreEmploi.GEREE) {
+            return utilisateur.getRole() == TypeRole.ORGANISME && utilisateur.getOrganisme() != null
+                && offre.getOrganisme() != null && utilisateur.getOrganisme().getId().equals(offre.getOrganisme().getId());
+        }
+        return offre.getAuteur().getId().equals(utilisateur.getId());
     }
 
     private static String contenant(String texte) {
