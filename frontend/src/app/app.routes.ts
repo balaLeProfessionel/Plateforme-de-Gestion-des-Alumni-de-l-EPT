@@ -48,8 +48,8 @@ export const routes: Routes = [
     path,
     title: `EPT Alumni | ${titre}`,
     data: { rubrique: path },
-    // La messagerie existe dans l’espace membre : connecté, on passe à la route suivante au lieu de l’accueil.
-    canMatch: path === 'messagerie' ? [() => !inject(AuthService).estConnecte()] : [],
+    // La messagerie et les offres d’emploi existent dans l’espace membre : connecté, on passe à la route suivante.
+    canMatch: path === 'messagerie' || path === 'offres-emploi' ? [() => !inject(AuthService).estConnecte()] : [],
     // Connecté, /partenariats mène à la rubrique de l'organisme (conventions-cadres) : la page d'attente ne vaut que sans compte.
     ...(path === 'partenariats' ? { canMatch: [visiteurMatch] } : {}),
     canActivate: [visiteurGuard],
@@ -313,6 +313,12 @@ export const routes: Routes = [
         path: 'stages',
         canActivate: [authGuard, changementInitialRequisGuard],
         loadChildren: () => import('./features/stages/stages.routes').then((m) => m.STAGES_ROUTES)
+      },
+      {
+        path: 'offres-emploi',
+        canActivate: [authGuard, changementInitialRequisGuard, roleGuard],
+        data: { roles: ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'ORGANISME', 'ADMIN'] },
+        loadChildren: () => import('./features/offres-emploi/offres-emploi.routes').then((m) => m.OFFRES_EMPLOI_ROUTES)
       },
       {
         path: 'mobilites',

@@ -1,0 +1,64 @@
+<div class="page-emploi">
+  <app-bouton-retour secours="/offres-emploi" />
+  <header class="entete">
+    <div class="titre">
+      <h1>Mes offres relayées</h1>
+      <a class="bouton principal" routerLink="/offres-emploi/relayer"><i class="pi pi-plus" aria-hidden="true"></i>Relayer une offre</a>
+    </div>
+  </header>
+
+  <p class="statut-message" role="status">{{ message() }}</p>
+
+  @if (erreurChargement()) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Vos offres n’ont pas pu être chargées</h2>
+      <button type="button" class="bouton" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (offres(); as liste) {
+    @if (liste.length === 0) {
+      <div class="etat">
+        <i class="pi pi-megaphone" aria-hidden="true"></i>
+        <h2>Vous n’avez relayé aucune offre</h2>
+        <p>Une offre vue sur LinkedIn ou sur le site d’une entreprise ? Partagez-la avec la communauté de l’EPT.</p>
+      </div>
+    } @else {
+      <ul class="liste">
+        @for (offre of liste; track offre.id) {
+          <li class="ligne">
+            <div class="principal">
+              <h2><a [routerLink]="['/offres-emploi', offre.id]">{{ offre.titre }}</a></h2>
+              <p class="details">
+                {{ offre.entreprise }} · {{ types[offre.typeContrat] }} ·
+                {{ offre.expiree ? 'expirée le' : 'jusqu’au' }} {{ offre.dateExpiration | date: 'd MMMM y' }}
+              </p>
+              @if (offre.motifDecision) { <p class="motif"><strong>Motif de l’école :</strong> {{ offre.motifDecision }}</p> }
+            </div>
+            <span class="statut" [attr.data-statut]="offre.statut">{{ offre.statut === 'PUBLIEE' && offre.expiree ? 'Expirée' : statuts[offre.statut] }}</span>
+            @if (offre.modifiable) {
+              @if (aRetirer() === offre.id) {
+                <div class="confirmation" role="group" [attr.aria-label]="'Retirer ' + offre.titre">
+                  <p>Retirer cette offre ? Les membres ne la verront plus.</p>
+                  @if (erreurRetrait(); as erreur) { <p class="message-erreur" role="alert">{{ erreur }}</p> }
+                  <div class="boutons">
+                    <button type="button" class="bouton principal" (click)="retirer(offre)">Retirer l’offre</button>
+                    <button type="button" class="bouton" (click)="aRetirer.set(null)">Ne rien changer</button>
+                  </div>
+                </div>
+              } @else {
+                <div class="gestes">
+                  <a class="bouton petit" [routerLink]="['/offres-emploi', offre.id, 'modifier']"
+                    [attr.aria-label]="'Modifier ou prolonger ' + offre.titre">Modifier</a>
+                  <button type="button" class="bouton petit" [attr.aria-label]="'Retirer ' + offre.titre"
+                    (click)="demanderRetrait(offre.id)">Retirer</button>
+                </div>
+              }
+            }
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement de vos offres"></div>
+  }
+</div>

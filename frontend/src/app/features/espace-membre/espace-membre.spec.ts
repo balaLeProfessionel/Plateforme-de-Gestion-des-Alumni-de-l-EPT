@@ -70,19 +70,18 @@ describe('Navigation de l’espace membre', () => {
     });
   });
 
-  it('relie les écrans existants et laisse les rubriques futures sans lien', () => {
+  it('relie les écrans existants, dont les offres d’emploi', () => {
     const fixture = TestBed.createComponent(EspaceMembre);
     fixture.detectChanges();
     const racine = fixture.nativeElement as HTMLElement;
     const liens = [...racine.querySelectorAll('.barre-laterale nav a')]
       .map((lien) => lien.getAttribute('href'));
 
-    expect(liens).toEqual(['/accueil', '/annuaire', '/messagerie', '/evenements', '/articles', '/mentorat', '/stages', '/partenaires']);
+    expect(liens).toEqual(['/accueil', '/annuaire', '/messagerie', '/evenements', '/articles', '/mentorat', '/stages', '/offres-emploi', '/partenaires']);
     expect(racine.querySelector('.barre-laterale .marque')?.getAttribute('href')).toBe('/accueil');
     expect([...racine.querySelectorAll('.barre-laterale nav button[aria-disabled="true"]')]
       .map((lien) => lien.getAttribute('aria-label')))
-      .toEqual(['Offres d’emploi, à venir']);
-    expect(racine.querySelector('.barre-laterale nav button[aria-disabled="true"] a')).toBeNull();
+      .toEqual([]);
     // En-tête mobile : la marque et la cloche seulement, le compte passe par « Menu » en bas.
     expect(racine.querySelector('.entete-mobile button:not(.bouton-cloche)')).toBeNull();
   });
@@ -264,7 +263,7 @@ describe('Navigation de l’espace membre', () => {
       '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/passage-classe', '/admin/diplomes', '/admin/filieres',
       '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations', '/admin/mobilites/offres', '/admin/mobilites/suivi', '/admin/mobilites/flux',
       '/admin/partenariats', '/admin/partenariats/conventions', '/admin/partenariats/accords',
-      '/admin/publications', '/admin/signalements', '/admin/communautes', '/evenements', '/mentorat/gestion-programmes', '/admin/journal', '/annuaire', '/partenaires',
+      '/admin/publications', '/admin/signalements', '/admin/communautes', '/evenements', '/mentorat/gestion-programmes', '/admin/journal', '/annuaire', '/offres-emploi', '/partenaires',
     ]);
     expect(racine.querySelector('.barre-laterale a[href="/admin/signalements"]')?.textContent).toContain('2 signalements à examiner');
     expect(racine.querySelector('.barre-laterale a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
@@ -278,7 +277,7 @@ describe('Navigation de l’espace membre', () => {
       '/admin/mon-compte', '/admin', '/admin/inscriptions', '/admin/comptes', '/admin/passage-classe', '/admin/diplomes', '/admin/filieres',
       '/admin/stages/offres', '/admin/stages/declarations', '/admin/stages/suivi', '/admin/stages/sollicitations', '/admin/mobilites/offres', '/admin/mobilites/suivi', '/admin/mobilites/flux',
       '/admin/partenariats', '/admin/partenariats/conventions', '/admin/partenariats/accords',
-      '/admin/publications', '/admin/signalements', '/admin/communautes', '/mentorat/gestion-programmes', '/admin/journal', '/partenaires',
+      '/admin/publications', '/admin/signalements', '/admin/communautes', '/mentorat/gestion-programmes', '/admin/journal', '/offres-emploi', '/partenaires',
     ]);
     expect(racine.querySelector('.menu-mobile a[href="/admin/inscriptions"]')?.textContent).toContain('4 inscriptions à examiner');
     expect(racine.querySelectorAll('.navigation-mobile a')).toHaveLength(3);

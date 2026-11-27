@@ -109,6 +109,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/organisme/me").hasRole("ORGANISME")
                 .requestMatchers("/api/partenaires", "/api/partenaires/**").hasAnyRole("ETUDIANT", "ALUMNI", "PERSONNEL", "ADMIN")
                 .requestMatchers("/api/partenariats/conventions", "/api/partenariats/conventions/**", "/api/partenariats/accords", "/api/partenariats/accords/**", "/api/partenariats/mon-partenariat").hasRole("ORGANISME")
+                // Offres d'emploi : réservées aux personnes liées à l'école (pas aux visiteurs).
+                .requestMatchers("/api/offres-emploi", "/api/offres-emploi/**")
+                    .hasAnyRole("ETUDIANT", "ALUMNI", "PERSONNEL", "ORGANISME", "ADMIN")
                 .requestMatchers("/api/formations/**", "/api/experiences/**")
                     .hasAnyRole("ETUDIANT", "ALUMNI", "PERSONNEL", "VISITEUR")
                 .anyRequest().authenticated()

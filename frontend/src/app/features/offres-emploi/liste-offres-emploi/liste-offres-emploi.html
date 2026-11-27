@@ -1,0 +1,100 @@
+<div class="page-emploi">
+  <app-fil-ariane [etapes]="etapes" />
+
+  <header class="entete">
+    <div class="titre">
+      <h1>Offres d’emploi</h1>
+      @if (relaie()) {
+        <div class="actions">
+          <a class="bouton" routerLink="/offres-emploi/mes-offres"><i class="pi pi-list" aria-hidden="true"></i>Mes offres relayées</a>
+          <a class="bouton principal" routerLink="/offres-emploi/relayer"><i class="pi pi-share-alt" aria-hidden="true"></i>Relayer une offre</a>
+        </div>
+      }
+    </div>
+    <p class="introduction">Des opportunités repérées par la communauté de l’EPT. Une offre relayée renvoie vers son annonce d’origine.</p>
+  </header>
+
+  <section class="filtres" aria-label="Filtrer les offres">
+    <div class="types" role="group" aria-label="Type de contrat">
+      <button type="button" [attr.aria-pressed]="!criteres().type" (click)="choisirType('')">Tous les contrats</button>
+      @for (type of types; track type) {
+        <button type="button" [attr.aria-pressed]="criteres().type === type" (click)="choisirType(type)">{{ libellesType[type] }}</button>
+      }
+    </div>
+    <div class="champs">
+      <div class="champ">
+        <label for="filtre-recherche">Mot-clé</label>
+        <input id="filtre-recherche" type="search" autocomplete="off" placeholder="Poste, entreprise…" [formField]="formulaire.recherche"
+          aria-describedby="aide-filtres" (keydown.enter)="$event.preventDefault(); appliquerSaisie()" />
+      </div>
+      <div class="champ">
+        <label for="filtre-lieu">Lieu</label>
+        <input id="filtre-lieu" type="search" autocomplete="off" placeholder="Dakar, Thiès…" [formField]="formulaire.lieu"
+          aria-describedby="aide-filtres" (keydown.enter)="$event.preventDefault(); appliquerSaisie()" />
+      </div>
+      <div class="champ">
+        <label for="filtre-filiere">Filière</label>
+        <select id="filtre-filiere" (change)="choisirFiliere($event)">
+          <option value="" [selected]="!criteres().filiere">Toutes les filières</option>
+          @for (filiere of filieres(); track filiere.id) {
+            <option [value]="filiere.id" [selected]="criteres().filiere === filiere.id">{{ filiere.nom }}</option>
+          }
+        </select>
+      </div>
+      <label class="case">
+        <input type="checkbox" [checked]="criteres().expirees" (change)="basculerExpirees($event)" />
+        Afficher aussi les offres expirées
+      </label>
+    </div>
+    <span id="aide-filtres" class="sr-only">Les résultats se mettent à jour automatiquement.</span>
+  </section>
+
+  <p class="resume" role="status">
+    @if (resultat(); as page) {
+      <strong>{{ page.totalElements }}</strong> {{ page.totalElements > 1 ? 'offres' : 'offre' }}
+      @if (filtresActifs()) { <button type="button" class="lien" (click)="reinitialiser()">Effacer les filtres</button> }
+    } @else if (enChargement()) {
+      Chargement des offres…
+    }
+  </p>
+
+  <div aria-live="polite" [attr.aria-busy]="enChargement()">
+    @if (enChargement() && !resultat()) {
+      <div class="grille" aria-hidden="true">
+        @for (item of [1, 2, 3, 4, 5, 6]; track item) { <div class="squelette"></div> }
+      </div>
+    } @else if (messageErreur(); as message) {
+      <div class="etat" role="alert">
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        <h2>Chargement impossible</h2>
+        <p>{{ message }}</p>
+      </div>
+    } @else if (resultat()?.contenu?.length === 0) {
+      <div class="etat">
+        <i class="pi pi-megaphone" aria-hidden="true"></i>
+        <h2>Aucune offre ne correspond</h2>
+        <p>
+          @if (filtresActifs()) { Essayez un autre mot-clé, un autre lieu ou une autre filière. }
+          @else if (relaie()) { Aucune offre pour le moment. Vous avez vu une offre intéressante ailleurs ? Relayez-la. }
+          @else { Aucune offre pour le moment. Revenez bientôt. }
+        </p>
+        @if (!filtresActifs() && relaie()) {
+          <a class="bouton principal" routerLink="/offres-emploi/relayer">Relayer une offre</a>
+        }
+      </div>
+    } @else if (resultat(); as page) {
+      <ul class="grille" [class.actualisation]="enChargement()">
+        @for (offre of page.contenu; track offre.id) {
+          <li><app-carte-offre-emploi [offre]="offre" /></li>
+        }
+      </ul>
+      @if (page.totalPages > 1) {
+        <nav class="pagination" aria-label="Pagination des offres">
+          <button type="button" [disabled]="page.page === 0" (click)="changerPage(page.page - 1)">Précédent</button>
+          <span>Page {{ page.page + 1 }} sur {{ page.totalPages }}</span>
+          <button type="button" [disabled]="page.page + 1 >= page.totalPages" (click)="changerPage(page.page + 1)">Suivant</button>
+        </nav>
+      }
+    }
+  </div>
+</div>

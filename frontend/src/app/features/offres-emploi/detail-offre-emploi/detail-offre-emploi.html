@@ -1,0 +1,97 @@
+<div class="page-emploi">
+  <app-bouton-retour secours="/offres-emploi" />
+
+  @if (offre(); as o) {
+    <article class="offre" aria-labelledby="titre-offre">
+      <header class="entete">
+        <div class="pastilles">
+          <span class="pastille type">{{ types[o.typeContrat] }}</span>
+          @if (o.mode === 'RELAYEE') { <span class="pastille">Offre relayée</span> }
+          @if (o.statut !== 'PUBLIEE') { <span class="pastille">{{ statuts[o.statut] }}</span> }
+          @else if (o.expiree) { <span class="pastille expiree">Expirée</span> }
+        </div>
+        <h1 id="titre-offre">{{ o.titre }}</h1>
+        <p class="entreprise">{{ o.entreprise }}</p>
+      </header>
+
+      @if (o.motifDecision) { <p class="motif"><strong>Motif de l’école :</strong> {{ o.motifDecision }}</p> }
+
+      @if (o.mode === 'RELAYEE') {
+        <aside class="provenance" aria-label="Provenance de l’offre">
+          <p>
+            <i class="pi pi-share-alt" aria-hidden="true"></i>
+            Relayée par <strong>{{ auteur() }}</strong>{{ o.source ? ', vue sur ' + o.source : '' }}.
+            L’EPT ne vérifie pas cette annonce : postulez directement auprès de l’entreprise.
+          </p>
+          @if (o.lienSource && !o.expiree && o.statut === 'PUBLIEE') {
+            <a class="bouton principal" [href]="o.lienSource" target="_blank" rel="noopener noreferrer">
+              Voir l’offre d’origine<i class="pi pi-external-link" aria-hidden="true"></i>
+              <span class="sr-only">(nouvel onglet)</span>
+            </a>
+          }
+        </aside>
+      }
+
+      <dl class="infos">
+        <div><dt>Lieu</dt><dd>{{ o.lieu }}</dd></div>
+        <div><dt>Contrat</dt><dd>{{ types[o.typeContrat] }}</dd></div>
+        <div><dt>{{ o.expiree ? 'Expirée le' : 'Disponible jusqu’au' }}</dt><dd>{{ o.dateExpiration | date: 'd MMMM y' }}</dd></div>
+        @if (o.publieeLe) { <div><dt>Publiée le</dt><dd>{{ o.publieeLe | date: 'd MMMM y' }}</dd></div> }
+      </dl>
+
+      <section aria-labelledby="titre-description">
+        <h2 id="titre-description">Description</h2>
+        <p class="texte">{{ o.description }}</p>
+      </section>
+
+      @if (o.competences.length) {
+        <section aria-labelledby="titre-competences">
+          <h2 id="titre-competences">Compétences demandées</h2>
+          <ul class="etiquettes">@for (competence of o.competences; track competence) { <li>{{ competence }}</li> }</ul>
+        </section>
+      }
+
+      <section aria-labelledby="titre-filieres">
+        <h2 id="titre-filieres">Filières visées</h2>
+        @if (o.filieres.length) {
+          <ul class="etiquettes">@for (filiere of o.filieres; track filiere.id) { <li>{{ filiere.nom }}</li> }</ul>
+        } @else {
+          <p class="texte">Toutes les filières.</p>
+        }
+      </section>
+
+      @if (o.modifiable) {
+        <section class="gestion" aria-label="Gérer mon offre">
+          @if (confirmerRetrait()) {
+            <div class="confirmation" role="group" aria-label="Confirmer le retrait">
+              <p>Retirer cette offre ? Les membres ne la verront plus.</p>
+              @if (erreurRetrait(); as message) { <p class="message-erreur" role="alert">{{ message }}</p> }
+              <div class="boutons">
+                <button type="button" class="bouton principal" [disabled]="retraitEnCours()" (click)="retirer()">Retirer l’offre</button>
+                <button type="button" class="bouton" (click)="confirmerRetrait.set(false)">Ne rien changer</button>
+              </div>
+            </div>
+          } @else {
+            <div class="boutons">
+              <a class="bouton" [routerLink]="['/offres-emploi', o.id, 'modifier']"><i class="pi pi-pencil" aria-hidden="true"></i>Modifier ou prolonger</a>
+              <button type="button" class="bouton" (click)="confirmerRetrait.set(true)"><i class="pi pi-times" aria-hidden="true"></i>Retirer</button>
+            </div>
+          }
+        </section>
+      }
+
+      @if (o.signalable) {
+        <app-signaler-offre [offreId]="o.id" />
+      }
+    </article>
+  } @else if (erreur(); as message) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Offre indisponible</h2>
+      <p>{{ message }}</p>
+      <a class="bouton" routerLink="/offres-emploi">Voir les offres</a>
+    </div>
+  } @else {
+    <div class="squelette chargement" aria-busy="true" aria-label="Chargement de l’offre"></div>
+  }
+</div>

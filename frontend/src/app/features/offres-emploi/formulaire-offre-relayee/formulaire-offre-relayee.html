@@ -1,0 +1,125 @@
+<div class="page-emploi">
+  <app-bouton-retour [secours]="secours" />
+  <header class="entete">
+    <h1>{{ id ? 'Modifier l’offre relayée' : 'Relayer une offre d’emploi' }}</h1>
+    <p class="introduction">
+      Vous avez vu une offre intéressante ailleurs ? Partagez-la avec la communauté de l’EPT. Elle est publiée aussitôt ;
+      les candidats postulent directement auprès de l’entreprise, via le lien d’origine.
+    </p>
+  </header>
+
+  @if (erreurChargement(); as message) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Modification impossible</h2>
+      <p>{{ message }}</p>
+    </div>
+  } @else if (chargement()) {
+    <div class="squelette" aria-busy="true" aria-label="Chargement de l’offre"></div>
+  } @else {
+    <form class="carte" (submit)="envoyer($event)" novalidate>
+      @if (messageErreur(); as message) { <p class="message-erreur" role="alert">{{ message }}</p> }
+      <div class="grille">
+        <div class="champ large">
+          <label for="offre-titre">Intitulé du poste</label>
+          <input id="offre-titre" type="text" autocomplete="off" [formField]="formulaire.titre"
+            [attr.aria-invalid]="formulaire.titre().touched() && formulaire.titre().invalid()" aria-describedby="erreur-titre" />
+          @if (formulaire.titre().touched() && formulaire.titre().errors()[0]; as erreur) {
+            <small id="erreur-titre" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="offre-entreprise">Entreprise</label>
+          <input id="offre-entreprise" type="text" autocomplete="organization" [formField]="formulaire.entreprise"
+            [attr.aria-invalid]="formulaire.entreprise().touched() && formulaire.entreprise().invalid()" aria-describedby="erreur-entreprise" />
+          @if (formulaire.entreprise().touched() && formulaire.entreprise().errors()[0]; as erreur) {
+            <small id="erreur-entreprise" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="offre-type">Type de contrat</label>
+          <select id="offre-type" [formField]="formulaire.typeContrat"
+            [attr.aria-invalid]="formulaire.typeContrat().touched() && formulaire.typeContrat().invalid()" aria-describedby="erreur-type">
+            <option value="">Choisir…</option>
+            @for (type of types; track type) { <option [value]="type">{{ libellesType[type] }}</option> }
+          </select>
+          @if (formulaire.typeContrat().touched() && formulaire.typeContrat().errors()[0]; as erreur) {
+            <small id="erreur-type" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="offre-lieu">Lieu</label>
+          <input id="offre-lieu" type="text" autocomplete="off" placeholder="Dakar, télétravail…" [formField]="formulaire.lieu"
+            [attr.aria-invalid]="formulaire.lieu().touched() && formulaire.lieu().invalid()" aria-describedby="erreur-lieu" />
+          @if (formulaire.lieu().touched() && formulaire.lieu().errors()[0]; as erreur) {
+            <small id="erreur-lieu" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="offre-expiration">Disponible jusqu’au</label>
+          <input id="offre-expiration" type="date" [min]="dateMin" [max]="dateMax" [formField]="formulaire.dateExpiration"
+            [attr.aria-invalid]="formulaire.dateExpiration().touched() && formulaire.dateExpiration().invalid()"
+            aria-describedby="aide-expiration erreur-expiration" />
+          <small id="aide-expiration" class="aide">Six mois au plus ; vous pourrez prolonger l’offre.</small>
+          @if (formulaire.dateExpiration().touched() && formulaire.dateExpiration().errors()[0]; as erreur) {
+            <small id="erreur-expiration" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ large">
+          <label for="offre-lien">Lien vers l’offre d’origine</label>
+          <input id="offre-lien" type="url" inputmode="url" autocomplete="off" placeholder="https://" [formField]="formulaire.lienSource"
+            [attr.aria-invalid]="formulaire.lienSource().touched() && formulaire.lienSource().invalid()" aria-describedby="erreur-lien" />
+          @if (formulaire.lienSource().touched() && formulaire.lienSource().errors()[0]; as erreur) {
+            <small id="erreur-lien" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ">
+          <label for="offre-source">Vue sur (facultatif)</label>
+          <input id="offre-source" type="text" autocomplete="off" placeholder="LinkedIn, site de l’entreprise…" [formField]="formulaire.source"
+            [attr.aria-invalid]="formulaire.source().invalid()" aria-describedby="erreur-source" />
+          @if (formulaire.source().errors()[0]; as erreur) {
+            <small id="erreur-source" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ large">
+          <label for="offre-description">Description du poste</label>
+          <textarea id="offre-description" rows="6" [formField]="formulaire.description"
+            [attr.aria-invalid]="formulaire.description().touched() && formulaire.description().invalid()" aria-describedby="erreur-description"></textarea>
+          @if (formulaire.description().touched() && formulaire.description().errors()[0]; as erreur) {
+            <small id="erreur-description" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        <div class="champ large">
+          <label for="offre-competences">Compétences demandées (facultatif)</label>
+          <input id="offre-competences" type="text" autocomplete="off" placeholder="Java, Spring Boot, SQL" [formField]="formulaire.competences"
+            [attr.aria-invalid]="formulaire.competences().invalid()" aria-describedby="aide-competences erreur-competences" />
+          <small id="aide-competences" class="aide">Séparées par des virgules, {{ competencesMax }} au plus.</small>
+          @if (formulaire.competences().errors()[0]; as erreur) {
+            <small id="erreur-competences" class="erreur-champ">{{ erreur.message }}</small>
+          }
+        </div>
+        @if (filieres().length) {
+          <fieldset class="champ large filieres" aria-describedby="aide-filieres">
+            <legend>Filières visées (facultatif)</legend>
+            <small id="aide-filieres" class="aide">Sans choix, l’offre s’adresse à toutes les filières.</small>
+            <div class="cases">
+              @for (filiere of filieres(); track filiere.id) {
+                <label class="case">
+                  <input type="checkbox" [checked]="modele().filieres.includes(filiere.id)" (change)="basculerFiliere(filiere.id, $event)" />
+                  {{ filiere.nom }}
+                </label>
+              }
+            </div>
+          </fieldset>
+        }
+      </div>
+
+      <div class="boutons">
+        <button type="submit" class="bouton principal" [disabled]="formulaire().submitting()">
+          {{ id ? 'Enregistrer les modifications' : 'Publier l’offre' }}
+        </button>
+        <a class="bouton" [routerLink]="secours">Annuler</a>
+      </div>
+    </form>
+  }
+</div>

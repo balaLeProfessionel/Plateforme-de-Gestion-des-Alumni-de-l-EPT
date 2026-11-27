@@ -147,11 +147,12 @@ export function lienFicheCompte(compte: CompteAdmin): string[] | null {
  */
 export type PermissionAdmin = 'CONSULTER_TABLEAU_DE_BORD' | 'GERER_COMPTES' | 'CONSULTER_JOURNAL'
   | 'PUBLIER_ANNONCES' | 'MODERER_PUBLICATIONS' | 'GERER_STAGES'
-  | 'GERER_MOBILITES' | 'GERER_PARTENARIATS' | 'GERER_EVENEMENTS' | 'GERER_MENTORAT' | 'GERER_ADMINISTRATEURS' | 'GERER_COMMUNAUTES';
+  | 'GERER_MOBILITES' | 'GERER_PARTENARIATS' | 'GERER_EVENEMENTS' | 'GERER_MENTORAT' | 'GERER_ADMINISTRATEURS' | 'GERER_COMMUNAUTES'
+  | 'GERER_OFFRES_EMPLOI';
 export const TOUTES_LES_PERMISSIONS: readonly PermissionAdmin[] = [
   'CONSULTER_TABLEAU_DE_BORD', 'GERER_COMPTES', 'CONSULTER_JOURNAL',
   'PUBLIER_ANNONCES', 'MODERER_PUBLICATIONS', 'GERER_STAGES', 'GERER_MOBILITES',
-  'GERER_PARTENARIATS', 'GERER_EVENEMENTS', 'GERER_MENTORAT', 'GERER_COMMUNAUTES', 'GERER_ADMINISTRATEURS',
+  'GERER_PARTENARIATS', 'GERER_EVENEMENTS', 'GERER_MENTORAT', 'GERER_COMMUNAUTES', 'GERER_OFFRES_EMPLOI', 'GERER_ADMINISTRATEURS',
 ];
 /** Permissions d’une session ouverte avant leur envoi par le serveur : celles que tout administrateur avait alors. */
 export const PERMISSIONS_ANCIENNE_SESSION: readonly PermissionAdmin[] = ['CONSULTER_TABLEAU_DE_BORD', 'GERER_COMPTES', 'CONSULTER_JOURNAL'];
@@ -166,6 +167,7 @@ export const RESPONSABILITES: readonly { valeur: Responsabilite; libelle: string
   { valeur: 'GERER_EVENEMENTS', libelle: 'Événements', description: 'Événements officiels et gestion des événements des membres.' },
   { valeur: 'GERER_MENTORAT', libelle: 'Mentorat', description: 'Programmes de mentorat.' },
   { valeur: 'GERER_COMMUNAUTES', libelle: 'Communautés', description: 'Communautés de la messagerie : création, accès et modification.' },
+  { valeur: 'GERER_OFFRES_EMPLOI', libelle: 'Offres d’emploi', description: 'Toutes les offres d’emploi, vérification, retrait et signalements.' },
   { valeur: 'CONSULTER_JOURNAL', libelle: 'Journal', description: 'Lecture du journal des décisions.' },
 ];
 export const LIBELLES_PERMISSION: Record<PermissionAdmin, string> = {

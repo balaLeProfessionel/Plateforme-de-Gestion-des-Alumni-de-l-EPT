@@ -1,0 +1,56 @@
+import { DatePipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { LIBELLES_STATUT_OFFRE_EMPLOI, LIBELLES_TYPE_CONTRAT, OffreEmploi } from '../../../core/services/models/offre-emploi.model';
+import { OffresEmploiService } from '../../../core/services/offres-emploi/offres-emploi';
+import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
+
+/** Offres relayées par le membre connecté, tous statuts confondus : modification, prolongation, retrait (#221). */
+@Component({
+  selector: 'app-mes-offres-emploi',
+  imports: [DatePipe, RouterLink, BoutonRetour],
+  templateUrl: './mes-offres-emploi.html',
+  styleUrl: './mes-offres-emploi.scss',
+})
+export class MesOffresEmploi implements OnInit {
+  private readonly service = inject(OffresEmploiService);
+
+  protected readonly types = LIBELLES_TYPE_CONTRAT;
+  protected readonly statuts = LIBELLES_STATUT_OFFRE_EMPLOI;
+  protected readonly offres = signal<readonly OffreEmploi[] | null>(null);
+  protected readonly erreurChargement = signal(false);
+  /** Offre dont le retrait attend une confirmation. */
+  protected readonly aRetirer = signal<string | null>(null);
+  protected readonly erreurRetrait = signal<string | null>(null);
+  protected readonly message = signal<string | null>(null);
+
+  ngOnInit(): void {
+    this.charger();
+  }
+
+  protected charger(): void {
+    this.erreurChargement.set(false);
+    this.service.mesOffres().subscribe({
+      next: (offres) => this.offres.set(offres),
+      error: () => this.erreurChargement.set(true),
+    });
+  }
+
+  protected demanderRetrait(id: string): void {
+    this.erreurRetrait.set(null);
+    this.aRetirer.set(id);
+  }
+
+  protected retirer(offre: OffreEmploi): void {
+    this.erreurRetrait.set(null);
+    this.service.retirer(offre.id).subscribe({
+      next: (retiree) => {
+        this.aRetirer.set(null);
+        this.offres.update((liste) => liste?.map((o) => o.id === retiree.id ? retiree : o) ?? null);
+        this.message.set(`« ${retiree.titre} » est retirée : les membres ne la voient plus.`);
+      },
+      error: (erreur: HttpErrorResponse) => this.erreurRetrait.set(erreur.error?.message ?? 'Le retrait a échoué. Réessayez.'),
+    });
+  }
+}
