@@ -4,6 +4,12 @@ import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/ro
 import { filter, map, startWith } from 'rxjs';
 import { CadreInscription } from '../../../auth/inscription/cadre-inscription/cadre-inscription';
 import { IndicateurEtapes } from '../../composants/indicateur-etapes/indicateur-etapes';
+import { AuthService } from '../../../../core/services/auth/auth-service';
+
+/** État de navigation posé par la première connexion : le compte a été ouvert par l’école. */
+export interface EtatArriveeParcours {
+  compteDeLEcole?: boolean;
+}
 
 // Etape affichee tant que la route enfant n'est pas encore resolue
 const ETAPE_PAR_DEFAUT = 1;
@@ -33,9 +39,17 @@ export class ParcoursCompletion {
     ),
     { initialValue: this.router.url.startsWith('/completer-profil/cv') }
   );
+  // Compte ouvert par l’école : le membre ne l’a ni créé ni vérifié, il a défini son mot de passe à la première
+  // connexion. L’état posé par celle-ci est lu à la construction et vaut pour toute l’arrivée ; pour un étudiant,
+  // dont le compte est toujours créé par l’administration, le rôle suffit, même après un rechargement.
+  private readonly compteDeLEcole = inject(AuthService).utilisateur()?.role === 'ETUDIANT'
+    || (this.router.currentNavigation()?.extras.state as EtatArriveeParcours | undefined)?.compteDeLEcole === true;
+  private readonly debut = this.compteDeLEcole
+    ? ['Compte créé par l’école', 'Mot de passe défini']
+    : ['Compte créé', 'Email vérifié'];
   protected readonly etapesParcours = computed(() => this.surCv()
-    ? ['Compte créé', 'Email vérifié', 'Import du CV', 'Relecture du profil']
-    : ['Compte créé', 'Email vérifié', 'Mode de remplissage', 'Informations', 'Formations', 'Expériences', 'Compétences']);
+    ? [...this.debut, 'Import du CV', 'Relecture du profil']
+    : [...this.debut, 'Mode de remplissage', 'Informations', 'Formations', 'Expériences', 'Compétences']);
 
   protected readonly etape = toSignal(
     this.router.events.pipe(

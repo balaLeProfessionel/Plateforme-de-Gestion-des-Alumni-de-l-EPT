@@ -1,29 +1,38 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 
-import { ParcoursCompletion } from './parcours-completion';
+import { AuthService } from '../../../../core/services/auth/auth-service';
+import { EtatArriveeParcours, ParcoursCompletion } from './parcours-completion';
 
 @Component({ template: '<p>étape</p>' })
 class EtapeFactice {}
 
 describe('ParcoursCompletion', () => {
-  async function ouvrir(chemin: string) {
+  async function ouvrir(chemin: string, options: { role?: string; etat?: EtatArriveeParcours } = {}) {
     TestBed.configureTestingModule({
-      providers: [provideRouter([{
-        path: 'completer-profil',
-        component: ParcoursCompletion,
-        children: [
-          { path: 'demarrer', data: { etape: 0 }, component: EtapeFactice },
-          { path: 'cv', data: { etape: 0 }, component: EtapeFactice },
-          { path: 'infos', data: { etape: 1 }, component: EtapeFactice },
-          { path: 'formations', data: { etape: 2 }, component: EtapeFactice }
-        ]
-      }])]
+      providers: [
+        provideRouter([{
+          path: 'completer-profil',
+          component: ParcoursCompletion,
+          children: [
+            { path: 'demarrer', data: { etape: 0 }, component: EtapeFactice },
+            { path: 'cv', data: { etape: 0 }, component: EtapeFactice },
+            { path: 'infos', data: { etape: 1 }, component: EtapeFactice },
+            { path: 'formations', data: { etape: 2 }, component: EtapeFactice }
+          ]
+        }]),
+        { provide: AuthService, useValue: { utilisateur: () => (options.role ? { role: options.role } : null) } }
+      ]
     });
     const harnais = await RouterTestingHarness.create();
-    await harnais.navigateByUrl(chemin);
+    if (options.etat) {
+      // Comme la première connexion : l'état accompagne la navigation vers le parcours.
+      await TestBed.inject(Router).navigateByUrl(chemin, { state: options.etat });
+    } else {
+      await harnais.navigateByUrl(chemin);
+    }
     harnais.detectChanges();
     const element = harnais.routeNativeElement!.ownerDocument.body;
     return {
@@ -59,5 +68,30 @@ describe('ParcoursCompletion', () => {
     harnais.detectChanges();
     expect(courante()).toBe('Formations');
     expect(element.querySelectorAll('.etapes li.faite')).toHaveLength(4);
+  });
+
+  it('pour un compte ouvert par l école, le mot de passe défini remplace l email vérifié', async () => {
+    const { etapes, courante, element, harnais } = await ouvrir('/completer-profil/demarrer', {
+      role: 'ALUMNI',
+      etat: { compteDeLEcole: true }
+    });
+    expect(etapes().slice(0, 3)).toEqual(['Compte créé par l’école', 'Mot de passe défini', 'Mode de remplissage']);
+    expect(courante()).toBe('Mode de remplissage');
+    expect(element.querySelectorAll('.etapes li.faite')).toHaveLength(2);
+
+    // L'état n'accompagne que la première navigation : les étapes suivantes gardent ces libellés.
+    await harnais.navigateByUrl('/completer-profil/infos');
+    harnais.detectChanges();
+    expect(etapes().slice(0, 2)).toEqual(['Compte créé par l’école', 'Mot de passe défini']);
+  });
+
+  it('un étudiant garde ces libellés sans état de navigation, par exemple après un rechargement', async () => {
+    const { etapes } = await ouvrir('/completer-profil/cv', { role: 'ETUDIANT' });
+    expect(etapes()).toEqual(['Compte créé par l’école', 'Mot de passe défini', 'Import du CV', 'Relecture du profil']);
+  });
+
+  it('un membre inscrit lui-même garde « Compte créé » et « Email vérifié »', async () => {
+    const { etapes } = await ouvrir('/completer-profil/demarrer', { role: 'ALUMNI' });
+    expect(etapes().slice(0, 2)).toEqual(['Compte créé', 'Email vérifié']);
   });
 });
