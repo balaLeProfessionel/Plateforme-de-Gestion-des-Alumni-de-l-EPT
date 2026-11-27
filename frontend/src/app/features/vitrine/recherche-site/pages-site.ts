@@ -34,6 +34,12 @@ const PAGES_SITE: readonly PageSite[] = [
     description: 'Proposer votre mentorat ou demander celui d’un diplômé, puis planifier vos séances.'
   },
   {
+    titre: 'Offres d’emploi',
+    lien: '/offres-emploi',
+    precision: 'Après connexion',
+    description: 'Les offres relayées par les membres et celles des organismes partenaires, avec candidature en ligne.'
+  },
+  {
     titre: 'Profil et parcours',
     lien: '/profil',
     precision: 'Après connexion',
