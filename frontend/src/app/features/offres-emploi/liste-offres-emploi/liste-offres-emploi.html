@@ -38,6 +38,12 @@
         <input id="filtre-recherche" type="search" autocomplete="off" placeholder="Poste, entreprise…" [formField]="formulaire.recherche"
           aria-describedby="aide-filtres" (keydown.enter)="$event.preventDefault(); appliquerSaisie()" />
       </div>
+      <button type="button" class="plus-filtres" aria-controls="filtres-avances" [attr.aria-expanded]="filtresOuverts()"
+        (click)="filtresOuverts.set(!filtresOuverts())">
+        <i class="pi pi-sliders-h" aria-hidden="true"></i>{{ filtresOuverts() ? 'Moins de filtres' : 'Plus de filtres' }}
+        @if (filtresAvancesActifs()) { <span class="compte">{{ filtresAvancesActifs() }}<span class="sr-only"> actif{{ filtresAvancesActifs() > 1 ? 's' : '' }}</span></span> }
+      </button>
+      <div id="filtres-avances" class="avances" [class.ouverts]="filtresOuverts()">
       <div class="champ">
         <label for="filtre-lieu">Lieu</label>
         <input id="filtre-lieu" type="search" autocomplete="off" placeholder="Dakar, Thiès…" [formField]="formulaire.lieu"
@@ -56,6 +62,7 @@
         <input type="checkbox" [checked]="criteres().expirees" (change)="basculerExpirees($event)" />
         Afficher aussi les offres expirées
       </label>
+      </div>
     </div>
     <span id="aide-filtres" class="sr-only">Les résultats se mettent à jour automatiquement.</span>
   </section>

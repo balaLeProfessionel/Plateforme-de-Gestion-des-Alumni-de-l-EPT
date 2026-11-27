@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, map, of, switchMap, tap } from 'rxjs';
@@ -45,6 +45,11 @@ export class ModerationOffresEmploi {
     PUBLIEES: { titre: 'Aucune offre publiée', texte: 'Les offres publiées ou relayées par les membres apparaîtront ici.' },
   };
   protected readonly file = signal<FileModerationOffres>('A_VERIFIER');
+  /** Nombre en attente par onglet (aucun pour les offres publiées, qui ne sont pas une file à traiter). */
+  protected readonly enAttente = computed<Record<FileModerationOffres, number>>(() => {
+    const { aVerifier, signalees } = this.compteur.parFile();
+    return { A_VERIFIER: aVerifier, SIGNALEES: signalees, PUBLIEES: 0 };
+  });
   protected readonly page = signal<Page<OffreAModerer> | null>(null);
   protected readonly erreurChargement = signal<string | null>(null);
   protected readonly message = signal<string | null>(null);

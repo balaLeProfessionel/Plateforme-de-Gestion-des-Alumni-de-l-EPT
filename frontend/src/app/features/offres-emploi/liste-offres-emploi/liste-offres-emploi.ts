@@ -46,6 +46,12 @@ export class ListeOffresEmploi {
   protected readonly resultat = signal<Page<OffreEmploi> | null>(null);
   protected readonly enChargement = signal(true);
   protected readonly messageErreur = signal<string | null>(null);
+  /** Sur mobile, lieu, filière et offres expirées se replient derrière « Plus de filtres ». */
+  protected readonly filtresOuverts = signal(false);
+  protected readonly filtresAvancesActifs = computed(() => {
+    const { lieu, filiere, expirees } = this.criteres();
+    return [lieu, filiere, expirees].filter(Boolean).length;
+  });
   protected readonly filtresActifs = computed(() => {
     const { recherche, type, lieu, filiere, expirees } = this.criteres();
     return Boolean(recherche || type || lieu || filiere || expirees);

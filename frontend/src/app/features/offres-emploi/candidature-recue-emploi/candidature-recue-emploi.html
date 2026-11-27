@@ -55,8 +55,8 @@
     </div>
   } @else if (decisions().length) {
     <div class="boutons decisions" role="group" [attr.aria-label]="'Décision pour ' + c.candidat.prenom + ' ' + c.candidat.nom">
-      @for (statut of decisions(); track statut) {
-        <button type="button" class="bouton petit" [class.principal]="statut === 'RETENUE'" [disabled]="enCours()" (click)="choisir(statut)">
+      @for (statut of decisions(); track statut; let premier = $first) {
+        <button type="button" class="bouton petit" [class.principal]="premier" [disabled]="enCours()" (click)="choisir(statut)">
           {{ actions[statut] }}
         </button>
       }

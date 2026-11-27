@@ -7,6 +7,7 @@ import ept.edu.sn.alumni_backend.competence.entity.Competence;
 import ept.edu.sn.alumni_backend.competence.repository.CompetenceRepository;
 import ept.edu.sn.alumni_backend.competence.service.CompetencesLanguesService;
 import ept.edu.sn.alumni_backend.emploi.ModeOffreEmploi;
+import ept.edu.sn.alumni_backend.emploi.StatutCandidatureEmploi;
 import ept.edu.sn.alumni_backend.emploi.StatutOffreEmploi;
 import ept.edu.sn.alumni_backend.emploi.dto.ContenuOffreRequest;
 import ept.edu.sn.alumni_backend.emploi.dto.OffreEmploiResponse;
@@ -249,7 +250,16 @@ public class OffresEmploiService {
         List<OffreEmploi> offres = lecteur.getRole() == TypeRole.ORGANISME && lecteur.getOrganisme() != null
             ? offreRepository.findByOrganismeIdAndModeOrderByCreeeLeDesc(lecteur.getOrganisme().getId(), ModeOffreEmploi.GEREE)
             : offreRepository.findByAuteurIdOrderByCreeeLeDesc(lecteur.getId());
-        return offres.stream().map(offre -> versReponse(offre, lecteur, false)).toList();
+        Map<UUID, OffreEmploiResponse.Candidatures> compteurs = new HashMap<>();
+        List<UUID> gerees = offres.stream().filter(o -> o.getMode() == ModeOffreEmploi.GEREE).map(OffreEmploi::getId).toList();
+        if (!gerees.isEmpty()) {
+            candidatureRepository.compterParOffre(gerees, StatutCandidatureEmploi.RECUE, StatutCandidatureEmploi.RETIREE)
+                .forEach(ligne -> compteurs.put((UUID) ligne[0],
+                    new OffreEmploiResponse.Candidatures(((Number) ligne[1]).longValue(), ((Number) ligne[2]).longValue())));
+        }
+        return offres.stream().map(offre -> versReponse(offre, lecteur, false,
+            offre.getMode() == ModeOffreEmploi.GEREE ? compteurs.getOrDefault(offre.getId(), new OffreEmploiResponse.Candidatures(0, 0)) : null))
+            .toList();
     }
 
     /** Offres publiées, sans celles d'un auteur ou d'un organisme suspendu. */
@@ -386,6 +396,11 @@ public class OffresEmploiService {
     }
 
     OffreEmploiResponse versReponse(OffreEmploi offre, Utilisateur lecteur, boolean signalable) {
+        return versReponse(offre, lecteur, signalable, null);
+    }
+
+    private OffreEmploiResponse versReponse(OffreEmploi offre, Utilisateur lecteur, boolean signalable,
+            OffreEmploiResponse.Candidatures candidatures) {
         boolean gestionnaire = gere(offre, lecteur);
         boolean gestionnaireOuAdmin = gestionnaire || PermissionAdmin.accordee(lecteur, PermissionAdmin.GERER_OFFRES_EMPLOI);
         Utilisateur auteur = offre.getAuteur();
@@ -424,7 +439,8 @@ public class OffresEmploiService {
             offre.isLettreExigee(),
             questions,
             offre.estCloturee(),
-            offre.getMode() == ModeOffreEmploi.GEREE && gestionnaireOuAdmin);
+            offre.getMode() == ModeOffreEmploi.GEREE && gestionnaireOuAdmin,
+            candidatures);
     }
 
     private static boolean modifiable(OffreEmploi offre) {

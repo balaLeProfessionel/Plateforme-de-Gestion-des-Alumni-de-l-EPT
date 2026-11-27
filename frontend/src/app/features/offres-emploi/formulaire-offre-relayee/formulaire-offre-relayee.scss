@@ -8,6 +8,6 @@
 .filieres { margin: 0; padding: 0; border: 0; }
 .cases { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; }
 .case { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.25rem; color: var(--ept-primary-dark); font-size: 0.9rem; font-weight: 400;
-  input { width: 1.1rem; height: 1.1rem; accent-color: var(--ept-primary); }
+  input { flex: none; width: 1.25rem; height: 1.25rem; margin: 0; accent-color: var(--ept-primary); }
   input:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
 .boutons { display: flex; flex-wrap: wrap; gap: 0.5rem; }

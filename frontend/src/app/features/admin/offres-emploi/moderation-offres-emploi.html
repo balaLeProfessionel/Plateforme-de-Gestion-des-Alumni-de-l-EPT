@@ -2,7 +2,9 @@
   introduction="Vérifiez les offres des organismes non validés, traitez les signalements des membres et retirez une offre si besoin. L’auteur reçoit chaque décision, motif compris.">
   <nav class="onglets" aria-label="Files de modération">
     @for (o of onglets; track o.valeur) {
-      <button type="button" [attr.aria-pressed]="file() === o.valeur" (click)="choisirFile(o.valeur)">{{ o.libelle }}</button>
+      <button type="button" [attr.aria-pressed]="file() === o.valeur" (click)="choisirFile(o.valeur)">{{ o.libelle }}
+        @if (enAttente()[o.valeur]; as n) { <span class="nombre">{{ n }}<span class="sr-only"> en attente</span></span> }
+      </button>
     }
   </nav>
 

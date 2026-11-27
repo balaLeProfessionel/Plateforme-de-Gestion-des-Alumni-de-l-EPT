@@ -72,6 +72,14 @@ describe('MesOffresEmploi', () => {
     expect(racine.querySelector('.ligne .statut')?.textContent).toBe('Recrutement clôturé');
   });
 
+  it('affiche le nombre de candidatures et celles à traiter', () => {
+    const racine = afficher([uneOffreGeree({ candidaturesConsultables: true, candidatures: { total: 3, aTraiter: 2 } })], 'ORGANISME');
+    const lien = racine.querySelector('a.candidatures');
+    expect(lien?.querySelector('.nombre')?.textContent).toBe('3');
+    expect(lien?.querySelector('.a-traiter')?.textContent).toBe('2 à traiter');
+    expect(lien?.getAttribute('aria-label')).toBe('Candidatures reçues pour Ingénieur réseaux : 3, dont 2 à traiter');
+  });
+
   it('invite un organisme à publier une première offre', () => {
     expect(afficher([], 'ORGANISME').querySelector('.etat h2')?.textContent).toContain('Vous n’avez publié aucune offre');
   });

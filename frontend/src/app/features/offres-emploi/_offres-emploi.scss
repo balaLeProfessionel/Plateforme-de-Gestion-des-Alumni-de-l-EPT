@@ -26,6 +26,8 @@ h1 { margin: 0; color: var(--ept-primary-dark); font-size: clamp(1.5rem, 3vw, 1.
   font: inherit; font-size: 0.88rem; font-weight: 700; text-decoration: none; cursor: pointer;
   &.principal { background: var(--ept-primary); color: var(--ept-text-on-dark); }
   &.petit { min-height: 2.25rem; padding: 0.3rem 0.75rem; font-size: 0.82rem; }
+  // Geste secondaire ou risqué (retirer) : présent, mais sans le poids d’un bouton.
+  &.discret { border-color: transparent; background: transparent; color: var(--ept-text-secondary); font-weight: 600; text-decoration: underline; }
   &:disabled { opacity: 0.6; cursor: wait; }
   &:hover:not(:disabled) { background: var(--ept-primary-light); }
   &.principal:hover:not(:disabled) { background: var(--ept-primary-dark); }
@@ -40,7 +42,7 @@ h1 { margin: 0; color: var(--ept-primary-dark); font-size: clamp(1.5rem, 3vw, 1.
 }
 .pastille { padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; background: var(--ept-bg); color: var(--ept-primary-dark);
   &.type { background: var(--ept-primary-light); }
-  &.plateforme { background: var(--ept-surface, #fff); box-shadow: inset 0 0 0 1px var(--ept-primary); }
+  &.plateforme { background: var(--ept-success-light); color: var(--ept-success-dark); }
   &.expiree { color: var(--ept-text-secondary); } }
 .confirmation { padding: 0.75rem; border: 1px solid var(--ept-primary); border-radius: 8px; background: var(--ept-primary-light);
   p { margin: 0; color: var(--ept-primary-dark); }

@@ -40,8 +40,13 @@ public record OffreEmploiResponse(
     /** Offre gérée dont le recrutement est clôturé (#223) : plus de candidature ni de modification. */
     boolean cloturee,
     /** Offre gérée dont le lecteur traite les candidatures : son organisme ou l'administration des offres. */
-    boolean candidaturesConsultables
+    boolean candidaturesConsultables,
+    /** « Mes offres » d'un organisme : candidatures reçues (hors retirées), dont celles à traiter ; null ailleurs. */
+    Candidatures candidatures
 ) {
+    public record Candidatures(long total, long aTraiter) {
+    }
+
     public record Question(UUID id, String intitule, String type, boolean obligatoire) {
     }
 

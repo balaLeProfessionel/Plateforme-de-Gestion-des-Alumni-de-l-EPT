@@ -46,6 +46,13 @@ describe('ListeOffresEmploi', () => {
     expect(racine.querySelector('.resume')?.textContent).toContain('2 offres');
     expect(racine.querySelectorAll('app-carte-offre-emploi').length).toBe(2);
     expect((racine.querySelector('#filtre-lieu') as HTMLInputElement).value).toBe('Dakar');
+    const plus = racine.querySelector('.plus-filtres') as HTMLButtonElement;
+    expect(plus.getAttribute('aria-expanded')).toBe('false');
+    expect(plus.textContent).toContain('3 actifs');
+    plus.click();
+    fixture.detectChanges();
+    expect(plus.getAttribute('aria-expanded')).toBe('true');
+    expect(racine.querySelector('#filtres-avances')?.classList).toContain('ouverts');
   });
 
   it('met le type choisi dans l’URL et revient à la première page', () => {

@@ -91,6 +91,8 @@ export interface OffreEmploi {
   cloturee: boolean;
   /** Le lecteur traite les candidatures de cette offre gérée (son organisme, ou l’administration). */
   candidaturesConsultables: boolean;
+  /** « Mes offres » d’un organisme : candidatures reçues (hors retirées) et celles encore à traiter. */
+  candidatures?: { total: number; aTraiter: number } | null;
 }
 
 /** Candidature reçue, vue par le recruteur (#223). */

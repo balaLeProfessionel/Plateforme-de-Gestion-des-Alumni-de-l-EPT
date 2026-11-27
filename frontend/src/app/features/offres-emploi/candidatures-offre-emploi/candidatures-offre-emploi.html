@@ -19,28 +19,6 @@
 
     <p class="statut-message" role="status">{{ message() }}</p>
 
-    @if (clotureable()) {
-      <section class="cloture" aria-label="Clôturer le recrutement">
-        @if (confirmerCloture()) {
-          <div class="confirmation" role="group" aria-label="Confirmer la clôture">
-            <p>
-              Clôturer le recrutement ? L’offre ne recevra plus de candidature.
-              @if (ouvertes()) {
-                {{ ouvertes() }} candidature{{ ouvertes() > 1 ? 's' : '' }} sans décision passer{{ ouvertes() > 1 ? 'ont' : 'a' }} en non retenue, et les candidats seront prévenus.
-              }
-            </p>
-            @if (erreurCloture(); as texte) { <p class="message-erreur" role="alert">{{ texte }}</p> }
-            <div class="boutons">
-              <button type="button" class="bouton principal" [disabled]="clotureEnCours()" (click)="cloturer()">Clôturer le recrutement</button>
-              <button type="button" class="bouton" (click)="confirmerCloture.set(false)">Annuler</button>
-            </div>
-          </div>
-        } @else {
-          <button type="button" class="bouton" (click)="confirmerCloture.set(true)"><i class="pi pi-lock" aria-hidden="true"></i>Clôturer le recrutement</button>
-        }
-      </section>
-    }
-
     @if (candidatures().length === 0) {
       <div class="etat">
         <i class="pi pi-inbox" aria-hidden="true"></i>
@@ -71,6 +49,30 @@
           <li><app-candidature-recue-emploi [candidature]="c" [cloturee]="o.cloturee" (modifiee)="remplacer($event)" /></li>
         }
       </ul>
+    }
+
+    @if (clotureable()) {
+      <section class="cloture" aria-labelledby="titre-cloture">
+        <h2 id="titre-cloture">Fin du recrutement</h2>
+        @if (confirmerCloture()) {
+          <div class="confirmation" role="group" aria-label="Confirmer la clôture">
+            <p>
+              Clôturer le recrutement ? L’offre ne recevra plus de candidature.
+              @if (ouvertes()) {
+                {{ ouvertes() }} candidature{{ ouvertes() > 1 ? 's' : '' }} sans décision passer{{ ouvertes() > 1 ? 'ont' : 'a' }} en non retenue, et les candidats seront prévenus.
+              }
+            </p>
+            @if (erreurCloture(); as texte) { <p class="message-erreur" role="alert">{{ texte }}</p> }
+            <div class="boutons">
+              <button type="button" class="bouton principal" [disabled]="clotureEnCours()" (click)="cloturer()">Clôturer le recrutement</button>
+              <button type="button" class="bouton" (click)="confirmerCloture.set(false)">Annuler</button>
+            </div>
+          </div>
+        } @else {
+          <p class="aide">Vous avez trouvé votre candidat ? Clôturez l’offre : elle ne recevra plus de candidature.</p>
+          <button type="button" class="bouton" (click)="confirmerCloture.set(true)"><i class="pi pi-lock" aria-hidden="true"></i>Clôturer le recrutement</button>
+        }
+      </section>
     }
   } @else {
     <div class="squelette" aria-busy="true" aria-label="Chargement des candidatures"></div>

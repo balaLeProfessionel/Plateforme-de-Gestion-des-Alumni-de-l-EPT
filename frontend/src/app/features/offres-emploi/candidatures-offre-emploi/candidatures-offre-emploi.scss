@@ -5,7 +5,10 @@
   &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
 .statut-message { margin: 0 0 0.75rem; color: var(--ept-success-dark); font-weight: 600; &:empty { display: none; } }
 .message-erreur { margin: 0; color: var(--ept-error-dark); font-weight: 600; }
-.cloture { margin-bottom: 1rem; }
+.cloture { display: grid; gap: 0.5rem; justify-items: start; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--ept-border);
+  h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1rem; }
+  .aide { margin: 0; font-size: 0.88rem; }
+  .confirmation { justify-self: stretch; } }
 .confirmation { display: grid; gap: 0.6rem; padding: 0.75rem; border: 1px solid var(--ept-primary); border-radius: 8px; background: var(--ept-primary-light);
   p { margin: 0; color: var(--ept-primary-dark); } }
 .boutons { display: flex; flex-wrap: wrap; gap: 0.5rem; }

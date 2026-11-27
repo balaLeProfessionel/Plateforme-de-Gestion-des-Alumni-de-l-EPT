@@ -29,6 +29,14 @@ public interface CandidatureEmploiRepository extends JpaRepository<CandidatureEm
     @EntityGraph(attributePaths = {"candidat", "candidat.filiere"})
     List<CandidatureEmploi> findByOffreIdAndStatutNotOrderByEnvoyeeLeDesc(UUID offreId, StatutCandidatureEmploi statut);
 
+    /** Par offre : [id de l'offre, candidatures hors celles retirées, candidatures encore « reçues »]. */
+    @Query("""
+        select c.offre.id, count(c), sum(case when c.statut = :aTraiter then 1 else 0 end)
+        from CandidatureEmploi c where c.offre.id in :offres and c.statut <> :retiree group by c.offre.id
+        """)
+    List<Object[]> compterParOffre(@Param("offres") Collection<UUID> offres, @Param("aTraiter") StatutCandidatureEmploi aTraiter,
+        @Param("retiree") StatutCandidatureEmploi retiree);
+
     List<CandidatureEmploi> findByOffreIdAndStatutIn(UUID offreId, Collection<StatutCandidatureEmploi> statuts);
 
     /** CV encore conservés alors que l'offre est clôturée ou expirée depuis la durée de conservation. */

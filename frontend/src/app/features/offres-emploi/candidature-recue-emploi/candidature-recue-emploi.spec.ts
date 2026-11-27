@@ -41,6 +41,8 @@ describe('CarteCandidatureRecue', () => {
   it('fait avancer le statut et prévient le parent', () => {
     const racine = afficher();
     expect(['Présélectionner', 'Proposer un entretien', 'Retenir', 'Ne pas retenir'].every((t) => bouton(racine, t))).toBe(true);
+    expect(racine.querySelectorAll('.decisions .principal')).toHaveLength(1);
+    expect(bouton(racine, 'Présélectionner')?.classList).toContain('principal');
     bouton(racine, 'Présélectionner')?.click();
     const requete = http.expectOne({ method: 'PATCH', url: '/api/offres-emploi/candidatures/r1/statut' });
     expect(requete.request.body).toEqual({ statut: 'PRESELECTIONNEE' });

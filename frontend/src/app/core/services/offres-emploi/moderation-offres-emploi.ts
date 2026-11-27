@@ -41,12 +41,21 @@ export class ModerationOffresEmploiService {
 export class CompteurOffresEmploiAModerer {
   private readonly service = inject(ModerationOffresEmploiService);
   private readonly nombreSignal = signal(0);
+  private readonly parFileSignal = signal({ aVerifier: 0, signalees: 0 });
   readonly nombre = this.nombreSignal.asReadonly();
+  /** Détail par file, pour les onglets de la page de modération. */
+  readonly parFile = this.parFileSignal.asReadonly();
 
   actualiser(): void {
     this.service.compteur().subscribe({
-      next: ({ aVerifier, signalees }) => this.nombreSignal.set(aVerifier + signalees),
-      error: () => this.nombreSignal.set(0),
+      next: ({ aVerifier, signalees }) => {
+        this.nombreSignal.set(aVerifier + signalees);
+        this.parFileSignal.set({ aVerifier, signalees });
+      },
+      error: () => {
+        this.nombreSignal.set(0);
+        this.parFileSignal.set({ aVerifier: 0, signalees: 0 });
+      },
     });
   }
 }

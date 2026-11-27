@@ -71,7 +71,8 @@ describe('CandidatureOffreEmploi', () => {
     fixture.detectChanges();
     expect(racine.querySelector('[role="status"]')?.textContent).toContain('Votre candidature est envoyée.');
     expect(racine.querySelector('form')).toBeNull();
-    expect(racine.textContent).toContain('Candidature envoyée le');
+    expect(racine.querySelector('.titre-etat')?.textContent).toContain('Candidature envoyée');
+    expect(racine.textContent).toContain('Envoyée le');
   });
 
   it('bloque l’envoi tant que la lettre exigée et les questions obligatoires manquent, puis envoie les réponses', async () => {
@@ -113,7 +114,9 @@ describe('CandidatureOffreEmploi', () => {
 
   it('montre le statut d’une candidature reçue et la retire après confirmation', () => {
     const racine = afficher(uneOffreGeree(), uneCandidatureEmploi({ lettreMotivation: 'Motivée.' }));
-    expect(racine.querySelector('.statut')?.textContent).toContain('Reçue');
+    expect(racine.querySelector('h2')?.textContent).toContain('Votre candidature');
+    expect(racine.querySelector('.titre-etat')?.textContent).toContain('Candidature envoyée');
+    expect(racine.querySelector('.etapes [aria-current="step"]')?.textContent).toContain('Envoyée');
     expect(racine.querySelector('form')).toBeNull();
     expect(racine.querySelector('details')?.textContent).toContain('Motivée.');
 
@@ -124,14 +127,15 @@ describe('CandidatureOffreEmploi', () => {
     http.expectOne({ method: 'PATCH', url: '/api/offres-emploi/g1/candidature/retirer' })
       .flush(uneCandidatureEmploi({ statut: 'RETIREE', retireeLe: '2026-11-26T10:00:00', retirable: false }));
     fixture.detectChanges();
-    expect(racine.textContent).toContain('Vous avez retiré votre candidature');
+    expect(racine.textContent).toContain('Vous l’avez retirée le');
     expect(racine.textContent).toContain('Garder « cv-awa.pdf »');
     expect(bouton(racine, 'Renvoyer ma candidature')).toBeTruthy();
   });
 
   it('ne propose plus de retrait ni d’envoi quand le recruteur a traité la candidature', () => {
     const racine = afficher(uneOffreGeree(), uneCandidatureEmploi({ statut: 'ENTRETIEN', retirable: false }));
-    expect(racine.querySelector('.statut')?.textContent?.trim()).toBeTruthy();
+    expect(racine.querySelector('.titre-etat')?.textContent).toContain('Entretien proposé');
+    expect(racine.querySelectorAll('.etapes .faite')).toHaveLength(2);
     expect(bouton(racine, 'Retirer ma candidature')).toBeUndefined();
     expect(racine.querySelector('form')).toBeNull();
   });

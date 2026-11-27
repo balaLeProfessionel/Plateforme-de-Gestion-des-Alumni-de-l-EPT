@@ -47,7 +47,11 @@
             <span class="statut" [attr.data-statut]="offre.statut">{{ libelleStatut(offre) }}</span>
             @if (offre.candidaturesConsultables) {
               <a class="bouton petit candidatures" [routerLink]="['/offres-emploi', offre.id, 'candidatures']"
-                [attr.aria-label]="'Candidatures reçues pour ' + offre.titre"><i class="pi pi-users" aria-hidden="true"></i>Candidatures</a>
+                [attr.aria-label]="libelleCandidatures(offre)"><i class="pi pi-users" aria-hidden="true"></i>Candidatures
+                @if (offre.candidatures; as n) {
+                  <span class="nombre">{{ n.total }}</span>
+                  @if (n.aTraiter) { <span class="a-traiter">{{ n.aTraiter }} à traiter</span> }
+                }</a>
             }
             @if (offre.modifiable) {
               @if (aRetirer() === offre.id) {
@@ -63,7 +67,7 @@
                 <div class="gestes">
                   <a class="bouton petit" [routerLink]="['/offres-emploi', offre.id, offre.mode === 'GEREE' ? 'modifier-offre' : 'modifier']"
                     [attr.aria-label]="'Modifier ou prolonger ' + offre.titre">Modifier</a>
-                  <button type="button" class="bouton petit" [attr.aria-label]="'Retirer ' + offre.titre"
+                  <button type="button" class="bouton petit discret" [attr.aria-label]="'Retirer ' + offre.titre"
                     (click)="demanderRetrait(offre.id)">Retirer</button>
                 </div>
               }

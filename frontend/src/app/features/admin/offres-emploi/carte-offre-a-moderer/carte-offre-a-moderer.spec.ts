@@ -38,7 +38,7 @@ describe('CarteOffreAModerer', () => {
   it('publie une offre en attente et prévient la page', async () => {
     const racine = afficher({ offre: uneOffreGeree({ statut: 'SOUMISE' }), signalements: [] });
     expect(racine.querySelector('.statut')?.textContent).toBe('En attente de vérification');
-    expect(racine.querySelector('.details')?.textContent).toContain('Publiée par Sonatel');
+    expect(racine.querySelector('.auteur')?.textContent).toContain('Publiée par Sonatel');
     bouton(racine, 'Publier')?.click();
     http.expectOne({ method: 'PATCH', url: '/api/admin/offres-emploi/g1/publier' })
       .flush({ offre: uneOffreGeree(), signalements: [] });
@@ -71,7 +71,7 @@ describe('CarteOffreAModerer', () => {
       offre: uneOffreEmploi(),
       signalements: [{ id: 's1', motif: 'LIEN_MORT', commentaire: 'Page 404', creeLe: '2026-11-26T10:00:00', auteur: 'Moussa Ba' }],
     });
-    expect(racine.querySelector('.details')?.textContent).toContain('Relayée par Awa Diop');
+    expect(racine.querySelector('.auteur')?.textContent).toContain('Relayée par Awa Diop');
     expect(racine.querySelector('.signalements h3')?.textContent).toContain('1 signalement en attente');
     expect(racine.querySelector('.signalements li')?.textContent).toContain('Le lien ne fonctionne plus');
     expect(racine.querySelector('.signalements li')?.textContent).toContain('Moussa Ba');

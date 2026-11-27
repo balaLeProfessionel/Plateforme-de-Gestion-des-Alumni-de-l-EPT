@@ -1,0 +1,45 @@
+@let c = candidature();
+<div class="bandeau" [attr.data-ton]="etat().ton">
+  <i class="pi" [class]="etat().icone" aria-hidden="true"></i>
+  <div>
+    <p class="titre-etat">{{ etat().titre }}</p>
+    <p class="sous-titre">
+      @if (c.statut === 'RETIREE') {
+        Vous l’avez retirée le {{ c.retireeLe | date: 'd MMMM y' }}.
+      } @else {
+        Envoyée le {{ c.envoyeeLe | date: 'd MMMM y' }} à {{ c.entreprise }}.
+      }
+    </p>
+  </div>
+</div>
+
+@if (c.statut !== 'RETIREE') {
+  <ol class="etapes" aria-label="Avancement de votre candidature">
+    @for (e of etapes(); track $index) {
+      <li [class.faite]="e.faite" [class.courante]="e.courante" [attr.aria-current]="e.courante ? 'step' : null">
+        <span class="point" aria-hidden="true">@if (e.faite) { <i class="pi pi-check"></i> }</span>
+        <span class="libelle">{{ e.libelle }}</span>
+      </li>
+    }
+  </ol>
+}
+
+<button type="button" class="fichier" (click)="telecharger.emit()" [attr.aria-label]="'Télécharger le CV envoyé : ' + c.nomCv">
+  <i class="pi pi-file-pdf" aria-hidden="true"></i>
+  <span class="nom"><small>CV envoyé</small><span [title]="c.nomCv">{{ c.nomCv }}</span></span>
+  <i class="pi pi-download" aria-hidden="true"></i>
+</button>
+
+@if (c.statut !== 'RETIREE' && (c.lettreMotivation || c.reponses.length)) {
+  <details>
+    <summary>Ce que j’ai envoyé</summary>
+    @if (c.lettreMotivation) { <h3>Lettre de motivation</h3><p class="texte">{{ c.lettreMotivation }}</p> }
+    @if (c.reponses.length) {
+      <dl class="reponses">
+        @for (r of c.reponses; track r.questionId) {
+          <div><dt>{{ r.intitule }}</dt><dd>{{ r.valeur === 'OUI' ? 'Oui' : r.valeur === 'NON' ? 'Non' : r.valeur }}</dd></div>
+        }
+      </dl>
+    }
+  </details>
+}

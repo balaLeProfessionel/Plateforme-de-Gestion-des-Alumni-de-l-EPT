@@ -3,9 +3,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { afterNextRender, Component, computed, ElementRef, inject, Injector, input, OnInit, signal, viewChild } from '@angular/core';
 import { applyEach, FormField, form, maxLength, required, submit } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
+import { SuiviCandidatureEmploi } from '../suivi-candidature-emploi/suivi-candidature-emploi';
 import { firstValueFrom } from 'rxjs';
 import {
-  DernierCv, LIBELLES_STATUT_CANDIDATURE_EMPLOI, LONGUEUR_LETTRE_EMPLOI, LONGUEUR_REPONSE, MaCandidatureEmploi, OffreEmploi, POIDS_MAX_CV,
+  DernierCv, LONGUEUR_LETTRE_EMPLOI, LONGUEUR_REPONSE, MaCandidatureEmploi, OffreEmploi, POIDS_MAX_CV,
 } from '../../../core/services/models/offre-emploi.model';
 import { OffresEmploiService } from '../../../core/services/offres-emploi/offres-emploi';
 import { focaliserPremiereErreur } from '../../../shared/formulaires/focus-premiere-erreur';
@@ -20,7 +21,7 @@ type ChoixCv = 'nouveau' | 'dernier' | 'garder';
  */
 @Component({
   selector: 'app-candidature-offre-emploi',
-  imports: [DatePipe, FormField, RouterLink],
+  imports: [DatePipe, FormField, RouterLink, SuiviCandidatureEmploi],
   templateUrl: './candidature-offre-emploi.html',
   styleUrl: './candidature-offre-emploi.scss',
 })
@@ -32,7 +33,6 @@ export class CandidatureOffreEmploi implements OnInit {
 
   readonly offre = input.required<OffreEmploi>();
 
-  protected readonly statuts = LIBELLES_STATUT_CANDIDATURE_EMPLOI;
   protected readonly longueurLettre = LONGUEUR_LETTRE_EMPLOI;
   protected readonly candidature = signal<MaCandidatureEmploi | null>(null);
   protected readonly dernierCv = signal<DernierCv | null>(null);

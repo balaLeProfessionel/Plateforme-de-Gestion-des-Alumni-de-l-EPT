@@ -42,6 +42,13 @@ export class MesOffresEmploi implements OnInit {
     this.charger();
   }
 
+  /** Nom accessible du lien : reprend le texte visible (« Candidatures »), puis le titre et les nombres. */
+  protected libelleCandidatures(offre: OffreEmploi): string {
+    const n = offre.candidatures;
+    const detail = n ? ` : ${n.total}${n.aTraiter ? `, dont ${n.aTraiter} à traiter` : ''}` : '';
+    return `Candidatures reçues pour ${offre.titre}${detail}`;
+  }
+
   protected charger(): void {
     this.erreurChargement.set(false);
     this.service.mesOffres().subscribe({

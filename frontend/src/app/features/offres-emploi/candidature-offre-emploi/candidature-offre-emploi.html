@@ -1,5 +1,5 @@
 <section class="candidature" aria-labelledby="titre-candidature">
-  <h2 id="titre-candidature">Postuler à cette offre</h2>
+  <h2 id="titre-candidature">{{ candidature() && candidature()?.statut !== 'RETIREE' ? 'Votre candidature' : 'Postuler à cette offre' }}</h2>
 
   @if (erreurChargement()) {
     <p class="message-erreur" role="alert">Votre candidature n’a pas pu être chargée. Rechargez la page.</p>
@@ -9,28 +9,7 @@
     <div #zoneEtat class="etat-candidature" tabindex="-1">
       @if (message(); as texte) { <p class="message" role="status">{{ texte }}</p> }
       @if (candidature(); as c) {
-        <p class="statut-ligne">
-          <span class="statut" [attr.data-statut]="c.statut">{{ statuts[c.statut] }}</span>
-          @if (c.statut === 'RETIREE') {
-            Vous avez retiré votre candidature le {{ c.retireeLe | date: 'd MMMM y' }}.
-          } @else {
-            Candidature envoyée le {{ c.envoyeeLe | date: 'd MMMM y' }} à {{ c.entreprise }}.
-          }
-        </p>
-        <p class="cv">CV : <button type="button" class="lien" (click)="telechargerCv(c)">{{ c.nomCv }}</button></p>
-        @if (c.statut !== 'RETIREE' && (c.lettreMotivation || c.reponses.length)) {
-          <details>
-            <summary>Ce que j’ai envoyé</summary>
-            @if (c.lettreMotivation) { <h3>Lettre de motivation</h3><p class="texte">{{ c.lettreMotivation }}</p> }
-            @if (c.reponses.length) {
-              <dl class="reponses">
-                @for (r of c.reponses; track r.questionId) {
-                  <div><dt>{{ r.intitule }}</dt><dd>{{ r.valeur === 'OUI' ? 'Oui' : r.valeur === 'NON' ? 'Non' : r.valeur }}</dd></div>
-                }
-              </dl>
-            }
-          </details>
-        }
+        <app-suivi-candidature-emploi [candidature]="c" (telecharger)="telechargerCv(c)" />
       } @else if (offre().cloturee) {
         <p>Le recrutement est clôturé : cette offre ne reçoit plus de candidatures.</p>
       } @else if (offre().expiree) {
@@ -48,7 +27,7 @@
           </div>
         </div>
       } @else {
-        <button type="button" class="bouton" (click)="confirmationRetrait.set(true)">Retirer ma candidature</button>
+        <button type="button" class="bouton petit discret retrait" (click)="confirmationRetrait.set(true)">Retirer ma candidature</button>
       }
     }
 
@@ -71,9 +50,12 @@
               Envoyer un autre CV</label>
           }
           @if (choixCv() === 'nouveau') {
-            <label for="candidature-cv" class="sr-only">Fichier du CV</label>
-            <input id="candidature-cv" type="file" accept="application/pdf,.pdf" aria-describedby="aide-cv erreur-cv"
-              [attr.aria-invalid]="erreurCv() ? true : null" (change)="choisirCv($event)" />
+            <div class="depot-cv">
+              <input id="candidature-cv" class="sr-only" type="file" accept="application/pdf,.pdf" aria-describedby="nom-cv aide-cv erreur-cv"
+                [attr.aria-invalid]="erreurCv() ? true : null" (change)="choisirCv($event)" />
+              <label for="candidature-cv" class="bouton petit"><i class="pi pi-upload" aria-hidden="true"></i>{{ fichierCv() ? 'Changer de fichier' : 'Choisir mon CV' }}</label>
+              <span id="nom-cv" class="nom-fichier">{{ fichierCv()?.name ?? 'Aucun fichier choisi' }}</span>
+            </div>
             <small id="aide-cv" class="aide">PDF de 5 Mo au plus.</small>
           }
           @if (erreurCv(); as texte) { <small id="erreur-cv" class="erreur-champ" role="alert">{{ texte }}</small> }
@@ -126,6 +108,6 @@
     } @else if (erreur(); as texte) {
       <p class="message-erreur" role="alert">{{ texte }}</p>
     }
-    <a class="suivi" routerLink="/offres-emploi/mes-candidatures">Suivre toutes mes candidatures</a>
+    <a class="suivi" routerLink="/offres-emploi/mes-candidatures">Suivre toutes mes candidatures<i class="pi pi-arrow-right" aria-hidden="true"></i></a>
   }
 </section>

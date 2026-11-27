@@ -24,6 +24,7 @@ import { presenterAuteur } from '../auteur-offre';
         <li><i class="pi pi-calendar" aria-hidden="true"></i>
           {{ o.expiree ? 'Expirée le' : 'Jusqu’au' }} {{ o.dateExpiration | date: 'd MMMM y' }}</li>
         @if (o.mode === 'RELAYEE') { <li><i class="pi pi-share-alt" aria-hidden="true"></i>Relayée par {{ auteur() }}</li> }
+        @else { <li><i class="pi pi-building" aria-hidden="true"></i>Publiée par l’organisme recruteur</li> }
       </ul>
     </article>
   `,

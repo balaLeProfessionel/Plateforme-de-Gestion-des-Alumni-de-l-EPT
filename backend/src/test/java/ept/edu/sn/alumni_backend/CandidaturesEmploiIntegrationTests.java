@@ -535,6 +535,21 @@ class CandidaturesEmploiIntegrationTests {
         assertThat(journal(organisme)).isEmpty();
     }
 
+    @Test
+    void g10_mesOffresCompteLesCandidaturesEtCellesATraiter() throws Exception {
+        String offre = publier(offreGeree(false, "[]"));
+        String vide = publier(offreGeree(false, "[]"));
+        postuler(offre, alumni, cv("cv.pdf"), false, null, "[]").andExpect(status().isOk());
+        postuler(offre, etudiant, cv("cv.pdf"), false, null, "[]").andExpect(status().isOk());
+        envoyer(patch("/api/offres-emploi/candidatures/{id}/statut", idCandidature(offre, etudiant)), organisme, statut("PRESELECTIONNEE"))
+            .andExpect(status().isOk());
+        envoyer(get("/api/offres-emploi/mes-offres"), organisme, null)
+            .andExpect(jsonPath("$[?(@.id == '" + offre + "')].candidatures.total").value(2))
+            .andExpect(jsonPath("$[?(@.id == '" + offre + "')].candidatures.aTraiter").value(1))
+            .andExpect(jsonPath("$[?(@.id == '" + vide + "')].candidatures.total").value(0));
+        envoyer(get("/api/offres-emploi/{id}", offre), organisme, null).andExpect(jsonPath("$.candidatures").doesNotExist());
+    }
+
     private Utilisateur moderateur() {
         return creerCompte(TypeRole.ADMIN, PermissionAdmin.GERER_OFFRES_EMPLOI);
     }
