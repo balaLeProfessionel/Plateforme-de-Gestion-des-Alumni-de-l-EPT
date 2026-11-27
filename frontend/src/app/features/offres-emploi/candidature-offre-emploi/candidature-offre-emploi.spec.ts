@@ -141,4 +141,10 @@ describe('CandidatureOffreEmploi', () => {
     expect(racine.textContent).toContain('ne reçoit plus de candidatures');
     expect(racine.querySelector('form')).toBeNull();
   });
+
+  it('n’ouvre pas le formulaire quand le recrutement est clôturé', () => {
+    const racine = afficher(uneOffreGeree({ cloturee: true }));
+    expect(racine.textContent).toContain('Le recrutement est clôturé');
+    expect(racine.querySelector('form')).toBeNull();
+  });
 });

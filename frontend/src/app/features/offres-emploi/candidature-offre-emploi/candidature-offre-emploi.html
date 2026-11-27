@@ -31,6 +31,8 @@
             }
           </details>
         }
+      } @else if (offre().cloturee) {
+        <p>Le recrutement est clôturé : cette offre ne reçoit plus de candidatures.</p>
       } @else if (offre().expiree) {
         <p>La date d’expiration est passée : cette offre ne reçoit plus de candidatures.</p>
       }

@@ -7,5 +7,6 @@ public enum TypeNotification {
     COMPTE,
     MESSAGE,
     MOBILITE,
-    PARTENARIAT
+    PARTENARIAT,
+    EMPLOI
 }

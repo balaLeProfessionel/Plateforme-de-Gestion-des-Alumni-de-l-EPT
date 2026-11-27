@@ -36,7 +36,11 @@ public record OffreEmploiResponse(
     /** Offre gérée : la lettre de motivation est exigée. */
     boolean lettreExigee,
     /** Offre gérée : questions posées aux candidats, dans l'ordre. */
-    List<Question> questions
+    List<Question> questions,
+    /** Offre gérée dont le recrutement est clôturé (#223) : plus de candidature ni de modification. */
+    boolean cloturee,
+    /** Offre gérée dont le lecteur traite les candidatures : son organisme ou l'administration des offres. */
+    boolean candidaturesConsultables
 ) {
     public record Question(UUID id, String intitule, String type, boolean obligatoire) {
     }

@@ -111,4 +111,11 @@ describe('DetailOffreEmploi', () => {
     const organisme = afficher(uneOffreGeree({ modifiable: true }), 'ORGANISME');
     expect(organisme.querySelector('a[href="/offres-emploi/g1/modifier-offre"]')).not.toBeNull();
   });
+
+  it('mène le recruteur aux candidatures et signale un recrutement clôturé', () => {
+    const racine = afficher(uneOffreGeree({ candidaturesConsultables: true, cloturee: true }), 'ORGANISME');
+    expect(racine.querySelector('.pastille.expiree')?.textContent).toContain('Recrutement clôturé');
+    expect(racine.querySelector('a.candidatures[href="/offres-emploi/g1/candidatures"]')?.textContent).toContain('Voir les candidatures');
+    expect(racine.textContent).not.toContain('Seuls les étudiants et les alumni de l’EPT peuvent postuler.');
+  });
 });

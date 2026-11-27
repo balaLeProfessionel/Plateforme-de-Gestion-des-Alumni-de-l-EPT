@@ -32,6 +32,12 @@ export class MesOffresEmploi implements OnInit {
   protected readonly erreurRetrait = signal<string | null>(null);
   protected readonly message = signal<string | null>(null);
 
+  protected libelleStatut(offre: OffreEmploi): string {
+    if (offre.statut !== 'PUBLIEE') return this.statuts[offre.statut];
+    if (offre.cloturee) return 'Recrutement clôturé';
+    return offre.expiree ? 'Expirée' : this.statuts.PUBLIEE;
+  }
+
   ngOnInit(): void {
     this.charger();
   }

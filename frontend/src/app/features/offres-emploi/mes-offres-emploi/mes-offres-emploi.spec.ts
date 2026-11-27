@@ -65,6 +65,13 @@ describe('MesOffresEmploi', () => {
     expect(racine.querySelector('a[href="/offres-emploi/g1/modifier-offre"]')).not.toBeNull();
   });
 
+  it('mène l’organisme aux candidatures reçues et signale un recrutement clôturé', () => {
+    const racine = afficher([uneOffreGeree({ candidaturesConsultables: true, cloturee: true })], 'ORGANISME');
+    const lien = racine.querySelector('a.candidatures[href="/offres-emploi/g1/candidatures"]');
+    expect(lien?.getAttribute('aria-label')).toBe('Candidatures reçues pour Ingénieur réseaux');
+    expect(racine.querySelector('.ligne .statut')?.textContent).toBe('Recrutement clôturé');
+  });
+
   it('invite un organisme à publier une première offre', () => {
     expect(afficher([], 'ORGANISME').querySelector('.etat h2')?.textContent).toContain('Vous n’avez publié aucune offre');
   });

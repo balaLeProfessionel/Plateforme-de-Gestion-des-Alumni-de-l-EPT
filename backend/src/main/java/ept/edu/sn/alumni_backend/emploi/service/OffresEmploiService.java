@@ -62,7 +62,8 @@ import org.springframework.transaction.annotation.Transactional;
  *   l'administration (permission GERER_OFFRES_EMPLOI). Sinon : 404, pour ne pas révéler son existence.
  * - Qui gère l'offre la modifie, la prolonge ou la retire, tant qu'elle est publiée ou en attente. Les questions d'une
  *   offre gérée ne changent plus dès qu'un candidat y a répondu.
- * - La date d'expiration va d'aujourd'hui à 6 mois ; une offre expirée reste publiée mais sort de la liste par défaut.
+ * - La date d'expiration va d'aujourd'hui à 6 mois ; une offre expirée reste publiée mais sort de la liste par défaut,
+ *   comme une offre gérée dont le recrutement est clôturé (#223).
  * - Un membre signale une fois une offre publiée qu'il ne gère pas.
  */
 @Service
@@ -215,7 +216,8 @@ public class OffresEmploiService {
         }
         if (!inclureExpirees) {
             LocalDate aujourdhui = aujourdhui();
-            specification = specification.and((racine, requete, cb) -> cb.greaterThanOrEqualTo(racine.get("dateExpiration"), aujourdhui));
+            specification = specification.and((racine, requete, cb) -> cb.and(
+                cb.greaterThanOrEqualTo(racine.get("dateExpiration"), aujourdhui), cb.isNull(racine.get("clotureeLe"))));
         }
         Sort tri = Sort.by(Sort.Order.desc("publieeLe"), Sort.Order.desc("creeeLe"));
         Utilisateur lecteur = principal.getUtilisateur();
@@ -276,7 +278,9 @@ public class OffresEmploiService {
             throw new OffreEmploiIntrouvableException();
         }
         if (!modifiable(offre)) {
-            throw new ConflitOffreEmploiException("Une offre refusée ou retirée ne se modifie plus.");
+            throw new ConflitOffreEmploiException(offre.estCloturee()
+                ? "Le recrutement de cette offre est clôturé : elle ne se modifie plus."
+                : "Une offre refusée ou retirée ne se modifie plus.");
         }
         return offre;
     }
@@ -411,11 +415,13 @@ public class OffresEmploiService {
             gestionnaire && modifiable(offre),
             signalable,
             offre.isLettreExigee(),
-            questions);
+            questions,
+            offre.estCloturee(),
+            offre.getMode() == ModeOffreEmploi.GEREE && gestionnaireOuAdmin);
     }
 
     private static boolean modifiable(OffreEmploi offre) {
-        return offre.getStatut() == StatutOffreEmploi.PUBLIEE || offre.getStatut() == StatutOffreEmploi.SOUMISE;
+        return (offre.getStatut() == StatutOffreEmploi.PUBLIEE && !offre.estCloturee()) || offre.getStatut() == StatutOffreEmploi.SOUMISE;
     }
 
     /** Qui gère l'offre : son auteur pour une offre relayée, tout compte de son organisme pour une offre gérée. */

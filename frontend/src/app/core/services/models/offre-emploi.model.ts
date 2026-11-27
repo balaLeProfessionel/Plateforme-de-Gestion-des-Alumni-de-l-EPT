@@ -1,4 +1,4 @@
-/** Miroirs des records `emploi/dto` du backend (#221, #222). */
+/** Miroirs des records `emploi/dto` du backend (#221, #222, #223). */
 export type ModeOffreEmploi = 'GEREE' | 'RELAYEE';
 export type StatutOffreEmploi = 'SOUMISE' | 'PUBLIEE' | 'REFUSEE' | 'RETIREE';
 export type TypeContrat = 'CDI' | 'CDD' | 'STAGE' | 'FREELANCE' | 'FONCTION_PUBLIQUE';
@@ -32,6 +32,11 @@ export const LIBELLES_STATUT_CANDIDATURE_EMPLOI: Record<StatutCandidatureEmploi,
   RECUE: 'Reçue', PRESELECTIONNEE: 'Présélectionnée', ENTRETIEN: 'Entretien', RETENUE: 'Retenue',
   NON_RETENUE: 'Non retenue', RETIREE: 'Retirée',
 };
+/** Libellé du bouton qui donne ce statut à une candidature (#223). */
+export const ACTIONS_STATUT_CANDIDATURE: Partial<Record<StatutCandidatureEmploi, string>> = {
+  PRESELECTIONNEE: 'Présélectionner', ENTRETIEN: 'Proposer un entretien', RETENUE: 'Retenir', NON_RETENUE: 'Ne pas retenir',
+};
+export const LONGUEUR_NOTE_PRIVEE = 2000;
 
 export interface AuteurOffre {
   id: string;
@@ -68,6 +73,36 @@ export interface OffreEmploi {
   signalable: boolean;
   lettreExigee: boolean;
   questions: QuestionOffre[];
+  /** Offre gérée dont le recrutement est clôturé : plus de candidature ni de modification. */
+  cloturee: boolean;
+  /** Le lecteur traite les candidatures de cette offre gérée (son organisme, ou l’administration). */
+  candidaturesConsultables: boolean;
+}
+
+/** Candidature reçue, vue par le recruteur (#223). */
+export interface CandidatureRecueEmploi {
+  id: string;
+  candidat: {
+    id: string;
+    prenom: string;
+    nom: string;
+    role: string;
+    urlPhoto: string | null;
+    filiere: string | null;
+    classe: string | null;
+    anneeEntree: number | null;
+    anneeSortie: number | null;
+    competences: string[];
+  };
+  statut: StatutCandidatureEmploi;
+  statutsSuivants: StatutCandidatureEmploi[];
+  nomCv: string;
+  cvDisponible: boolean;
+  lettreMotivation: string | null;
+  reponses: { questionId: string; intitule: string; valeur: string }[];
+  notePrivee: string | null;
+  envoyeeLe: string;
+  historique: { statut: StatutCandidatureEmploi; le: string; auteur: string | null }[];
 }
 
 export interface QuestionOffre {

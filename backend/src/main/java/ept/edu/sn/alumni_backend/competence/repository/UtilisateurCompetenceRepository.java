@@ -17,6 +17,10 @@ public interface UtilisateurCompetenceRepository
     @EntityGraph(attributePaths = "competence")
     List<UtilisateurCompetence> findByUtilisateurIdOrderByOrdreAsc(UUID utilisateurId);
 
+    /** Compétences de plusieurs membres en une requête (candidats d'une offre d'emploi). */
+    @EntityGraph(attributePaths = "competence")
+    List<UtilisateurCompetence> findByUtilisateurIdInOrderByOrdreAsc(java.util.Collection<UUID> utilisateurIds);
+
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("delete from UtilisateurCompetence uc where uc.utilisateur.id = :utilisateurId")
     void supprimerPour(@Param("utilisateurId") UUID utilisateurId);

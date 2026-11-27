@@ -8,7 +8,8 @@ const ROLES_CANDIDATS = ['ETUDIANT', 'ALUMNI'];
 
 /**
  * Offres d’emploi : la liste pour les membres liés à l’école ; le relais et « Mes offres » pour ceux qui relaient (#221) ;
- * la publication pour les organismes et « Mes candidatures » pour les candidats (#222).
+ * la publication pour les organismes et « Mes candidatures » pour les candidats (#222) ; le traitement des candidatures
+ * reçues par l’organisme ou l’administration (#223).
  */
 export const OFFRES_EMPLOI_ROUTES: Routes = [
   {
@@ -51,6 +52,13 @@ export const OFFRES_EMPLOI_ROUTES: Routes = [
     canActivate: [roleGuard],
     data: { roles: ROLES_QUI_RELAIENT },
     loadComponent: () => import('./formulaire-offre-relayee/formulaire-offre-relayee').then((m) => m.FormulaireOffreRelayee),
+  },
+  {
+    path: ':id/candidatures',
+    title: 'Candidatures reçues | EPT Alumni',
+    canActivate: [roleGuard],
+    data: { roles: ['ORGANISME', 'ADMIN'] },
+    loadComponent: () => import('./candidatures-offre-emploi/candidatures-offre-emploi').then((m) => m.CandidaturesOffreEmploi),
   },
   {
     path: ':id/modifier-offre',

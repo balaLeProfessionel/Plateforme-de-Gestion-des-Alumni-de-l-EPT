@@ -1,0 +1,21 @@
+@use 'responsive' as *;
+@use '../offres-emploi';
+
+.introduction a { color: var(--ept-primary); font-weight: 600; overflow-wrap: anywhere;
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+.statut-message { margin: 0 0 0.75rem; color: var(--ept-success-dark); font-weight: 600; &:empty { display: none; } }
+.message-erreur { margin: 0; color: var(--ept-error-dark); font-weight: 600; }
+.cloture { margin-bottom: 1rem; }
+.confirmation { display: grid; gap: 0.6rem; padding: 0.75rem; border: 1px solid var(--ept-primary); border-radius: 8px; background: var(--ept-primary-light);
+  p { margin: 0; color: var(--ept-primary-dark); } }
+.boutons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.outils { display: grid; gap: 0.75rem; margin-bottom: 0.75rem;
+  @include a-partir-de(tablette) { grid-template-columns: minmax(0, 1fr) 14rem; align-items: end; } }
+.filtres { display: flex; flex-wrap: wrap; gap: 0.4rem;
+  button { min-height: 2.25rem; padding: 0.3rem 0.8rem; border: 1px solid var(--ept-border-champ); border-radius: 999px; background: var(--ept-surface);
+    color: var(--ept-primary-dark); font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    &[aria-pressed='true'] { border-color: var(--ept-primary); background: var(--ept-primary); color: var(--ept-text-on-dark); }
+    &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } } }
+.resume { margin: 0 0 0.5rem; color: var(--ept-text-secondary); font-size: 0.85rem; }
+.liste { display: grid; gap: 0.75rem; margin: 0; padding: 0; list-style: none; }
+.squelette { height: 14rem; border-radius: 12px; background: var(--ept-bg); }

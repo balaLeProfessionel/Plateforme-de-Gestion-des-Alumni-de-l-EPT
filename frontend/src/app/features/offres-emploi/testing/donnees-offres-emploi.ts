@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { Page } from '../../../core/services/models/mentorat.model';
-import { MaCandidatureEmploi, OffreEmploi } from '../../../core/services/models/offre-emploi.model';
+import { CandidatureRecueEmploi, MaCandidatureEmploi, OffreEmploi } from '../../../core/services/models/offre-emploi.model';
 
 /** Une offre relayée publiée ; `changement` remplace les champs voulus. */
 export function uneOffreEmploi(changement: Partial<OffreEmploi> = {}): OffreEmploi {
@@ -11,7 +11,7 @@ export function uneOffreEmploi(changement: Partial<OffreEmploi> = {}): OffreEmpl
     statut: 'PUBLIEE', motifDecision: null,
     auteur: { id: 'a1', prenom: 'Awa', nom: 'Diop', photo: null, role: 'ALUMNI', anneeSortie: 2019, filiere: 'Génie informatique', organismeId: null },
     publieeLe: '2026-11-20T10:00:00', creeeLe: '2026-11-20T10:00:00', modifiable: false, signalable: true,
-    lettreExigee: false, questions: [],
+    lettreExigee: false, questions: [], cloturee: false, candidaturesConsultables: false,
     ...changement,
   };
 }
@@ -39,5 +39,20 @@ export function uneCandidatureEmploi(changement: Partial<MaCandidatureEmploi> = 
     id: 'c1', offreId: 'g1', titreOffre: 'Ingénieur réseaux', entreprise: 'Sonatel', dateExpiration: '2027-01-31', offreExpiree: false,
     statut: 'RECUE', nomCv: 'cv-awa.pdf', lettreMotivation: null, reponses: [], envoyeeLe: '2026-11-25T09:00:00', retireeLe: null,
     retirable: true, ...changement,
+  };
+}
+
+/** Candidature reçue par l’offre g1, vue par le recruteur ; `changement` remplace les champs voulus. */
+export function uneCandidatureRecue(changement: Partial<CandidatureRecueEmploi> = {}): CandidatureRecueEmploi {
+  return {
+    id: 'r1',
+    candidat: {
+      id: 'u1', prenom: 'Awa', nom: 'Diop', role: 'ALUMNI', urlPhoto: null, filiere: 'Génie informatique', classe: null,
+      anneeEntree: 2014, anneeSortie: 2019, competences: ['Java', 'Kubernetes'],
+    },
+    statut: 'RECUE', statutsSuivants: ['PRESELECTIONNEE', 'ENTRETIEN', 'RETENUE', 'NON_RETENUE'], nomCv: 'cv-awa.pdf', cvDisponible: true,
+    lettreMotivation: 'Je suis motivée.', reponses: [{ questionId: 'q1', intitule: 'Permis B ?', valeur: 'OUI' }], notePrivee: null,
+    envoyeeLe: '2026-11-25T09:00:00', historique: [{ statut: 'RECUE', le: '2026-11-25T09:00:00', auteur: 'le candidat' }],
+    ...changement,
   };
 }

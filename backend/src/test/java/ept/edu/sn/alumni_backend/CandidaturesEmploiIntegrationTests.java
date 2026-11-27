@@ -1,5 +1,6 @@
 package ept.edu.sn.alumni_backend;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -11,6 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -23,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -39,6 +43,9 @@ import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import ept.edu.sn.alumni_backend.emploi.StatutCandidatureEmploi;
 import ept.edu.sn.alumni_backend.emploi.repository.CandidatureEmploiRepository;
 import ept.edu.sn.alumni_backend.emploi.repository.OffreEmploiRepository;
+import ept.edu.sn.alumni_backend.emploi.service.TraitementCandidaturesEmploiService;
+import ept.edu.sn.alumni_backend.notification.NotificationRepository;
+import ept.edu.sn.alumni_backend.notification.TypeNotification;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.organisme.entity.Organisme;
@@ -49,7 +56,7 @@ import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 
-/** Offres gérées par un organisme et candidatures des étudiants et alumni (#222). */
+/** Offres gérées par un organisme, candidatures des étudiants et alumni (#222) et leur traitement par l'organisme (#223). */
 @SpringBootTest
 @AutoConfigureMockMvc
 class CandidaturesEmploiIntegrationTests {
@@ -66,6 +73,8 @@ class CandidaturesEmploiIntegrationTests {
     @Autowired private OffreEmploiRepository offreRepository;
     @Autowired private CandidatureEmploiRepository candidatureRepository;
     @Autowired private RefreshTokenRepository refreshTokenRepository;
+    @Autowired private NotificationRepository notificationRepository;
+    @Autowired private TraitementCandidaturesEmploiService traitementService;
 
     private final List<UUID> organismesCrees = new ArrayList<>();
     private Utilisateur organisme;
@@ -249,6 +258,165 @@ class CandidaturesEmploiIntegrationTests {
         envoyer(put("/api/offres-emploi/{id}/geree", offre), organisme, offreGeree(true, QUESTIONS))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.lettreExigee").value(true));
+    }
+
+    @Test
+    void t01_seulsLOrganismeDeLOffreEtLAdministrationVoientLesCandidatures() throws Exception {
+        String offre = publier(offreGeree(false, "[]"));
+        postuler(offre, alumni, cv("cv-alumni.pdf"), false, "Lettre", "[]").andExpect(status().isOk());
+        postuler(offre, etudiant, cv("cv-etudiant.pdf"), false, null, "[]").andExpect(status().isOk());
+        envoyer(patch("/api/offres-emploi/{id}/candidature/retirer", offre), etudiant, null).andExpect(status().isOk());
+
+        envoyer(get("/api/offres-emploi/{id}/candidatures", offre), organisme, null)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(1)))
+            .andExpect(jsonPath("$[0].candidat.id").value(alumni.getId().toString()))
+            .andExpect(jsonPath("$[0].candidat.role").value("ALUMNI"))
+            .andExpect(jsonPath("$[0].statut").value("RECUE"))
+            .andExpect(jsonPath("$[0].statutsSuivants", hasSize(4)))
+            .andExpect(jsonPath("$[0].cvDisponible").value(true))
+            .andExpect(jsonPath("$[0].lettreMotivation").value("Lettre"))
+            .andExpect(jsonPath("$[0].historique", hasSize(1)))
+            .andExpect(jsonPath("$[0].historique[0].auteur").value("le candidat"));
+        envoyer(get("/api/offres-emploi/{id}/candidatures", offre), creerCompte(TypeRole.ADMIN, PermissionAdmin.GERER_OFFRES_EMPLOI), null)
+            .andExpect(status().isOk());
+        envoyer(get("/api/offres-emploi/{id}", offre), organisme, null).andExpect(jsonPath("$.candidaturesConsultables").value(true));
+        envoyer(get("/api/offres-emploi/{id}", offre), alumni, null).andExpect(jsonPath("$.candidaturesConsultables").value(false));
+        for (Utilisateur refuse : List.of(autreOrganisme, alumni, creerCompte(TypeRole.ADMIN), creerCompte(TypeRole.PERSONNEL))) {
+            envoyer(get("/api/offres-emploi/{id}/candidatures", offre), refuse, null).andExpect(status().isNotFound());
+        }
+        String candidature = idCandidature(offre, alumni);
+        envoyer(patch("/api/offres-emploi/candidatures/{id}/statut", candidature), autreOrganisme, statut("RETENUE"))
+            .andExpect(status().isNotFound());
+        envoyer(patch("/api/offres-emploi/candidatures/{id}/statut", candidature), alumni, statut("RETENUE"))
+            .andExpect(status().isNotFound());
+        envoyer(patch("/api/offres-emploi/candidatures/{id}/statut", idCandidature(offre, etudiant)), organisme, statut("RETENUE"))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void t02_leStatutAvanceSansRevenirEnArriereAvecHistoriqueEtNotification() throws Exception {
+        String offre = publier(offreGeree(false, "[]"));
+        postuler(offre, alumni, cv("cv.pdf"), false, null, "[]").andExpect(status().isOk());
+        String candidature = idCandidature(offre, alumni);
+        String url = "/api/offres-emploi/candidatures/{id}/statut";
+
+        envoyer(patch(url, candidature), organisme, statut("PRESELECTIONNEE"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.statut").value("PRESELECTIONNEE"))
+            .andExpect(jsonPath("$.statutsSuivants", hasSize(3)));
+        envoyer(patch(url, candidature), organisme, statut("RECUE"))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value("Ce changement de statut n'est pas possible : le traitement ne revient pas en arrière."));
+        envoyer(patch(url, candidature), organisme, statut("ENTRETIEN")).andExpect(status().isOk());
+        envoyer(patch(url, candidature), organisme, statut("RETENUE"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.statutsSuivants", hasSize(0)))
+            .andExpect(jsonPath("$.historique", hasSize(4)))
+            .andExpect(jsonPath("$.historique[3].statut").value("RETENUE"))
+            .andExpect(jsonPath("$.historique[3].auteur").value(organisme.getOrganisme().getNom()));
+        for (String autre : List.of("RECUE", "NON_RETENUE", "RETIREE")) {
+            envoyer(patch(url, candidature), organisme, statut(autre)).andExpect(status().isConflict());
+        }
+        envoyer(patch(url, candidature), organisme, "{}").andExpect(status().isBadRequest());
+
+        envoyer(get("/api/offres-emploi/{id}/ma-candidature", offre), alumni, null)
+            .andExpect(jsonPath("$.statut").value("RETENUE"))
+            .andExpect(jsonPath("$.retirable").value(false));
+        var notifications = notificationRepository.findByDestinataire_IdOrderByCreeLeDescIdDesc(alumni.getId(), PageRequest.of(0, 10)).getContent();
+        assertThat(notifications).hasSize(3).allSatisfy(n -> assertThat(n.getType()).isEqualTo(TypeNotification.EMPLOI));
+        assertThat(notifications.getFirst().getMessage()).contains("est retenue");
+
+        // Une étape peut être sautée : une candidature reçue est directement non retenue.
+        postuler(offre, etudiant, cv("cv.pdf"), false, null, "[]").andExpect(status().isOk());
+        envoyer(patch(url, idCandidature(offre, etudiant)), organisme, statut("NON_RETENUE"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.statut").value("NON_RETENUE"));
+    }
+
+    @Test
+    void t03_laNotePriveeResteEntreRecruteurs() throws Exception {
+        String offre = publier(offreGeree(false, "[]"));
+        postuler(offre, alumni, cv("cv.pdf"), false, null, "[]").andExpect(status().isOk());
+        String candidature = idCandidature(offre, alumni);
+        String url = "/api/offres-emploi/candidatures/{id}/note";
+        envoyer(put(url, candidature), organisme, "{\"note\": \"  Très bon profil réseau  \"}")
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.notePrivee").value("Très bon profil réseau"));
+        envoyer(get("/api/offres-emploi/{id}/candidatures", offre), organisme, null)
+            .andExpect(jsonPath("$[0].notePrivee").value("Très bon profil réseau"));
+        assertThat(envoyer(get("/api/offres-emploi/{id}/ma-candidature", offre), alumni, null).andReturn().getResponse().getContentAsString())
+            .doesNotContain("Très bon profil").doesNotContain("note");
+        assertThat(envoyer(get("/api/offres-emploi/mes-candidatures"), alumni, null).andReturn().getResponse().getContentAsString())
+            .doesNotContain("Très bon profil");
+        envoyer(put(url, candidature), alumni, "{\"note\": \"x\"}").andExpect(status().isNotFound());
+        envoyer(put(url, candidature), organisme, "{\"note\": \"" + "x".repeat(2001) + "\"}").andExpect(status().isBadRequest());
+        envoyer(put(url, candidature), organisme, "{\"note\": \"\"}").andExpect(jsonPath("$.notePrivee").doesNotExist());
+    }
+
+    @Test
+    void t04_laClotureNonRetientLesCandidaturesOuvertesEtFigeLOffre() throws Exception {
+        String offre = publier(offreGeree(false, "[]"));
+        postuler(offre, alumni, cv("cv.pdf"), false, null, "[]").andExpect(status().isOk());
+        postuler(offre, etudiant, cv("cv.pdf"), false, null, "[]").andExpect(status().isOk());
+        envoyer(patch("/api/offres-emploi/candidatures/{id}/statut", idCandidature(offre, alumni)), organisme, statut("RETENUE"))
+            .andExpect(status().isOk());
+
+        envoyer(post("/api/offres-emploi/{id}/cloturer", offre), autreOrganisme, null).andExpect(status().isNotFound());
+        envoyer(post("/api/offres-emploi/{id}/cloturer", offre), alumni, null).andExpect(status().isNotFound());
+        envoyer(post("/api/offres-emploi/{id}/cloturer", offre), organisme, null)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.nonRetenues").value(1));
+        envoyer(post("/api/offres-emploi/{id}/cloturer", offre), organisme, null).andExpect(status().isConflict());
+
+        envoyer(get("/api/offres-emploi/{id}/ma-candidature", offre), etudiant, null).andExpect(jsonPath("$.statut").value("NON_RETENUE"));
+        envoyer(get("/api/offres-emploi/{id}/ma-candidature", offre), alumni, null).andExpect(jsonPath("$.statut").value("RETENUE"));
+        envoyer(get("/api/offres-emploi/{id}", offre), etudiant, null)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.cloturee").value(true));
+        envoyer(get("/api/offres-emploi/{id}", offre), organisme, null)
+            .andExpect(jsonPath("$.modifiable").value(false))
+            .andExpect(jsonPath("$.candidaturesConsultables").value(true));
+        envoyer(get("/api/offres-emploi"), etudiant, null).andExpect(jsonPath("$.contenu", hasSize(0)));
+        envoyer(get("/api/offres-emploi?expirees=true"), etudiant, null).andExpect(jsonPath("$.contenu", hasSize(1)));
+        envoyer(put("/api/offres-emploi/{id}/geree", offre), organisme, offreGeree(false, "[]")).andExpect(status().isConflict());
+        envoyer(patch("/api/offres-emploi/candidatures/{id}/statut", idCandidature(offre, etudiant)), organisme, statut("RETENUE"))
+            .andExpect(status().isConflict());
+        postuler(offre, creerCompte(TypeRole.ALUMNI), cv("cv.pdf"), false, null, "[]")
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value("Le recrutement de cette offre est clôturé."));
+        assertThat(notificationRepository.findByDestinataire_IdOrderByCreeLeDescIdDesc(etudiant.getId(), PageRequest.of(0, 10))
+            .getContent().getFirst().getMessage()).contains("est non retenue");
+    }
+
+    @Test
+    void t05_lesCvSontEffacesApresLaDureeDeConservation() throws Exception {
+        String offre = publier(offreGeree(false, "[]"));
+        String recente = publier(offreGeree(false, "[]"));
+        postuler(offre, alumni, cv("ancien.pdf"), false, null, "[]").andExpect(status().isOk());
+        postuler(recente, etudiant, cv("recent.pdf"), false, null, "[]").andExpect(status().isOk());
+        envoyer(post("/api/offres-emploi/{id}/cloturer", offre), organisme, null).andExpect(status().isOk());
+        envoyer(post("/api/offres-emploi/{id}/cloturer", recente), organisme, null).andExpect(status().isOk());
+        var entite = offreRepository.findById(UUID.fromString(offre)).orElseThrow();
+        entite.setClotureeLe(Instant.now().minus(Duration.ofDays(200)));
+        offreRepository.saveAndFlush(entite);
+
+        traitementService.purgerCv();
+
+        envoyer(get("/api/offres-emploi/candidatures/{id}/cv", idCandidature(offre, alumni)), alumni, null).andExpect(status().isNotFound());
+        envoyer(get("/api/offres-emploi/{id}/candidatures", offre), organisme, null)
+            .andExpect(jsonPath("$[0].cvDisponible").value(false))
+            .andExpect(jsonPath("$[0].statut").value("NON_RETENUE"));
+        envoyer(get("/api/offres-emploi/mon-dernier-cv"), alumni, null).andExpect(status().isNoContent());
+        envoyer(get("/api/offres-emploi/candidatures/{id}/cv", idCandidature(recente, etudiant)), etudiant, null).andExpect(status().isOk());
+    }
+
+    private String idCandidature(String offreId, Utilisateur candidat) {
+        return candidatureRepository.findByOffreIdAndCandidatId(UUID.fromString(offreId), candidat.getId()).orElseThrow().getId().toString();
+    }
+
+    private static String statut(String statut) {
+        return "{\"statut\": \"" + statut + "\"}";
     }
 
     private String publier(String corps) throws Exception {

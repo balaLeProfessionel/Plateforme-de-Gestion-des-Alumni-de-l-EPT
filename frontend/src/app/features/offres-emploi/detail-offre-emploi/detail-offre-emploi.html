@@ -9,6 +9,7 @@
           @if (o.mode === 'RELAYEE') { <span class="pastille">Offre relayée</span> }
           @else { <span class="pastille plateforme">Candidature sur la plateforme</span> }
           @if (o.statut !== 'PUBLIEE') { <span class="pastille">{{ statuts[o.statut] }}</span> }
+          @else if (o.cloturee) { <span class="pastille expiree">Recrutement clôturé</span> }
           @else if (o.expiree) { <span class="pastille expiree">Expirée</span> }
         </div>
         <h1 id="titre-offre">{{ o.titre }}</h1>
@@ -36,7 +37,7 @@
       @if (o.mode === 'GEREE') {
         @if (candidat()) {
           <app-candidature-offre-emploi [offre]="o" />
-        } @else if (!o.modifiable) {
+        } @else if (!o.candidaturesConsultables) {
           <p class="provenance"><i class="pi pi-info-circle" aria-hidden="true"></i>
             {{ o.entreprise }} reçoit les candidatures dans la plateforme. Seuls les étudiants et les alumni de l’EPT peuvent postuler.</p>
         }
@@ -69,6 +70,12 @@
           <p class="texte">Toutes les filières.</p>
         }
       </section>
+
+      @if (o.candidaturesConsultables) {
+        <a class="bouton principal candidatures" [routerLink]="['/offres-emploi', o.id, 'candidatures']">
+          <i class="pi pi-users" aria-hidden="true"></i>Voir les candidatures
+        </a>
+      }
 
       @if (o.modifiable) {
         <section class="gestion" aria-label="Gérer mon offre">

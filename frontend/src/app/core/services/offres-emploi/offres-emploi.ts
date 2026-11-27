@@ -3,8 +3,8 @@ import { inject, Service } from '@angular/core';
 import { Page } from '../models/mentorat.model';
 import { map } from 'rxjs';
 import {
-  CriteresOffresEmploi, DernierCv, EnvoiCandidature, MaCandidatureEmploi, MotifSignalementOffre, OffreEmploi, OffreGereeRequete,
-  OffreRelayeeRequete,
+  CandidatureRecueEmploi, CriteresOffresEmploi, DernierCv, EnvoiCandidature, MaCandidatureEmploi, MotifSignalementOffre, OffreEmploi, OffreGereeRequete,
+  OffreRelayeeRequete, StatutCandidatureEmploi,
 } from '../models/offre-emploi.model';
 
 const API = '/api/offres-emploi';
@@ -82,6 +82,24 @@ export class OffresEmploiService {
 
   telechargerCv(candidatureId: string) {
     return this.http.get(`${API}/candidatures/${encodeURIComponent(candidatureId)}/cv`, { responseType: 'blob' });
+  }
+
+  /** Candidatures reçues par une offre gérée (son organisme ou l’administration), les plus récentes d’abord. */
+  candidaturesRecues(offreId: string) {
+    return this.http.get<CandidatureRecueEmploi[]>(`${API}/${encodeURIComponent(offreId)}/candidatures`);
+  }
+
+  changerStatutCandidature(candidatureId: string, statut: StatutCandidatureEmploi) {
+    return this.http.patch<CandidatureRecueEmploi>(`${API}/candidatures/${encodeURIComponent(candidatureId)}/statut`, { statut });
+  }
+
+  enregistrerNote(candidatureId: string, note: string) {
+    return this.http.put<CandidatureRecueEmploi>(`${API}/candidatures/${encodeURIComponent(candidatureId)}/note`, { note });
+  }
+
+  /** Clôture le recrutement ; renvoie le nombre de candidatures passées en non retenues. */
+  cloturer(offreId: string) {
+    return this.http.post<{ nonRetenues: number }>(`${API}/${encodeURIComponent(offreId)}/cloturer`, {});
   }
 
   signaler(id: string, motif: MotifSignalementOffre, commentaire: string) {

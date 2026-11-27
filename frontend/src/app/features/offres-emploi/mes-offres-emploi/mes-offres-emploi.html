@@ -44,7 +44,11 @@
               </p>
               @if (offre.motifDecision) { <p class="motif"><strong>Motif de l’école :</strong> {{ offre.motifDecision }}</p> }
             </div>
-            <span class="statut" [attr.data-statut]="offre.statut">{{ offre.statut === 'PUBLIEE' && offre.expiree ? 'Expirée' : statuts[offre.statut] }}</span>
+            <span class="statut" [attr.data-statut]="offre.statut">{{ libelleStatut(offre) }}</span>
+            @if (offre.candidaturesConsultables) {
+              <a class="bouton petit candidatures" [routerLink]="['/offres-emploi', offre.id, 'candidatures']"
+                [attr.aria-label]="'Candidatures reçues pour ' + offre.titre"><i class="pi pi-users" aria-hidden="true"></i>Candidatures</a>
+            }
             @if (offre.modifiable) {
               @if (aRetirer() === offre.id) {
                 <div class="confirmation" role="group" [attr.aria-label]="'Retirer ' + offre.titre">

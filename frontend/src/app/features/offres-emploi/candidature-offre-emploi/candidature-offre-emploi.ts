@@ -63,7 +63,7 @@ export class CandidatureOffreEmploi implements OnInit {
   protected readonly peutEnvoyer = computed(() => {
     const offre = this.offre();
     const statut = this.candidature()?.statut;
-    return offre.statut === 'PUBLIEE' && !offre.expiree && (!statut || statut === 'RETIREE');
+    return offre.statut === 'PUBLIEE' && !offre.expiree && !offre.cloturee && (!statut || statut === 'RETIREE');
   });
   private readonly zoneEtat = viewChild<ElementRef<HTMLElement>>('zoneEtat');
 

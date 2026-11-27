@@ -24,6 +24,7 @@ h2 { margin: 0 0 0.35rem; color: var(--ept-primary-dark); font-size: 1.05rem; }
 .texte { margin: 0; color: var(--ept-primary-dark); line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
 .etiquettes { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0; padding: 0; list-style: none;
   li { padding: 0.2rem 0.65rem; border: 1px solid var(--ept-border); border-radius: 999px; color: var(--ept-primary-dark); font-size: 0.82rem; } }
+.candidatures { justify-self: start; }
 .gestion { padding-top: 1rem; border-top: 1px solid var(--ept-border); }
 .boutons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .chargement { min-height: 20rem; margin-top: 0.75rem; }

@@ -96,6 +96,9 @@ public class CandidaturesEmploiService {
         if (offre.getStatut() != StatutOffreEmploi.PUBLIEE) {
             throw new ConflitOffreEmploiException("Cette offre n'accepte pas de candidature.");
         }
+        if (offre.estCloturee()) {
+            throw new ConflitOffreEmploiException("Le recrutement de cette offre est clôturé.");
+        }
         if (offre.estExpiree(OffresEmploiService.aujourdhui())) {
             throw new ConflitOffreEmploiException("La date d'expiration de cette offre est passée.");
         }
@@ -114,7 +117,7 @@ public class CandidaturesEmploiService {
         List<ReponseCandidatureEmploi> nouvellesReponses = verifierReponses(offre, candidature, reponses);
         joindreCv(candidature, cv, reprendreDernierCv, candidat.getId());
         candidature.remplacerReponses(nouvellesReponses);
-        candidature.envoyer(lettrePropre);
+        candidature.envoyer(lettrePropre, candidat);
         return versReponse(candidatureRepository.save(candidature));
     }
 
@@ -128,7 +131,7 @@ public class CandidaturesEmploiService {
         if (candidature.getStatut() != StatutCandidatureEmploi.RECUE) {
             throw new ConflitOffreEmploiException("Le recruteur a déjà traité cette candidature : elle ne peut plus être retirée.");
         }
-        candidature.retirer();
+        candidature.retirer(utilisateurRepository.getReferenceById(principal.getUtilisateur().getId()));
         return versReponse(candidature);
     }
 
@@ -140,7 +143,7 @@ public class CandidaturesEmploiService {
         boolean autorise = candidature.getCandidat().getId().equals(lecteur.getId())
             || PermissionAdmin.accordee(lecteur, PermissionAdmin.GERER_OFFRES_EMPLOI)
             || (OffresEmploiService.gere(candidature.getOffre(), lecteur) && candidature.getStatut() != StatutCandidatureEmploi.RETIREE);
-        if (!autorise) {
+        if (!autorise || candidature.getCvSupprimeLe() != null) {
             throw new OffreEmploiIntrouvableException();
         }
         return new CvTelechargeable(candidature.getNomCv(), stockage().lire(candidature.getCv()));
@@ -214,7 +217,7 @@ public class CandidaturesEmploiService {
 
     private Optional<CvStocke> dernierCvStocke(UUID membreId) {
         Optional<CvStocke> emploi = candidatureRepository.findByCandidatIdOrderByEnvoyeeLeDesc(membreId).stream()
-            .findFirst().map(c -> new CvStocke(c.getCv(), c.getNomCv(), c.getEnvoyeeLe()));
+            .filter(c -> c.getCvSupprimeLe() == null).findFirst().map(c -> new CvStocke(c.getCv(), c.getNomCv(), c.getEnvoyeeLe()));
         Optional<CvStocke> stage = candidaturesStageRepository.findByEtudiant_IdOrderByEnvoyeeLeDesc(membreId).stream()
             .filter(c -> c.getCv() != null && c.getEnvoyeeLe() != null).findFirst()
             .map((Candidature c) -> new CvStocke(c.getCv(), c.getNomCv(), c.getEnvoyeeLe()));

@@ -141,6 +141,13 @@ public class OffreEmploi {
     @Column(name = "modifiee_le")
     private Instant modifieeLe;
 
+    /**
+     * Offre gérée dont l'organisme a clôturé le recrutement (#223) : elle reste lisible des candidats mais ne reçoit plus de
+     * candidature ni de modification ; les candidatures encore ouvertes sont passées en NON_RETENUE.
+     */
+    @Column(name = "cloturee_le")
+    private Instant clotureeLe;
+
     @Version
     private long version;
 
@@ -162,6 +169,10 @@ public class OffreEmploi {
 
     public boolean estExpiree(LocalDate aujourdhui) {
         return dateExpiration.isBefore(aujourdhui);
+    }
+
+    public boolean estCloturee() {
+        return clotureeLe != null;
     }
 
     /** Nom de l'entreprise affiché : l'organisme d'une offre gérée, sinon le texte saisi. */
