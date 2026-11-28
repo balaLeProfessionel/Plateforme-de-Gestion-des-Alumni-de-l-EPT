@@ -1,4 +1,4 @@
-import { Component, effect, ElementRef, inject, output, signal, viewChild } from '@angular/core';
+import { Component, effect, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -29,8 +29,13 @@ function identiteInconnue(err: HttpErrorResponse, credential: string): IdentiteI
   selector: 'app-bouton-google',
   template: `
     @if (disponible()) {
-      <p class="separateur" aria-hidden="true"><span>ou</span></p>
+      @if (separateur() === 'avant') {
+        <p class="separateur" aria-hidden="true"><span>{{ texteSeparateur() }}</span></p>
+      }
       <div #emplacement class="emplacement" [attr.aria-busy]="enCours()"></div>
+      @if (separateur() === 'apres') {
+        <p class="separateur" aria-hidden="true"><span>{{ texteSeparateur() }}</span></p>
+      }
     }
   `,
   styles: `
@@ -59,6 +64,10 @@ function identiteInconnue(err: HttpErrorResponse, credential: string): IdentiteI
 export class BoutonGoogle {
   private readonly authService = inject(AuthService);
   private readonly chargeur = inject(ChargeurGoogle);
+
+  /** Place du séparateur : « avant » quand Google suit un formulaire, « apres » quand il passe en premier. */
+  readonly separateur = input<'avant' | 'apres'>('avant');
+  readonly texteSeparateur = input('ou');
 
   /** Session ouverte : le parent choisit la page suivante. */
   readonly connecte = output<AuthResponse>();

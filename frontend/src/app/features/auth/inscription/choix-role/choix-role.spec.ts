@@ -53,10 +53,10 @@ describe('ChoixRole', () => {
     expect(navigation).toHaveBeenCalledWith(['/inscription/formulaire', 'ALUMNI']);
   });
 
-  it('propose Google sous les profils tant qu’aucun compte Google n’est retenu', async () => {
+  it('ne propose pas Google avant le choix du profil (il vient à l’étape suivante)', async () => {
     await creer();
-    expect(http.match('/api/auth/google/configuration')).toHaveLength(1);
-    expect((fixture.nativeElement as HTMLElement).querySelector('app-bouton-google')).not.toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-bouton-google')).toBeNull();
+    http.expectNone('/api/auth/google/configuration');
   });
 
   it('rappelle le compte Google retenu et permet de changer d’adresse', async () => {

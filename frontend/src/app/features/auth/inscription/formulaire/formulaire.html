@@ -25,6 +25,18 @@
     </div>
 
     @if (etape() === 'identite') {
+      <!-- Google une fois le profil choisi : il pré-remplit l'identité et dispense de mot de passe -->
+      @if (google(); as compte) {
+        <div class="bandeau-google" role="status">
+          <p>Inscription avec le compte Google <strong>{{ compte.email }}</strong>.</p>
+          <button type="button" class="lien-annuler" (click)="abandonnerGoogle()">Utiliser une autre adresse</button>
+        </div>
+      } @else {
+        <app-bouton-google separateur="apres" texteSeparateur="ou remplissez le formulaire"
+          (connecte)="ouvrirEspace($event)" (erreur)="messageErreur.set($event)"
+          (inscriptionRequise)="preRemplirAvecGoogle()" />
+      }
+
       @if (estOrganisme()) {
         <app-champ-formulaire #cOrg="champ" pour="nomOrganisme" libelle="Nom de l'organisme" icone="pi-building"
                               [obligatoire]="true" [erreur]="erreur('nomOrganisme')" [valide]="valide('nomOrganisme')">

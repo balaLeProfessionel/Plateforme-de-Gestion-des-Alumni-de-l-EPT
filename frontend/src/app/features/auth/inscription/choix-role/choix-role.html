@@ -43,14 +43,6 @@
 
     <button type="button" class="btn-ept" (click)="continuer()">Continuer</button>
 
-    @if (!google()) {
-      <div class="google">
-        <app-bouton-google (connecte)="connecte($event)" (erreur)="erreurGoogle.set($event)"
-          (inscriptionRequise)="erreurGoogle.set(null)" />
-        @if (erreurGoogle()) { <p class="erreur-google" role="alert">{{ erreurGoogle() }}</p> }
-      </div>
-    }
-
     <p class="lien-connexion">
       Vous avez déjà un compte ? <a routerLink="/connexion">Se connecter</a>
     </p>

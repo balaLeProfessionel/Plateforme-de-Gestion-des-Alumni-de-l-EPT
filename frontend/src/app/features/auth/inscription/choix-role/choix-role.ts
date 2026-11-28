@@ -3,8 +3,6 @@ import { Router, RouterLink } from '@angular/router';
 import { CadreInscription } from '../cadre-inscription/cadre-inscription';
 
 import { InscriptionGoogle } from '../../../../core/services/auth/inscription-google';
-import { AuthResponse } from '../../../../core/services/models/auth-response.model';
-import { BoutonGoogle } from '../../bouton-google/bouton-google';
 
 interface OptionRole {
   cle: string;
@@ -16,16 +14,18 @@ interface OptionRole {
 // Premiere etape de l'inscription : le membre coche son profil puis continue.
 @Component({
   selector: 'app-choix-role',
-  imports: [RouterLink, CadreInscription, BoutonGoogle],
+  imports: [RouterLink, CadreInscription],
   templateUrl: './choix-role.html',
   styleUrl: './choix-role.scss',
 })
 export class ChoixRole {
   private readonly router = inject(Router);
   private readonly inscriptionGoogle = inject(InscriptionGoogle);
-  /** Compte Google retenu : la personne n’a plus qu’à choisir son profil. */
+  /**
+   * Compte Google retenu depuis la page de connexion : la personne n’a plus qu’à choisir son profil.
+   * Sinon, Google est proposé à l’étape suivante, une fois le profil connu.
+   */
   protected readonly google = this.inscriptionGoogle.enAttente;
-  protected readonly erreurGoogle = signal<string | null>(null);
 
   protected readonly roles: OptionRole[] = [
     {
@@ -69,11 +69,6 @@ export class ChoixRole {
       return;
     }
     this.router.navigate(['/inscription/formulaire', role]);
-  }
-
-  /** L’adresse Google avait déjà un compte : la session est ouverte. */
-  protected connecte(utilisateur: AuthResponse): void {
-    void this.router.navigate([utilisateur.doitChangerMotDePasse ? '/premiere-connexion' : '/accueil']);
   }
 
   protected abandonnerGoogle(): void {

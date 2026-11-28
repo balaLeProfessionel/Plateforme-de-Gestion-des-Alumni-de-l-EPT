@@ -135,7 +135,7 @@
   white-space: nowrap;
 }
 
-/* Inscription avec Google : compte retenu, ou bouton sous les profils. */
+/* Inscription avec Google commencée sur la page de connexion : compte retenu. */
 .bandeau-google {
   display: flex;
   flex-wrap: wrap;
@@ -163,10 +163,3 @@
   &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
 }
 
-.google { margin: 1rem 0 0; }
-
-.erreur-google {
-  margin: 0.75rem 0 0;
-  color: var(--ept-error-dark);
-  text-align: center;
-}

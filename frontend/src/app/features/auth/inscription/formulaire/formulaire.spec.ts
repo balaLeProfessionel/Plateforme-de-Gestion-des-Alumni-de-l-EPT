@@ -109,6 +109,39 @@ describe('Formulaire', () => {
     component['modele'].update((m) => ({ ...m, password: 'abcdefgh' }));
     expect(component['aideMotDePasse']()).toBe('Longueur suffisante');
   });
+
+  it('propose Google en tête de l’étape d’identité, une fois le profil choisi', () => {
+    fixture.detectChanges();
+    const racine = fixture.nativeElement as HTMLElement;
+    expect(racine.querySelector('app-bouton-google')).not.toBeNull();
+
+    component['continuer']();
+    component['modele'].update((m) => ({ ...m, prenom: 'Awa', nom: 'Diop', email: 'awa@example.invalid' }));
+    component['continuer']();
+    fixture.detectChanges();
+    expect(racine.querySelector('app-bouton-google')).toBeNull();
+  });
+
+  it('pré-remplit avec Google sans perdre la saisie, puis peut revenir à une autre adresse', () => {
+    component['modele'].update((m) => ({ ...m, telephone: '77 123 45 67', email: 'autre@example.invalid' }));
+    TestBed.inject(InscriptionGoogle).retenir({ credential: 'jeton', email: 'awa.diop@gmail.com', prenom: 'Awa', nom: '' });
+    component['preRemplirAvecGoogle']();
+    fixture.detectChanges();
+
+    const m = component['modele']();
+    expect(m.email).toBe('awa.diop@gmail.com');
+    expect(m.prenom).toBe('Awa');
+    expect(m.telephone).toBe('77 123 45 67');
+    const racine = fixture.nativeElement as HTMLElement;
+    expect(racine.querySelector('.bandeau-google')?.textContent).toContain('awa.diop@gmail.com');
+    expect((racine.querySelector('#email') as HTMLInputElement).readOnly).toBe(true);
+
+    (racine.querySelector('.lien-annuler') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(TestBed.inject(InscriptionGoogle).enAttente()).toBeNull();
+    expect(component['modele']().email).toBe('');
+    expect(racine.querySelector('app-bouton-google')).not.toBeNull();
+  });
 });
 
 describe('Formulaire avec Google', () => {

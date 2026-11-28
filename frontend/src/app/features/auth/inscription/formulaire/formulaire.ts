@@ -7,9 +7,11 @@ import { map } from 'rxjs';
 
 import { AuthService } from '../../../../core/services/auth/auth-service';
 import { InscriptionGoogle } from '../../../../core/services/auth/inscription-google';
+import { AuthResponse } from '../../../../core/services/models/auth-response.model';
 import { FilieresService } from '../../../../core/services/filieres/filieres';
 import { ChampFormulaire } from '../../../../shared/formulaires/champ-formulaire/champ-formulaire';
 import { focaliserPremiereErreur } from '../../../../shared/formulaires/focus-premiere-erreur';
+import { BoutonGoogle } from '../../bouton-google/bouton-google';
 import { CadreInscription } from '../cadre-inscription/cadre-inscription';
 
 const LONGUEUR_MOT_DE_PASSE = 8;
@@ -29,7 +31,7 @@ const CHAMPS_ETAPE: Record<Etape, Champ[]> = {
 // votre compte. Les erreurs n'apparaissent qu'apres une saisie ou un essai de continuer.
 @Component({
   selector: 'app-formulaire',
-  imports: [FormField, RouterLink, ChampFormulaire, CadreInscription],
+  imports: [FormField, RouterLink, ChampFormulaire, CadreInscription, BoutonGoogle],
   templateUrl: './formulaire.html',
   styleUrl: './formulaire.scss',
 })
@@ -239,6 +241,31 @@ export class Formulaire {
         this.messageErreur.set(err?.error?.message ?? "L'inscription a échoué. Réessayez.");
       }
     });
+  }
+
+  /** Adresse Google sans compte : on reprend ce que Google sait, la saisie déjà faite reste pour le reste. */
+  protected preRemplirAvecGoogle(): void {
+    const compte = this.google();
+    if (!compte) return;
+    this.messageErreur.set(null);
+    this.modele.update((m) => ({
+      ...m,
+      email: compte.email,
+      prenom: compte.prenom || m.prenom,
+      nom: compte.nom || m.nom,
+      password: ''
+    }));
+  }
+
+  /** L'adresse Google avait déjà un compte : la session est ouverte, pas besoin de s'inscrire. */
+  protected ouvrirEspace(utilisateur: AuthResponse): void {
+    void this.router.navigate([utilisateur.doitChangerMotDePasse ? '/premiere-connexion' : '/accueil']);
+  }
+
+  /** Retour à l'inscription par mot de passe, avec une adresse à saisir. */
+  protected abandonnerGoogle(): void {
+    this.inscriptionGoogle.oublier();
+    this.modele.update((m) => ({ ...m, email: '' }));
   }
 
   // Note l'essai sur l'étape : toutes ses erreurs s'affichent
