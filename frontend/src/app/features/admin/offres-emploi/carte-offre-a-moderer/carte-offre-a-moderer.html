@@ -1,12 +1,12 @@
 @let o = element().offre;
 @let nombreSignalements = element().signalements.length;
-<article class="carte offre" [class.signalee]="nombreSignalements > 0" [attr.aria-labelledby]="'titre-' + o.id">
+<article class="carte offre carte-cliquable" [class.signalee]="nombreSignalements > 0" [attr.aria-labelledby]="'titre-' + o.id">
   <div class="etiquettes">
     <span class="statut" [attr.data-statut]="o.statut">{{ statuts[o.statut] }}</span>
     <span class="etiquette">{{ o.mode === 'GEREE' ? 'Offre d’organisme' : 'Offre relayée' }}</span>
     <span class="etiquette">{{ types[o.typeContrat] }}</span>
   </div>
-  <h2 [id]="'titre-' + o.id"><a [routerLink]="['/offres-emploi', o.id]">{{ o.titre }}</a></h2>
+  <h2 [id]="'titre-' + o.id"><a class="lien-etire" [routerLink]="['/offres-emploi', o.id]">{{ o.titre }}</a></h2>
   <p class="auteur"><i class="pi" [class]="o.mode === 'GEREE' ? 'pi-building' : 'pi-share-alt'" aria-hidden="true"></i>{{ auteur() }}</p>
 
   <ul class="faits">

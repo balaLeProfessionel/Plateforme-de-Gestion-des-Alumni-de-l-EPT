@@ -35,9 +35,9 @@
     } @else {
       <ul class="liste">
         @for (offre of liste; track offre.id) {
-          <li class="ligne">
+          <li class="ligne carte-cliquable">
             <div class="principal">
-              <h2><a [routerLink]="['/offres-emploi', offre.id]">{{ offre.titre }}</a></h2>
+              <h2><a class="lien-etire" [routerLink]="['/offres-emploi', offre.id]">{{ offre.titre }}</a></h2>
               <p class="details">
                 {{ offre.entreprise }} · {{ types[offre.typeContrat] }} ·
                 {{ offre.expiree ? 'expirée le' : 'jusqu’au' }} {{ offre.dateExpiration | date: 'd MMMM y' }}

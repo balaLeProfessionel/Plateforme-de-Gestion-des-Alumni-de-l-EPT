@@ -6,12 +6,15 @@
 .liste { display: grid; gap: 0.75rem; margin: 0; padding: 0; list-style: none; }
 .ligne {
   display: grid; gap: 0.6rem; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: var(--ept-surface);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  &:hover { border-color: var(--ept-primary); box-shadow: 0 6px 18px rgb(1 67 101 / 10%); h2 a { color: var(--ept-primary); } }
+  // Zone de confirmation au-dessus du lien étiré : un clic à côté d'un bouton n'ouvre pas l'offre.
+  .confirmation { position: relative; z-index: 2; }
   @include a-partir-de(tablette) { grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: start; .confirmation { grid-column: 1 / -1; } }
 }
 .principal { min-width: 0; }
 h2 { margin: 0; font-size: 1rem; overflow-wrap: anywhere;
-  a { color: var(--ept-primary-dark); }
-  a:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+  a { color: var(--ept-primary-dark); text-decoration: none; } }
 .details { margin: 0.25rem 0 0; color: var(--ept-text-secondary); font-size: 0.85rem; overflow-wrap: anywhere; }
 .motif { margin: 0.5rem 0 0; color: var(--ept-primary-dark); font-size: 0.85rem; }
 .statut {

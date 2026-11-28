@@ -30,12 +30,43 @@ describe('MesCandidaturesEmploi', () => {
       uneCandidatureEmploi({ id: 'c2', offreId: 'g2', titreOffre: 'Analyste données', offreExpiree: true, statut: 'RETIREE' }),
     ]);
     fixture.detectChanges();
-    const lignes = racine.querySelectorAll('.ligne');
+    const lignes = racine.querySelectorAll('.carte');
     expect(lignes.length).toBe(2);
-    expect(lignes[0].querySelector('a')?.getAttribute('href')).toBe('/offres-emploi/g1');
+    expect(lignes[0].classList).toContain('carte-cliquable');
+    expect(lignes[0].querySelector('a.lien-etire')?.getAttribute('href')).toBe('/offres-emploi/g1');
     expect(lignes[0].querySelector('.statut')?.textContent).toContain('Entretien');
-    expect(lignes[1].textContent).toContain('offre expirée');
+    expect(lignes[1].textContent).toContain('Offre expirée');
     expect(lignes[1].querySelector('.statut')?.textContent).toContain('Retirée');
+  });
+
+  it('range les candidatures en cours avant les terminées', () => {
+    const racine = afficher();
+    http.expectOne('/api/offres-emploi/mes-candidatures').flush([
+      uneCandidatureEmploi({ id: 'c1', titreOffre: 'Close', statut: 'RETENUE', statutsAtteints: ['RECUE', 'PRESELECTIONNEE', 'ENTRETIEN', 'RETENUE'] }),
+      uneCandidatureEmploi({ id: 'c2', titreOffre: 'Ouverte', statut: 'RECUE' }),
+    ]);
+    fixture.detectChanges();
+    const sections = [...racine.querySelectorAll('section')];
+    expect(sections.map((s) => s.querySelector('h2')?.textContent?.replace(/\s+/g, ' ').trim())).toEqual(['En cours 1', 'Terminées 1']);
+    expect(sections[0].textContent).toContain('Ouverte');
+    expect(sections[1].textContent).toContain('Close');
+  });
+
+  it('ne remplit pas le segment d’une étape sautée par le recruteur', () => {
+    const racine = afficher();
+    http.expectOne('/api/offres-emploi/mes-candidatures').flush([
+      uneCandidatureEmploi({ statut: 'NON_RETENUE', statutsAtteints: ['RECUE', 'NON_RETENUE'] }),
+    ]);
+    fixture.detectChanges();
+    const segments = [...racine.querySelectorAll('.avancement li')].map((li) => li.className);
+    expect(segments).toEqual(['faite', 'vide', 'vide', 'refusee']);
+  });
+
+  it('compte l’envoi d’une candidature antérieure à l’historique', () => {
+    const racine = afficher();
+    http.expectOne('/api/offres-emploi/mes-candidatures').flush([uneCandidatureEmploi({ statut: 'RECUE', statutsAtteints: [] })]);
+    fixture.detectChanges();
+    expect(racine.querySelector('.avancement li')?.className).toBe('faite');
   });
 
   it('invite à parcourir les offres quand il n’y a aucune candidature', () => {
