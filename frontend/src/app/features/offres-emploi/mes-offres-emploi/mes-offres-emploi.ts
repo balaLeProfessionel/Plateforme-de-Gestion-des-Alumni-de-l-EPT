@@ -67,7 +67,10 @@ export class MesOffresEmploi implements OnInit {
     this.service.retirer(offre.id).subscribe({
       next: (retiree) => {
         this.aRetirer.set(null);
-        this.offres.update((liste) => liste?.map((o) => o.id === retiree.id ? retiree : o) ?? null);
+        // La réponse du retrait ne porte pas les compteurs : on garde le total, plus rien n’est à traiter.
+        this.offres.update((liste) => liste?.map((o) => o.id === retiree.id
+          ? { ...retiree, candidatures: o.candidatures ? { total: o.candidatures.total, aTraiter: 0 } : retiree.candidatures }
+          : o) ?? null);
         this.message.set(`« ${retiree.titre} » est retirée : les membres ne la voient plus.`);
       },
       error: (erreur: HttpErrorResponse) => this.erreurRetrait.set(erreur.error?.message ?? 'Le retrait a échoué. Réessayez.'),

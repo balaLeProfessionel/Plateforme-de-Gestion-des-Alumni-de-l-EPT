@@ -85,7 +85,13 @@ export class ModerationOffresEmploi {
     this.message.set(message);
     this.compteur.actualiser();
     this.service.lister(this.file(), this.numeroPage).subscribe({
-      next: (page) => this.page.set(page),
+      next: (page) => {
+        if (page.contenu.length === 0 && this.numeroPage > 0) {
+          this.changerPage(this.numeroPage - 1);
+          return;
+        }
+        this.page.set(page);
+      },
       error: () => this.erreurChargement.set('Impossible de recharger les offres.'),
     });
   }

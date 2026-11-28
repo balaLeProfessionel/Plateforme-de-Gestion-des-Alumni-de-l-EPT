@@ -25,6 +25,8 @@ public interface CandidatureEmploiRepository extends JpaRepository<CandidatureEm
 
     boolean existsByOffreId(UUID offreId);
 
+    boolean existsByOffreIdAndCandidatId(UUID offreId, UUID candidatId);
+
     /** Candidatures que le recruteur voit : toutes sauf celles retirées par leur candidat. */
     @EntityGraph(attributePaths = {"candidat", "candidat.filiere"})
     List<CandidatureEmploi> findByOffreIdAndStatutNotOrderByEnvoyeeLeDesc(UUID offreId, StatutCandidatureEmploi statut);

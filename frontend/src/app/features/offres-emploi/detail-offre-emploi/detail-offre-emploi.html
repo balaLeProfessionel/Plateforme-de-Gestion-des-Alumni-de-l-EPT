@@ -81,7 +81,7 @@
         <section class="gestion" aria-label="Gérer mon offre">
           @if (confirmerRetrait()) {
             <div class="confirmation" role="group" aria-label="Confirmer le retrait">
-              <p>Retirer cette offre ? Les membres ne la verront plus.</p>
+              <p>Retirer cette offre ? Les membres ne la verront plus. @if (o.mode === 'GEREE') { Les candidatures sans décision passeront en non retenues, et leurs candidats seront prévenus. }</p>
               @if (erreurRetrait(); as message) { <p class="message-erreur" role="alert">{{ message }}</p> }
               <div class="boutons">
                 <button type="button" class="bouton principal" [disabled]="retraitEnCours()" (click)="retirer()">Retirer l’offre</button>

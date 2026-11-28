@@ -15,12 +15,16 @@ public record MaCandidatureEmploiResponse(
     boolean offreExpiree,
     String statut,
     String nomCv,
+    /** Faux une fois le CV effacé après la durée de conservation. */
+    boolean cvDisponible,
     String lettreMotivation,
     List<Reponse> reponses,
     Instant envoyeeLe,
     Instant retireeLe,
     /** Le candidat peut encore la retirer : reçue, pas encore traitée. */
-    boolean retirable
+    boolean retirable,
+    /** Statuts par lesquels la candidature est passée, dans l'ordre : le traitement peut sauter des étapes. */
+    List<String> statutsAtteints
 ) {
     public record Reponse(UUID questionId, String intitule, String valeur) {
     }

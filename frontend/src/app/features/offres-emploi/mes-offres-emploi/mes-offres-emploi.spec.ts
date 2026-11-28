@@ -54,6 +54,21 @@ describe('MesOffresEmploi', () => {
     expect(racine.querySelector('.ligne .statut')?.textContent).toBe('Retirée');
   });
 
+  it('annonce la clôture des candidatures au retrait d’une offre gérée et garde le compteur', () => {
+    const offre = uneOffreGeree({ modifiable: true, candidaturesConsultables: true, candidatures: { total: 3, aTraiter: 2 } });
+    const racine = afficher([offre], 'ORGANISME');
+    const ligne = racine.querySelector('.ligne') as HTMLElement;
+    bouton(ligne, 'Retirer')?.click();
+    fixture.detectChanges();
+    expect(ligne.querySelector('.confirmation')?.textContent).toContain('passeront en non retenues, et leurs candidats seront prévenus');
+    bouton(ligne, 'Retirer l’offre')?.click();
+    http.expectOne({ method: 'PATCH', url: '/api/offres-emploi/g1/retirer' })
+      .flush({ ...offre, statut: 'RETIREE', modifiable: false, candidatures: null });
+    fixture.detectChanges();
+    expect(racine.querySelector('.candidatures .nombre')?.textContent).toBe('3');
+    expect(racine.querySelector('.candidatures .a-traiter')).toBeNull();
+  });
+
   it('invite à relayer une première offre', () => {
     expect(afficher([]).querySelector('.etat h2')?.textContent).toContain('Vous n’avez relayé aucune offre');
   });

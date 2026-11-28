@@ -37,8 +37,8 @@ export function uneOffreGeree(changement: Partial<OffreEmploi> = {}): OffreEmplo
 export function uneCandidatureEmploi(changement: Partial<MaCandidatureEmploi> = {}): MaCandidatureEmploi {
   return {
     id: 'c1', offreId: 'g1', titreOffre: 'Ingénieur réseaux', entreprise: 'Sonatel', dateExpiration: '2027-01-31', offreExpiree: false,
-    statut: 'RECUE', nomCv: 'cv-awa.pdf', lettreMotivation: null, reponses: [], envoyeeLe: '2026-11-25T09:00:00', retireeLe: null,
-    retirable: true, ...changement,
+    statut: 'RECUE', nomCv: 'cv-awa.pdf', cvDisponible: true, lettreMotivation: null, reponses: [], envoyeeLe: '2026-11-25T09:00:00',
+    retireeLe: null, retirable: true, statutsAtteints: ['RECUE'], ...changement,
   };
 }
 

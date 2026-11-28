@@ -166,6 +166,7 @@ public class OffresEmploiService {
     @Transactional
     public void signaler(UUID id, SignalementOffreRequest request, UtilisateurPrincipal principal) {
         Utilisateur lecteur = principal.getUtilisateur();
+        offreRepository.findByIdForUpdate(id).orElseThrow(OffreEmploiIntrouvableException::new);
         OffreEmploi offre = chargerVisible(id, lecteur);
         if (offre.getStatut() != StatutOffreEmploi.PUBLIEE) {
             throw new ConflitOffreEmploiException("Seule une offre publiée peut être signalée.");
@@ -273,10 +274,11 @@ public class OffresEmploiService {
             });
     }
 
-    /** L'offre, si le lecteur peut la voir ; sinon 404. */
+    /** L'offre, si le lecteur peut la voir (ou y a postulé, pour suivre sa candidature) ; sinon 404. */
     OffreEmploi chargerVisible(UUID id, Utilisateur lecteur) {
         OffreEmploi offre = offreRepository.findWithAuteurById(id).orElseThrow(OffreEmploiIntrouvableException::new);
-        if (!visibleDesMembres(offre) && !gere(offre, lecteur) && !PermissionAdmin.accordee(lecteur, PermissionAdmin.GERER_OFFRES_EMPLOI)) {
+        if (!visibleDesMembres(offre) && !gere(offre, lecteur) && !PermissionAdmin.accordee(lecteur, PermissionAdmin.GERER_OFFRES_EMPLOI)
+                && !candidatureRepository.existsByOffreIdAndCandidatId(id, lecteur.getId())) {
             throw new OffreEmploiIntrouvableException();
         }
         return offre;

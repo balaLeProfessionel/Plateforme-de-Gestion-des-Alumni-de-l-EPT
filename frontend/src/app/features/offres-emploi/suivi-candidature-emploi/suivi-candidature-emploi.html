@@ -24,11 +24,15 @@
   </ol>
 }
 
-<button type="button" class="fichier" (click)="telecharger.emit()" [attr.aria-label]="'Télécharger le CV envoyé : ' + c.nomCv">
-  <i class="pi pi-file-pdf" aria-hidden="true"></i>
-  <span class="nom"><small>CV envoyé</small><span [title]="c.nomCv">{{ c.nomCv }}</span></span>
-  <i class="pi pi-download" aria-hidden="true"></i>
-</button>
+@if (c.cvDisponible) {
+  <button type="button" class="fichier" (click)="telecharger.emit()" [attr.aria-label]="'Télécharger le CV envoyé : ' + c.nomCv">
+    <i class="pi pi-file-pdf" aria-hidden="true"></i>
+    <span class="nom"><small>CV envoyé</small><span [title]="c.nomCv">{{ c.nomCv }}</span></span>
+    <i class="pi pi-download" aria-hidden="true"></i>
+  </button>
+} @else {
+  <p class="cv-efface">CV effacé après la durée de conservation.</p>
+}
 
 @if (c.statut !== 'RETIREE' && (c.lettreMotivation || c.reponses.length)) {
   <details>

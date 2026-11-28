@@ -3,6 +3,8 @@ import { Component, computed, input, output } from '@angular/core';
 import { MaCandidatureEmploi, StatutCandidatureEmploi } from '../../../core/services/models/offre-emploi.model';
 
 type Ton = 'attente' | 'avance' | 'succes' | 'neutre';
+/** Statut qui correspond à chacune des trois premières étapes. */
+const STATUTS_ETAPES: readonly StatutCandidatureEmploi[] = ['RECUE', 'PRESELECTIONNEE', 'ENTRETIEN'];
 
 /** Ce que le candidat voit de sa candidature envoyée : où elle en est, les étapes, et ce qu’il a envoyé. */
 const ETATS: Record<StatutCandidatureEmploi, { titre: string; icone: string; ton: Ton; etape: number }> = {
@@ -26,11 +28,14 @@ export class SuiviCandidatureEmploi {
 
   protected readonly etat = computed(() => ETATS[this.candidature().statut]);
   protected readonly etapes = computed(() => {
-    const { statut } = this.candidature();
+    const { statut, statutsAtteints } = this.candidature();
     const atteinte = this.etat().etape;
     const decision = statut === 'RETENUE' ? 'Retenue' : statut === 'NON_RETENUE' ? 'Non retenue' : 'Décision';
+    // Le recruteur peut sauter la présélection ou l'entretien : une étape sautée n'est pas cochée.
     return ['Envoyée', 'Sélection', 'Entretien', decision].map((libelle, index) => ({
-      libelle, faite: index < atteinte, courante: index === atteinte,
+      libelle,
+      faite: index < atteinte && (index === 0 || statutsAtteints.includes(STATUTS_ETAPES[index])),
+      courante: index === atteinte,
     }));
   });
 }

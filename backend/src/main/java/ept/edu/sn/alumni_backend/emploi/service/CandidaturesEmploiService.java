@@ -244,6 +244,8 @@ public class CandidaturesEmploiService {
             .toList();
         return new MaCandidatureEmploiResponse(c.getId(), offre.getId(), offre.getTitre(), offre.entrepriseAffichee(),
             offre.getDateExpiration(), offre.estExpiree(OffresEmploiService.aujourdhui()), c.getStatut().name(), c.getNomCv(),
-            c.getLettreMotivation(), reponses, c.getEnvoyeeLe(), c.getRetireeLe(), c.getStatut() == StatutCandidatureEmploi.RECUE);
+            c.getCvSupprimeLe() == null, c.getLettreMotivation(), reponses, c.getEnvoyeeLe(), c.getRetireeLe(),
+            c.getStatut() == StatutCandidatureEmploi.RECUE,
+            c.getHistorique().stream().map(h -> h.getStatut().name()).distinct().toList());
     }
 }

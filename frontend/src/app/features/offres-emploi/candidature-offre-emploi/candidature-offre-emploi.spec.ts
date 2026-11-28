@@ -133,11 +133,28 @@ describe('CandidatureOffreEmploi', () => {
   });
 
   it('ne propose plus de retrait ni d’envoi quand le recruteur a traité la candidature', () => {
-    const racine = afficher(uneOffreGeree(), uneCandidatureEmploi({ statut: 'ENTRETIEN', retirable: false }));
+    const racine = afficher(uneOffreGeree(), uneCandidatureEmploi({
+      statut: 'ENTRETIEN', retirable: false, statutsAtteints: ['RECUE', 'PRESELECTIONNEE', 'ENTRETIEN'],
+    }));
     expect(racine.querySelector('.titre-etat')?.textContent).toContain('Entretien proposé');
     expect(racine.querySelectorAll('.etapes .faite')).toHaveLength(2);
     expect(bouton(racine, 'Retirer ma candidature')).toBeUndefined();
     expect(racine.querySelector('form')).toBeNull();
+  });
+
+  it('ne coche pas les étapes sautées par le recruteur', () => {
+    const racine = afficher(uneOffreGeree(), uneCandidatureEmploi({
+      statut: 'NON_RETENUE', retirable: false, statutsAtteints: ['RECUE', 'NON_RETENUE'],
+    }));
+    const faites = [...racine.querySelectorAll('.etapes .faite')].map((e) => e.textContent?.trim());
+    expect(faites).toEqual(['Envoyée']);
+    expect(racine.querySelector('.etapes [aria-current="step"]')?.textContent).toContain('Non retenue');
+  });
+
+  it('annonce un CV effacé au lieu de proposer son téléchargement', () => {
+    const racine = afficher(uneOffreGeree(), uneCandidatureEmploi({ statut: 'RETENUE', retirable: false, cvDisponible: false }));
+    expect(racine.querySelector('button.fichier')).toBeNull();
+    expect(racine.textContent).toContain('CV effacé après la durée de conservation');
   });
 
   it('n’ouvre pas le formulaire sur une offre expirée', () => {

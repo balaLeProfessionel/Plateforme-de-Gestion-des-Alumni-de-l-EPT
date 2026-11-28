@@ -34,6 +34,7 @@ p { margin: 0; }
   &:hover { border-color: var(--ept-primary); }
   &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
 }
+.cv-efface { color: var(--ept-text-secondary); font-size: 0.85rem; }
 .nom { display: grid; flex: 1; min-width: 0;
   small { color: var(--ept-text-secondary); font-size: 0.75rem; }
   span { overflow: hidden; font-size: 0.88rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; } }

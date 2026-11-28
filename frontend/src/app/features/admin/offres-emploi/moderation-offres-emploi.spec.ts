@@ -65,6 +65,24 @@ describe('ModerationOffresEmploi', () => {
     expect(racine.querySelector('.etat h2')?.textContent).toContain('Aucune offre à vérifier');
   });
 
+  it('revient à la page précédente quand la dernière offre d’une page est traitée', async () => {
+    const racine = await ouvrir('/admin/offres-emploi?page=1');
+    http.expectOne('/api/admin/offres-emploi?file=A_VERIFIER&page=1&taille=20')
+      .flush(page([{ offre: uneOffreGeree({ statut: 'SOUMISE' }), signalements: [] }]));
+    await rendre();
+    ([...racine.querySelectorAll('button')].find((b) => b.textContent?.trim() === 'Publier') as HTMLButtonElement).click();
+    http.expectOne('/api/admin/offres-emploi/g1/publier').flush({ offre: uneOffreGeree(), signalements: [] });
+    await rendre();
+    http.expectOne('/api/admin/offres-emploi/compteur').flush({ aVerifier: 20, signalees: 0 });
+    http.expectOne('/api/admin/offres-emploi?file=A_VERIFIER&page=1&taille=20').flush(page([]));
+    await rendre();
+    http.expectOne('/api/admin/offres-emploi?file=A_VERIFIER&page=0&taille=20')
+      .flush(page([{ offre: uneOffreGeree({ id: 'g2', statut: 'SOUMISE' }), signalements: [] }]));
+    await rendre();
+    expect(TestBed.inject(Router).url).toBe('/admin/offres-emploi');
+    expect(racine.querySelectorAll('app-carte-offre-a-moderer')).toHaveLength(1);
+  });
+
   it('signale un chargement impossible', async () => {
     const racine = await ouvrir('/admin/offres-emploi?file=PUBLIEES');
     http.expectOne('/api/admin/offres-emploi?file=PUBLIEES&page=0&taille=20')

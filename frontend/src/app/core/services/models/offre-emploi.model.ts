@@ -149,11 +149,15 @@ export interface MaCandidatureEmploi {
   offreExpiree: boolean;
   statut: StatutCandidatureEmploi;
   nomCv: string;
+  /** Faux une fois le CV effacé après la durée de conservation. */
+  cvDisponible: boolean;
   lettreMotivation: string | null;
   reponses: { questionId: string; intitule: string; valeur: string }[];
   envoyeeLe: string;
   retireeLe: string | null;
   retirable: boolean;
+  /** Statuts par lesquels la candidature est passée : le recruteur peut sauter des étapes. */
+  statutsAtteints: StatutCandidatureEmploi[];
 }
 
 export interface DernierCv {

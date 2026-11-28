@@ -56,7 +56,7 @@
             @if (offre.modifiable) {
               @if (aRetirer() === offre.id) {
                 <div class="confirmation" role="group" [attr.aria-label]="'Retirer ' + offre.titre">
-                  <p>Retirer cette offre ? Les membres ne la verront plus.</p>
+                  <p>Retirer cette offre ? Les membres ne la verront plus. @if (offre.mode === 'GEREE') { Les candidatures sans décision passeront en non retenues, et leurs candidats seront prévenus. }</p>
                   @if (erreurRetrait(); as erreur) { <p class="message-erreur" role="alert">{{ erreur }}</p> }
                   <div class="boutons">
                     <button type="button" class="bouton principal" (click)="retirer(offre)">Retirer l’offre</button>

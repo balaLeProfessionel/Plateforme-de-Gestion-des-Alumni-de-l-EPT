@@ -1,6 +1,7 @@
 package ept.edu.sn.alumni_backend;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -418,6 +419,10 @@ class CandidaturesEmploiIntegrationTests {
             .andExpect(jsonPath("$[0].cvDisponible").value(false))
             .andExpect(jsonPath("$[0].statut").value("NON_RETENUE"));
         envoyer(get("/api/offres-emploi/mon-dernier-cv"), alumni, null).andExpect(status().isNoContent());
+        // Vue candidat : CV effacé, et la clôture n'a pas fait passer la candidature par la sélection ni l'entretien.
+        envoyer(get("/api/offres-emploi/{id}/ma-candidature", offre), alumni, null)
+            .andExpect(jsonPath("$.cvDisponible").value(false))
+            .andExpect(jsonPath("$.statutsAtteints", contains("RECUE", "NON_RETENUE")));
         envoyer(get("/api/offres-emploi/candidatures/{id}/cv", idCandidature(recente, etudiant)), etudiant, null).andExpect(status().isOk());
     }
 
@@ -513,7 +518,12 @@ class CandidaturesEmploiIntegrationTests {
             .andExpect(jsonPath("$.offre.motifDecision").value("Annonce trompeuse"));
         envoyer(patch("/api/admin/offres-emploi/{id}/retirer", offre), moderateur, "{\"motif\": \"Encore\"}").andExpect(status().isConflict());
 
-        envoyer(get("/api/offres-emploi/{id}", offre), alumni, null).andExpect(status().isNotFound());
+        // Le candidat garde l'accès en lecture pour suivre sa candidature ; les autres membres ne voient plus l'offre.
+        envoyer(get("/api/offres-emploi/{id}", offre), alumni, null)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.statut").value("RETIREE"))
+            .andExpect(jsonPath("$.signalable").value(false));
+        envoyer(get("/api/offres-emploi/{id}", offre), autreOrganisme, null).andExpect(status().isNotFound());
         assertThat(candidatureRepository.findByOffreIdAndCandidatId(UUID.fromString(offre), alumni.getId()).orElseThrow().getStatut())
             .isEqualTo(StatutCandidatureEmploi.NON_RETENUE);
         assertThat(candidatureRepository.findByOffreIdAndCandidatId(UUID.fromString(offre), etudiant.getId()).orElseThrow().getStatut())
