@@ -12,7 +12,7 @@ import { FilieresService } from '../../../../core/services/filieres/filieres';
 import { ChampFormulaire } from '../../../../shared/formulaires/champ-formulaire/champ-formulaire';
 import { focaliserPremiereErreur } from '../../../../shared/formulaires/focus-premiere-erreur';
 import { BoutonGoogle } from '../../bouton-google/bouton-google';
-import { CadreInscription } from '../cadre-inscription/cadre-inscription';
+import { CadreInscription, ETAPES_INSCRIPTION, ETAPES_INSCRIPTION_GOOGLE } from '../cadre-inscription/cadre-inscription';
 
 const LONGUEUR_MOT_DE_PASSE = 8;
 /** Profils ouverts à l'inscription libre (les étudiants sont créés par l'école). */
@@ -86,6 +86,13 @@ export class Formulaire {
   /** Inscription avec Google : adresse imposée par Google, pas de mot de passe. */
   private readonly inscriptionGoogle = inject(InscriptionGoogle);
   protected readonly google = this.inscriptionGoogle.enAttente;
+
+  /** Avec Google, l'étape « Vérification de l'email » disparaît. */
+  protected readonly etapes = computed(() => (this.google() ? ETAPES_INSCRIPTION_GOOGLE : ETAPES_INSCRIPTION));
+  protected readonly segments = computed(() => this.etapes().map((_, i) => i + 1));
+  protected readonly sousTitreCompte = computed(() => (this.google()
+    ? 'Dernière étape : votre compte sera créé avec votre adresse Google.'
+    : 'Dernière étape avant la vérification de votre email.'));
 
   // Le modèle contient tous les champs possibles ; on n'utilise que ceux qui servent.
   // Avec Google, l'adresse, le prénom et le nom sont pré-remplis.

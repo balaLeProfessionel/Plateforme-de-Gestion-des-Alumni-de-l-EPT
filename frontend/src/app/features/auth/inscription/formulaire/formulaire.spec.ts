@@ -187,6 +187,19 @@ describe('Formulaire avec Google', () => {
     expect(racine.textContent).toContain('Adresse vérifiée par Google');
   });
 
+  it('retire l’étape de vérification de l’email du parcours', () => {
+    const racine = fixture.nativeElement as HTMLElement;
+    expect(racine.querySelector('.etape')?.textContent).toContain('Étape 2 sur 3');
+    expect(racine.querySelectorAll('.segment').length).toBe(3);
+    expect(racine.textContent).not.toContain('Vérification de l’email');
+
+    (racine.querySelector('.btn-ept') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(racine.querySelector('.etape')?.textContent).toContain('Étape 3 sur 3');
+    expect(racine.querySelector('.sous-titre')?.textContent).toContain('votre compte sera créé avec votre adresse Google');
+    expect(racine.textContent).not.toContain('vérification de votre email');
+  });
+
   /** Passe l'étape « identité » (pré-remplie par Google) puis valide l'étape « compte ». */
   function creerLeCompte(): void {
     const racine = fixture.nativeElement as HTMLElement;

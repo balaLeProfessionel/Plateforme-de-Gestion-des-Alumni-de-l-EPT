@@ -1,20 +1,20 @@
-<app-cadre-inscription [etape]="numeroEtape()">
+<app-cadre-inscription [etape]="numeroEtape()" [etapes]="etapes()">
 
     <header class="entete">
-      <div class="progression" role="img" [attr.aria-label]="'Étape ' + numeroEtape() + ' sur 4'">
-        @for (n of [1, 2, 3, 4]; track n) {
+      <div class="progression" role="img" [attr.aria-label]="'Étape ' + numeroEtape() + ' sur ' + etapes().length">
+        @for (n of segments(); track n) {
           <span class="segment" [class.fait]="n <= numeroEtape()"></span>
         }
       </div>
       <div class="ligne-etape">
-        <p class="etape">Étape {{ numeroEtape() }} sur 4</p>
+        <p class="etape">Étape {{ numeroEtape() }} sur {{ etapes().length }}</p>
         <a routerLink="/inscription" class="profil">{{ libelleRole() }} · <span>changer</span></a>
       </div>
       <h1 #titre tabindex="-1">{{ etape() === 'identite' ? 'Faisons connaissance' : 'Votre compte' }}</h1>
       <p class="sous-titre">
         {{ etape() === 'identite'
           ? (estOrganisme() ? 'Votre organisme et la personne à contacter.' : 'Ces informations apparaîtront sur votre profil.')
-          : 'Dernière étape avant la vérification de votre email.' }}
+          : sousTitreCompte() }}
       </p>
     </header>
 

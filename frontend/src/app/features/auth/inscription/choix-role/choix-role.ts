@@ -1,6 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { CadreInscription } from '../cadre-inscription/cadre-inscription';
+import { CadreInscription, ETAPES_INSCRIPTION, ETAPES_INSCRIPTION_GOOGLE } from '../cadre-inscription/cadre-inscription';
 
 import { InscriptionGoogle } from '../../../../core/services/auth/inscription-google';
 
@@ -26,6 +26,7 @@ export class ChoixRole {
    * Sinon, Google est proposé à l’étape suivante, une fois le profil connu.
    */
   protected readonly google = this.inscriptionGoogle.enAttente;
+  protected readonly etapes = computed(() => (this.google() ? ETAPES_INSCRIPTION_GOOGLE : ETAPES_INSCRIPTION));
 
   protected readonly roles: OptionRole[] = [
     {

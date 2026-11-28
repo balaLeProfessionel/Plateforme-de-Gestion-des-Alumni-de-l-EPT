@@ -1,7 +1,7 @@
-<app-cadre-inscription [etape]="1">
+<app-cadre-inscription [etape]="1" [etapes]="etapes()">
 
     <header class="entete">
-      <p class="etape">Étape 1 sur 4</p>
+      <p class="etape">Étape 1 sur {{ etapes().length }}</p>
       <h1>Rejoindre EPT Alumni</h1>
       <p class="sous-titre">Qui êtes-vous ?</p>
     </header>
