@@ -24,7 +24,7 @@
   </ul>
 
   @if (nombreSignalements) {
-    <section class="signalements" [attr.aria-labelledby]="'signalements-' + o.id">
+    <section class="signalements" [attr.aria-labelledby]="'signalements-' + o.id + ' titre-' + o.id">
       <h3 [id]="'signalements-' + o.id"><i class="pi pi-flag" aria-hidden="true"></i>
         <span class="nombre">{{ nombreSignalements }}</span> signalement{{ nombreSignalements > 1 ? 's' : '' }} en attente</h3>
       <ul>

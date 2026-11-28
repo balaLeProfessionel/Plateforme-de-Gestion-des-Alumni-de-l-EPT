@@ -4,13 +4,13 @@
   border: 1px solid var(--ept-border); border-radius: 12px; background: var(--ept-surface);
   transition: border-color 150ms ease, box-shadow 150ms ease;
   &:hover { border-color: var(--ept-primary); box-shadow: 0 4px 14px color-mix(in srgb, var(--ept-primary) 8%, transparent); }
-  &.expiree { background: var(--ept-bg); }
+  &.fermee { background: var(--ept-bg); }
 }
 .haut { display: flex; flex-wrap: wrap; gap: 0.35rem; }
 .pastille { padding: 0.15rem 0.55rem; border-radius: 999px; background: var(--ept-bg); color: var(--ept-primary-dark); font-size: 0.72rem; font-weight: 700;
   &.type { background: var(--ept-primary-light); }
   &.plateforme { background: var(--ept-success-light); color: var(--ept-success-dark); }
-  &.expiree { color: var(--ept-text-secondary); } }
+  &.fermee { color: var(--ept-text-secondary); } }
 h2 { margin: 0; font-size: 1.05rem; line-height: 1.3; overflow-wrap: anywhere; }
 h2 a { color: var(--ept-primary-dark); text-decoration: none; }
 .entreprise { margin: 0; color: var(--ept-text-secondary); font-size: 0.88rem; font-weight: 600; overflow-wrap: anywhere; }

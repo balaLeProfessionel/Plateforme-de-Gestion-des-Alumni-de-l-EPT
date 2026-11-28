@@ -73,6 +73,8 @@ describe('CarteOffreAModerer', () => {
     });
     expect(racine.querySelector('.auteur')?.textContent).toContain('Relayée par Awa Diop');
     expect(racine.querySelector('.signalements h3')?.textContent).toContain('1 signalement en attente');
+    // Nom de région unique d’une carte à l’autre : le titre de l’offre complète le nombre de signalements.
+    expect(racine.querySelector('.signalements')?.getAttribute('aria-labelledby')).toBe('signalements-e1 titre-e1');
     expect(racine.querySelector('.signalements li')?.textContent).toContain('Le lien ne fonctionne plus');
     expect(racine.querySelector('.signalements li')?.textContent).toContain('Moussa Ba');
     bouton(racine, 'Classer les signalements')?.click();
