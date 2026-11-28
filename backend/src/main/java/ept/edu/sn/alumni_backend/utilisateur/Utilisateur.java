@@ -73,6 +73,24 @@ public class Utilisateur {
     /** Le diplômé peut se retirer de la recherche accessible sans compte. */
     @Column(nullable = false, columnDefinition = "boolean default true")
     private boolean recherchePublique = true;
+
+    /** Identifiant permanent du compte Google lié (« sub » du jeton), indépendant de son adresse. */
+    @Column(unique = true)
+    private String googleSub;
+    /** Adresse du compte Google lié, pour l'afficher dans les paramètres. */
+    private String googleEmail;
+    /**
+     * Faux après un déliement : Google ne rouvre plus ce compte par son adresse, seulement par une
+     * liaison faite depuis les paramètres.
+     */
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean connexionGoogleParAdresse = true;
+    /**
+     * Faux quand le mot de passe est aléatoire (compte créé ou repris avec Google) : la personne ne le
+     * connaît pas, et délier Google lui fermerait son compte.
+     */
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean motDePasseDefini = true;
     private LocalDate dateNaissance;
     private String telephone;
     private Integer anneeEntree;

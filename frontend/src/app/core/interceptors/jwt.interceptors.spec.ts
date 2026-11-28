@@ -42,6 +42,16 @@ describe('jwtInterceptor', () => {
       { state: { erreur: 'Votre compte a été suspendu. Contactez l’administration.' } });
   });
 
+  it('garde la session pour la liaison Google, pas pour la connexion avec Google', () => {
+    const client = TestBed.inject(HttpClient);
+    const http = TestBed.inject(HttpTestingController);
+    client.get('/api/auth/google/liaison').subscribe();
+    client.post('/api/auth/google', { credential: 'jeton-google' }).subscribe();
+
+    expect(http.expectOne('/api/auth/google/liaison').request.headers.get('Authorization')).toBe('Bearer jeton');
+    expect(http.expectOne('/api/auth/google').request.headers.has('Authorization')).toBe(false);
+  });
+
   it('sur une route publique, une session expirée est oubliée sans quitter la page', () => {
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     rafraichir.mockReturnValue(throwError(() => new Error('refresh expiré')));

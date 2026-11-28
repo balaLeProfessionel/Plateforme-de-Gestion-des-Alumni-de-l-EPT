@@ -175,6 +175,12 @@ public class GlobalExceptionHandler {
             "nom", identite.nom() == null ? "" : identite.nom()));
     }
 
+    @ExceptionHandler(ept.edu.sn.alumni_backend.auth.google.ConflitLiaisonGoogleException.class)
+    public ResponseEntity<Map<String, String>> handleConflitLiaisonGoogle(
+            ept.edu.sn.alumni_backend.auth.google.ConflitLiaisonGoogleException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("code", e.code(), "message", e.getMessage()));
+    }
+
     @ExceptionHandler(ept.edu.sn.alumni_backend.auth.google.ConnexionGoogleIndisponibleException.class)
     public ResponseEntity<Map<String, String>> handleConnexionGoogleIndisponible(RuntimeException e) {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of("message", e.getMessage()));

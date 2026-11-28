@@ -4,6 +4,7 @@ import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +19,7 @@ import ept.edu.sn.alumni_backend.auth.dto.ConnexionGoogleRequest;
 import ept.edu.sn.alumni_backend.auth.google.ConnexionGoogleService;
 import ept.edu.sn.alumni_backend.auth.dto.InscriptionGoogleRequest;
 import ept.edu.sn.alumni_backend.auth.dto.InscriptionResponse;
+import ept.edu.sn.alumni_backend.auth.dto.LiaisonGoogleResponse;
 import ept.edu.sn.alumni_backend.auth.dto.LoginRequest;
 import ept.edu.sn.alumni_backend.auth.dto.MessageResponse;
 import ept.edu.sn.alumni_backend.auth.dto.MotDePasseOublieRequest;
@@ -72,6 +74,25 @@ public class AuthController {
     @PostMapping("/google/inscription")
     public ResponseEntity<AuthResponse> inscriptionGoogle(@Valid @RequestBody InscriptionGoogleRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(connexionGoogleService.inscrire(request));
+    }
+
+    /** Compte Google lié au compte connecté (paramètres du compte). */
+    @GetMapping("/google/liaison")
+    public LiaisonGoogleResponse liaisonGoogle(@AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return connexionGoogleService.etatLiaison(principal.getUtilisateur().getId());
+    }
+
+    /** Lie le compte Google choisi dans la fenêtre Google ; 409 s'il est déjà lié à un autre compte. */
+    @PostMapping("/google/liaison")
+    public LiaisonGoogleResponse lierGoogle(@AuthenticationPrincipal UtilisateurPrincipal principal,
+            @Valid @RequestBody ConnexionGoogleRequest request) {
+        return connexionGoogleService.lier(principal.getUtilisateur().getId(), request.credential());
+    }
+
+    /** Délie Google ; 409 tant que la personne n'a pas de mot de passe connu. */
+    @DeleteMapping("/google/liaison")
+    public LiaisonGoogleResponse delierGoogle(@AuthenticationPrincipal UtilisateurPrincipal principal) {
+        return connexionGoogleService.delier(principal.getUtilisateur().getId());
     }
 
     /** Identifiant client public du bouton Google ; absent quand la connexion Google n'est pas configurée. */

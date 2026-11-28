@@ -78,9 +78,13 @@ public class AuthService {
      * Le mot de passe est aléatoire et inconnu : la personne en choisit un plus tard par « Mot de passe oublié ».
      */
     @Transactional
-    public AuthResponse inscrireAvecGoogle(String emailGoogle, ProfilInscription profil) {
-        Utilisateur utilisateur = creerCompte(normaliser(emailGoogle), motDePasseInutilisable(), profil);
+    public AuthResponse inscrireAvecGoogle(String emailGoogle, String googleSub, ProfilInscription profil) {
+        String email = normaliser(emailGoogle);
+        Utilisateur utilisateur = creerCompte(email, motDePasseInutilisable(), profil);
         utilisateur.setEmailVerifie(true);
+        utilisateur.setGoogleSub(googleSub);
+        utilisateur.setGoogleEmail(email);
+        utilisateur.setMotDePasseDefini(false);
         utilisateur.setStatutCompte(statutApresVerification(utilisateur));
         utilisateur = utilisateurRepository.save(utilisateur);
         return construireReponse(jwtService.genererToken(new UtilisateurPrincipal(utilisateur)),
@@ -96,6 +100,7 @@ public class AuthService {
         if (utilisateur.isEmailVerifie()) return;
         utilisateur.setEmailVerifie(true);
         utilisateur.setPassword(motDePasseInutilisable());
+        utilisateur.setMotDePasseDefini(false);
         if (utilisateur.getStatutCompte() == StatutCompte.EN_ATTENTE) {
             utilisateur.setStatutCompte(statutApresVerification(utilisateur));
         }
@@ -235,6 +240,7 @@ public class AuthService {
 
         utilisateur.setPassword(passwordEncoder.encode(request.nouveauMotDePasse()));
         utilisateur.setDoitChangerMotDePasse(false);
+        utilisateur.setMotDePasseDefini(true);
         utilisateurRepository.save(utilisateur);
         codeReinitialisationRepository.delete(code);
         refreshTokenService.supprimerTousPour(utilisateur);
@@ -331,6 +337,7 @@ public class AuthService {
         }
         utilisateur.setPassword(passwordEncoder.encode(request.nouveauMotDePasse()));
         utilisateur.setDoitChangerMotDePasse(false);
+        utilisateur.setMotDePasseDefini(true);
         utilisateur = utilisateurRepository.save(utilisateur);
 
         refreshTokenService.supprimerTousPour(utilisateur);
@@ -357,6 +364,7 @@ public class AuthService {
         }
 
         gere.setPassword(passwordEncoder.encode(request.nouveauMotDePasse()));
+        gere.setMotDePasseDefini(true);
         gere = utilisateurRepository.save(gere);
         refreshTokenService.supprimerTousPour(gere);
         String accessToken = jwtService.genererToken(new UtilisateurPrincipal(gere));

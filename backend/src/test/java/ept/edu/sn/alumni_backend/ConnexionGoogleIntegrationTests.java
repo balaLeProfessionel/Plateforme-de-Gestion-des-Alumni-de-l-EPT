@@ -3,6 +3,7 @@ package ept.edu.sn.alumni_backend;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -15,10 +16,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import ept.edu.sn.alumni_backend.auth.google.IdentiteGoogle;
 import ept.edu.sn.alumni_backend.auth.google.JetonGoogleInvalideException;
@@ -26,7 +29,9 @@ import ept.edu.sn.alumni_backend.auth.google.VerificateurJetonGoogle;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.enums.TypeRole;
 import ept.edu.sn.alumni_backend.notification.NotificationRepository;
+import ept.edu.sn.alumni_backend.security.JwtService;
 import ept.edu.sn.alumni_backend.security.RefreshTokenRepository;
+import ept.edu.sn.alumni_backend.security.UtilisateurPrincipal;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
 import ept.edu.sn.alumni_backend.utilisateur.UtilisateurRepository;
 
@@ -39,6 +44,7 @@ class ConnexionGoogleIntegrationTests {
     @Autowired private UtilisateurRepository utilisateurRepository;
     @Autowired private RefreshTokenRepository refreshTokenRepository;
     @Autowired private NotificationRepository notificationRepository;
+    @Autowired private JwtService jwtService;
     @MockitoBean private VerificateurJetonGoogle verificateur;
 
     @BeforeEach
@@ -162,6 +168,113 @@ class ConnexionGoogleIntegrationTests {
             .andExpect(jsonPath("$.message").value("Votre compte a été suspendu. Contactez l'administration."));
     }
 
+    // --- Liaison avec un compte Google ---
+
+    @Test
+    void laPremiereConnexionParAdresseLieLeCompteGoogle() throws Exception {
+        compte(StatutCompte.ACTIF, true);
+        google("awa.diop@example.com", true);
+
+        connexion("jeton-google").andExpect(status().isOk());
+
+        Utilisateur awa = utilisateurRepository.findByEmail("awa.diop@example.com").orElseThrow();
+        assertThat(awa.getGoogleSub()).isEqualTo("sub-awa");
+        assertThat(awa.getGoogleEmail()).isEqualTo("awa.diop@example.com");
+        // Le mot de passe d'un compte déjà vérifié reste valable
+        assertThat(awa.getPassword()).isEqualTo("mot-de-passe-hache");
+        assertThat(awa.isMotDePasseDefini()).isTrue();
+    }
+
+    @Test
+    void unCompteGoogleLieOuvreLeCompteMemeAvecUneAutreAdresse() throws Exception {
+        Utilisateur awa = compte(StatutCompte.ACTIF, true);
+        google("sub-awa", "awa.perso@gmail.com", true);
+
+        lier(awa).andExpect(status().isOk())
+            .andExpect(jsonPath("$.lie").value(true))
+            .andExpect(jsonPath("$.emailGoogle").value("awa.perso@gmail.com"))
+            .andExpect(jsonPath("$.motDePasseDefini").value(true));
+
+        connexion("jeton-google").andExpect(status().isOk())
+            .andExpect(jsonPath("$.email").value("awa.diop@example.com"));
+        mvc.perform(en(awa, get("/api/auth/google/liaison")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.lie").value(true))
+            .andExpect(jsonPath("$.emailGoogle").value("awa.perso@gmail.com"));
+    }
+
+    @Test
+    void refuseDeLierUnCompteGoogleDejaLieAUnAutreCompte() throws Exception {
+        Utilisateur awa = compte(StatutCompte.ACTIF, true);
+        autreCompte("sub-awa");
+        google("awa.perso@gmail.com", true);
+
+        lier(awa).andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("ADRESSE_DEJA_LIEE"))
+            .andExpect(jsonPath("$.message").value("Ce compte Google est déjà lié à un autre compte EPT Alumni."));
+        assertThat(utilisateurRepository.findByEmail("awa.diop@example.com").orElseThrow().getGoogleSub()).isNull();
+
+        // Ni une inscription avec ce compte Google
+        inscription("ALUMNI", "").andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("ADRESSE_DEJA_LIEE"));
+    }
+
+    @Test
+    void refuseDeRemplacerUnCompteGoogleDejaLie() throws Exception {
+        Utilisateur awa = compte(StatutCompte.ACTIF, true);
+        google("sub-awa", "awa.perso@gmail.com", true);
+        lier(awa).andExpect(status().isOk());
+
+        google("sub-autre", "awa.pro@gmail.com", true);
+        lier(awa).andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("DEJA_LIE"));
+        // La même adresse sur un autre compte Google n'ouvre pas non plus la session
+        google("sub-autre", "awa.diop@example.com", true);
+        connexion("jeton-google").andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("LIE_A_UN_AUTRE_GOOGLE"));
+    }
+
+    @Test
+    void delierEmpecheGoogleDeRouvrirLeCompteJusquaUneNouvelleLiaison() throws Exception {
+        Utilisateur awa = compte(StatutCompte.ACTIF, true);
+        google("awa.diop@example.com", true);
+        lier(awa).andExpect(status().isOk());
+
+        mvc.perform(en(awa, delete("/api/auth/google/liaison")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.lie").value(false))
+            .andExpect(jsonPath("$.emailGoogle").doesNotExist());
+
+        // Même adresse : Google ne rouvre plus le compte tout seul
+        connexion("jeton-google").andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("GOOGLE_DESACTIVE"));
+
+        lier(awa).andExpect(status().isOk());
+        connexion("jeton-google").andExpect(status().isOk());
+    }
+
+    @Test
+    void unCompteCreeAvecGoogleNePeutPasDelierSansMotDePasse() throws Exception {
+        google("awa.diop@example.com", true);
+        inscription("ALUMNI", "").andExpect(status().isCreated());
+        Utilisateur awa = utilisateurRepository.findByEmail("awa.diop@example.com").orElseThrow();
+        assertThat(awa.getGoogleSub()).isEqualTo("sub-awa");
+        assertThat(awa.isMotDePasseDefini()).isFalse();
+
+        mvc.perform(en(awa, get("/api/auth/google/liaison")))
+            .andExpect(jsonPath("$.lie").value(true))
+            .andExpect(jsonPath("$.motDePasseDefini").value(false));
+        mvc.perform(en(awa, delete("/api/auth/google/liaison")))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("MOT_DE_PASSE_REQUIS"));
+        assertThat(utilisateurRepository.findByEmail("awa.diop@example.com").orElseThrow().getGoogleSub()).isEqualTo("sub-awa");
+    }
+
+    @Test
+    void laLiaisonDemandeUneSession() throws Exception {
+        mvc.perform(get("/api/auth/google/liaison")).andExpect(status().is4xxClientError());
+        mvc.perform(delete("/api/auth/google/liaison")).andExpect(status().is4xxClientError());
+    }
+
     private ResultActions inscription(String role, String complement) throws Exception {
         return mvc.perform(post("/api/auth/google/inscription").contentType(MediaType.APPLICATION_JSON)
             .content("{\"credential\":\"jeton-google\",\"prenom\":\"Awa\",\"nom\":\"Diop\",\"role\":\"" + role + "\""
@@ -174,7 +287,31 @@ class ConnexionGoogleIntegrationTests {
     }
 
     private void google(String email, boolean verifie) {
-        when(verificateur.verifier(anyString())).thenReturn(new IdentiteGoogle(email, verifie, "Awa", "Diop"));
+        google("sub-awa", email, verifie);
+    }
+
+    private void google(String sub, String email, boolean verifie) {
+        when(verificateur.verifier(anyString())).thenReturn(new IdentiteGoogle(sub, email, verifie, "Awa", "Diop"));
+    }
+
+    private MockHttpServletRequestBuilder en(Utilisateur utilisateur, MockHttpServletRequestBuilder requete) {
+        return requete.header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.genererToken(new UtilisateurPrincipal(utilisateur)));
+    }
+
+    private ResultActions lier(Utilisateur utilisateur) throws Exception {
+        return mvc.perform(en(utilisateur, post("/api/auth/google/liaison")).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"credential\":\"jeton-google\"}"));
+    }
+
+    private Utilisateur autreCompte(String sub) {
+        Utilisateur autre = new Utilisateur();
+        autre.setEmail("autre@example.com");
+        autre.setPassword("mot-de-passe-hache");
+        autre.setRole(TypeRole.ALUMNI);
+        autre.setStatutCompte(StatutCompte.ACTIF);
+        autre.setEmailVerifie(true);
+        autre.setGoogleSub(sub);
+        return utilisateurRepository.saveAndFlush(autre);
     }
 
     private Utilisateur compte(StatutCompte statut, boolean emailVerifie) {

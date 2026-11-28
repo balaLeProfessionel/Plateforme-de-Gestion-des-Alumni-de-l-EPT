@@ -66,9 +66,13 @@ export class BoutonGoogle {
   private readonly chargeur = inject(ChargeurGoogle);
 
   /** Place du séparateur : « avant » quand Google suit un formulaire, « apres » quand il passe en premier. */
-  readonly separateur = input<'avant' | 'apres'>('avant');
+  readonly separateur = input<'avant' | 'apres' | 'aucun'>('avant');
   readonly texteSeparateur = input('ou');
+  /** « liaison » : le jeton est seulement transmis au parent (paramètres du compte), sans ouvrir de session. */
+  readonly mode = input<'connexion' | 'liaison'>('connexion');
 
+  /** Jeton d'identité choisi dans la fenêtre Google, en mode « liaison ». */
+  readonly jeton = output<string>();
   /** Session ouverte : le parent choisit la page suivante. */
   readonly connecte = output<AuthResponse>();
   /** Message à afficher (compte suspendu, échec de Google…). */
@@ -107,9 +111,9 @@ export class BoutonGoogle {
       if (!emplacement || !identite || !clientId) return;
       identite.initialize({
         client_id: clientId,
-        callback: ({ credential }) => this.connecter(credential),
+        callback: ({ credential }) => (this.mode() === 'liaison' ? this.jeton.emit(credential) : this.connecter(credential)),
         ux_mode: 'popup',
-        context: 'signin',
+        context: this.mode() === 'liaison' ? 'use' : 'signin',
       });
       identite.renderButton(emplacement, {
         type: 'standard',

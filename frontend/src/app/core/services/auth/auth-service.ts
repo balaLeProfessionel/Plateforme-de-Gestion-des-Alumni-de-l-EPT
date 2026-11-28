@@ -3,6 +3,7 @@ import { computed, inject, Service, signal } from '@angular/core';
 import { AuthResponse } from '../models/auth-response.model';
 import { tap } from 'rxjs';
 import { InscriptionResponse } from '../models/InscriptionResponse';
+import { LiaisonGoogle } from '../models/liaison-google.model';
 import { Profil } from '../models/profil.model';
 import { PERMISSIONS_ANCIENNE_SESSION, PermissionAdmin } from '../models/admin.model';
 
@@ -67,6 +68,21 @@ export class AuthService {
     return this.http
       .post<AuthResponse>('/api/auth/google', { credential })
       .pipe(tap((response) => this.stocker(response)));
+  }
+
+  /** Compte Google lié au compte connecté (paramètres). */
+  liaisonGoogle() {
+    return this.http.get<LiaisonGoogle>('/api/auth/google/liaison');
+  }
+
+  /** Lie le compte Google choisi ; 409 « ADRESSE_DEJA_LIEE » s'il est déjà lié à un autre compte. */
+  lierGoogle(credential: string) {
+    return this.http.post<LiaisonGoogle>('/api/auth/google/liaison', { credential });
+  }
+
+  /** Délie Google ; 409 « MOT_DE_PASSE_REQUIS » sans mot de passe connu. */
+  delierGoogle() {
+    return this.http.delete<LiaisonGoogle>('/api/auth/google/liaison');
   }
 
   /** Identifiant client du bouton Google ; `null` quand la connexion Google n'est pas configurée. */
