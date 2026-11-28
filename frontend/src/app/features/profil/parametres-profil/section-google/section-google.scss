@@ -1,0 +1,20 @@
+:host { display: grid; gap: .75rem; max-width: 620px; }
+p { margin: 0; }
+.etat { display: flex; align-items: flex-start; gap: .5rem; min-width: 0; color: var(--ept-primary-dark); }
+.etat i { margin-top: .2rem; color: var(--ept-success-dark); }
+.etat strong { overflow-wrap: anywhere; }
+.aide { color: var(--ept-text-muted); line-height: 1.45; }
+.note { padding: .75rem 1rem; border-radius: var(--ept-radius-sm); background: var(--ept-primary-soft); color: var(--ept-primary-dark); line-height: 1.45; }
+.note a { color: var(--ept-primary); font-weight: 700; }
+.note a:focus-visible, button:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+.bouton { max-width: 400px; }
+.confirmation { display: grid; gap: .6rem; padding: .9rem 1rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm); }
+.actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+.bouton-secondaire, .bouton-danger { justify-self: start; min-height: 44px; padding: .65rem 1rem; border-radius: var(--ept-radius-sm); background: white; font: 700 .92rem var(--ept-font-heading); cursor: pointer; }
+.bouton-secondaire { border: 1px solid var(--ept-border-champ); color: var(--ept-primary); }
+.bouton-danger { border: 1px solid #b42318; color: #b42318; }
+button:disabled { opacity: .6; cursor: wait; }
+.zone-message { min-height: 1.5rem; }
+.message { font-weight: 600; }
+.erreur { color: #b42318; }
+.succes { color: #147a4b; }

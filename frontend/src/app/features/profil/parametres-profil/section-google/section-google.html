@@ -1,0 +1,46 @@
+@if (liaison(); as etat) {
+  @if (etat.lie) {
+    <p class="etat">
+      <i class="pi pi-check-circle" aria-hidden="true"></i>
+      <span>Lié au compte Google <strong>{{ etat.emailGoogle }}</strong>.</span>
+    </p>
+    <p class="aide">« Continuer avec Google » ouvre ce compte, même si l’adresse Google diffère de la vôtre.</p>
+
+    @if (!etat.motDePasseDefini) {
+      <p class="note">
+        Votre compte a été créé avec Google : vous n’avez pas encore de mot de passe.
+        Pour pouvoir délier Google, <a routerLink="/mot-de-passe-oublie">définissez d’abord un mot de passe</a>.
+      </p>
+    } @else if (confirmation()) {
+      <div class="confirmation" role="group" aria-labelledby="question-delier">
+        <p id="question-delier">Google ne pourra plus ouvrir ce compte. Vous vous connecterez avec votre mot de passe.</p>
+        <div class="actions">
+          <button type="button" class="bouton-danger" (click)="delier()" [disabled]="enCours()">
+            {{ enCours() ? 'Déliement…' : 'Délier' }}
+          </button>
+          <button type="button" class="bouton-secondaire" (click)="confirmation.set(false)" [disabled]="enCours()">Annuler</button>
+        </div>
+      </div>
+    } @else {
+      <button type="button" class="bouton-secondaire" (click)="confirmation.set(true)">Délier mon compte Google</button>
+    }
+  } @else {
+    <p class="aide">
+      Liez un compte Google pour vous connecter sans mot de passe, même s’il utilise une autre adresse que celle de votre compte.
+    </p>
+    <div class="bouton" [attr.aria-busy]="enCours()">
+      <app-bouton-google mode="liaison" separateur="aucun" (jeton)="lier($event)" (erreur)="erreurGoogle($event)" />
+    </div>
+  }
+} @else if (erreurChargement()) {
+  <p class="message erreur" role="alert">Impossible de charger la liaison avec Google.</p>
+  <button type="button" class="bouton-secondaire" (click)="charger()">Réessayer</button>
+} @else {
+  <p class="aide" role="status">Chargement…</p>
+}
+
+<div class="zone-message" aria-live="polite">
+  @if (message(); as m) {
+    <p class="message" [class.erreur]="m.type === 'erreur'" [class.succes]="m.type === 'succes'">{{ m.texte }}</p>
+  }
+</div>

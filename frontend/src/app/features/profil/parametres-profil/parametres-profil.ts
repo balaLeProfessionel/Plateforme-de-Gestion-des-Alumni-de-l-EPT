@@ -18,6 +18,7 @@ import { InfosPersonnelles } from '../composants/infos-personnelles/infos-person
 import { MessageSection } from '../composants/message-section.model';
 import { SectionParcours } from './section-parcours/section-parcours';
 import { SectionCompetences } from './section-competences/section-competences';
+import { SectionGoogle } from './section-google/section-google';
 import { ImportCvService } from '../../../core/services/import-cv/import-cv-service';
 
 type Onglet = 'profil' | 'parcours' | 'competences' | 'compte';
@@ -39,7 +40,7 @@ interface ModeleMotDePasse {
 @Component({
   selector: 'app-parametres-profil',
   imports: [FormField, InfosPersonnelles, InputText, RouterLink, BoutonRetour, AvatarMembre, RecadreurImage, SectionParcours,
-    SectionCompetences],
+    SectionCompetences, SectionGoogle],
   templateUrl: './parametres-profil.html',
   styleUrl: './parametres-profil.scss'
 })

@@ -23,6 +23,8 @@ describe('ParametresProfil', () => {
   let authService: {
     synchroniserProfil: ReturnType<typeof vi.fn>;
     changerMotDePasse: ReturnType<typeof vi.fn>;
+    liaisonGoogle: ReturnType<typeof vi.fn>;
+    configurationGoogle: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
@@ -47,7 +49,9 @@ describe('ParametresProfil', () => {
     } as typeof profilService;
     authService = {
       synchroniserProfil: vi.fn(),
-      changerMotDePasse: vi.fn().mockReturnValue(of({}))
+      changerMotDePasse: vi.fn().mockReturnValue(of({})),
+      liaisonGoogle: vi.fn().mockReturnValue(of({ lie: false, emailGoogle: null, motDePasseDefini: true })),
+      configurationGoogle: vi.fn().mockReturnValue(of({ clientId: null }))
     };
 
     await TestBed.configureTestingModule({

@@ -12,10 +12,11 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // On n'ajoute pas de token aux appels d'authentification eux-mêmes
+  // On n'ajoute pas de token aux appels d'authentification eux-mêmes.
+  // La liaison Google (/api/auth/google/liaison) agit sur le compte connecté : elle garde le sien.
   const estAppelAuth =
     req.url.includes('/api/auth/login') ||
-    req.url.includes('/api/auth/google') ||
+    (req.url.includes('/api/auth/google') && !req.url.includes('/api/auth/google/liaison')) ||
     req.url.includes('/api/auth/mot-de-passe-oublie') ||
     req.url.includes('/api/auth/reinitialiser-mot-de-passe') ||
     req.url.includes('/api/auth/register') ||

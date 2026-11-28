@@ -67,7 +67,7 @@ public class VerificateurJetonGoogleNimbus implements VerificateurJetonGoogle {
             }
             throw new JetonGoogleInvalideException("La connexion Google a échoué. Réessayez.");
         }
-        return new IdentiteGoogle(jwt.getClaimAsString("email"), Boolean.TRUE.equals(jwt.getClaimAsBoolean("email_verified")),
+        return new IdentiteGoogle(jwt.getSubject(), jwt.getClaimAsString("email"), Boolean.TRUE.equals(jwt.getClaimAsBoolean("email_verified")),
             jwt.getClaimAsString("given_name"), jwt.getClaimAsString("family_name"));
     }
 

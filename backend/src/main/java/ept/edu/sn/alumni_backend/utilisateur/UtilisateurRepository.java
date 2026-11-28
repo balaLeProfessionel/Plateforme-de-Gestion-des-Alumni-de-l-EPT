@@ -28,6 +28,8 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, UUID>,
     @EntityGraph(attributePaths = {"permissionsAdmin", "filiere"})
     Optional<Utilisateur> findByEmail(String email);
 
+    Optional<Utilisateur> findByGoogleSub(String googleSub);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select u from Utilisateur u where u.id = :id")
     Optional<Utilisateur> findByIdForUpdate(@Param("id") UUID id);
