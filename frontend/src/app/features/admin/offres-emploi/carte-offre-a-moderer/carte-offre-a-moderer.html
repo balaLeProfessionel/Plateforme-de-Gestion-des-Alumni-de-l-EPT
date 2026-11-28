@@ -1,0 +1,78 @@
+@let o = element().offre;
+@let nombreSignalements = element().signalements.length;
+<article class="carte offre carte-cliquable" [class.signalee]="nombreSignalements > 0" [attr.aria-labelledby]="'titre-' + o.id">
+  <div class="etiquettes">
+    <span class="statut" [attr.data-statut]="o.statut">{{ statuts[o.statut] }}</span>
+    <span class="etiquette">{{ o.mode === 'GEREE' ? 'Offre d’organisme' : 'Offre relayée' }}</span>
+    <span class="etiquette">{{ types[o.typeContrat] }}</span>
+  </div>
+  <h2 [id]="'titre-' + o.id"><a class="lien-etire" [routerLink]="['/offres-emploi', o.id]">{{ o.titre }}</a></h2>
+  <p class="auteur"><i class="pi" [class]="o.mode === 'GEREE' ? 'pi-building' : 'pi-share-alt'" aria-hidden="true"></i>{{ auteur() }}</p>
+
+  <ul class="faits">
+    <li><i class="pi pi-map-marker" aria-hidden="true"></i>{{ o.lieu }}</li>
+    <li><i class="pi pi-calendar" aria-hidden="true"></i>Jusqu’au {{ o.dateExpiration | date: 'd MMMM y' }}</li>
+    <li><i class="pi pi-clock" aria-hidden="true"></i>
+      @if (o.statut === 'SOUMISE') { Déposée le {{ o.creeeLe | date: 'd MMMM y' }} }
+      @else if (o.publieeLe) { Publiée le {{ o.publieeLe | date: 'd MMMM y' }} }
+      @else { Créée le {{ o.creeeLe | date: 'd MMMM y' }} }
+    </li>
+    @if (o.mode === 'RELAYEE' && o.lienSource) {
+      <li><i class="pi pi-external-link" aria-hidden="true"></i>
+        <a [href]="o.lienSource" target="_blank" rel="noopener noreferrer">Annonce d’origine<span class="sr-only"> (nouvel onglet)</span></a></li>
+    }
+  </ul>
+
+  @if (nombreSignalements) {
+    <section class="signalements" [attr.aria-labelledby]="'signalements-' + o.id + ' titre-' + o.id">
+      <h3 [id]="'signalements-' + o.id"><i class="pi pi-flag" aria-hidden="true"></i>
+        <span class="nombre">{{ nombreSignalements }}</span> signalement{{ nombreSignalements > 1 ? 's' : '' }} en attente</h3>
+      <ul>
+        @for (s of element().signalements; track s.id) {
+          <li>
+            <span class="motif">{{ motifsSignalement[s.motif] }}</span>
+            @if (s.commentaire) { <q>{{ s.commentaire }}</q> }
+            <small>{{ s.auteur }} · {{ s.creeLe | date: 'd MMMM y' }}</small>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  @if (decision(); as d) {
+    <form class="decision" (submit)="confirmer($event)" novalidate [attr.aria-label]="(d === 'refuser' ? 'Refuser ' : 'Retirer ') + o.titre">
+      <div class="champ">
+        <label [for]="'motif-' + o.id">Motif, envoyé à l’auteur de l’offre</label>
+        <textarea [id]="'motif-' + o.id" rows="2" [formField]="formulaire.motif" [attr.aria-describedby]="'erreur-motif-' + o.id"
+          [attr.aria-invalid]="formulaire.motif().touched() && formulaire.motif().invalid()"></textarea>
+        @if (formulaire.motif().touched() && formulaire.motif().errors()[0]; as e) {
+          <small class="erreur-champ" [id]="'erreur-motif-' + o.id">{{ e.message }}</small>
+        }
+      </div>
+      @if (d === 'retirer' && o.mode === 'GEREE') {
+        <p class="aide">Les candidatures sans décision seront closes, et leurs candidats prévenus.</p>
+      }
+      @if (erreur(); as texte) { <p class="erreur-champ" role="alert">{{ texte }}</p> }
+      <div class="boutons">
+        <button type="submit" class="bouton principal petit" [disabled]="enCours()">{{ d === 'refuser' ? 'Refuser l’offre' : 'Retirer l’offre' }}</button>
+        <button type="button" class="bouton petit" (click)="decision.set(null)">Ne rien changer</button>
+      </div>
+    </form>
+  } @else {
+    <div class="boutons actions">
+      @if (o.statut === 'SOUMISE') {
+        <button type="button" class="bouton principal petit" [disabled]="enCours()" (click)="publier()">
+          <i class="pi pi-check" aria-hidden="true"></i>Publier</button>
+        <button type="button" class="bouton petit risque" (click)="ouvrir('refuser')">Refuser…</button>
+      }
+      @if (o.statut === 'PUBLIEE') {
+        @if (nombreSignalements) {
+          <button type="button" class="bouton petit" [disabled]="enCours()" (click)="classer()">
+            <i class="pi pi-check" aria-hidden="true"></i>Classer les signalements</button>
+        }
+        <button type="button" class="bouton petit risque" (click)="ouvrir('retirer')">Retirer…</button>
+      }
+    </div>
+    @if (erreur(); as texte) { <p class="erreur-champ" role="alert">{{ texte }}</p> }
+  }
+</article>

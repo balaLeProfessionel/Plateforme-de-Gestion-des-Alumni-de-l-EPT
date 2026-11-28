@@ -21,6 +21,8 @@ export class TableauDeBord {
   /** L’alerte « un seul super administrateur » ne sert qu’à qui peut en nommer un autre. */
   private readonly authService = inject(AuthService);
   protected readonly superAdministrateur = computed(() => this.authService.aPermission('GERER_ADMINISTRATEURS'));
+  /** La file des offres d’emploi ne mène nulle part sans la responsabilité correspondante. */
+  protected readonly moderateurOffres = computed(() => this.authService.aPermission('GERER_OFFRES_EMPLOI'));
   protected readonly tableau = signal<TableauDeBordAdmin | null>(null);
   protected readonly erreur = signal<string | null>(null);
   /** Ancienneté de l’inscription la plus ancienne, en jours entiers. */

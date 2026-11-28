@@ -55,6 +55,17 @@ public class StockageDocuments {
         return depot.lire(cleValide(nom)).orElseThrow(FichierIntrouvableException::new);
     }
 
+    /** Copie un document déjà stocké sous un nouveau nom, pour qu'il vive indépendamment de l'original. */
+    public String copier(String nom) {
+        try (var flux = lire(nom).getInputStream()) {
+            String copie = UUID.randomUUID() + ".pdf";
+            depot.ecrire(DepotFichiers.cle(dossier, copie), flux.readAllBytes());
+            return copie;
+        } catch (IOException e) {
+            throw new StockageFichierException("Impossible de copier le fichier.", e);
+        }
+    }
+
     public void supprimer(String nom) {
         try {
             depot.supprimer(cleValide(nom));

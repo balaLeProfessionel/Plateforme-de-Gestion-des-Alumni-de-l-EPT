@@ -49,7 +49,7 @@ export class NavigationMobile {
 
   /** Les pages sans onglet propre (compte, mentorat) : le bouton Menu les signale comme page courante. */
   protected readonly pageDuMenu = computed(() =>
-    /^\/(profil|organisme|completer-profil|completer-organisme|mentorat|articles|messagerie)(\/|\?|#|$)/.test(this.urlCourante())
+    /^\/(profil|organisme|completer-profil|completer-organisme|mentorat|articles|messagerie|offres-emploi)(\/|\?|#|$)/.test(this.urlCourante())
     // Les rubriques d’administration sont dans « Menu », sauf le tableau de bord, qui est l’accueil.
     || /^\/admin\//.test(this.urlCourante())
   );

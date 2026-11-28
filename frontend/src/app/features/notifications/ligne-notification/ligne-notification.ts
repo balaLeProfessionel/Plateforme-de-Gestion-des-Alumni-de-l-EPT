@@ -11,6 +11,7 @@ const ICONES: Record<TypeNotification, string> = {
   MESSAGE: 'pi-comments',
   MOBILITE: 'pi-globe',
   PARTENARIAT: 'pi-building',
+  EMPLOI: 'pi-briefcase',
 };
 
 /**

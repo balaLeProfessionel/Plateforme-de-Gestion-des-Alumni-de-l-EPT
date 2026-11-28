@@ -34,6 +34,8 @@ import ept.edu.sn.alumni_backend.partenariat.exception.AccordIntrouvableExceptio
 import ept.edu.sn.alumni_backend.partenariat.exception.ConflitConventionException;
 import ept.edu.sn.alumni_backend.partenariat.exception.ConventionIntrouvableException;
 import ept.edu.sn.alumni_backend.mobilite.exception.OffreMobiliteIntrouvableException;
+import ept.edu.sn.alumni_backend.emploi.exception.ConflitOffreEmploiException;
+import ept.edu.sn.alumni_backend.emploi.exception.OffreEmploiIntrouvableException;
 import ept.edu.sn.alumni_backend.stage.exception.ConflitStageException;
 import ept.edu.sn.alumni_backend.stage.exception.OffreStageIntrouvableException;
 import ept.edu.sn.alumni_backend.evenement.exception.ImageEvenementIntrouvableException;
@@ -262,6 +264,17 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConflitStageException.class)
     public ResponseEntity<Map<String, String>> gererConflitStage(ConflitStageException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(OffreEmploiIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> gererOffreEmploiIntrouvable(
+            OffreEmploiIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ConflitOffreEmploiException.class)
+    public ResponseEntity<Map<String, String>> gererConflitOffreEmploi(ConflitOffreEmploiException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
     }
 

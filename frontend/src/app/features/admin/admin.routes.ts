@@ -250,6 +250,13 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./publications-officielles/publications-officielles').then((m) => m.PublicationsOfficielles),
   },
   {
+    path: 'offres-emploi',
+    title: 'Modération des offres d’emploi | EPT Alumni',
+    canActivate: [permissionGuard],
+    data: { permission: 'GERER_OFFRES_EMPLOI' },
+    loadComponent: () => import('./offres-emploi/moderation-offres-emploi').then((m) => m.ModerationOffresEmploi),
+  },
+  {
     path: 'signalements',
     title: 'Signalements | EPT Alumni',
     canActivate: [permissionGuard],

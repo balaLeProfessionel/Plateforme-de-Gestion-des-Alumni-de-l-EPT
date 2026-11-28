@@ -16,9 +16,7 @@ const RUBRIQUES_ROUTES = [
   ['messagerie', 'Messagerie et espace communautaire'],
   ['partenariats', 'Partenariats de l’école'],
   ['conventions', 'Conventions'],
-  ['insertion', 'Insertion professionnelle'],
-  ['offres-emploi', 'Offres d’emploi'],
-  ['publier-offre', 'Publier une offre']
+  ['insertion', 'Insertion professionnelle']
 ] as const;
 
 export const routes: Routes = [
@@ -48,7 +46,7 @@ export const routes: Routes = [
     path,
     title: `EPT Alumni | ${titre}`,
     data: { rubrique: path },
-    // La messagerie existe dans l’espace membre : connecté, on passe à la route suivante au lieu de l’accueil.
+    // La messagerie existe dans l’espace membre : connecté, on passe à la route suivante.
     canMatch: path === 'messagerie' ? [() => !inject(AuthService).estConnecte()] : [],
     // Connecté, /partenariats mène à la rubrique de l'organisme (conventions-cadres) : la page d'attente ne vaut que sans compte.
     ...(path === 'partenariats' ? { canMatch: [visiteurMatch] } : {}),
@@ -68,6 +66,13 @@ export const routes: Routes = [
     title: 'EPT Alumni | Stages',
     canMatch: [visiteurMatch],
     loadComponent: () => import('./features/vitrine/page-stages/page-stages').then((m) => m.PageStages)
+  },
+  {
+    // Sans compte : la rubrique invite à se connecter. Connecté, la route des membres prend le relais.
+    path: 'offres-emploi',
+    title: 'EPT Alumni | Offres d’emploi',
+    canMatch: [visiteurMatch],
+    loadComponent: () => import('./features/vitrine/page-offres-emploi/page-offres-emploi').then((m) => m.PageOffresEmploi)
   },
   {
     path: 'connexion',
@@ -313,6 +318,12 @@ export const routes: Routes = [
         path: 'stages',
         canActivate: [authGuard, changementInitialRequisGuard],
         loadChildren: () => import('./features/stages/stages.routes').then((m) => m.STAGES_ROUTES)
+      },
+      {
+        path: 'offres-emploi',
+        canActivate: [authGuard, changementInitialRequisGuard, roleGuard],
+        data: { roles: ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'ORGANISME', 'ADMIN'] },
+        loadChildren: () => import('./features/offres-emploi/offres-emploi.routes').then((m) => m.OFFRES_EMPLOI_ROUTES)
       },
       {
         path: 'mobilites',

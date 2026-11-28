@@ -40,11 +40,24 @@
             <i class="pi pi-arrow-right" aria-hidden="true"></i>
           </a>
         }
-        <div class="file a-venir">
-          <i class="pi pi-flag" aria-hidden="true"></i>
-          <span><strong>Signalements et offres à modérer</strong>
-            <small>Arriveront avec les modules Actualités et Offres d’emploi.</small></span>
-        </div>
+        @if (moderateurOffres()) {
+          <a class="file" routerLink="/admin/offres-emploi" [class.urgente]="t.aTraiter.offresEmploiAModerer > 0">
+            <i class="pi pi-megaphone" aria-hidden="true"></i>
+            <span>
+              @if (t.aTraiter.offresEmploiAModerer > 0) {
+                <strong>{{ t.aTraiter.offresEmploiAModerer > 1 ? 'Offres d’emploi' : 'Offre d’emploi' }} à modérer</strong>
+                <small>À vérifier avant publication, ou signalées par les membres.</small>
+              } @else {
+                <strong>Aucune offre d’emploi à modérer</strong>
+                <small>Les offres à vérifier et les offres signalées apparaîtront ici.</small>
+              }
+            </span>
+            @if (t.aTraiter.offresEmploiAModerer > 0) {
+              <span class="nombre">{{ t.aTraiter.offresEmploiAModerer }}<span class="sr-only"> à modérer</span></span>
+            }
+            <i class="pi pi-arrow-right" aria-hidden="true"></i>
+          </a>
+        }
         <div class="file a-venir">
           <i class="pi pi-linkedin" aria-hidden="true"></i>
           <span><strong>Propositions LinkedIn</strong>
