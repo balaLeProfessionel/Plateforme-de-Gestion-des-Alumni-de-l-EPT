@@ -196,14 +196,14 @@ describe('Formulaire avec Google', () => {
     (racine.querySelector('.btn-ept') as HTMLButtonElement).click();
   }
 
-  it('crée le compte avec le jeton Google, sans adresse ni mot de passe, puis ouvre l’accueil', async () => {
+  it('crée le compte avec le jeton Google, sans adresse ni mot de passe, puis mène à la complétion du profil', async () => {
     creerLeCompte();
 
     const requete = http.expectOne('/api/auth/google/inscription');
     expect(requete.request.body).toEqual({ credential: 'jeton-google', nom: 'Diop', prenom: 'Awa', role: 'ALUMNI', filiere: '' });
     requete.flush({ accessToken: 'a', refreshToken: 'r', id: 'id', email: 'awa.diop@gmail.com', role: 'ALUMNI', doitChangerMotDePasse: false });
 
-    expect(router.navigate).toHaveBeenCalledWith(['/accueil']);
+    expect(router.navigate).toHaveBeenCalledWith(['/completer-profil']);
     expect(TestBed.inject(InscriptionGoogle).enAttente()).toBeNull();
   });
 

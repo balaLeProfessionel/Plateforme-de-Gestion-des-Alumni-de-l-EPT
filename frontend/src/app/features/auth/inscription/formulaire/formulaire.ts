@@ -225,10 +225,11 @@ export class Formulaire {
   private inscrireAvecGoogle(credential: string, corps: Record<string, unknown>): void {
     const { email: _adresse, password: _motDePasse, ...profil } = corps;
     this.authService.inscriptionGoogle({ ...profil, credential }).subscribe({
-      next: () => {
+      next: (res) => {
         this.enChargement.set(false);
         this.inscriptionGoogle.oublier();
-        void this.router.navigate(['/accueil']);
+        // Même suite qu'après la vérification par code : compléter le profil (CV ou saisie), ou l'organisme
+        void this.router.navigate([res.role === 'ORGANISME' ? '/completer-organisme' : '/completer-profil']);
       },
       error: (err: HttpErrorResponse) => {
         this.enChargement.set(false);
