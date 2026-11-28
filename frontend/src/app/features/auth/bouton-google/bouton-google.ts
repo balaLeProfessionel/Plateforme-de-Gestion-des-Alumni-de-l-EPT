@@ -21,6 +21,18 @@ function identiteInconnue(err: HttpErrorResponse, credential: string): IdentiteI
   };
 }
 
+/** Largeur maximale du bouton dessiné par Google. */
+export const LARGEUR_MAX_GOOGLE = 400;
+
+/**
+ * Google ne dessine pas son bouton au-delà de 400 px : sur un formulaire plus large, on l'agrandit
+ * d'un même facteur en largeur et en hauteur (sans le déformer) pour qu'il ait la largeur des champs.
+ * Limité à 1,25 : 44 px de haut deviennent 55 px, la hauteur des champs.
+ */
+export function echelleBoutonGoogle(largeurEmplacement: number): number {
+  return largeurEmplacement > LARGEUR_MAX_GOOGLE ? Math.min(1.25, largeurEmplacement / LARGEUR_MAX_GOOGLE) : 1;
+}
+
 /**
  * Bouton officiel « Continuer avec Google ». Absent tant que le serveur n'a pas d'identifiant
  * client Google ou que la bibliothèque Google n'a pas pu être chargée (bloqueur, hors ligne).
@@ -32,7 +44,7 @@ function identiteInconnue(err: HttpErrorResponse, credential: string): IdentiteI
       @if (separateur() === 'avant') {
         <p class="separateur" aria-hidden="true"><span>{{ texteSeparateur() }}</span></p>
       }
-      <div #emplacement class="emplacement" [attr.aria-busy]="enCours()"></div>
+      <div #emplacement class="emplacement" [style.--echelle]="echelle()" [attr.aria-busy]="enCours()"></div>
       @if (separateur() === 'apres') {
         <p class="separateur" aria-hidden="true"><span>{{ texteSeparateur() }}</span></p>
       }
@@ -57,7 +69,12 @@ function identiteInconnue(err: HttpErrorResponse, credential: string): IdentiteI
     .emplacement {
       display: flex;
       justify-content: center;
-      min-height: 44px;
+      min-height: calc(44px * var(--echelle, 1));
+    }
+    /* Éléments ajoutés par Google, hors de l’encapsulation des styles */
+    .emplacement ::ng-deep > div {
+      transform: scale(var(--echelle, 1));
+      transform-origin: top center;
     }
   `,
 })
@@ -86,6 +103,7 @@ export class BoutonGoogle {
   private readonly bibliotheque = signal<IdentiteGoogle | null>(null);
   protected readonly disponible = signal(false);
   protected readonly enCours = signal(false);
+  protected readonly echelle = signal(1);
 
   constructor() {
     this.authService.configurationGoogle().pipe(takeUntilDestroyed()).subscribe({
@@ -123,8 +141,9 @@ export class BoutonGoogle {
         shape: 'rectangular',
         logo_alignment: 'center',
         locale: 'fr',
-        width: Math.min(400, Math.max(200, emplacement.clientWidth || 320)),
+        width: Math.min(LARGEUR_MAX_GOOGLE, Math.max(200, emplacement.clientWidth || 320)),
       });
+      this.echelle.set(echelleBoutonGoogle(emplacement.clientWidth));
     });
   }
 

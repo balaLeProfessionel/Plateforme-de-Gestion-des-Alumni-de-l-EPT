@@ -111,3 +111,14 @@
     text-decoration: underline;
   }
 }
+
+.bloc-google {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ept-border);
+
+  h2 {
+    font-size: 1.1rem;
+    margin: 0 0 .75rem;
+  }
+}

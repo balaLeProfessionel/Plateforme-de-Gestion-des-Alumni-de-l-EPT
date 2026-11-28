@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { ActivatedRoute, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { vi } from 'vitest';
 import { OrganismeService } from '../../../core/services/organisme/organisme-service';
@@ -83,5 +85,49 @@ describe('CompleterOrganisme', () => {
     expect(fixture.nativeElement.textContent).toContain('La description est obligatoire');
     expect(fixture.nativeElement.textContent).toContain("Le secteur d'activité est obligatoire");
     expect(organismeService.completerMonProfilOrganisme).not.toHaveBeenCalled();
+  });
+});
+
+describe('CompleterOrganisme dans les paramètres', () => {
+  const organismeService = {
+    obtenirMonProfil: vi.fn().mockReturnValue(of({
+      id: 'org-1', nom: 'Sonatel', description: 'Télécommunications', secteurActivite: 'Télécoms',
+      typeOrganisme: 'ENTREPRISE' as const, adresse: null, pays: null, siteWeb: null, logoUrl: null,
+      statutJuridique: null, trancheEffectif: null, dateCreation: null, statutCompte: 'ACTIF' as const
+    })),
+    completerMonProfilOrganisme: vi.fn()
+  };
+
+  function creer(parametres: boolean) {
+    TestBed.configureTestingModule({
+      imports: [CompleterOrganisme],
+      providers: [
+        provideHttpClient(), provideHttpClientTesting(), provideRouter([]),
+        { provide: OrganismeService, useValue: organismeService },
+        { provide: ActivatedRoute, useValue: { snapshot: { data: parametres ? { parametres: true } : {} } } }
+      ]
+    });
+    const fixture = TestBed.createComponent(CompleterOrganisme);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  it('propose la liaison Google dans les paramètres de l’organisme', () => {
+    const fixture = creer(true);
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/auth/google/liaison').flush({ lie: false, emailGoogle: null, motDePasseDefini: true });
+    fixture.detectChanges();
+
+    const section: HTMLElement = fixture.nativeElement.querySelector('section[aria-labelledby="titre-google"]');
+    expect(section.querySelector('h2')?.textContent).toBe('Connexion avec Google');
+    expect(section.querySelector('app-bouton-google')).not.toBeNull();
+    http.match('/api/auth/google/configuration');
+    http.verify();
+  });
+
+  it('ne la propose pas pendant la première complétion du profil', () => {
+    const fixture = creer(false);
+    expect(fixture.nativeElement.querySelector('app-section-google')).toBeNull();
+    TestBed.inject(HttpTestingController).expectNone('/api/auth/google/liaison');
   });
 });

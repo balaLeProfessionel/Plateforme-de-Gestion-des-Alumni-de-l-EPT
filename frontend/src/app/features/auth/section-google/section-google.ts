@@ -2,10 +2,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { AuthService } from '../../../../core/services/auth/auth-service';
-import { LiaisonGoogle } from '../../../../core/services/models/liaison-google.model';
-import { MessageSection } from '../../composants/message-section.model';
-import { BoutonGoogle } from '../../../auth/bouton-google/bouton-google';
+import { AuthService } from '../../../core/services/auth/auth-service';
+import { LiaisonGoogle } from '../../../core/services/models/liaison-google.model';
+import { MessageSection } from '../../profil/composants/message-section.model';
+import { BoutonGoogle } from '../bouton-google/bouton-google';
 
 function messageServeur(err: HttpErrorResponse, secours: string): string {
   const message: unknown = err?.error?.message;
