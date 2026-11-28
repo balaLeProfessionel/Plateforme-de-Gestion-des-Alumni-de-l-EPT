@@ -24,6 +24,9 @@ describe('MonCompte', () => {
   });
 
   afterEach(() => {
+    // Bloc « Connexion avec Google » : état de la liaison et configuration du bouton
+    http.match('/api/auth/google/liaison');
+    http.match('/api/auth/google/configuration');
     http.verify();
     localStorage.clear();
   });
@@ -40,6 +43,14 @@ describe('MonCompte', () => {
     fixture.detectChanges();
     await fixture.whenStable();
   };
+
+  it('propose de lier un compte Google à son compte administrateur', () => {
+    http.expectOne('/api/auth/google/liaison').flush({ lie: false, emailGoogle: null, motDePasseDefini: true });
+    fixture.detectChanges();
+    const section = racine().querySelector('section[aria-labelledby="titre-google"]');
+    expect(section?.querySelector('h2')?.textContent).toBe('Connexion avec Google');
+    expect(section?.querySelector('app-bouton-google')).not.toBeNull();
+  });
 
   it('corrige le nom et relit le compte pour l’afficher partout', async () => {
     expect((racine().querySelector('#mon-prenom') as HTMLInputElement).value).toBe('Mame Diarra');

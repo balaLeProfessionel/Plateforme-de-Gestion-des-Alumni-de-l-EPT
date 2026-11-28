@@ -4,7 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { vi } from 'vitest';
 
 import { InscriptionGoogle } from '../../../core/services/auth/inscription-google';
-import { BoutonGoogle } from './bouton-google';
+import { BoutonGoogle, echelleBoutonGoogle } from './bouton-google';
 import { ChargeurGoogle, IdentiteGoogle, ReponseGoogle } from './chargeur-google';
 
 describe('BoutonGoogle', () => {
@@ -96,5 +96,15 @@ describe('BoutonGoogle', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.emplacement')).toBeNull();
+  });
+});
+
+describe('echelleBoutonGoogle', () => {
+  it('agrandit le bouton de Google (400 px au plus) jusqu’à la largeur du formulaire, sans excès', () => {
+    expect(echelleBoutonGoogle(320)).toBe(1);
+    expect(echelleBoutonGoogle(400)).toBe(1);
+    expect(echelleBoutonGoogle(440)).toBeCloseTo(1.1);
+    expect(echelleBoutonGoogle(500)).toBe(1.25);
+    expect(echelleBoutonGoogle(900)).toBe(1.25);
   });
 });

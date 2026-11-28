@@ -4,6 +4,7 @@ import { form, FormField, maxLength, minLength, required, validate } from '@angu
 import { AdminComptesService } from '../../../core/services/admin/admin-comptes';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { focaliserPremiereErreur } from '../../../shared/formulaires/focus-premiere-erreur';
+import { SectionGoogle } from '../../auth/section-google/section-google';
 import { PageAdmin } from '../page-admin/page-admin';
 
 type Message = { texte: string; erreur?: boolean };
@@ -11,7 +12,7 @@ type Message = { texte: string; erreur?: boolean };
 /** Compte de l’administrateur connecté : il n’a pas de profil de membre, son nom et son mot de passe se changent ici. */
 @Component({
   selector: 'app-mon-compte',
-  imports: [FormField, PageAdmin],
+  imports: [FormField, PageAdmin, SectionGoogle],
   templateUrl: './mon-compte.html',
   styleUrls: ['../formulaire-admin.scss', './mon-compte.scss'],
 })

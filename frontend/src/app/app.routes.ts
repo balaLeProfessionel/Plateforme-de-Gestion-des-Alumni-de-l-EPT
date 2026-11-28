@@ -193,7 +193,7 @@ export const routes: Routes = [
         path: 'organisme/parametres',
         title: 'Profil de mon organisme | EPT Alumni',
         canActivate: [authGuard, changementInitialRequisGuard, roleGuard],
-        data: { roles: ['ORGANISME'] },
+        data: { roles: ['ORGANISME'], parametres: true },
         loadComponent: () =>
           import('./features/organisme/completer-organisme/completer-organisme').then(
             (m) => m.CompleterOrganisme

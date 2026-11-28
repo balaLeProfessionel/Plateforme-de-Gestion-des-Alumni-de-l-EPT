@@ -1,19 +1,23 @@
 import { Component, inject, signal } from '@angular/core';
 import { TYPES_ORGANISME } from '../../../core/data/types-organisme';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { OrganismeService } from '../../../core/services/organisme/organisme-service';
 import { FieldTree, form, FormField, required } from '@angular/forms/signals';
 import { OrganismePublic } from '../../../core/services/models/organisme.model';
+import { SectionGoogle } from '../../auth/section-google/section-google';
 
 @Component({
   selector: 'app-completer-organisme',
-  imports: [FormField],
+  imports: [FormField, SectionGoogle],
   templateUrl: './completer-organisme.html',
   styleUrl: './completer-organisme.scss',
 })
 export class CompleterOrganisme {
   private readonly organismeService = inject(OrganismeService);
   private readonly router = inject(Router);
+  // Paramètres de l'organisme (route organisme/parametres) : la liaison Google y est proposée,
+  // pas pendant la première complétion du profil.
+  protected readonly enParametres = inject(ActivatedRoute).snapshot.data['parametres'] === true;
 
   protected readonly types = TYPES_ORGANISME;
 
