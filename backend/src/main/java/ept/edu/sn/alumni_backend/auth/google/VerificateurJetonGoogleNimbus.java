@@ -1,6 +1,7 @@
 package ept.edu.sn.alumni_backend.auth.google;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 
@@ -18,7 +19,9 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Component;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Vérification locale d'un jeton d'identité Google : clés publiques de Google (mises en cache
@@ -31,6 +34,8 @@ public class VerificateurJetonGoogleNimbus implements VerificateurJetonGoogle {
     private static final Logger LOGGER = LoggerFactory.getLogger(VerificateurJetonGoogleNimbus.class);
     private static final String CLES_GOOGLE = "https://www.googleapis.com/oauth2/v3/certs";
     private static final Set<String> EMETTEURS = Set.of("accounts.google.com", "https://accounts.google.com");
+    private static final Duration DELAI_CONNEXION = Duration.ofSeconds(5);
+    private static final Duration DELAI_LECTURE = Duration.ofSeconds(10);
 
     private final String clientId;
     private final String clesGoogle;
@@ -83,7 +88,14 @@ public class VerificateurJetonGoogleNimbus implements VerificateurJetonGoogle {
         }
         synchronized (this) {
             if (decodeur == null) {
-                NimbusJwtDecoder nimbus = NimbusJwtDecoder.withJwkSetUri(clesGoogle).build();
+                // Les délais par défaut (une demi-seconde) sont trop courts pour une connexion lente :
+                // Google paraissait injoignable alors qu'il répondait en un peu plus de temps.
+                SimpleClientHttpRequestFactory client = new SimpleClientHttpRequestFactory();
+                client.setConnectTimeout(DELAI_CONNEXION);
+                client.setReadTimeout(DELAI_LECTURE);
+                NimbusJwtDecoder nimbus = NimbusJwtDecoder.withJwkSetUri(clesGoogle)
+                    .restOperations(new RestTemplate(client))
+                    .build();
                 OAuth2TokenValidator<Jwt> emetteur = jwt -> EMETTEURS.contains(jwt.getClaimAsString("iss"))
                     ? OAuth2TokenValidatorResult.success()
                     : OAuth2TokenValidatorResult.failure(new OAuth2Error("invalid_token", "Émetteur inattendu", null));
