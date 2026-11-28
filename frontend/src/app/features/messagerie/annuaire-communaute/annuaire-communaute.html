@@ -1,0 +1,65 @@
+<section class="annuaire" aria-labelledby="titre-annuaire">
+  <header class="entete">
+    <a class="retour" [routerLink]="['/messagerie', id()]" aria-label="Retour à la discussion" title="Retour à la discussion">
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    </a>
+    @if (communaute(); as communaute) {
+      <app-avatar-groupe [urlPhoto]="communaute.urlPhoto" [nom]="communaute.nom" [taille]="2.5" [icone]="icone()" />
+    }
+    <div class="titre">
+      <h2 id="titre-annuaire" tabindex="-1">{{ titre() }}</h2>
+      <p>{{ nature() }}</p>
+    </div>
+  </header>
+
+  <div class="contenu">
+    <form class="recherche" role="search" (submit)="$event.preventDefault()">
+      <i class="pi pi-search" aria-hidden="true"></i>
+      <label for="recherche-membres" class="sr-only">Rechercher un membre par nom, poste, ville ou filière</label>
+      <input id="recherche-membres" type="search" [formField]="formulaire.recherche" autocomplete="off"
+        placeholder="Nom, poste, ville ou filière…" />
+      @if (modele().recherche) {
+        <button type="button" class="effacer" aria-label="Effacer la recherche" (click)="effacerRecherche()">
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      }
+    </form>
+
+    <div class="resultats" aria-live="polite" [attr.aria-busy]="chargement()">
+      @if (erreur(); as erreur) {
+        <div class="etat" role="alert">
+          <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+          <p>{{ erreur }}</p>
+          <a class="lien-action" [routerLink]="['/messagerie', id()]">Retour à la discussion</a>
+        </div>
+      } @else if (chargement() && membres().length === 0) {
+        <div class="grille" aria-label="Chargement des membres">
+          @for (i of [1, 2, 3, 4]; track i) { <app-carte-membre-squelette /> }
+        </div>
+      } @else {
+        <p class="resume">{{ resume() }}</p>
+        @if (membres().length === 0) {
+          <div class="etat">
+            <i class="pi pi-users" aria-hidden="true"></i>
+            <p>Aucun membre ne correspond à « {{ rechercheAppliquee() }} ».</p>
+            <button type="button" class="lien-action" (click)="effacerRecherche()">Voir tous les membres</button>
+          </div>
+        } @else {
+          <ul class="grille" [class.actualisation]="chargement()">
+            @for (membre of membres(); track membre.id) {
+              <li><app-carte-membre [membre]="membre" /></li>
+            }
+          </ul>
+          @if (encoreDesMembres()) {
+            <div class="suite">
+              <button type="button" class="plus" [disabled]="chargementSuite()" (click)="afficherPlus()">
+                {{ chargementSuite() ? 'Chargement…' : 'Afficher plus de membres' }}
+              </button>
+              @if (erreurSuite(); as erreur) { <p class="erreur" role="alert">{{ erreur }}</p> }
+            </div>
+          }
+        }
+      }
+    </div>
+  </div>
+</section>

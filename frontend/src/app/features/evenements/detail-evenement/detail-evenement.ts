@@ -11,10 +11,11 @@ import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { VisuelEvenement } from '../../../shared/images/visuel-evenement';
 import { etatNavigationEvenement, urlRetourInterne } from '../navigation-evenements';
 import { ApercuParticipants } from './apercu-participants';
+import { GestionEvenement } from '../gestion-evenement/gestion-evenement';
 
 @Component({
   selector: 'app-detail-evenement',
-  imports: [RouterLink, BoutonRetour, VisuelEvenement, ApercuParticipants],
+  imports: [RouterLink, BoutonRetour, VisuelEvenement, ApercuParticipants, GestionEvenement],
   templateUrl: './detail-evenement.html',
   styleUrl: './detail-evenement.scss',
 })
@@ -30,9 +31,6 @@ export class DetailEvenement {
   protected readonly evenement = signal<Evenement | null>(null);
   protected readonly enChargement = signal(true);
   protected readonly messageErreur = signal<string | null>(null);
-  protected readonly confirmationAnnulation = signal(false);
-  protected readonly actionEnCours = signal(false);
-  protected readonly erreurAction = signal<string | null>(null);
   protected readonly reponseEnCours = signal<ReponseParticipation | null>(null);
   protected readonly erreurReponse = signal<string | null>(null);
   /** L’administration gère tous les événements avec la responsabilité Événements ; un membre, les siens (règle du serveur). */
@@ -144,31 +142,6 @@ export class DetailEvenement {
           : 'Votre réponse n’a pas été enregistrée. Réessayez.');
     } finally {
       this.reponseEnCours.set(null);
-    }
-  }
-
-  protected demanderConfirmationAnnulation(): void {
-    this.confirmationAnnulation.set(true);
-    this.erreurAction.set(null);
-  }
-
-  protected abandonnerAnnulation(): void {
-    this.confirmationAnnulation.set(false);
-    this.erreurAction.set(null);
-  }
-
-  protected async confirmerAnnulation(): Promise<void> {
-    const evenement = this.evenement();
-    if (!evenement || this.actionEnCours()) return;
-    this.actionEnCours.set(true);
-    this.erreurAction.set(null);
-    try {
-      this.evenement.set(await firstValueFrom(this.evenementService.annuler(evenement.id)));
-      this.confirmationAnnulation.set(false);
-    } catch {
-      this.erreurAction.set('L’annulation a échoué. Réessayez.');
-    } finally {
-      this.actionEnCours.set(false);
     }
   }
 }

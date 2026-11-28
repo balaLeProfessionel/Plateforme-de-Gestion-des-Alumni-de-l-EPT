@@ -4,6 +4,7 @@ import { form, FormField, maxLength, minLength, required, validate } from '@angu
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { focaliserPremiereErreur } from '../../../shared/formulaires/focus-premiere-erreur';
+import type { EtatArriveeParcours } from '../../profil/completer-profil/parcours-completion/parcours-completion';
 
 /** Nom posé par PremierAdminInitializer (backend) : ce n’est pas celui d’une personne, on ne le préremplit pas. */
 const NOM_PREMIER_ADMIN = { prenom: 'Administration', nom: 'EPT' };
@@ -76,7 +77,13 @@ export class PremiereConnexion {
     this.authService.changerMotDePasseInitial(nouveauMotDePasse, identite).subscribe({
       next: () => {
         this.enChargement.set(false);
-        this.router.navigate([this.estAdmin ? '/admin' : '/completer-profil/infos']);
+        if (this.estAdmin) {
+          this.router.navigate(['/admin']);
+        } else {
+          // Le panneau d’arrivée montre alors « Compte créé par l’école » puis « Mot de passe défini ».
+          const etat: EtatArriveeParcours = { compteDeLEcole: true };
+          this.router.navigate(['/completer-profil'], { state: etat });
+        }
       },
       error: (erreur: HttpErrorResponse) => {
         this.enChargement.set(false);

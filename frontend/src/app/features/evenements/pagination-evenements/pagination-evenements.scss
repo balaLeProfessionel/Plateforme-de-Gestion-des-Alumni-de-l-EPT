@@ -1,0 +1,8 @@
+:host { display: block; }
+
+.pagination-evenements { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .45rem; margin-top: 2.5rem;
+  button { border-radius: var(--ept-radius-sm); min-width: 2.75rem; min-height: 2.75rem; padding: .5rem; border: 1px solid #cbd5dc; background: white; color: var(--ept-primary); font: inherit; font-weight: 700; cursor: pointer; }
+  button:hover:not(:disabled), button.page-active { border-color: var(--ept-primary); background: var(--ept-primary); color: white; }
+  button:disabled { opacity: .4; cursor: default; }
+  .ellipse { padding: 0 .35rem; color: var(--ept-text-secondary); }
+}

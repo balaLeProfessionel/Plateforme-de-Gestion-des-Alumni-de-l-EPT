@@ -1,0 +1,8 @@
+@use 'responsive' as *;
+
+.boutons { margin-top: 0; }
+.panneau { display: grid; gap: 0.75rem; }
+.dates { display: grid; gap: 0.75rem;
+  @include a-partir-de(tablette) { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.champ textarea { font-family: inherit; font-size: inherit; }
+.erreur-champ { margin: 0.5rem 0 0; font-weight: 600; }

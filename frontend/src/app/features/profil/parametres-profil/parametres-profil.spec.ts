@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
@@ -7,6 +7,7 @@ import { AuthService } from '../../../core/services/auth/auth-service';
 import { Profil } from '../../../core/services/models/profil.model';
 import { OrganismeService } from '../../../core/services/organisme/organisme-service';
 import { ProfilService } from '../../../core/services/profil/profil-service';
+import { ImportCvService } from '../../../core/services/import-cv/import-cv-service';
 import { ParametresProfil } from './parametres-profil';
 
 describe('ParametresProfil', () => {
@@ -25,11 +26,13 @@ describe('ParametresProfil', () => {
   };
 
   beforeEach(async () => {
+    // writable : sans lui, la propriété devient en lecture seule et casse les tests
+    // suivants qui remplacent aussi ces fonctions (ordre d'exécution variable)
     Object.defineProperty(URL, 'createObjectURL', {
-      configurable: true, value: vi.fn().mockReturnValue('blob:apercu-photo')
+      configurable: true, writable: true, value: vi.fn().mockReturnValue('blob:apercu-photo')
     });
     Object.defineProperty(URL, 'revokeObjectURL', {
-      configurable: true, value: vi.fn()
+      configurable: true, writable: true, value: vi.fn()
     });
     profilService = {
       obtenirProfil: vi.fn().mockReturnValue(of(profil())),
@@ -38,7 +41,9 @@ describe('ParametresProfil', () => {
       modifierPhoto: vi.fn().mockReturnValue(of({ ...profil(), urlPhoto: '/api/photos/photo.png' })),
       supprimerPhoto: vi.fn().mockReturnValue(of({ ...profil(), urlPhoto: null })),
       listerExperiences: vi.fn().mockReturnValue(of([])),
-      listerFormations: vi.fn().mockReturnValue(of([]))
+      listerFormations: vi.fn().mockReturnValue(of([])),
+      lireCompetencesLangues: vi.fn().mockReturnValue(of({ competences: [], langues: [] })),
+      suggererCompetences: vi.fn().mockReturnValue(of([]))
     } as typeof profilService;
     authService = {
       synchroniserProfil: vi.fn(),
@@ -51,7 +56,8 @@ describe('ParametresProfil', () => {
         provideRouter([]),
         { provide: ProfilService, useValue: profilService },
         { provide: AuthService, useValue: authService },
-        { provide: OrganismeService, useValue: { rechercherOrganismes: vi.fn().mockReturnValue(of([])) } }
+        { provide: OrganismeService, useValue: { rechercherOrganismes: vi.fn().mockReturnValue(of([])) } },
+        { provide: ImportCvService, useValue: { disponibilite: vi.fn().mockReturnValue(of({ disponible: false })) } }
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(ParametresProfil);
@@ -59,19 +65,29 @@ describe('ParametresProfil', () => {
     await fixture.whenStable();
   });
 
-  it('affiche les sections et les informations non modifiables', () => {
-    const contenu = fixture.nativeElement.textContent;
+  it('affiche les onglets, le profil par défaut et les informations non modifiables', async () => {
     expect(fixture.nativeElement.querySelector('h1')?.textContent).toContain('Modifier mon profil');
-    expect([...fixture.nativeElement.querySelectorAll('.navigation-sections a')].map((a: Element) => a.textContent?.trim()))
-      .toEqual(['Photo', 'Informations', 'Parcours', 'Confidentialité', 'Sécurité']);
+    expect([...fixture.nativeElement.querySelectorAll('.onglets a')].map((a: Element) => a.textContent?.trim()))
+      .toEqual(['Profil', 'Parcours', 'Compétences', 'Compte']);
+    expect(fixture.nativeElement.querySelector('.onglets a[aria-current="page"]')?.textContent?.trim()).toBe('Profil');
     expect(fixture.nativeElement.querySelector('.voir-profil')?.getAttribute('href')).toBe('/profil');
-    expect(contenu).toContain('Expériences professionnelles');
-    expect(contenu).toContain('Formations');
+    const contenu = fixture.nativeElement.textContent;
     expect(contenu).toContain('Photo de profil');
-    expect(contenu).toContain('Identité et informations');
-    expect(contenu).toContain('Sécurité');
+    expect(contenu).toContain('Informations personnelles');
     expect(contenu).toContain('awa.diop@example.com');
     expect(contenu).toContain('Alumni');
+    expect(contenu).not.toContain('Expériences professionnelles');
+
+    await ouvrirOnglet('parcours');
+    expect(fixture.nativeElement.textContent).toContain('Expériences professionnelles');
+    expect(fixture.nativeElement.textContent).toContain('Formations');
+    expect(fixture.nativeElement.textContent).not.toContain('Photo de profil');
+  });
+
+  it('ouvre l onglet d un ancien lien de section', async () => {
+    await ouvrirOnglet('securite');
+    expect(fixture.nativeElement.querySelector('.onglets a[aria-current="page"]')?.textContent?.trim()).toBe('Compte');
+    expect(fixture.nativeElement.textContent).toContain('Sécurité');
   });
 
   it('synchronise la session après la modification des informations', () => {
@@ -153,7 +169,7 @@ describe('ParametresProfil', () => {
     profilService.obtenirProfil.mockReturnValueOnce(of(profil()));
     composant['charger']();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Identité et informations');
+    expect(fixture.nativeElement.textContent).toContain('Informations personnelles');
   });
 
   it('change le mot de passe et conserve les nouveaux jetons gérés par AuthService', () => {
@@ -176,7 +192,8 @@ describe('ParametresProfil', () => {
     expect(composant['messageMotDePasse']()?.texte).toBe('Le mot de passe actuel est incorrect.');
   });
 
-  it('signale les champs obligatoires après une tentative vide de changement du mot de passe', () => {
+  it('signale les champs obligatoires après une tentative vide de changement du mot de passe', async () => {
+    await ouvrirOnglet('compte');
     composant['changerMotDePasse']();
     fixture.detectChanges();
 
@@ -186,8 +203,8 @@ describe('ParametresProfil', () => {
     expect(authService.changerMotDePasse).not.toHaveBeenCalled();
   });
 
-  it('garde les champs de mot de passe neutres avant interaction', () => {
-    fixture.detectChanges();
+  it('garde les champs de mot de passe neutres avant interaction', async () => {
+    await ouvrirOnglet('compte');
     const champs = fixture.nativeElement.querySelectorAll('.formulaire-securite input');
 
     expect(champs).toHaveLength(3);
@@ -198,7 +215,8 @@ describe('ParametresProfil', () => {
     }
   });
 
-  it('marque en erreur et relie les messages après une soumission invalide', () => {
+  it('marque en erreur et relie les messages après une soumission invalide', async () => {
+    await ouvrirOnglet('compte');
     composant['changerMotDePasse']();
     fixture.detectChanges();
     const champs = [...fixture.nativeElement.querySelectorAll('.formulaire-securite input')];
@@ -212,7 +230,7 @@ describe('ParametresProfil', () => {
   });
 
   it('enregistre le retrait de la recherche publique', async () => {
-    fixture.detectChanges();
+    await ouvrirOnglet('compte');
     const caseACocher = fixture.nativeElement.querySelector('#confidentialite input[type="checkbox"]') as HTMLInputElement;
     expect(caseACocher.checked).toBe(true);
 
@@ -223,22 +241,29 @@ describe('ParametresProfil', () => {
     expect(fixture.nativeElement.querySelector('#confidentialite').textContent).toContain('n’apparaissez plus');
   });
 
-  it('garde les liens de section sur la route des paramètres', () => {
+  it('garde les onglets sur la route des paramètres', () => {
     fixture.detectChanges();
-    const liens = [...fixture.nativeElement.querySelectorAll('.navigation-sections a')]
+    const liens = [...fixture.nativeElement.querySelectorAll('.onglets a')]
       .map((lien: HTMLAnchorElement) => lien.getAttribute('href'));
 
     expect(liens).toEqual([
-      '/profil/parametres#photo', '/profil/parametres#informations', '/profil/parametres#parcours', '/profil/parametres#confidentialite', '/profil/parametres#securite'
+      '/profil/parametres#profil', '/profil/parametres#parcours', '/profil/parametres#competences', '/profil/parametres#compte'
     ]);
   });
+
+  async function ouvrirOnglet(ancre: string): Promise<void> {
+    await TestBed.inject(Router).navigate([], { fragment: ancre });
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
 
   function profil(): Profil {
     return {
       id: 'membre-1', nom: 'Diop', prenom: 'Awa', email: 'awa.diop@example.com',
       role: 'ALUMNI', statutCompte: 'ACTIF', bio: null, villeResidence: 'Thiès',
       posteActuel: null, lienLinkedin: null, lienPortfolio: null, urlPhoto: null,
-      telephone: null, dateNaissance: null, filiere: 'GIT', classe: null, anneeSortie: 2024, recherchePublique: true
+      telephone: null, dateNaissance: null, filiere: 'GIT', classe: null, anneeSortie: 2024, recherchePublique: true,
+      situationActuelle: null, paysResidence: null
     };
   }
 });

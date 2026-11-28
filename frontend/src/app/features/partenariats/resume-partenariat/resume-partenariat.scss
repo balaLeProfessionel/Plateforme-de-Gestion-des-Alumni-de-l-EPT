@@ -1,0 +1,14 @@
+@use 'responsive' as *;
+
+.resume { display: grid; gap: 0.75rem; margin: 0 0 0.5rem;
+  @include a-partir-de(tablette) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @include a-partir-de(bureau) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  > div { display: grid; align-content: start; gap: 0.2rem; min-width: 0; padding: 0.9rem 1rem; border: 1px solid var(--ept-border); border-radius: 8px; background: var(--ept-surface); }
+  dt { color: var(--ept-text-secondary); font-size: 0.82rem; }
+  dd { margin: 0; color: var(--ept-primary-dark); font-weight: 700; overflow-wrap: anywhere; }
+  .nombre { color: var(--ept-primary); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+  .detail { color: var(--ept-text-secondary); font-size: 0.8rem; font-weight: 400; }
+  .positif { border-color: var(--ept-success); background: var(--ept-success-light); dd { color: var(--ept-success-dark); } .detail { color: var(--ept-success-dark); } }
+  .attente { border-color: var(--ept-gold); background: var(--ept-gold-light); dd, .nombre, .detail { color: var(--ept-gold-dark); } } }
+.lien-indicateurs { margin: 0 0 1.25rem; font-size: 0.85rem;
+  a { color: var(--ept-primary); font-weight: 600; &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } } }

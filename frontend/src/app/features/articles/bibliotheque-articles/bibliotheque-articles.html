@@ -76,6 +76,8 @@
         }
       </div>
     } @else if (resultat(); as page) {
+      <!-- Titre pour les lecteurs d'écran : les cartes portent des titres de niveau 3 -->
+      <h2 class="sr-only">Liste des articles</h2>
       <ul class="grille" [class.actualisation]="enChargement()">
         @for (article of page.contenu; track article.id) {
           <li><app-carte-article [article]="article" [avecStatut]="c.vue === 'mes'" /></li>

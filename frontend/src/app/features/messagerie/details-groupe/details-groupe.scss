@@ -1,0 +1,186 @@
+/* Fiche de groupe : fond gris clair, cartes blanches empilées, comme les « infos du groupe » des messageries. */
+.fiche { background: var(--ept-bg); }
+
+.fiche .barre {
+  justify-content: flex-start;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--ept-border);
+  background: var(--ept-surface);
+}
+
+#titre-details:focus { outline: none; }
+
+/* minmax(0, 1fr) : une ligne trop longue (nom de membre) se coupe au lieu d’élargir la colonne et de déborder. */
+.fiche .corps { grid-template-columns: minmax(0, 1fr); gap: 0.6rem; padding: 0.6rem 0 1rem; }
+
+.carte {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+  padding: 0.9rem 1.25rem;
+  background: var(--ept-surface);
+  box-shadow: 0 1px 2px rgba(1, 67, 101, 0.06);
+
+  h3 { margin: 0; color: var(--ept-text-secondary); font-size: 0.85rem; font-weight: 600; }
+}
+
+/* En-tête : tout est centré sous la grande photo. */
+.entete { justify-items: center; padding: 1.25rem 1.25rem 1.1rem; text-align: center; }
+
+.nom-ligne { display: flex; align-items: center; justify-content: center; gap: 0.25rem; margin-top: 0.25rem; }
+
+.nom-groupe {
+  margin: 0;
+  color: var(--ept-primary-dark);
+  font-family: var(--ept-font-heading);
+  font-size: 1.3rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.sous-titre { margin: 0; color: var(--ept-text-secondary); font-size: 0.9rem; }
+
+.description { margin: 0; color: var(--ept-text); font-size: 0.92rem; line-height: 1.5; white-space: pre-line; }
+
+.icone-bouton {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ept-text-secondary);
+  cursor: pointer;
+
+  &:hover, &[aria-expanded='true'] { background: var(--ept-primary-light); color: var(--ept-primary); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+}
+
+/* Modification du nom et de la description, dans l’en-tête. */
+.identite-groupe { display: grid; width: 100%; gap: 0.75rem; margin-top: 0.5rem; text-align: left; }
+.boutons-edition { display: flex; justify-content: flex-end; gap: 0.5rem; }
+#aide-description-groupe { justify-self: end; }
+
+/* Participants : des lignes pleine largeur, sans bouton visible sauf le « ⋯ ». */
+.participants { display: grid; grid-template-columns: minmax(0, 1fr); margin: 0 -1.25rem; padding: 0; list-style: none; }
+
+.participants li { padding: 0 1.25rem; }
+
+.ligne-membre { display: flex; min-height: 3.5rem; align-items: center; gap: 0.75rem; }
+
+.nom-membre { min-width: 0; flex: 1; overflow: hidden; outline: none; color: inherit; font-size: 0.95rem; font-weight: 600; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Ligne cliquable (profil) et lignes d’action : un fond gris au survol, jamais de soulignement.
+   Le lien du nom couvre toute la ligne ; le « ⋯ », placé après, reste au-dessus. */
+.ligne-membre.cliquable, .ligne-action { position: relative; margin: 0 -0.75rem; padding: 0 0.75rem; border-radius: var(--ept-radius-sm); }
+.ligne-membre.cliquable:hover, .ligne-action:hover { background: var(--ept-bg); }
+.ligne-membre:has(a:focus-visible) { outline: 2px solid var(--ept-focus-clair); outline-offset: -2px; }
+a.nom-membre::after { position: absolute; inset: 0; content: ''; }
+.plus-membre { position: relative; }
+
+.badge-admin {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--ept-primary-light);
+  color: var(--ept-primary-dark);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.menu-membre {
+  display: grid;
+  margin: 0 0 0.5rem 3.25rem;
+  overflow: hidden;
+  border: 1px solid var(--ept-border);
+  border-radius: var(--ept-radius-sm);
+  background: var(--ept-surface);
+  box-shadow: 0 6px 16px rgba(1, 67, 101, 0.1);
+
+  button {
+    min-height: 2.75rem;
+    gap: 0.6rem;
+    padding: 0 0.9rem;
+    color: var(--ept-text);
+    font-size: 0.9rem;
+
+    &:hover:not(:disabled) { background: var(--ept-bg); }
+    &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: -2px; }
+    i { width: 1rem; color: var(--ept-text-secondary); }
+  }
+  .danger-texte, .danger-texte i { color: var(--ept-error-dark); }
+}
+
+/* Boutons « texte » : entrées du menu « ⋯ » et lignes cliquables (ajouter, quitter, supprimer). */
+.ligne-action, .menu-membre button {
+  display: flex;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.plus-membres .reste { margin-left: auto; color: var(--ept-text-secondary); font-size: 0.85rem; font-weight: 500; }
+
+.ligne-action {
+  width: calc(100% + 1.5rem);
+  min-height: 3.25rem;
+  gap: 0.75rem;
+  color: var(--ept-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: -2px; }
+}
+
+.pastille {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ept-primary);
+  color: var(--ept-text-on-dark);
+}
+
+.ajout { display: grid; gap: 0.5rem; padding-bottom: 0.75rem; }
+.ajout .principal { justify-self: start; }
+
+.sortie { gap: 0; padding-block: 0.25rem; }
+.danger-texte { color: var(--ept-error-dark); }
+.sortie .ligne-action i { width: 2.5rem; text-align: center; }
+.sortie .ligne-action + .ligne-action { border-top: 1px solid var(--ept-border); }
+
+.confirmer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.6rem 0 0.75rem;
+  font-size: 0.875rem;
+
+  span { flex: 1 1 100%; }
+}
+
+.danger.plein { background: var(--ept-error); color: #fff; }
+.danger.plein:hover:not(:disabled) { background: var(--ept-error-dark); }
+
+.bandeau { margin: 0 1.25rem; padding: 0.6rem 0.9rem; border-radius: var(--ept-radius-sm); font-size: 0.875rem; }
+.bandeau.succes { background: var(--ept-success-light); color: var(--ept-success-dark); }
+.bandeau.echec { background: var(--ept-error-light); color: var(--ept-error-dark); }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.note-automatique {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--ept-text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.45;
+
+  i { margin-top: 0.15rem; color: var(--ept-primary); }
+}

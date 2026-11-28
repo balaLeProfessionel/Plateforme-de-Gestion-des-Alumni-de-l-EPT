@@ -1,7 +1,14 @@
-import { Component, input, linkedSignal, output } from '@angular/core';
+import { Component, computed, input, linkedSignal, output } from '@angular/core';
 import { form, FormField, maxLength, pattern, required } from '@angular/forms/signals';
 import { InputText } from 'primeng/inputtext';
-import { Profil, ProfilRequest } from '../../../../core/services/models/profil.model';
+import { PAYS } from '../../../../core/data/pays';
+import { SITUATIONS } from '../../../../core/data/situations';
+import { IdentiteExtraite } from '../../../../core/services/models/import-cv.model';
+import {
+  Profil,
+  ProfilRequest,
+  SituationActuelle
+} from '../../../../core/services/models/profil.model';
 import { MessageSection } from '../message-section.model';
 
 // Modele du formulaire : que des chaines non nulles, car c'est ce que
@@ -12,6 +19,8 @@ interface ModeleInfos {
   prenom: string;
   bio: string;
   villeResidence: string;
+  paysResidence: string;
+  situationActuelle: SituationActuelle | '';
   posteActuel: string;
   lienLinkedin: string;
   lienPortfolio: string;
@@ -24,12 +33,27 @@ const MODELE_VIDE: ModeleInfos = {
   prenom: '',
   bio: '',
   villeResidence: '',
+  paysResidence: '',
+  situationActuelle: '',
   posteActuel: '',
   lienLinkedin: '',
   lienPortfolio: '',
   telephone: '',
   dateNaissance: ''
 };
+
+// Champs qu'un CV peut pre-remplir
+const CHAMPS_CV = [
+  'nom',
+  'prenom',
+  'bio',
+  'villeResidence',
+  'paysResidence',
+  'posteActuel',
+  'lienLinkedin',
+  'lienPortfolio',
+  'telephone'
+] as const satisfies readonly (keyof ModeleInfos & keyof IdentiteExtraite)[];
 
 function versModele(profil: Profil | null): ModeleInfos {
   if (!profil) {
@@ -40,12 +64,28 @@ function versModele(profil: Profil | null): ModeleInfos {
     prenom: profil.prenom,
     bio: profil.bio ?? '',
     villeResidence: profil.villeResidence ?? '',
+    paysResidence: profil.paysResidence ?? '',
+    situationActuelle: profil.situationActuelle ?? '',
     posteActuel: profil.posteActuel ?? '',
     lienLinkedin: profil.lienLinkedin ?? '',
     lienPortfolio: profil.lienPortfolio ?? '',
     telephone: profil.telephone ?? '',
     dateNaissance: profil.dateNaissance ?? ''
   };
+}
+
+// Le CV ne complete que les champs vides : ce que le membre a deja saisi
+// n'est jamais remplace.
+function completerDepuisCv(modele: ModeleInfos, cv: IdentiteExtraite | null): ModeleInfos {
+  if (!cv) return modele;
+  const complete = { ...modele };
+  for (const champ of CHAMPS_CV) {
+    const valeur = cv[champ];
+    if (!complete[champ] && valeur) {
+      complete[champ] = valeur;
+    }
+  }
+  return complete;
 }
 
 // Accepte une URL http(s) OU une valeur vide : le champ reste facultatif.
@@ -61,16 +101,44 @@ export class InfosPersonnelles {
   // Donnees affichees. Peut arriver a null puis se remplir quand la page
   // a recupere le profil : linkedSignal reinitialise alors le formulaire.
   readonly profil = input<Profil | null>(null);
+  // Identite lue dans un CV, pour completer les champs encore vides
+  readonly prerempli = input<IdentiteExtraite | null>(null);
 
   // Retour visuel pilote par la page : le composant ne sait rien du reseau.
   readonly enSauvegarde = input(false);
   readonly message = input<MessageSection | null>(null);
 
+  /** « Modifier mon profil » : le bouton n'apparaît qu'une fois un champ modifié, avec « Annuler ». */
+  readonly boutonSiModifie = input(false);
+
   readonly sauvegarder = output<ProfilRequest>();
+
+  protected readonly pays = PAYS;
+  protected readonly situations = SITUATIONS;
+
+  // La situation professionnelle ne concerne que les alumni
+  protected readonly afficherSituation = computed(() => this.profil()?.role === 'ALUMNI');
 
   // L'input est en lecture seule : on en derive une copie locale editable.
   // linkedSignal la resynchronise a chaque nouveau profil recu.
-  protected readonly modele = linkedSignal(() => versModele(this.profil()));
+  protected readonly modele = linkedSignal(() =>
+    // Le CV n'est applique qu'une fois le profil recu : avant, tous les champs
+    // paraissent vides et l'identite du CV remplacerait celle du compte.
+    completerDepuisCv(versModele(this.profil()), this.profil() ? this.prerempli() : null)
+  );
+
+  readonly modifie = computed(() => JSON.stringify(this.modele()) !== JSON.stringify(versModele(this.profil())));
+
+  protected annuler(): void {
+    this.modele.set(versModele(this.profil()));
+  }
+
+  // Au moins un champ vide a ete complete par le CV
+  protected readonly completeParCv = computed(() => {
+    const avant = versModele(this.profil());
+    const apres = completerDepuisCv(avant, this.profil() ? this.prerempli() : null);
+    return CHAMPS_CV.some((champ) => avant[champ] !== apres[champ]);
+  });
 
   // L'identité est obligatoire. Les autres informations restent facultatives.
   protected readonly formulaire = form(this.modele, (champ) => {
@@ -90,9 +158,12 @@ export class InfosPersonnelles {
     });
   });
 
-  protected valider(): void {
+  // Publique : la page peut demander l'enregistrement depuis son propre
+  // bouton (« Enregistrer et continuer »). Renvoie false si la saisie est invalide.
+  valider(): boolean {
     if (this.formulaire().invalid()) {
-      return;
+      this.formulaire().markAsTouched();
+      return false;
     }
     const valeurs = this.modele();
     // On emet les chaines telles quelles, vide compris : une chaine vide
@@ -102,6 +173,8 @@ export class InfosPersonnelles {
       prenom: valeurs.prenom.trim(),
       bio: valeurs.bio.trim(),
       villeResidence: valeurs.villeResidence.trim(),
+      paysResidence: valeurs.paysResidence,
+      ...(this.afficherSituation() ? { situationActuelle: valeurs.situationActuelle } : {}),
       posteActuel: valeurs.posteActuel.trim(),
       lienLinkedin: valeurs.lienLinkedin.trim(),
       lienPortfolio: valeurs.lienPortfolio.trim(),
@@ -109,5 +182,6 @@ export class InfosPersonnelles {
       dateNaissance: valeurs.dateNaissance || undefined,
       effacerDateNaissance: !valeurs.dateNaissance && Boolean(this.profil()?.dateNaissance)
     });
+    return true;
   }
 }

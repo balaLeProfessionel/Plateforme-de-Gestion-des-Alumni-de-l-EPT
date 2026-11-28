@@ -1,0 +1,84 @@
+<div class="page-stages">
+  <app-bouton-retour [secours]="secours()" />
+
+  @if (erreur(); as message) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Offre introuvable</h2>
+      <p>{{ message }}</p>
+      <a [routerLink]="secours()">Revenir aux offres</a>
+    </div>
+  } @else if (offre(); as o) {
+    <article class="offre">
+      <header class="entete">
+        <div class="pastilles">
+          <span class="pastille type">{{ types[o.type] }}</span>
+          @if (o.statut !== 'PUBLIEE') { <span class="pastille statut">{{ statuts[o.statut] }}</span> }
+          @else if (!o.candidaturesOuvertes) { <span class="pastille statut">Candidatures closes</span> }
+        </div>
+        <h1>{{ o.titre }}</h1>
+        <p class="definition">{{ definitions[o.type] }}</p>
+        <p class="organisme"><a [routerLink]="['/organismes', o.organisme.id]">{{ o.organisme.nom }}</a></p>
+      </header>
+
+      @if (o.motifRetrait) {
+        <p class="motif" role="note"><strong>Retirée par l’école :</strong> {{ o.motifRetrait }}</p>
+      }
+      <p class="message" role="status" [hidden]="!message()">{{ message() }}</p>
+
+      <dl class="infos">
+        <div><dt>Lieu</dt><dd>{{ o.ville ? o.ville + ', ' : '' }}{{ o.pays }}</dd></div>
+        <div><dt>Période</dt><dd>{{ periode(o) }}</dd></div>
+        <div><dt>Places</dt><dd>{{ o.nombrePlaces }}</dd></div>
+        <div><dt>Date limite de candidature</dt><dd>{{ o.dateLimite | date: 'd MMMM y' }}</dd></div>
+        <div><dt>Public</dt><dd>{{ publics[o.publicVise] }}</dd></div>
+        @if (o.filieres.length) {
+          <div><dt>Filières</dt><dd>@for (f of o.filieres; track f.id) { {{ f.nom }}{{ $last ? '' : ', ' }} }</dd></div>
+        }
+        @if (o.classes.length) {
+          <div><dt>Classes</dt><dd>@for (c of o.classes; track c) { {{ classes[c] }}{{ $last ? '' : ', ' }} }</dd></div>
+        }
+      </dl>
+
+      <section aria-labelledby="titre-description">
+        <h2 id="titre-description">Programme</h2>
+        <p class="texte">{{ o.description }}</p>
+      </section>
+
+      <section aria-labelledby="titre-dossier">
+        <h2 id="titre-dossier">Pièces du dossier</h2>
+        <ul class="pieces-demandees">
+          @for (p of o.piecesDemandees; track p) { <li><i class="pi pi-file-pdf" aria-hidden="true"></i>{{ pieces[p] }}</li> }
+        </ul>
+      </section>
+
+      <app-fichiers-offre-mobilite [offre]="o" (modifiee)="offre.set($event)" />
+
+      @if (o.modifiable) {
+        @if (confirmerCloture()) {
+          <div class="confirmation" role="group" aria-label="Clôturer l’offre">
+            <p>Clôturer l’offre ? Elle ne recevra plus de candidatures, même avant la date limite.</p>
+            @if (erreurAction(); as e) { <p class="erreur" role="alert">{{ e }}</p> }
+            <div class="boutons">
+              <button type="button" class="bouton principal" [disabled]="enCours()" (click)="cloturer()">Clôturer l’offre</button>
+              <button type="button" class="bouton" (click)="confirmerCloture.set(false)">Ne rien changer</button>
+            </div>
+          </div>
+        } @else if (o.statut === 'PUBLIEE') {
+          <div class="boutons">
+            <a class="bouton principal" [routerLink]="['/mobilites/offres', o.id, 'modifier']"><i class="pi pi-pencil" aria-hidden="true"></i>Modifier l’offre</a>
+            <button type="button" class="bouton" (click)="confirmerCloture.set(true); erreurAction.set(null)">Clôturer…</button>
+          </div>
+        }
+      } @else if (o.eligibilite) {
+        @if (o.eligibilite.eligible) {
+          <app-candidature-offre-mobilite [offre]="o" />
+        } @else {
+          <aside class="candidature" aria-label="Candidature"><p>{{ o.eligibilite.raison }}</p></aside>
+        }
+      }
+    </article>
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement de l’offre"></div>
+  }
+</div>

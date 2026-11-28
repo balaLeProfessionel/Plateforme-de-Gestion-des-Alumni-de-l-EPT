@@ -1,125 +1,114 @@
-.formulaire-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 3rem 1.5rem;
-  background: var(--ept-bg);
-}
-
-.formulaire-carte {
-  width: 100%;
-  max-width: 460px;
-  background: var(--ept-surface);
-  border-radius: var(--ept-radius);
-  box-shadow: var(--ept-shadow);
-  padding: 2.5rem;
-}
+@use 'responsive' as *;
 
 .entete {
-  margin-bottom: 1.75rem;
-
-  .retour {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.85rem;
-    color: var(--ept-text-secondary);
-    text-decoration: none;
-    margin-bottom: 1rem;
-
-    &:hover { color: var(--ept-primary); }
-  }
+  margin-bottom: 1.5rem;
 
   h1 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     margin: 0 0 0.25rem;
+
+    &:focus { outline: none; }
   }
 
   .sous-titre {
-    color: var(--ept-text-secondary);
     margin: 0;
-    font-size: 0.95rem;
+    color: var(--ept-text-secondary);
   }
 }
 
-.message-erreur {
-  display: block;
-  margin-bottom: 1.25rem;
+.progression {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin-bottom: 0.9rem;
+
+  // Sur bureau, le panneau latéral montre déjà les étapes
+  @include a-partir-de(bureau) { display: none; }
+}
+
+.segment {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--ept-border);
+
+  &.fait { background: var(--ept-primary); }
+}
+
+.ligne-etape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.etape {
+  margin: 0;
+  color: var(--ept-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.profil {
+  color: var(--ept-text-secondary);
+  font-size: 0.85rem;
+  text-decoration: none;
+
+  span { color: var(--ept-primary); font-weight: 600; text-decoration: underline; }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
 }
 
 .ligne-double {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 1fr;
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 0.75rem;
 
-  @media (max-width: 480px) {
-    grid-template-columns: minmax(0, 1fr);
+  @include a-partir-de(tablette) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-.champ {
-  margin-bottom: 1.25rem;
-  display: flex;
-  flex-direction: column;
-
-  label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    margin-bottom: 0.4rem;
-
-    .optionnel {
-      font-weight: 400;
-      color: var(--ept-text-secondary);
-    }
-  }
-
-  input {
-    width: 100%;
-  }
+.chevron {
+  padding-right: 0.4rem;
+  color: var(--ept-text-secondary);
+  pointer-events: none;
 }
 
-.champ-mdp {
-  position: relative;
+.btn-ept { margin-top: 0.5rem; }
+
+.actions {
   display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+
+  .btn-ept { flex: 1; margin-top: 0; }
+}
+
+.btn-retour {
+  display: inline-flex;
   align-items: center;
+  gap: 0.4rem;
+  padding: 0 1rem;
+  border: 1.5px solid var(--ept-border-champ);
+  border-radius: var(--ept-radius-sm);
+  background: var(--ept-surface);
+  color: var(--ept-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
 
-  input {
-    width: 100%;
-    padding-right: 2.75rem;
-  }
-
-  .bascule-mdp {
-    position: absolute;
-    right: 0.5rem;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: var(--ept-text-secondary);
-    padding: 0.5rem;
-    display: flex;
-    align-items: center;
-    border-radius: var(--ept-radius-sm);
-
-    &:hover { color: var(--ept-primary); }
-    &:focus-visible {
-      outline: 2px solid var(--ept-primary);
-      outline-offset: 2px;
-    }
-  }
-}
-
-.erreur-champ {
-  color: var(--ept-error);
-  font-size: 0.8rem;
-  margin-top: 0.35rem;
+  &:hover { border-color: var(--ept-primary); }
+  &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
 }
 
 .lien-connexion {
-  text-align: center;
   margin-top: 1.5rem;
-  font-size: 0.9rem;
+  text-align: center;
   color: var(--ept-text-secondary);
+  font-size: 0.9rem;
 
   a {
     color: var(--ept-primary);

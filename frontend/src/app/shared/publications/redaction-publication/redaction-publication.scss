@@ -67,13 +67,6 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .publier { background: var(--ept-primary); border: 1px solid var(--ept-primary); color: white; }
 .publier:hover { background: var(--ept-primary-dark); }
 
-.dialogue-recadrage { box-sizing: border-box; width: min(36rem, calc(100vw - 2rem)); max-height: calc(100dvh - 1.5rem); margin: auto; padding: 1rem; overflow: auto; border: 1px solid var(--ept-border); border-radius: var(--ept-radius-lg); background: var(--ept-surface); color: var(--ept-primary-dark); box-shadow: 0 1rem 3rem rgb(11 37 51 / 24%); }
-.dialogue-recadrage::backdrop { background: rgb(11 37 51 / 62%); }
-.entete-recadrage { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: .75rem; }
-.entete-recadrage h2 { margin: 0; font-size: 1.15rem; }
-.entete-recadrage button { flex: 0 0 2.5rem; width: 2.5rem; height: 2.5rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm); background: transparent; color: var(--ept-primary); font-size: 1.4rem; }
-.dialogue-recadrage app-recadreur-image { display: block; width: 100%; --recadreur-largeur-cadre: min(30rem, 40dvh); }
-
 @media (max-width: 560px) {
   .redaction.integree { --marge-redaction: 1rem; }
   .apercu-publication { grid-template-columns: minmax(0, 6.5rem) minmax(0, 1fr); gap: .65rem; }
@@ -82,5 +75,4 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
   .audience select { flex: 1 1 auto; }
   .actions-redaction { display: grid; grid-template-columns: 1fr 1fr; width: 100%; margin-left: 0; }
   .actions-redaction button { min-width: 0; }
-  .dialogue-recadrage { width: calc(100vw - 1rem); max-height: calc(100dvh - 1rem); padding: .75rem; }
 }

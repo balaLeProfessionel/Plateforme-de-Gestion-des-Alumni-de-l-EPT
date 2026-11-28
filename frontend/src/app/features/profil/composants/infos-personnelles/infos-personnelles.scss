@@ -94,3 +94,59 @@
     min-height: 48px;
   }
 }
+
+.select-ept {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--ept-border-champ);
+  border-radius: var(--ept-radius-sm);
+  font-family: var(--ept-font-body);
+  font-size: 0.95rem;
+  color: var(--ept-text);
+  background: var(--ept-surface);
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-primary);
+    outline-offset: 1px;
+    border-color: var(--ept-primary);
+  }
+
+  @media (max-width: 560px) {
+    font-size: 16px;
+  }
+}
+
+.note-cv {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--ept-radius-sm);
+  background: var(--ept-primary-light);
+  color: var(--ept-text);
+  font-size: 0.85rem;
+}
+
+// Bouton d'enregistrement et « Annuler » côte à côte (« Modifier mon profil »)
+.actions-enregistrement {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.btn-annuler {
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border: none;
+  background: transparent;
+  color: var(--ept-text-secondary);
+  font: inherit;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  cursor: pointer;
+  border-radius: var(--ept-radius-sm);
+
+  &:focus-visible {
+    outline: 2px solid var(--ept-focus-clair);
+    outline-offset: 2px;
+  }
+}

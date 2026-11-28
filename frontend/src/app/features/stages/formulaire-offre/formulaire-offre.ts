@@ -15,7 +15,7 @@ import { focaliserPremiereErreur } from '../../../shared/formulaires/focus-premi
 import { chargerImagePourRecadrage } from '../../../shared/images/charger-image';
 import { estTropPetite, FORMAT_OFFRE_STAGE } from '../../../shared/images/recadrage';
 import { RecadreurImage } from '../../../shared/images/recadreur-image';
-import { TaillePipe } from '../taille-fichier';
+import { TaillePipe } from '../../../shared/taille-fichier';
 
 const VIERGE = {
   organisme: '', titre: '', typeStage: '' as TypeStage | '', dureeMois: '', lieu: '', dateDebutPrevue: '', nombrePlaces: '',

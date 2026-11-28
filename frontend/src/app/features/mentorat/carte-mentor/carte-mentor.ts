@@ -16,6 +16,8 @@ export class CarteMentor {
   readonly mentor = input.required<Mentor>();
   /** Mes demandes sans réponse ont atteint la limite : je ne peux plus en envoyer. */
   readonly limiteAtteinte = input(false);
+  /** Faux pour qui ne participe pas au mentorat (visiteur, organisme) : la carte reste informative. */
+  readonly peutDemander = input(true);
   readonly demander = output<Mentor>();
 
   protected readonly nomAffiche = computed(() => `${this.mentor().prenom} ${this.mentor().nom}`.trim());

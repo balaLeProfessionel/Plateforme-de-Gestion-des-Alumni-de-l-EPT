@@ -19,6 +19,17 @@ describe('MotDePasseOublie', () => {
     await fixture.whenStable();
   });
 
+  it('n affiche pas d erreur à l arrivée, seulement après un essai d envoi', () => {
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('[aria-invalid="true"]')).toBeNull();
+
+    component['envoyerCode']();
+    fixture.detectChanges();
+    expect(element.querySelector('#emailReinitialisation-message')?.textContent).toContain("L'email est obligatoire");
+    expect(element.querySelector('#emailReinitialisation')?.getAttribute('aria-invalid')).toBe('true');
+  });
+
   it('normalise l email et ouvre l ecran du code', () => {
     const http = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);

@@ -3,12 +3,18 @@ package ept.edu.sn.alumni_backend.apercu;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.junit.jupiter.api.Test;
 
 class ApercuLienTests {
@@ -75,11 +81,14 @@ class ApercuLienTests {
     @Test
     void lesPlagesInternesSontInterdites() throws Exception {
         for (String interne : List.of("10.0.0.1", "172.16.5.4", "192.168.1.1", "169.254.169.254", "100.64.0.1",
-                "0.0.0.0", "255.255.255.255", "fd00::1", "fe80::1", "::ffff:127.0.0.1")) {
+                "0.0.0.0", "255.255.255.255", "fd00::1", "fe80::1", "::ffff:127.0.0.1",
+                // IPv6 qui mène à une adresse IPv4 interne : NAT64, IPv4-compatible, 6to4, Teredo ; et la documentation.
+                "64:ff9b::a9fe:a9fe", "::7f00:1", "2002:7f00:1::1", "2002:a9fe:a9fe::1", "2001:0:4136:e378::1", "2001:db8::1")) {
             assertThat(GardeAdresse.interdite(InetAddress.getByName(interne))).as(interne).isTrue();
         }
         assertThat(GardeAdresse.interdite(InetAddress.getByName("196.1.95.1"))).isFalse();
         assertThat(GardeAdresse.interdite(InetAddress.getByName("2a00:1450:4007::1"))).isFalse();
+        assertThat(GardeAdresse.interdite(InetAddress.getByName("2002:c401:5f01::1"))).as("6to4 vers une IPv4 publique").isFalse();
     }
 
     @Test
@@ -112,5 +121,46 @@ class ApercuLienTests {
         assertThat(apercu.lisible()).isFalse();
         assertThat(apercu.site()).isEqualTo("linkedin.com");
         assertThat(apercu.url()).isEqualTo("https://www.linkedin.com/posts/fatou-diop_stage");
+    }
+
+    @Test
+    void leResolveurDuClientRefuseUnNomQuiMeneAUneAdresseInterne() throws Exception {
+        TelechargeurHttp.ResolveurPublic resolveur = new TelechargeurHttp.ResolveurPublic();
+        // Même si la vérification préalable a vu une adresse publique, la connexion ne part pas vers une adresse interne.
+        assertThatThrownBy(() -> resolveur.resolve("127.0.0.1")).isInstanceOf(UnknownHostException.class);
+        assertThatThrownBy(() -> resolveur.resolve("localhost", 443)).isInstanceOf(UnknownHostException.class);
+        assertThat(resolveur.resolve("196.1.95.1", 443)).extracting(a -> a.getAddress().getHostAddress()).containsExactly("196.1.95.1");
+    }
+
+    @Test
+    void unSiteQuiEnvoieSaPageGoutteAGoutteEstAbandonneALEcheance() {
+        InputStream goutteAGoutte = new InputStream() {
+            @Override public int read() {
+                try {
+                    Thread.sleep(40);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                return 'a';
+            }
+
+            @Override public int read(byte[] b, int off, int len) {
+                b[off] = (byte) read();
+                return 1;
+            }
+        };
+        long echeance = System.nanoTime() + Duration.ofMillis(200).toNanos();
+        assertThatThrownBy(() -> TelechargeurHttp.lireBorne(goutteAGoutte, 1024 * 1024, true, echeance, new HttpGet("https://exemple.sn/")))
+            .isInstanceOf(IOException.class);
+    }
+
+    @Test
+    void unCorpsTropLourdEstTronqueOuRefuse() throws Exception {
+        long loin = System.nanoTime() + Duration.ofSeconds(5).toNanos();
+        byte[] dixOctets = "0123456789".getBytes(StandardCharsets.UTF_8);
+        HttpGet requete = new HttpGet("https://exemple.sn/");
+        assertThat(TelechargeurHttp.lireBorne(new ByteArrayInputStream(dixOctets), 4, true, loin, requete)).containsExactly('0', '1', '2', '3');
+        assertThat(TelechargeurHttp.lireBorne(new ByteArrayInputStream(dixOctets), 4, false, loin, requete)).isNull();
+        assertThat(TelechargeurHttp.lireBorne(new ByteArrayInputStream(dixOctets), 10, false, loin, requete)).hasSize(10);
     }
 }

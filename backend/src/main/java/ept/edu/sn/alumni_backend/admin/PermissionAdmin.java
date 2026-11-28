@@ -26,7 +26,11 @@ public enum PermissionAdmin {
     /** Publier une annonce officielle ou un appel à projet. */
     PUBLIER_ANNONCES("Publier des annonces"),
     /** Traiter les signalements et masquer une publication ; voit aussi les publications de toutes les audiences. */
-    MODERER_PUBLICATIONS("Modérer les publications");
+    MODERER_PUBLICATIONS("Modérer les publications"),
+    /** Lister, créer et modifier les communautés de la messagerie (sans en devenir membre). */
+    GERER_COMMUNAUTES("Communautés"),
+    /** Voir toutes les offres d'emploi ; vérifier, refuser ou retirer une offre et traiter ses signalements (#224). */
+    GERER_OFFRES_EMPLOI("Offres d'emploi");
 
     private final String libelle;
 

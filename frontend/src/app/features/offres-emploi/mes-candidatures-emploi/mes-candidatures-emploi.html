@@ -1,0 +1,59 @@
+<div class="page-emploi">
+  <app-bouton-retour secours="/offres-emploi" />
+  <header class="entete"><h1>Mes candidatures</h1></header>
+
+  @if (erreur()) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Vos candidatures n’ont pas pu être chargées</h2>
+      <button type="button" class="bouton" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (candidatures(); as liste) {
+    @if (liste.length === 0) {
+      <div class="etat">
+        <i class="pi pi-send" aria-hidden="true"></i>
+        <h2>Aucune candidature pour l’instant</h2>
+        <p>Les offres marquées « Candidature sur la plateforme » se postulent ici, avec votre CV.</p>
+        <a class="bouton principal" routerLink="/offres-emploi">Voir les offres</a>
+      </div>
+    } @else {
+      @for (section of sections(); track section.id) {
+        <section class="section" [attr.aria-labelledby]="'titre-' + section.id">
+          <h2 [id]="'titre-' + section.id">{{ section.titre }} <span class="nombre">{{ section.cartes.length }}</span></h2>
+          <ul class="liste">
+            @for (carte of section.cartes; track carte.candidature.id) {
+              @let c = carte.candidature;
+              <li class="carte carte-cliquable" [attr.data-statut]="c.statut">
+                <div class="haut">
+                  <p class="entreprise"><i class="pi pi-building" aria-hidden="true"></i>{{ c.entreprise }}</p>
+                  <span class="statut" [attr.data-statut]="c.statut">
+                    <i class="pi" [class]="icones[c.statut]" aria-hidden="true"></i>{{ statuts[c.statut] }}
+                  </span>
+                </div>
+                <h3><a class="lien-etire" [routerLink]="['/offres-emploi', c.offreId]">{{ c.titreOffre }}</a></h3>
+                <ol class="avancement" aria-hidden="true">
+                  @for (segment of carte.segments; track $index) {
+                    <li [class]="segment"></li>
+                  }
+                </ol>
+                <p class="dates">
+                  <span><i class="pi pi-calendar" aria-hidden="true"></i>Envoyée le {{ c.envoyeeLe | date: 'd MMM y' }}</span>
+                  @if (c.statut === 'RETIREE' && c.retireeLe) {
+                    <span><i class="pi pi-undo" aria-hidden="true"></i>Retirée le {{ c.retireeLe | date: 'd MMM y' }}</span>
+                  } @else if (c.offreExpiree) {
+                    <span><i class="pi pi-clock" aria-hidden="true"></i>Offre expirée</span>
+                  } @else {
+                    <span><i class="pi pi-clock" aria-hidden="true"></i>Ouverte jusqu’au {{ c.dateExpiration | date: 'd MMM y' }}</span>
+                  }
+                </p>
+                <i class="pi pi-chevron-right fleche" aria-hidden="true"></i>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement de vos candidatures"></div>
+  }
+</div>

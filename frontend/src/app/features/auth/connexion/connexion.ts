@@ -1,19 +1,17 @@
 import { DecimalPipe, DOCUMENT, NgOptimizedImage } from '@angular/common';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, Injector, inject, signal } from '@angular/core';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { CHIFFRES_CLES } from '../../vitrine/contenu-vitrine';
 import { Router, RouterLink } from '@angular/router';
 import { email, form, required, FormField } from '@angular/forms/signals';
-
-import { InputTextModule } from 'primeng/inputtext';
-import { PasswordModule } from 'primeng/password';
-import { MessageModule } from 'primeng/message';
 import { AuthResponse } from '../../../core/services/models/auth-response.model';
+import { ChampFormulaire } from '../../../shared/formulaires/champ-formulaire/champ-formulaire';
+import { focaliserPremiereErreur } from '../../../shared/formulaires/focus-premiere-erreur';
 import { BoutonGoogle } from '../bouton-google/bouton-google';
 
 @Component({
   selector: 'app-connexion',
-  imports: [DecimalPipe, NgOptimizedImage, FormField, InputTextModule, PasswordModule, MessageModule, RouterLink, BoutonGoogle],
+  imports: [DecimalPipe, NgOptimizedImage, FormField, ChampFormulaire, RouterLink, BoutonGoogle],
   templateUrl: './connexion.html',
   styleUrl: './connexion.scss',
 })
@@ -49,12 +47,24 @@ export class Connexion {
   protected readonly messageErreur = signal<string | null>(history.state?.erreur ?? null);
   protected readonly messageSucces = signal<string | null>(history.state?.message ?? null);
   protected readonly afficherMdp = signal(false);
+  private readonly injector = inject(Injector);
+  private readonly hote = inject<ElementRef<HTMLElement>>(ElementRef);
+  // L'utilisateur a déjà essayé de se connecter : toutes les erreurs s'affichent
+  private readonly tentee = signal(false);
+
+  /** Erreur affichée après une saisie quittée ou un essai de connexion, pas à l'arrivée. */
+  protected erreur(nom: 'email' | 'password'): string | null {
+    const champ = this.formulaire[nom]();
+    const montrer = (champ.touched() && champ.dirty()) || this.tentee();
+    return montrer && champ.invalid() ? (champ.errors()[0]?.message ?? null) : null;
+  }
 
   /** Soumission du formulaire : le bouton comme la touche Entrée dans un champ. */
   seConnecter(evenement?: Event) {
     evenement?.preventDefault();
+    this.tentee.set(true);
     if (this.formulaire().invalid()) {
-      this.formulaire().markAsTouched();
+      focaliserPremiereErreur(this.hote.nativeElement, this.injector);
       return;
     }
 

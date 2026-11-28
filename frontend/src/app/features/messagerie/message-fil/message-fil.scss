@@ -1,0 +1,194 @@
+/* `relative` : les libellés `.sr-only` (absolus) restent dans la zone qui défile au lieu d’allonger la page. */
+:host {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+:host(.suite) { margin-top: 0.15rem; }
+:host(.de-moi) { justify-content: flex-end; }
+
+/* L’avatar se cale en haut, à hauteur du nom de l’auteur. */
+.emplacement-avatar { width: 2rem; flex: 0 0 auto; align-self: flex-start; }
+
+.corps {
+  display: flex;
+  max-width: min(34rem, 75%);
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+:host(.de-moi) .corps { align-items: flex-end; }
+
+/* Bulles sans bordure : une ombre légère les détache du fond, comme dans les messageries courantes. */
+.bulle {
+  display: flex;
+  max-width: 100%;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: flex-end;
+  column-gap: 0.6rem;
+  padding: 0.5rem 0.85rem 0.4rem;
+  border-radius: 1.2rem;
+  background: var(--ept-surface);
+  box-shadow: 0 1px 2px rgba(1, 67, 101, 0.1);
+  color: var(--ept-text);
+
+  p {
+    min-width: 0;
+    flex: 1 1 auto;
+    margin: 0;
+    font-size: 0.94rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+
+  time { flex: 0 0 auto; margin-left: auto; color: var(--ept-text-secondary); font-size: 0.68rem; }
+}
+
+/* Coin d’ancrage en haut, côté auteur, sur la première bulle d’une série seulement (à côté de l’avatar). */
+:host(:not(.suite):not(.de-moi)) .bulle { border-top-left-radius: 0.4rem; }
+:host(.de-moi:not(.suite)) .bulle { border-top-right-radius: 0.4rem; }
+
+/* Mes messages : bleu ciel pâle, texte marine (heure à 4,5:1 au moins sur ce fond). */
+:host(.de-moi) .bulle {
+  background: #d4eef8;
+  box-shadow: none;
+  color: var(--ept-primary);
+
+  time { color: #3f5a6b; }
+}
+
+/* Image jointe (20rem) : un liseré fin autour, la légende et l’heure dessous ; la bulle prend sa largeur. */
+.bulle:has(.apercu) {
+  width: calc(20rem + 0.5rem);
+  box-sizing: border-box;
+  padding: 0.25rem;
+
+  p { padding: 0.25rem 0.55rem 0; }
+  time { margin: 0.1rem 0.5rem 0.15rem auto; }
+}
+
+/* Message supprimé : une ligne discrète, sans cadre. */
+.supprime {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0.15rem 0.35rem;
+  color: var(--ept-text-secondary);
+  font-size: 0.8rem;
+  font-style: italic;
+
+  i { font-size: 0.75rem; }
+}
+
+/* Groupe : le nom de l’auteur en tête de la première bulle d’une série, dans sa couleur (donnée en ligne). */
+.auteur {
+  flex: 1 0 100%;
+  margin: 0 0 0.1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.bulle:has(.apercu) .auteur { padding: 0.2rem 0.55rem 0.15rem; }
+
+/* Corbeille : un petit bouton rond qui apparaît au survol du message. */
+.ouvrir-suppression {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  align-self: center;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ept-text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s;
+
+  &:hover { background: var(--ept-error-light); color: var(--ept-error-dark); }
+  &:focus-visible { opacity: 1; outline: 2px solid var(--ept-focus-clair); outline-offset: 1px; }
+}
+
+/* La corbeille se place à gauche de mon message. */
+:host(.de-moi) .ouvrir-suppression { order: -1; }
+
+@media (hover: hover) { :host(:hover) .ouvrir-suppression { opacity: 1; } }
+/* Sans survol (écran tactile) : un appui sur mon message fait apparaître la corbeille ; cachée, elle ne capte rien. */
+@media (hover: none) {
+  .ouvrir-suppression:not(:focus-visible) { pointer-events: none; }
+  :host(.actions-visibles) .ouvrir-suppression { opacity: 1; pointer-events: auto; }
+  :host(.de-moi) .bulle { cursor: pointer; }
+}
+
+/* Confirmation : une petite fenêtre modale centrée, sur un voile sombre. */
+.confirmation {
+  width: min(100% - 2rem, 20rem);
+  box-sizing: border-box;
+  padding: 1.5rem 1.25rem 1.25rem;
+  border: 0;
+  border-radius: var(--ept-radius-lg);
+  background: var(--ept-surface);
+  box-shadow: 0 1.25rem 3rem rgba(1, 46, 69, 0.25);
+  color: var(--ept-text);
+  text-align: center;
+  animation: apparition 0.15s ease-out;
+
+  &::backdrop { background: rgba(1, 46, 69, 0.45); }
+
+  .icone {
+    display: grid;
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto 0.75rem;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--ept-error-light);
+    color: var(--ept-error-dark);
+    font-size: 1.15rem;
+  }
+
+  h2 { margin: 0; color: var(--ept-primary-dark); font-family: var(--ept-font-heading); font-size: 1.15rem; }
+
+  .erreur { margin: 0.75rem 0 0; color: var(--ept-error-dark); font-size: 0.85rem; }
+
+  .boutons { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 1.25rem; }
+
+  button {
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border: 1px solid var(--ept-border);
+    border-radius: 999px;
+    background: var(--ept-surface);
+    color: var(--ept-primary);
+    font: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover:not(:disabled) { background: var(--ept-primary-light); }
+    &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; }
+    &:disabled { cursor: wait; opacity: 0.7; }
+  }
+
+  .danger { border-color: var(--ept-error); background: var(--ept-error); color: #fff; }
+  .danger:hover:not(:disabled) { border-color: var(--ept-error-dark); background: var(--ept-error-dark); }
+}
+
+@keyframes apparition { from { opacity: 0; transform: scale(0.96); } }
+@media (prefers-reduced-motion: reduce) { .confirmation { animation: none; } }
+
+
+.erreur { margin: 0; color: var(--ept-error-dark); font-size: 0.85rem; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

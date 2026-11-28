@@ -1,0 +1,80 @@
+<div class="page-emploi">
+  <app-bouton-retour [secours]="'/offres-emploi/' + id" />
+
+  @if (erreurChargement(); as texte) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h1>Candidatures indisponibles</h1>
+      <p>{{ texte }}</p>
+      <a class="bouton" routerLink="/offres-emploi/mes-offres">Mes offres</a>
+    </div>
+  } @else if (offre(); as o) {
+    <header class="entete">
+      <h1>Candidatures</h1>
+      <p class="introduction">
+        <a [routerLink]="['/offres-emploi', o.id]">{{ o.titre }}</a> · {{ o.entreprise }}
+        @if (o.cloturee) { · <strong>recrutement clôturé</strong> }
+      </p>
+    </header>
+
+    <p class="statut-message" role="status">{{ message() }}</p>
+
+    @if (candidatures().length === 0) {
+      <div class="etat">
+        <i class="pi pi-inbox" aria-hidden="true"></i>
+        <h2>Aucune candidature pour l’instant</h2>
+        <p>Les étudiants et les alumni qui postulent apparaîtront ici, avec leur CV et leurs réponses.</p>
+      </div>
+    } @else {
+      <section class="outils" aria-label="Filtrer et trier les candidatures">
+        <div class="filtres" role="group" aria-label="Statut">
+          <button type="button" [attr.aria-pressed]="!filtre()" (click)="filtre.set('')">Toutes ({{ candidatures().length }})</button>
+          @for (c of compteurs(); track c.statut) {
+            <button type="button" [attr.aria-pressed]="filtre() === c.statut" (click)="filtre.set(c.statut)">{{ libelles[c.statut] }} ({{ c.nombre }})</button>
+          }
+        </div>
+        <div class="champ tri">
+          <label for="tri-candidatures">Trier par</label>
+          <select id="tri-candidatures" (change)="choisirTri($event)">
+            <option value="recentes" [selected]="tri() === 'recentes'">Plus récentes</option>
+            <option value="anciennes" [selected]="tri() === 'anciennes'">Plus anciennes</option>
+            <option value="nom" [selected]="tri() === 'nom'">Nom du candidat</option>
+          </select>
+        </div>
+      </section>
+
+      <p class="resume" aria-live="polite">{{ affichees().length }} candidature{{ affichees().length > 1 ? 's' : '' }} affichée{{ affichees().length > 1 ? 's' : '' }}</p>
+      <ul class="liste">
+        @for (c of affichees(); track c.id) {
+          <li><app-candidature-recue-emploi [candidature]="c" [cloturee]="o.cloturee" (modifiee)="remplacer($event)" /></li>
+        }
+      </ul>
+    }
+
+    @if (clotureable()) {
+      <section class="cloture" aria-labelledby="titre-cloture">
+        <h2 id="titre-cloture">Fin du recrutement</h2>
+        @if (confirmerCloture()) {
+          <div class="confirmation" role="group" aria-label="Confirmer la clôture">
+            <p>
+              Clôturer le recrutement ? L’offre ne recevra plus de candidature.
+              @if (ouvertes()) {
+                {{ ouvertes() }} candidature{{ ouvertes() > 1 ? 's' : '' }} sans décision passer{{ ouvertes() > 1 ? 'ont' : 'a' }} en non retenue, et les candidats seront prévenus.
+              }
+            </p>
+            @if (erreurCloture(); as texte) { <p class="message-erreur" role="alert">{{ texte }}</p> }
+            <div class="boutons">
+              <button type="button" class="bouton principal" [disabled]="clotureEnCours()" (click)="cloturer()">Clôturer le recrutement</button>
+              <button type="button" class="bouton" (click)="confirmerCloture.set(false)">Annuler</button>
+            </div>
+          </div>
+        } @else {
+          <p class="aide">Vous avez trouvé votre candidat ? Clôturez l’offre : elle ne recevra plus de candidature.</p>
+          <button type="button" class="bouton" (click)="confirmerCloture.set(true)"><i class="pi pi-lock" aria-hidden="true"></i>Clôturer le recrutement</button>
+        }
+      </section>
+    }
+  } @else {
+    <div class="squelette" aria-busy="true" aria-label="Chargement des candidatures"></div>
+  }
+</div>

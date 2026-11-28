@@ -16,10 +16,12 @@
     </section>
   } @else if (organisme(); as fiche) {
     <app-entete-organisme [fiche]="fiche" [typeLibelle]="typeOrganisme()" [siteWeb]="siteWebValide()"
-      [estMaFiche]="estMaFiche()" [reseau]="reseau()" />
+      [estMaFiche]="estMaFiche()" [reseau]="reseau()" [peutEcrire]="peutEcrire()"
+      [ecritureEnCours]="ouvertureMessagerie()" [erreurEcriture]="erreurMessagerie()" (ecrire)="ecrire(fiche.id)" />
 
     <div class="grille-detail">
       <div class="colonne-principale">
+        <app-partenariat-organisme [organismeId]="fiche.id" />
         <section class="section-detail" aria-labelledby="titre-a-propos">
           <h2 id="titre-a-propos">À propos</h2>
           @if (fiche.description) {

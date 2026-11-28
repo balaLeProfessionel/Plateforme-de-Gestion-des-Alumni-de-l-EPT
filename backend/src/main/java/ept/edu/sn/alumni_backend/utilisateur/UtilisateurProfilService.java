@@ -11,6 +11,7 @@ import ept.edu.sn.alumni_backend.utilisateur.dto.ProfilResponse;
 import ept.edu.sn.alumni_backend.utilisateur.dto.ProfilPublicResponse;
 import ept.edu.sn.alumni_backend.utilisateur.exception.ProfilIntrouvableException;
 import ept.edu.sn.alumni_backend.utilisateur.mapper.ProfilMapper;
+import ept.edu.sn.alumni_backend.competence.service.CompetencesLanguesService;
 import ept.edu.sn.alumni_backend.parcours.service.ExperienceService;
 import ept.edu.sn.alumni_backend.parcours.service.FormationService;
 import ept.edu.sn.alumni_backend.utilisateur.photo.StockagePhotoProfil;
@@ -23,6 +24,7 @@ public class UtilisateurProfilService {
     private final ProfilMapper profilMapper;
     private final ExperienceService experienceService;
     private final FormationService formationService;
+    private final CompetencesLanguesService competencesLangues;
     private final StockagePhotoProfil stockagePhoto;
 
     public ProfilResponse obtenirProfil(Utilisateur utilisateur) {
@@ -40,7 +42,8 @@ public class UtilisateurProfilService {
         return profilMapper.versResponsePublique(
             utilisateur,
             experienceService.listerPour(utilisateur),
-            formationService.listerPour(utilisateur)
+            formationService.listerPour(utilisateur),
+            competencesLangues.lire(utilisateur)
         );
     }
 

@@ -9,6 +9,7 @@ import ept.edu.sn.alumni_backend.enums.TypeOrganisme;
 import ept.edu.sn.alumni_backend.parcours.entity.ExperienceProfessionelle;
 import ept.edu.sn.alumni_backend.parcours.entity.Formation;
 import ept.edu.sn.alumni_backend.utilisateur.Utilisateur;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -45,6 +46,12 @@ public class Organisme {
     private boolean etablissementEpt;
     @Enumerated(EnumType.STRING)
     private StatutCompte statutValidation = StatutCompte.EN_ATTENTE;
+    /**
+     * Masqué de la liste des partenaires vue par les membres, par décision des Relations extérieures. Visible par défaut ;
+     * la valeur par défaut en base permet d'ajouter la colonne à une table déjà remplie.
+     */
+    @Column(name = "partenaire_masque", nullable = false, columnDefinition = "boolean not null default false")
+    private boolean partenaireMasque;
     
     @OneToMany(mappedBy = "organisme")
     private List<ExperienceProfessionelle> experiences;

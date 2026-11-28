@@ -1,0 +1,94 @@
+<app-page-admin titre="Tableau de bord des partenariats" [parents]="[]"
+  introduction="Ce qui attend une action des Relations extérieures, et l’état des conventions et des accords.">
+  @if (erreur()) {
+    <div class="etat" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <h2>Chargement impossible</h2>
+      <button type="button" class="bouton" (click)="charger()">Réessayer</button>
+    </div>
+  } @else if (tableau(); as t) {
+    <section aria-labelledby="titre-a-traiter-partenariats">
+      <h2 id="titre-a-traiter-partenariats">À traiter</h2>
+      @if (t.aTraiter.length === 0) {
+        <p class="vide">Rien n’attend d’action : aucune demande, proposition, échéance proche ni résiliation en cours.</p>
+      } @else {
+        <ul class="a-traiter">
+          @for (e of t.aTraiter; track e.nature + e.id + e.motif) {
+            <li class="carte-cliquable" [attr.data-motif]="e.motif">
+              <span class="motif">{{ motifs[e.motif] }}</span>
+              <a class="lien-etire" [routerLink]="e.lien">{{ e.organismeNom }}</a>
+              <span class="objet">{{ e.nature === 'ACCORD' ? 'Accord' : 'Convention' }} · {{ e.objet }}</span>
+              <small>
+                @switch (e.motif) {
+                  @case ('EXPIRATION') { Fin le {{ e.date | date: 'd MMM y' }} }
+                  @case ('RESILIATION') { Effet le {{ e.date | date: 'd MMM y' }} }
+                  @default { Depuis le {{ e.date | date: 'd MMM y' }} }
+                }
+              </small>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section aria-labelledby="titre-chiffres-partenariats">
+      <h2 id="titre-chiffres-partenariats">En chiffres</h2>
+      <ul class="indicateurs">
+        <li><a routerLink="/admin/partenariats/conventions" [queryParams]="{ statut: 'ACTIVE' }">
+          <strong>{{ t.chiffres.partenaires }}</strong><span>Organismes partenaires</span></a></li>
+        <li><a routerLink="/admin/partenariats/conventions" [queryParams]="{ statut: 'ACTIVE' }">
+          <strong>{{ t.chiffres.conventionsActives }}</strong><span>Conventions actives</span></a></li>
+        <li><a routerLink="/admin/partenariats/conventions" [queryParams]="{ expireBientot: true }">
+          <strong>{{ t.chiffres.expirentBientot }}</strong><span>Expirent dans 60 jours</span></a></li>
+        <li><div><strong>{{ t.chiffres.demandesEnCours }}</strong><span>Demandes de convention en cours</span></div></li>
+        <li><a routerLink="/admin/partenariats/accords" [queryParams]="{ type: 'STAGE', statut: 'ACTIF' }">
+          <strong>{{ t.chiffres.accordsStageEnVigueur }}</strong><span>Accords de stage en vigueur</span></a></li>
+        <li><a routerLink="/admin/partenariats/accords" [queryParams]="{ type: 'MOBILITE', statut: 'ACTIF' }">
+          <strong>{{ t.chiffres.accordsMobiliteEnVigueur }}</strong><span>Accords de mobilité en vigueur</span></a></li>
+        <li><a routerLink="/admin/partenariats/accords" [queryParams]="{ statut: 'A_VENIR' }">
+          <strong>{{ t.chiffres.accordsAVenir }}</strong><span>Accords à venir</span></a></li>
+        <li><a routerLink="/admin/partenariats/accords" [queryParams]="{ aRepondre: true }">
+          <strong>{{ t.chiffres.propositionsAExaminer }}</strong><span>Propositions d’accord à examiner</span></a></li>
+        <li><div><strong>{{ t.chiffres.resiliationsEnCours }}</strong><span>Résiliations en cours</span></div></li>
+        <li><a routerLink="/admin/partenariats/conventions" [queryParams]="{ statut: 'EXPIREE' }">
+          <strong>{{ t.chiffres.conventionsExpirees }}</strong><span>Conventions expirées</span></a></li>
+        <li><a routerLink="/admin/partenariats/conventions" [queryParams]="{ statut: 'RESILIEE' }">
+          <strong>{{ t.chiffres.conventionsResiliees }}</strong><span>Conventions résiliées</span></a></li>
+      </ul>
+    </section>
+
+    <div class="repartitions">
+      <section class="bloc" aria-labelledby="titre-types-partenaires">
+        <h2 id="titre-types-partenaires">Partenaires par type d’organisme</h2>
+        @if (t.partenairesParType.length === 0) {
+          <p class="vide">Aucun organisme partenaire pour l’instant.</p>
+        } @else {
+          <ul class="barres">
+            @for (r of t.partenairesParType; track r.cle) {
+              <li><span class="libelle">{{ typesOrganisme[r.cle] ?? r.cle }}</span><span class="nombre">{{ r.nombre }}</span>
+                <span class="barre" aria-hidden="true"><span [style.width.%]="(r.nombre / maximumType()) * 100"></span></span></li>
+            }
+          </ul>
+        }
+      </section>
+      <section class="bloc" aria-labelledby="titre-annees-partenariats">
+        <h2 id="titre-annees-partenariats">Par année civile</h2>
+        <div class="defilement">
+        <table>
+          <thead><tr><th scope="col">Année</th><th scope="col">Conventions signées</th><th scope="col">Accords de stage</th><th scope="col">Accords de mobilité</th></tr></thead>
+          <tbody>
+            @for (a of t.parAnnee; track a.annee) {
+              <tr><th scope="row">{{ a.annee }}</th><td>{{ a.conventionsSignees }}</td><td>{{ a.accordsStage }}</td><td>{{ a.accordsMobilite }}</td></tr>
+            }
+          </tbody>
+        </table>
+        </div>
+        <p class="note">Conventions comptées à leur signature, accords à leur acceptation.</p>
+      </section>
+    </div>
+  } @else {
+    <div class="chargement" aria-busy="true" aria-label="Chargement du tableau de bord">
+      @for (item of [1, 2, 3]; track item) { <div class="squelette" aria-hidden="true"></div> }
+    </div>
+  }
+</app-page-admin>

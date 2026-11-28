@@ -36,6 +36,8 @@ export class SectionParcours {
   protected readonly etat = signal<EtatCartes>(ETAT_CARTES_VIDE);
   protected readonly suggestions = signal<OrganismeSuggestion[]>([]);
   protected readonly enRechercheOrganisme = signal(false);
+  /** Carte ouverte pour modification ; les autres restent repliées. */
+  protected readonly ouverte = signal<string | null>(null);
   private compteurBrouillons = 0;
 
   constructor() {
@@ -137,6 +139,7 @@ export class SectionParcours {
     const parametres = this.route.snapshot.queryParamMap;
     const id = parametres.get('modifier');
     if (!id || parametres.get('type') !== this.type() || !liste.some((e) => e.id === id)) return;
+    this.ouverte.set(id);
     requestAnimationFrame(() => {
       // Premier champ de la carte : on peut modifier tout de suite.
       const element = this.document.getElementById(`${id}-${this.type() === 'experience' ? 'poste' : 'libelle'}`);

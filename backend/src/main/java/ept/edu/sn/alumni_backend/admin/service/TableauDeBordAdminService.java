@@ -13,6 +13,7 @@ import ept.edu.sn.alumni_backend.admin.dto.TableauDeBordAdminResponse;
 import ept.edu.sn.alumni_backend.admin.dto.TableauDeBordAdminResponse.AFaire;
 import ept.edu.sn.alumni_backend.admin.dto.TableauDeBordAdminResponse.Communaute;
 import ept.edu.sn.alumni_backend.admin.repository.ActionAdminRepository;
+import ept.edu.sn.alumni_backend.emploi.service.ModerationOffresEmploiService;
 import ept.edu.sn.alumni_backend.enums.StatutCompte;
 import ept.edu.sn.alumni_backend.evenement.StatutEvenement;
 import ept.edu.sn.alumni_backend.evenement.repository.EvenementRepository;
@@ -36,6 +37,7 @@ public class TableauDeBordAdminService {
     private final EvenementRepository evenementRepository;
     private final ActionAdminRepository actionAdminRepository;
     private final JournalAdminService journalAdminService;
+    private final ModerationOffresEmploiService moderationOffresEmploi;
 
     @Transactional(readOnly = true)
     public TableauDeBordAdminResponse obtenir() {
@@ -43,7 +45,8 @@ public class TableauDeBordAdminService {
             utilisateurRepository.countByStatutCompteAndEmailVerifieTrue(StatutCompte.EN_ATTENTE),
             utilisateurRepository.findFirstByStatutCompteAndEmailVerifieTrueOrderByDateCreationAsc(StatutCompte.EN_ATTENTE)
                 .map(Utilisateur::getDateCreation).orElse(null),
-            utilisateurRepository.compterAdministrateursActifsAvec(PermissionAdmin.GERER_ADMINISTRATEURS));
+            utilisateurRepository.compterAdministrateursActifsAvec(PermissionAdmin.GERER_ADMINISTRATEURS),
+            moderationOffresEmploi.nombreATraiter());
         Communaute communaute = new Communaute(
             utilisateurRepository.countByStatutCompteAndEmailVerifieTrue(StatutCompte.ACTIF),
             utilisateurRepository.countByEmailVerifieTrueAndDateCreationGreaterThanEqual(

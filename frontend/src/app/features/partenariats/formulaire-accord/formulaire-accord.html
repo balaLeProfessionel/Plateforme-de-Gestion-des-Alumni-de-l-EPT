@@ -1,0 +1,75 @@
+@let m = modele();
+<form class="carte" (submit)="envoyer($event)" novalidate>
+  @if (erreur(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+  <div class="grille">
+    @if (administration() && !initial()) {
+      <div class="champ large">
+        <label for="accord-organisme">Organisme</label>
+        <input id="accord-organisme" type="text" autocomplete="off" list="accord-organismes" [formField]="formulaire.organisme"
+          [attr.aria-invalid]="formulaire.organisme().touched() && formulaire.organisme().invalid()" aria-describedby="aide-accord-organisme erreur-accord-organisme" />
+        <datalist id="accord-organismes">@for (s of suggestions(); track s.id) { <option [value]="s.nom"></option> }</datalist>
+        <small id="aide-accord-organisme" class="aide" aria-live="polite">
+          @if (organismeConnu(); as connu) { Organisme choisi : {{ connu.nom }}. } @else { Tapez au moins deux lettres de son nom. }
+        </small>
+        @if (formulaire.organisme().touched() && formulaire.organisme().errors()[0]; as e) { <small id="erreur-accord-organisme" class="erreur-champ">{{ e.message }}</small> }
+      </div>
+    }
+    <div class="champ">
+      <label for="accord-type">Type d’accord</label>
+      <select id="accord-type" [formField]="formulaire.type">
+        @for (t of typesAccord; track t) { <option [value]="t">{{ libellesType[t] }}</option> }
+      </select>
+    </div>
+    <div class="champ">
+      <label for="accord-convention">Convention-cadre (facultatif)</label>
+      <select id="accord-convention" [formField]="formulaire.conventionId" aria-describedby="aide-accord-convention">
+        <option value="">Aucune</option>
+        @for (c of conventionsActives(); track c.id) { <option [value]="c.id">{{ c.objet }}</option> }
+      </select>
+      <small id="aide-accord-convention" class="aide">Seules les conventions actives sont proposées.</small>
+    </div>
+    <div class="champ large">
+      <label for="accord-objet">Objet de l’accord</label>
+      <input id="accord-objet" type="text" autocomplete="off" placeholder="Accueil de stagiaires de fin d’études" [formField]="formulaire.objet"
+        [attr.aria-invalid]="formulaire.objet().touched() && formulaire.objet().invalid()" aria-describedby="erreur-accord-objet" />
+      @if (formulaire.objet().touched() && formulaire.objet().errors()[0]; as e) { <small id="erreur-accord-objet" class="erreur-champ">{{ e.message }}</small> }
+    </div>
+    <div class="champ large">
+      <label for="accord-description">Description (facultatif)</label>
+      <textarea id="accord-description" rows="4" [formField]="formulaire.description"
+        [attr.aria-invalid]="formulaire.description().touched() && formulaire.description().invalid()" aria-describedby="erreur-accord-description"></textarea>
+      @if (formulaire.description().touched() && formulaire.description().errors()[0]; as e) { <small id="erreur-accord-description" class="erreur-champ">{{ e.message }}</small> }
+    </div>
+    <div class="champ">
+      <label for="accord-places">Nombre de places (facultatif)</label>
+      <input id="accord-places" type="text" inputmode="numeric" autocomplete="off" [formField]="formulaire.nombrePlaces"
+        [attr.aria-invalid]="formulaire.nombrePlaces().touched() && formulaire.nombrePlaces().invalid()" aria-describedby="erreur-accord-places" />
+      @if (formulaire.nombrePlaces().touched() && formulaire.nombrePlaces().errors()[0]; as e) { <small id="erreur-accord-places" class="erreur-champ">{{ e.message }}</small> }
+    </div>
+    <div class="champ"></div>
+    <div class="champ">
+      <label for="accord-debut">Début</label>
+      <input id="accord-debut" type="date" [formField]="formulaire.dateDebut"
+        [attr.aria-invalid]="formulaire.dateDebut().touched() && formulaire.dateDebut().invalid()" aria-describedby="erreur-accord-debut" />
+      @if (formulaire.dateDebut().touched() && formulaire.dateDebut().errors()[0]; as e) { <small id="erreur-accord-debut" class="erreur-champ">{{ e.message }}</small> }
+    </div>
+    <div class="champ">
+      <label for="accord-fin">Fin</label>
+      <input id="accord-fin" type="date" [formField]="formulaire.dateFin"
+        [attr.aria-invalid]="formulaire.dateFin().touched() && formulaire.dateFin().invalid()" aria-describedby="erreur-accord-fin" />
+      @if (formulaire.dateFin().touched() && formulaire.dateFin().errors()[0]; as e) { <small id="erreur-accord-fin" class="erreur-champ">{{ e.message }}</small> }
+    </div>
+    <fieldset class="champ large filieres">
+      <legend>Filières concernées <span class="aide">(aucune cochée : toutes)</span></legend>
+      <div class="cases">
+        @for (f of filieres(); track f.id) {
+          <label><input type="checkbox" [checked]="m.filiereIds.includes(f.id)" (change)="basculerFiliere(f.id)" />{{ f.nom }}</label>
+        }
+      </div>
+    </fieldset>
+  </div>
+  <div class="boutons">
+    <button type="submit" class="bouton principal" [disabled]="enCours()">{{ initial() ? 'Enregistrer la correction' : 'Proposer l’accord' }}</button>
+    <button type="button" class="bouton" (click)="annule.emit()">Ne rien changer</button>
+  </div>
+</form>

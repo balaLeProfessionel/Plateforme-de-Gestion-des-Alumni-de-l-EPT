@@ -1,0 +1,78 @@
+<div class="page-stages">
+  <app-fil-ariane [etapes]="etapes" />
+
+  <header class="entete">
+    <h1>Partenaires de l’EPT</h1>
+    <p class="introduction">Entreprises, établissements et institutions liés à l’EPT par une convention de partenariat.
+      Les pastilles signalent les accords de stage ou de mobilité en vigueur.</p>
+  </header>
+
+  <section class="filtres" aria-label="Filtrer les partenaires">
+    <div class="types" role="group" aria-label="Type d’organisme">
+      <button type="button" [attr.aria-pressed]="!criteres().type" (click)="choisirType('')">Tous</button>
+      @for (type of types; track type) {
+        <button type="button" [attr.aria-pressed]="criteres().type === type" (click)="choisirType(type)">{{ libellesType[type] }}</button>
+      }
+    </div>
+    <div class="champs champs-partenaires">
+      <div class="champ">
+        <label for="recherche-partenaire">Nom de l’organisme</label>
+        <input id="recherche-partenaire" type="search" autocomplete="off" [value]="criteres().recherche" aria-describedby="aide-filtres-partenaires"
+          (input)="saisir($event)" (keydown.enter)="appliquer($event)" />
+      </div>
+      <div class="champ">
+        <label for="filtre-secteur">Secteur d’activité</label>
+        <select id="filtre-secteur" (change)="choisirSecteur($event)">
+          <option value="" [selected]="!criteres().secteur">Tous les secteurs</option>
+          @for (s of secteurs(); track s) { <option [value]="s" [selected]="criteres().secteur === s">{{ s }}</option> }
+        </select>
+      </div>
+    </div>
+    <span id="aide-filtres-partenaires" class="sr-only">Les résultats se mettent à jour automatiquement.</span>
+  </section>
+
+  <p class="resume" role="status">
+    @if (resultat(); as page) {
+      <strong>{{ page.totalElements }}</strong> {{ page.totalElements > 1 ? 'partenaires' : 'partenaire' }}
+      @if (filtresActifs()) { <button type="button" class="lien" (click)="reinitialiser()">Effacer les filtres</button> }
+    } @else if (enChargement()) {
+      Chargement des partenaires…
+    }
+  </p>
+
+  <div aria-live="polite" [attr.aria-busy]="enChargement()">
+    @if (enChargement() && !resultat()) {
+      <div class="grille" aria-hidden="true">
+        @for (item of [1, 2, 3, 4, 5, 6]; track item) { <div class="squelette"></div> }
+      </div>
+    } @else if (messageErreur(); as message) {
+      <div class="etat" role="alert">
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        <h2>Chargement impossible</h2>
+        <p>{{ message }}</p>
+      </div>
+    } @else if (resultat()?.contenu?.length === 0) {
+      <div class="etat">
+        <i class="pi pi-building" aria-hidden="true"></i>
+        <h2>Aucun partenaire ne correspond</h2>
+        <p>
+          @if (filtresActifs()) { Essayez un autre nom, un autre type ou un autre secteur. }
+          @else { Aucun organisme partenaire n’est encore présenté. }
+        </p>
+      </div>
+    } @else if (resultat(); as page) {
+      <ul class="grille" [class.actualisation]="enChargement()">
+        @for (p of page.contenu; track p.id) {
+          <li><app-carte-partenaire [partenaire]="p" /></li>
+        }
+      </ul>
+      @if (page.totalPages > 1) {
+        <nav class="pagination" aria-label="Pagination des partenaires">
+          <button type="button" [disabled]="page.page === 0" (click)="changerPage(page.page - 1)">Précédent</button>
+          <span>Page {{ page.page + 1 }} sur {{ page.totalPages }}</span>
+          <button type="button" [disabled]="page.page + 1 >= page.totalPages" (click)="changerPage(page.page + 1)">Suivant</button>
+        </nav>
+      }
+    }
+  </div>
+</div>

@@ -3,6 +3,8 @@ package ept.edu.sn.alumni_backend.security;
 import ept.edu.sn.alumni_backend.admin.PermissionAdmin;
 import java.util.List;
 
+import jakarta.servlet.DispatcherType;
+
 import org.springframework.http.HttpMethod;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -74,6 +76,8 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // Fin d'une réponse asynchrone (flux SSE) : la requête d'origine a déjà été authentifiée.
+                .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
                 .requestMatchers(
                     "/api/auth/register",
                     "/api/auth/login",
@@ -97,10 +101,21 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/comptes/**", "/api/admin/comptes", "/api/admin/filieres/**", "/api/admin/filieres")
                     .hasAuthority(PermissionAdmin.GERER_COMPTES.name())
                 .requestMatchers("/api/admin/signalements/**", "/api/admin/signalements").hasAuthority(PermissionAdmin.MODERER_PUBLICATIONS.name())
+                .requestMatchers("/api/admin/communautes/**", "/api/admin/communautes").hasAuthority(PermissionAdmin.GERER_COMMUNAUTES.name())
                 .requestMatchers("/api/admin/stages/**").hasAuthority(PermissionAdmin.GERER_STAGES.name())
+                .requestMatchers("/api/admin/mobilites/**").hasAuthority(PermissionAdmin.GERER_MOBILITES.name())
+                .requestMatchers("/api/admin/partenariats/**").hasAuthority(PermissionAdmin.GERER_PARTENARIATS.name())
+                .requestMatchers("/api/admin/offres-emploi/**", "/api/admin/offres-emploi").hasAuthority(PermissionAdmin.GERER_OFFRES_EMPLOI.name())
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/stages/mes-offres", "/api/stages/mes-offres/**").hasRole("ORGANISME")
+                .requestMatchers("/api/mobilites/mes-offres", "/api/mobilites/mes-offres/**").hasRole("ORGANISME")
+                .requestMatchers("/api/mobilites/accueils", "/api/mobilites/accueils/**", "/api/mobilites/mes-mobilites").hasRole("ORGANISME")
                 .requestMatchers("/api/organisme/me").hasRole("ORGANISME")
+                .requestMatchers("/api/partenaires", "/api/partenaires/**").hasAnyRole("ETUDIANT", "ALUMNI", "PERSONNEL", "ADMIN")
+                .requestMatchers("/api/partenariats/conventions", "/api/partenariats/conventions/**", "/api/partenariats/accords", "/api/partenariats/accords/**", "/api/partenariats/mon-partenariat").hasRole("ORGANISME")
+                // Offres d'emploi : réservées aux personnes liées à l'école (pas aux visiteurs).
+                .requestMatchers("/api/offres-emploi", "/api/offres-emploi/**")
+                    .hasAnyRole("ETUDIANT", "ALUMNI", "PERSONNEL", "ORGANISME", "ADMIN")
                 .requestMatchers("/api/formations/**", "/api/experiences/**")
                     .hasAnyRole("ETUDIANT", "ALUMNI", "PERSONNEL", "VISITEUR")
                 .anyRequest().authenticated()

@@ -1,0 +1,113 @@
+<section class="candidature" aria-labelledby="titre-candidature">
+  <h2 id="titre-candidature">{{ candidature() && candidature()?.statut !== 'RETIREE' ? 'Votre candidature' : 'Postuler à cette offre' }}</h2>
+
+  @if (erreurChargement()) {
+    <p class="message-erreur" role="alert">Votre candidature n’a pas pu être chargée. Rechargez la page.</p>
+  } @else if (!chargee()) {
+    <p class="aide" aria-busy="true">Chargement…</p>
+  } @else {
+    <div #zoneEtat class="etat-candidature" tabindex="-1">
+      @if (message(); as texte) { <p class="message" role="status">{{ texte }}</p> }
+      @if (candidature(); as c) {
+        <app-suivi-candidature-emploi [candidature]="c" (telecharger)="telechargerCv(c)" />
+      } @else if (offre().cloturee) {
+        <p>Le recrutement est clôturé : cette offre ne reçoit plus de candidatures.</p>
+      } @else if (offre().expiree) {
+        <p>La date d’expiration est passée : cette offre ne reçoit plus de candidatures.</p>
+      }
+    </div>
+
+    @if (candidature()?.retirable) {
+      @if (confirmationRetrait()) {
+        <div class="confirmation" role="group" aria-label="Retirer ma candidature">
+          <p>Retirer votre candidature ? Le recruteur ne la verra plus.</p>
+          <div class="boutons">
+            <button type="button" class="bouton principal" [disabled]="retraitEnCours()" (click)="retirer()">Retirer ma candidature</button>
+            <button type="button" class="bouton" (click)="confirmationRetrait.set(false)">Ne rien changer</button>
+          </div>
+        </div>
+      } @else {
+        <button type="button" class="bouton petit discret retrait" (click)="confirmationRetrait.set(true)">Retirer ma candidature</button>
+      }
+    }
+
+    @if (peutEnvoyer()) {
+      <form class="formulaire" (submit)="envoyer($event)" novalidate>
+        <p class="destinataire"><i class="pi pi-eye" aria-hidden="true"></i>
+          Votre candidature sera vue par <strong>{{ offre().entreprise }}</strong>, qui recrute, et par l’équipe de l’EPT qui suit les offres.</p>
+
+        <fieldset class="champ">
+          <legend>CV</legend>
+          @if (candidature(); as c) {
+            <label class="choix"><input type="radio" name="choix-cv" [checked]="choixCv() === 'garder'" (change)="choixCv.set('garder')" />
+              Garder « {{ c.nomCv }} »</label>
+          } @else if (dernierCv(); as cv) {
+            <label class="choix"><input type="radio" name="choix-cv" [checked]="choixCv() === 'dernier'" (change)="choixCv.set('dernier')" />
+              Reprendre « {{ cv.nomCv }} », envoyé le {{ cv.envoyeLe | date: 'd MMMM y' }}</label>
+          }
+          @if (candidature() || dernierCv()) {
+            <label class="choix"><input type="radio" name="choix-cv" [checked]="choixCv() === 'nouveau'" (change)="choixCv.set('nouveau')" />
+              Envoyer un autre CV</label>
+          }
+          @if (choixCv() === 'nouveau') {
+            <div class="depot-cv">
+              <input id="candidature-cv" class="sr-only" type="file" accept="application/pdf,.pdf" aria-describedby="nom-cv aide-cv erreur-cv"
+                [attr.aria-invalid]="erreurCv() ? true : null" (change)="choisirCv($event)" />
+              <label for="candidature-cv" class="bouton petit"><i class="pi pi-upload" aria-hidden="true"></i>{{ fichierCv() ? 'Changer de fichier' : 'Choisir mon CV' }}</label>
+              <span id="nom-cv" class="nom-fichier">{{ fichierCv()?.name ?? 'Aucun fichier choisi' }}</span>
+            </div>
+            <small id="aide-cv" class="aide">PDF de 5 Mo au plus.</small>
+          }
+          @if (erreurCv(); as texte) { <small id="erreur-cv" class="erreur-champ" role="alert">{{ texte }}</small> }
+        </fieldset>
+
+        @for (question of offre().questions; track question.id; let i = $index) {
+          @if (question.type === 'OUI_NON') {
+            <fieldset class="champ" [attr.aria-describedby]="'erreur-question-' + i">
+              <legend>{{ question.intitule }}{{ question.obligatoire ? '' : ' (facultatif)' }}</legend>
+              <div class="oui-non">
+                <label class="choix"><input type="radio" [name]="'question-' + i" [id]="'question-' + i"
+                  [attr.aria-invalid]="formulaire.reponses[i]().touched() && formulaire.reponses[i]().invalid()"
+                  [checked]="modele().reponses[i] === 'OUI'" (change)="repondreOuiNon(i, 'OUI')" />Oui</label>
+                <label class="choix"><input type="radio" [name]="'question-' + i"
+                  [checked]="modele().reponses[i] === 'NON'" (change)="repondreOuiNon(i, 'NON')" />Non</label>
+              </div>
+              @if (formulaire.reponses[i]().touched() && formulaire.reponses[i]().errors()[0]; as e) {
+                <small [id]="'erreur-question-' + i" class="erreur-champ">{{ e.message }}</small>
+              }
+            </fieldset>
+          } @else {
+            <div class="champ">
+              <label [for]="'question-' + i">{{ question.intitule }}{{ question.obligatoire ? '' : ' (facultatif)' }}</label>
+              <textarea [id]="'question-' + i" rows="3" [formField]="formulaire.reponses[i]"
+                [attr.aria-invalid]="formulaire.reponses[i]().touched() && formulaire.reponses[i]().invalid()"
+                [attr.aria-describedby]="'erreur-question-' + i"></textarea>
+              @if (formulaire.reponses[i]().touched() && formulaire.reponses[i]().errors()[0]; as e) {
+                <small [id]="'erreur-question-' + i" class="erreur-champ">{{ e.message }}</small>
+              }
+            </div>
+          }
+        }
+
+        <div class="champ">
+          <label for="candidature-lettre">Lettre de motivation{{ offre().lettreExigee ? '' : ' (facultative)' }}</label>
+          <textarea id="candidature-lettre" rows="6" [formField]="formulaire.lettre"
+            [attr.aria-invalid]="formulaire.lettre().touched() && formulaire.lettre().invalid()"
+            aria-describedby="compte-lettre erreur-lettre"></textarea>
+          <small id="compte-lettre" class="aide">{{ modele().lettre.length }} / {{ longueurLettre }} caractères</small>
+          @if (formulaire.lettre().touched() && formulaire.lettre().errors()[0]; as e) {
+            <small id="erreur-lettre" class="erreur-champ">{{ e.message }}</small>
+          }
+        </div>
+
+        @if (erreur(); as texte) { <p class="message-erreur" role="alert">{{ texte }}</p> }
+        <button type="submit" class="bouton principal" [disabled]="formulaire().submitting()">
+          {{ candidature() ? 'Renvoyer ma candidature' : 'Envoyer ma candidature' }}
+        </button>
+      </form>
+    } @else if (erreur(); as texte) {
+      <p class="message-erreur" role="alert">{{ texte }}</p>
+    }
+    <a class="suivi" routerLink="/offres-emploi/mes-candidatures">Suivre toutes mes candidatures<i class="pi pi-arrow-right" aria-hidden="true"></i></a>
+  }
+</section>

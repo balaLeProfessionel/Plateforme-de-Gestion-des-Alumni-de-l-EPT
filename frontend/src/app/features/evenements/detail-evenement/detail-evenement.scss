@@ -13,7 +13,7 @@
 .visuel-detail { min-width: 0; margin: 0 0 1.5rem; border-radius: var(--ept-radius); overflow: hidden; border: 1px solid var(--ept-border); }
 .synthese { grid-area: synthese; position: sticky; top: 5rem; display: grid; gap: 1.1rem; min-width: 0; padding: 1.25rem;
   border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: white; box-shadow: 0 6px 18px rgb(1 67 101 / 6%); }
-.description-detail, .gestion-evenement { display: block; border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: white; overflow: hidden; }
+.description-detail { display: block; border: 1px solid var(--ept-border); border-radius: var(--ept-radius); background: white; overflow: hidden; }
 .badges-detail { display: flex; flex-wrap: wrap; gap: .55rem; }
 .badge-officiel, .badge-communaute, .badge-statut, .audience { border-radius: 999px; display: inline-flex; align-items: center; gap: .35rem; min-height: 1.8rem; padding: .3rem .55rem; border: 1px solid var(--ept-border); font-size: .75rem; font-weight: 700; }
 .badge-officiel { border-color: #b6dce9; background: #d8edf5; color: var(--ept-primary); }
@@ -47,20 +47,8 @@
 .cache { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .message-places { color: #8d2f25; font-size: .88rem; }
 .erreur-reponse { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; color: #8d2f25; p { margin: 0; } }
-.gestion-evenement { padding: 1.25rem 1.5rem; }
-.gestion-evenement h2 { margin: 0; color: var(--ept-primary-dark); font-size: 1.2rem; }
-.actions-gestion, .confirmation-detail { display: flex; flex-wrap: wrap; gap: .5rem; }
-.actions-gestion { margin-top: .8rem; }
-.action-secondaire, .action-danger, .confirmation-detail button { border-radius: var(--ept-radius-sm); min-height: 2.6rem; padding: .55rem .75rem; border: 1px solid var(--ept-primary); background: white; color: var(--ept-primary); font: inherit; font-size: .84rem; font-weight: 700; text-decoration: none; cursor: pointer; }
-.action-danger, .erreur-action { border-color: #b23a30; color: #923128; }
-.action-danger:hover { background: #fff1ef; }
-.actions-gestion > .action-secondaire,
-.actions-gestion > .action-danger,
-.confirmation-detail > button { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; text-align: center; }
-.actions-gestion > .action-secondaire { background: #f2f8fb; }
-.actions-gestion > .action-danger { background: #fff8f6; }
-.confirmation-detail { border-radius: var(--ept-radius-sm); margin-top: .8rem; padding: .8rem; border: 1px solid #efc7c2; background: #fff8f6; p { flex-basis: 100%; margin: 0; color: #75332c; } }
-.erreur-action { margin: .75rem 0 0; font-weight: 700; }
+// Bouton « Actualiser la fiche » ; les boutons de gestion sont dans GestionEvenement
+.action-secondaire { border-radius: var(--ept-radius-sm); min-height: 2.6rem; padding: .55rem .75rem; border: 1px solid var(--ept-primary); background: white; color: var(--ept-primary); font: inherit; font-size: .84rem; font-weight: 700; text-decoration: none; cursor: pointer; }
 .chargement-detail { display: grid; gap: 1rem; }
 .squelette-titre, .squelette-corps { border-radius: var(--ept-radius); border: 1px solid var(--ept-border); background: #edf1f3; }
 .squelette-titre { height: 7rem; }.squelette-corps { height: 22rem; }
@@ -83,6 +71,4 @@
     display: flex; padding: .6rem 1rem; border-top: 1px solid var(--ept-border); background: var(--ept-surface);
     box-shadow: 0 -4px 12px rgb(0 0 0 / 6%); }
   .actions-reponse button { flex: 1 1 0; min-width: 0; padding-inline: .5rem; font-size: .85rem; }
-  .actions-gestion, .confirmation-detail { flex-direction: column; }
-  .actions-gestion > *, .confirmation-detail > button { width: 100%; min-height: 3rem; padding: .7rem 1rem; }
 }

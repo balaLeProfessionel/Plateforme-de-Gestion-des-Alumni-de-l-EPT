@@ -1,0 +1,10 @@
+@use 'responsive' as *;
+@use '../partenariats';
+
+.carte { margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: var(--ept-surface);
+  @include a-partir-de(tablette) { padding: 1.25rem 1.5rem; } }
+.confirmation { display: grid; gap: 0.6rem; p { margin: 0; color: var(--ept-primary-dark); } .erreur { color: var(--ept-error-dark); font-weight: 600; } }
+.statut-message:empty { display: none; }
+.statut-message { margin: 0 0 1rem; padding: 0.65rem 0.9rem; border-radius: 8px; background: var(--ept-success-light); color: var(--ept-success-dark); font-weight: 600; }
+.squelette { min-height: 16rem; border-radius: 12px; background: var(--ept-squelette); }
+app-formulaire-demande-convention { display: block; margin-bottom: 1rem; }

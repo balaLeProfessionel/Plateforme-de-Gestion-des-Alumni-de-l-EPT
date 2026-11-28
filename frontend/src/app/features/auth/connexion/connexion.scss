@@ -1,3 +1,5 @@
+@use 'responsive' as *;
+
 .connexion-page {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 1fr;
@@ -19,7 +21,7 @@
   justify-content: center;
   padding: 3rem;
 
-  .photo-campus { object-fit: cover; object-position: 46% 30%; }
+  .photo-campus { object-fit: cover; object-position: center; }
 
   .voile {
     position: absolute;
@@ -94,12 +96,34 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem;
+  // Téléphone : la largeur sert au formulaire
+  padding: 2rem 1rem;
   background: var(--ept-surface);
+
+  @include a-partir-de(tablette) {
+    padding: 3rem;
+  }
 
   .formulaire-contenu {
     width: 100%;
     max-width: 380px;
+  }
+
+  .marque-mobile {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 2rem;
+    color: var(--ept-primary-dark);
+    font-family: var(--ept-font-heading);
+    font-size: 1.15rem;
+    font-weight: 700;
+    text-decoration: none;
+
+    img { padding: 0.2rem; border: 1px solid var(--ept-border); border-radius: var(--ept-radius-sm); background: white; }
+    &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 3px; border-radius: var(--ept-radius-sm); }
+
+    @media (min-width: 901px) { display: none; }
   }
 
   h1 {
@@ -112,66 +136,10 @@
     margin: 0 0 2rem;
   }
 
-  .message-erreur {
-    margin-bottom: 1.25rem;
-    width: 100%;
-    display: block;
-  }
-
-  .champ {
-    margin-bottom: 1.25rem;
-    display: flex;
-    flex-direction: column;
-
-    label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 0.4rem;
-    }
-    .champ-mdp {
-      position: relative;
-      display: flex;
-      align-items: center;
-
-      input {
-        width: 100%;
-        padding-right: 2.75rem;
-      }
-
-      .bascule-mdp {
-        position: absolute;
-        right: 0.5rem;
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        color: var(--ept-text-secondary);
-        padding: 0.5rem;
-        display: flex;
-        align-items: center;
-        border-radius: var(--ept-radius-sm);
-
-        &:hover {
-          color: var(--ept-primary);
-        }
-
-        &:focus-visible {
-          outline: 2px solid var(--ept-primary);
-          outline-offset: 2px;
-        }
-      }
-    }
-  }
-
-  .erreur-champ {
-    color: var(--ept-error);
-    font-size: 0.8rem;
-    margin-top: 0.35rem;
-  }
-
   .lien-mot-de-passe {
     display: block;
     width: fit-content;
-    margin: -0.5rem 0 1.25rem auto;
+    margin: 0 0 1.25rem auto;
     color: var(--ept-primary);
     font-size: 0.9rem;
     font-weight: 600;

@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { CadreInscription } from '../cadre-inscription/cadre-inscription';
 
 import { InscriptionGoogle } from '../../../../core/services/auth/inscription-google';
 import { AuthResponse } from '../../../../core/services/models/auth-response.model';
@@ -12,9 +13,10 @@ interface OptionRole {
   icone: string;
 }
 
+// Premiere etape de l'inscription : le membre coche son profil puis continue.
 @Component({
   selector: 'app-choix-role',
-  imports: [RouterLink, BoutonGoogle],
+  imports: [RouterLink, CadreInscription, BoutonGoogle],
   templateUrl: './choix-role.html',
   styleUrl: './choix-role.scss',
 })
@@ -28,31 +30,44 @@ export class ChoixRole {
   protected readonly roles: OptionRole[] = [
     {
       cle: 'ALUMNI',
-      titre: 'Diplômé',
-      description: "Vous avez obtenu un diplôme à l'EPT. Rejoignez le réseau des anciens, retrouvez vos camarades et accédez aux opportunités.",
+      titre: 'Diplômé de l’EPT',
+      description: 'Retrouvez votre promotion, le mentorat et les opportunités du réseau.',
       icone: 'pi-graduation-cap'
     },
     {
       cle: 'PERSONNEL',
-      titre: 'Personnel EPT',
-      description: "Vous êtes enseignant, chercheur ou membre de l'administration de l'EPT. Accompagnez les étudiants et gérez la vie de l'école.",
+      titre: 'Personnel de l’EPT',
+      description: 'Enseignant, chercheur ou membre de l’administration.',
       icone: 'pi-briefcase'
     },
     {
       cle: 'ORGANISME',
-      titre: 'Organisme',
-      description: "Entreprise ou institution partenaire. Présentez votre organisme dans l'annuaire et publiez vos événements.",
+      titre: 'Entreprise ou institution',
+      description: 'Présentez votre organisme et publiez vos événements.',
       icone: 'pi-building'
     },
     {
       cle: 'VISITEUR',
       titre: 'Visiteur',
-      description: "Vous n'avez pas de lien direct avec l'EPT mais souhaitez suivre l'actualité et les événements de la communauté.",
+      description: 'Suivez l’actualité et les événements de la communauté.',
       icone: 'pi-user'
     }
   ];
 
-  choisirRole(role: string): void {
+  protected readonly choisi = signal<string | null>(null);
+  protected readonly erreur = signal(false);
+
+  protected choisir(cle: string): void {
+    this.choisi.set(cle);
+    this.erreur.set(false);
+  }
+
+  protected continuer(): void {
+    const role = this.choisi();
+    if (!role) {
+      this.erreur.set(true);
+      return;
+    }
     this.router.navigate(['/inscription/formulaire', role]);
   }
 

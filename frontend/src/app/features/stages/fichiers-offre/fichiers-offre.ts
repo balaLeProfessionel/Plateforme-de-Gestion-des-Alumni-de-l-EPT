@@ -8,7 +8,7 @@ import { chargerImagePourRecadrage } from '../../../shared/images/charger-image'
 import { FORMAT_OFFRE_STAGE } from '../../../shared/images/recadrage';
 import { RecadreurImage } from '../../../shared/images/recadreur-image';
 import { enregistrerFichier } from '../../../shared/telecharger';
-import { TaillePipe } from '../taille-fichier';
+import { TaillePipe } from '../../../shared/taille-fichier';
 
 /**
  * Pièces jointes d’une offre, téléchargeables par qui la voit. Quand l’offre est modifiable (son organisme ou

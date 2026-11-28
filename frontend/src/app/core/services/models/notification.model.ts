@@ -1,4 +1,4 @@
-export type TypeNotification = 'MENTORAT' | 'EVENEMENT' | 'COMPTE';
+export type TypeNotification = 'MENTORAT' | 'EVENEMENT' | 'COMPTE' | 'MESSAGE' | 'MOBILITE' | 'PARTENARIAT' | 'EMPLOI';
 
 export interface Notification {
   id: string;

@@ -38,6 +38,13 @@ services:
       APP_PUBLICATION_CREATION_LIMIT_24H: ${APP_PUBLICATION_CREATION_LIMIT_24H:-10}
       APP_PREMIER_ADMIN_EMAIL: ${APP_PREMIER_ADMIN_EMAIL:-}
       APP_PREMIER_ADMIN_PASSWORD: ${APP_PREMIER_ADMIN_PASSWORD:-}
+      # Import de CV : désactivé tant que CV_IA_FOURNISSEUR est vide (voir .env.example)
+      CV_IA_FOURNISSEUR: ${CV_IA_FOURNISSEUR:-}
+      CV_IA_MODELE: ${CV_IA_MODELE:-}
+      CV_IA_CLE: ${CV_IA_CLE:-}
+      CV_IA_URL: ${CV_IA_URL:-https://api.openai.com/v1}
+      CV_IA_IMAGES: ${CV_IA_IMAGES:-true}
+      CV_IA_NOM_FOURNISSEUR: ${CV_IA_NOM_FOURNISSEUR:-}
     volumes:
       - profile_photos:/data/alumni/photos
     restart: unless-stopped

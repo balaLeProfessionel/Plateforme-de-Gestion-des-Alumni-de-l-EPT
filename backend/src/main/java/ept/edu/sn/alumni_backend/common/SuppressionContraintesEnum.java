@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class SuppressionContraintesEnum implements ApplicationRunner {
-    /** Colonnes d'énumérations appelées à grandir (statuts des stages, responsabilités d'administration). */
+    /** Colonnes d'énumérations appelées à grandir (statuts des stages et des mobilités, responsabilités d'administration, notifications). */
     static final List<String> CONTRAINTES = List.of(
         "offre_stage.offre_stage_statut_check",
         "offre_stage.offre_stage_type_stage_check",
@@ -26,7 +26,24 @@ public class SuppressionContraintesEnum implements ApplicationRunner {
         "stage.stage_statut_check",
         "stage.stage_type_stage_check",
         "utilisateur.utilisateur_classe_check",
-        "utilisateur_permission_admin.utilisateur_permission_admin_permission_check");
+        "utilisateur_permission_admin.utilisateur_permission_admin_permission_check",
+        "notifications.notifications_type_check",
+        "offre_mobilite.offre_mobilite_statut_check",
+        "offre_mobilite.offre_mobilite_type_mobilite_check",
+        "offre_mobilite_classe.offre_mobilite_classe_classe_check",
+        "offre_mobilite_piece_demandee.offre_mobilite_piece_demandee_type_piece_check",
+        "historique_mobilite.historique_mobilite_action_check",
+        "candidature_mobilite.candidature_mobilite_statut_check",
+        "piece_candidature_mobilite.piece_candidature_mobilite_type_piece_check",
+        "offre_emploi.offre_emploi_statut_check",
+        "offre_emploi.offre_emploi_mode_check",
+        "offre_emploi.offre_emploi_type_contrat_check",
+        "signalement_offre_emploi.signalement_offre_emploi_motif_check",
+        "question_offre_emploi.question_offre_emploi_type_check",
+        "candidature_emploi.candidature_emploi_statut_check",
+        "historique_candidature_emploi.historique_candidature_emploi_statut_check",
+        "mobilite.mobilite_statut_check",
+        "mobilite.mobilite_type_mobilite_check");
 
     /**
      * Colonnes devenues facultatives : ddl-auto=update ne relâche jamais un NOT NULL déjà posé.

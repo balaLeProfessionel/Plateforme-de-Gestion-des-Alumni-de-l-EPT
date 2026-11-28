@@ -1,0 +1,85 @@
+@let c = candidature();
+<article class="carte" [attr.aria-labelledby]="'candidat-' + c.id">
+  <header class="haut">
+    <span class="avatar" aria-hidden="true">{{ initiales() }}</span>
+    <div class="identite">
+      <h2 [id]="'candidat-' + c.id">{{ c.candidat.prenom }} {{ c.candidat.nom }}</h2>
+      <p class="profil">{{ profil() }}</p>
+    </div>
+    <span class="statut" [attr.data-statut]="c.statut">{{ statuts[c.statut] }}</span>
+  </header>
+
+  <p class="envoi">Candidature envoyée le {{ c.envoyeeLe | date: 'd MMMM y' }}</p>
+
+  @if (c.candidat.competences.length) {
+    <ul class="etiquettes" aria-label="Compétences déclarées">
+      @for (competence of c.candidat.competences; track competence) { <li>{{ competence }}</li> }
+    </ul>
+  }
+
+  <div class="cv">
+    @if (c.cvDisponible) {
+      <button type="button" class="bouton petit" (click)="telechargerCv()">
+        <i class="pi pi-download" aria-hidden="true"></i>
+        <span class="libelle-cv">CV<span class="sr-only"> de {{ c.candidat.prenom }} {{ c.candidat.nom }}</span> : {{ c.nomCv }}</span>
+      </button>
+    } @else {
+      <p class="aide">CV effacé après la durée de conservation.</p>
+    }
+  </div>
+
+  @if (c.lettreMotivation || c.reponses.length) {
+    <details>
+      <summary>Lettre et réponses</summary>
+      @if (c.lettreMotivation) { <h3>Lettre de motivation</h3><p class="texte">{{ c.lettreMotivation }}</p> }
+      @if (c.reponses.length) {
+        <dl class="reponses">
+          @for (r of c.reponses; track r.questionId) {
+            <div><dt>{{ r.intitule }}</dt><dd>{{ r.valeur === 'OUI' ? 'Oui' : r.valeur === 'NON' ? 'Non' : r.valeur }}</dd></div>
+          }
+        </dl>
+      }
+    </details>
+  }
+
+  <p class="statut-message" role="status">{{ message() }}</p>
+  @if (erreur(); as texte) { <p class="message-erreur" role="alert">{{ texte }}</p> }
+
+  @if (aConfirmer(); as statut) {
+    <div class="confirmation" role="group" [attr.aria-label]="'Confirmer : ' + actions[statut]">
+      <p>{{ actions[statut] }} {{ c.candidat.prenom }} ? Cette décision est définitive et le candidat en sera prévenu.</p>
+      <div class="boutons">
+        <button type="button" class="bouton principal" [disabled]="enCours()" (click)="appliquer(statut)">Confirmer</button>
+        <button type="button" class="bouton" (click)="aConfirmer.set(null)">Annuler</button>
+      </div>
+    </div>
+  } @else if (decisions().length) {
+    <div class="boutons decisions" role="group" [attr.aria-label]="'Décision pour ' + c.candidat.prenom + ' ' + c.candidat.nom">
+      @for (statut of decisions(); track statut; let premier = $first) {
+        <button type="button" class="bouton petit" [class.principal]="premier" [disabled]="enCours()" (click)="choisir(statut)">
+          {{ actions[statut] }}
+        </button>
+      }
+    </div>
+  }
+
+  <form class="note" (submit)="enregistrerNote($event)" novalidate>
+    <div class="champ">
+      <label [for]="'note-' + c.id">Note privée</label>
+      <textarea [id]="'note-' + c.id" rows="2" [formField]="formulaire.note" [attr.aria-describedby]="'aide-note-' + c.id"
+        [attr.aria-invalid]="formulaire.note().invalid()"></textarea>
+      <small [id]="'aide-note-' + c.id" class="aide">Visible seulement par votre organisme et l’école, jamais par le candidat.</small>
+      @if (formulaire.note().errors()[0]; as e) { <small class="erreur-champ">{{ e.message }}</small> }
+    </div>
+    <button type="submit" class="bouton petit" [disabled]="formulaire().submitting()">Enregistrer la note</button>
+  </form>
+
+  <details class="historique">
+    <summary>Historique</summary>
+    <ol>
+      @for (h of c.historique; track $index) {
+        <li><strong>{{ statuts[h.statut] }}</strong> le {{ h.le | date: 'd MMMM y à HH:mm' }}{{ h.auteur ? ', par ' + h.auteur : '' }}</li>
+      }
+    </ol>
+  </details>
+</article>

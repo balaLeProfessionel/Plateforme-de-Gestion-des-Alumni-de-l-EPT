@@ -8,6 +8,7 @@ import {
   visiteurGuard,
   visiteurMatch
 } from './core/guards/auth.guard';
+import { AuthService } from './core/services/auth/auth-service';
 import { titreProfil } from './features/profil/consultation-profil/titre-profil';
 
 // Rubriques de l'en-tête public dont le module n'est pas encore livré (voir `RUBRIQUES_A_VENIR`).
@@ -15,10 +16,7 @@ const RUBRIQUES_ROUTES = [
   ['messagerie', 'Messagerie et espace communautaire'],
   ['partenariats', 'Partenariats de l’école'],
   ['conventions', 'Conventions'],
-  ['mobilites', 'Mobilités'],
-  ['insertion', 'Insertion professionnelle'],
-  ['offres-emploi', 'Offres d’emploi'],
-  ['publier-offre', 'Publier une offre']
+  ['insertion', 'Insertion professionnelle']
 ] as const;
 
 export const routes: Routes = [
@@ -48,15 +46,33 @@ export const routes: Routes = [
     path,
     title: `EPT Alumni | ${titre}`,
     data: { rubrique: path },
+    // La messagerie existe dans l’espace membre : connecté, on passe à la route suivante.
+    canMatch: path === 'messagerie' ? [() => !inject(AuthService).estConnecte()] : [],
+    // Connecté, /partenariats mène à la rubrique de l'organisme (conventions-cadres) : la page d'attente ne vaut que sans compte.
+    ...(path === 'partenariats' ? { canMatch: [visiteurMatch] } : {}),
     canActivate: [visiteurGuard],
     loadComponent: () => import('./features/vitrine/page-bientot/page-bientot').then((m) => m.PageBientot)
   })),
+  {
+    // Sans compte : la rubrique invite à se connecter. Connecté, la route des membres (offres de mobilité) prend le relais.
+    path: 'mobilites',
+    title: 'EPT Alumni | Mobilités',
+    canMatch: [visiteurMatch],
+    loadComponent: () => import('./features/vitrine/page-mobilites/page-mobilites').then((m) => m.PageMobilites)
+  },
   {
     // Sans compte : la rubrique invite à se connecter (STA-02). Connecté, la route des membres prend le relais.
     path: 'stages',
     title: 'EPT Alumni | Stages',
     canMatch: [visiteurMatch],
     loadComponent: () => import('./features/vitrine/page-stages/page-stages').then((m) => m.PageStages)
+  },
+  {
+    // Sans compte : la rubrique invite à se connecter. Connecté, la route des membres prend le relais.
+    path: 'offres-emploi',
+    title: 'EPT Alumni | Offres d’emploi',
+    canMatch: [visiteurMatch],
+    loadComponent: () => import('./features/vitrine/page-offres-emploi/page-offres-emploi').then((m) => m.PageOffresEmploi)
   },
   {
     path: 'connexion',
@@ -112,7 +128,21 @@ export const routes: Routes = [
         (m) => m.ParcoursCompletion
       ),
     children: [
-      { path: '', redirectTo: 'infos', pathMatch: 'full' },
+      { path: '', redirectTo: 'demarrer', pathMatch: 'full' },
+      {
+        path: 'demarrer',
+        data: { etape: 0 },
+        loadComponent: () =>
+          import('./features/profil/completer-profil/etape-demarrer/etape-demarrer').then(
+            (m) => m.EtapeDemarrer
+          )
+      },
+      {
+        path: 'cv',
+        data: { etape: 0 },
+        loadComponent: () =>
+          import('./features/profil/completer-profil/etape-cv/etape-cv').then((m) => m.EtapeCv)
+      },
       {
         path: 'infos',
         data: { etape: 1 },
@@ -135,6 +165,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/profil/completer-profil/etape-experiences/etape-experiences').then(
             (m) => m.EtapeExperiences
+          )
+      },
+      {
+        path: 'competences',
+        data: { etape: 4 },
+        loadComponent: () =>
+          import('./features/profil/completer-profil/etape-competences/etape-competences').then(
+            (m) => m.EtapeCompetences
           )
       }
     ]
@@ -218,6 +256,11 @@ export const routes: Routes = [
           import('./features/notifications/page-notifications/page-notifications').then((m) => m.PageNotifications)
       },
       {
+        path: 'messagerie',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadChildren: () => import('./features/messagerie/messagerie.routes').then((m) => m.MESSAGERIE_ROUTES)
+      },
+      {
         path: 'annuaire',
         title: 'Annuaire | EPT Alumni',
         canActivate: [authGuard, changementInitialRequisGuard],
@@ -275,6 +318,29 @@ export const routes: Routes = [
         path: 'stages',
         canActivate: [authGuard, changementInitialRequisGuard],
         loadChildren: () => import('./features/stages/stages.routes').then((m) => m.STAGES_ROUTES)
+      },
+      {
+        path: 'offres-emploi',
+        canActivate: [authGuard, changementInitialRequisGuard, roleGuard],
+        data: { roles: ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'ORGANISME', 'ADMIN'] },
+        loadChildren: () => import('./features/offres-emploi/offres-emploi.routes').then((m) => m.OFFRES_EMPLOI_ROUTES)
+      },
+      {
+        path: 'mobilites',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadChildren: () => import('./features/mobilites/mobilites.routes').then((m) => m.MOBILITES_ROUTES)
+      },
+      {
+        path: 'partenaires',
+        title: 'Partenaires de l’EPT | EPT Alumni',
+        canActivate: [authGuard, changementInitialRequisGuard, roleGuard],
+        data: { roles: ['ETUDIANT', 'ALUMNI', 'PERSONNEL', 'ADMIN'] },
+        loadComponent: () => import('./features/partenaires/liste-partenaires/liste-partenaires').then((m) => m.ListePartenaires)
+      },
+      {
+        path: 'partenariats',
+        canActivate: [authGuard, changementInitialRequisGuard],
+        loadChildren: () => import('./features/partenariats/partenariats.routes').then((m) => m.PARTENARIATS_ROUTES)
       },
       {
         path: 'admin',

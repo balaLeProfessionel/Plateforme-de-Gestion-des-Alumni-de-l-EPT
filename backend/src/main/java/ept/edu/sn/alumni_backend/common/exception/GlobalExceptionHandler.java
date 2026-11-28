@@ -9,7 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -25,6 +29,13 @@ import ept.edu.sn.alumni_backend.filiere.exception.ConflitFiliereException;
 import ept.edu.sn.alumni_backend.filiere.exception.FiliereIntrouvableException;
 import ept.edu.sn.alumni_backend.common.stockage.FichierIntrouvableException;
 import ept.edu.sn.alumni_backend.common.stockage.StockageFichierException;
+import ept.edu.sn.alumni_backend.mobilite.exception.ConflitMobiliteException;
+import ept.edu.sn.alumni_backend.partenariat.exception.AccordIntrouvableException;
+import ept.edu.sn.alumni_backend.partenariat.exception.ConflitConventionException;
+import ept.edu.sn.alumni_backend.partenariat.exception.ConventionIntrouvableException;
+import ept.edu.sn.alumni_backend.mobilite.exception.OffreMobiliteIntrouvableException;
+import ept.edu.sn.alumni_backend.emploi.exception.ConflitOffreEmploiException;
+import ept.edu.sn.alumni_backend.emploi.exception.OffreEmploiIntrouvableException;
 import ept.edu.sn.alumni_backend.stage.exception.ConflitStageException;
 import ept.edu.sn.alumni_backend.stage.exception.OffreStageIntrouvableException;
 import ept.edu.sn.alumni_backend.evenement.exception.ImageEvenementIntrouvableException;
@@ -33,6 +44,12 @@ import ept.edu.sn.alumni_backend.evenement.exception.CapaciteEvenementAtteinteEx
 import ept.edu.sn.alumni_backend.evenement.exception.LimiteCreationEvenementAtteinteException;
 import ept.edu.sn.alumni_backend.mentorat.exception.ConflitMentoratException;
 import ept.edu.sn.alumni_backend.mentorat.exception.MentoratIntrouvableException;
+import ept.edu.sn.alumni_backend.cv.exception.ConflitImportCvException;
+import ept.edu.sn.alumni_backend.cv.exception.ImportCvIndisponibleException;
+import ept.edu.sn.alumni_backend.cv.exception.ImportCvIntrouvableException;
+import ept.edu.sn.alumni_backend.messagerie.exception.ConflitMessagerieException;
+import ept.edu.sn.alumni_backend.messagerie.exception.LimiteEnvoisAtteinteException;
+import ept.edu.sn.alumni_backend.messagerie.exception.MessagerieIntrouvableException;
 import ept.edu.sn.alumni_backend.organisme.exception.OrganismeIntrouvableException;
 import ept.edu.sn.alumni_backend.article.exception.ArticleIntrouvableException;
 import ept.edu.sn.alumni_backend.article.exception.ConflitArticleException;
@@ -107,7 +124,26 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Map<String, String>> handleConstraintViolation(ConstraintViolationException e) {
-        return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        // Le message brut (« lister.taille: must be… ») donnait le nom de la méthode Java, en anglais : on nomme
+        // seulement le paramètre, avec le message écrit pour lui s'il y en a un.
+        String message = e.getConstraintViolations().stream()
+            .sorted(java.util.Comparator.comparing(v -> v.getPropertyPath().toString()))
+            .map(violation -> {
+                String parametre = null;
+                for (jakarta.validation.Path.Node noeud : violation.getPropertyPath()) parametre = noeud.getName();
+                boolean messageParDefaut = violation.getMessageTemplate().startsWith("{jakarta.validation");
+                return messageParDefaut ? "Le paramètre « " + parametre + " » est invalide." : violation.getMessage();
+            })
+            .distinct()
+            .collect(java.util.stream.Collectors.joining(" "));
+        return ResponseEntity.badRequest().body(Map.of("message", message.isBlank() ? "Requête invalide." : message));
+    }
+
+    /** Paramètre obligatoire absent : sans ce gestionnaire, la page /error de Spring répondait un 403 trompeur. */
+    @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
+    public ResponseEntity<Map<String, String>> handleParametreManquant(
+            org.springframework.web.bind.MissingServletRequestParameterException e) {
+        return ResponseEntity.badRequest().body(Map.of("message", "Le paramètre « " + e.getParameterName() + " » est obligatoire."));
     }
 
     @ExceptionHandler(TokenInvalideException.class)
@@ -207,6 +243,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", message));
     }
 
+    @ExceptionHandler(MessagerieIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> handleMessagerieIntrouvable(MessagerieIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(LimiteEnvoisAtteinteException.class)
+    public ResponseEntity<Map<String, String>> handleLimiteEnvois(LimiteEnvoisAtteinteException e) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ConflitMessagerieException.class)
+    public ResponseEntity<Map<String, String>> handleConflitMessagerie(ConflitMessagerieException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+    }
+
     @ExceptionHandler(CompteIntrouvableException.class)
     public ResponseEntity<Map<String, String>> gererCompteIntrouvable(CompteIntrouvableException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
@@ -235,6 +286,57 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConflitStageException.class)
     public ResponseEntity<Map<String, String>> gererConflitStage(ConflitStageException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(OffreEmploiIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> gererOffreEmploiIntrouvable(
+            OffreEmploiIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ConflitOffreEmploiException.class)
+    public ResponseEntity<Map<String, String>> gererConflitOffreEmploi(ConflitOffreEmploiException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(OffreMobiliteIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> gererOffreMobiliteIntrouvable(OffreMobiliteIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ConventionIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> gererConventionIntrouvable(ConventionIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(AccordIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> gererAccordIntrouvable(AccordIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ConflitConventionException.class)
+    public ResponseEntity<Map<String, String>> gererConflitConvention(ConflitConventionException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ConflitMobiliteException.class)
+    public ResponseEntity<Map<String, String>> gererConflitMobilite(ConflitMobiliteException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ImportCvIntrouvableException.class)
+    public ResponseEntity<Map<String, String>> gererImportCvIntrouvable(ImportCvIntrouvableException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ConflitImportCvException.class)
+    public ResponseEntity<Map<String, String>> gererConflitImportCv(ConflitImportCvException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(ImportCvIndisponibleException.class)
+    public ResponseEntity<Map<String, String>> gererImportCvIndisponible(ImportCvIndisponibleException e) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of("message", e.getMessage()));
     }
 
     @ExceptionHandler(FichierIntrouvableException.class)
@@ -267,6 +369,31 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleSecurity(SecurityException e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(Map.of("message", e.getMessage()));
+    }
+
+    /** Paramètre d'URL mal formé (identifiant, catégorie…) : on nomme le paramètre, sans le message Java brut. */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, String>> handleTypeParametre(MethodArgumentTypeMismatchException e) {
+        return ResponseEntity.badRequest().body(Map.of("message", "Le paramètre « " + e.getName() + " » est invalide."));
+    }
+
+    /*
+     * Sans ces trois gestionnaires, l'erreur passe par la page /error de Spring, réservée aux personnes connectées
+     * par la sécurité : la réponse devenait un 403 trompeur au lieu de dire ce qui ne va pas.
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, String>> handleCorpsIllisible() {
+        return ResponseEntity.badRequest().body(Map.of("message", "Le contenu de la requête est illisible ou mal formé."));
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<Map<String, String>> handleFormatNonPris() {
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(Map.of("message", "Ce format de contenu n'est pas accepté."));
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Map<String, String>> handleMethodeNonPrise() {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(Map.of("message", "Cette action n'existe pas à cette adresse."));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

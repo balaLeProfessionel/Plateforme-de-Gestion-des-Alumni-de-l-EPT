@@ -136,18 +136,8 @@ export const RUBRIQUES_A_VENIR = {
   },
   mobilites: {
     titre: 'Mobilités',
-    description: 'Elle centralisera les demandes de mobilité de stage, de crédit, de recherche et d’enseignant-chercheur.',
-    enAttendant: 'En attendant, vous pouvez proposer ou demander un mentorat après connexion.'
-  },
-  'offres-emploi': {
-    titre: 'Offres d’emploi',
-    description: 'Elle présentera les offres d’emploi proposées aux diplômés.',
-    enAttendant: 'En attendant, vous pouvez proposer ou demander un mentorat après connexion.'
-  },
-  'publier-offre': {
-    titre: 'Publier une offre',
-    description: 'Elle permettra aux organismes partenaires de publier leurs offres d’emploi.',
-    enAttendant: 'En attendant, un organisme partenaire peut déjà créer son compte.'
+    description: 'Les échanges, doubles diplômes et séjours d’enseignement proposés par les établissements partenaires de l’EPT, avec le dépôt des candidatures en ligne.',
+    enAttendant: 'Connectez-vous pour consulter les offres et candidater.'
   }
 } satisfies Record<string, RubriqueAVenir>;
 
@@ -188,7 +178,7 @@ export const MENUS_ENTETE: readonly MenuRubrique[] = [
     libelle: 'Carrière',
     liens: [
       { libelle: 'Stages', lien: '/stages', precision: 'Après connexion' },
-      { libelle: 'Mobilités', lien: '/mobilites', precision: 'À venir' },
+      { libelle: 'Mobilités', lien: '/mobilites', precision: 'Après connexion' },
       { libelle: 'Insertion professionnelle', lien: '/insertion', precision: 'À venir' }
     ]
   },
@@ -196,8 +186,8 @@ export const MENUS_ENTETE: readonly MenuRubrique[] = [
     id: 'offres',
     libelle: 'Offres d’emploi',
     liens: [
-      { libelle: 'Consulter les offres', lien: '/offres-emploi', precision: 'À venir' },
-      { libelle: 'Publier une offre', lien: '/publier-offre', precision: 'À venir' }
+      { libelle: 'Consulter les offres', lien: '/offres-emploi', precision: 'Après connexion' },
+      { libelle: 'Publier une offre', lien: '/offres-emploi', fragment: 'publier', precision: 'Après connexion' }
     ]
   },
   {

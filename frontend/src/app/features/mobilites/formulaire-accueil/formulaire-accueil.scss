@@ -1,0 +1,13 @@
+@use 'responsive' as *;
+@use '../mobilites';
+
+.carte { padding: 1rem; border: 1px solid var(--ept-border); border-radius: 12px; background: var(--ept-surface);
+  @include a-partir-de(tablette) { padding: 1.25rem 1.5rem; } }
+.grille { display: grid; gap: 0.9rem 1rem;
+  @include a-partir-de(tablette) { grid-template-columns: repeat(2, minmax(0, 1fr)); .large { grid-column: 1 / -1; } } }
+.aide { color: var(--ept-text-secondary); font-size: 0.8rem; }
+.erreur-champ { color: var(--ept-error); font-size: 0.8rem; }
+[aria-invalid='true'] { border-color: var(--ept-error) !important; }
+.boutons { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1rem; }
+.message { margin: 0 0 1rem; padding: 0.65rem 0.9rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; }
+.message.erreur { background: var(--ept-error-light); color: var(--ept-error-dark); }

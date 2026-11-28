@@ -99,7 +99,7 @@ describe('PageVitrine', () => {
 
   it('annonce ce qui n est pas encore disponible et ce qui demande une connexion', () => {
     const offres = page.querySelector('#menu-offres');
-    expect(offres?.querySelector('a[href="/offres-emploi"]')?.textContent).toContain('À venir');
+    expect(offres?.querySelector('a[href="/offres-emploi"]')?.textContent).toContain('Après connexion');
     expect(page.querySelector('#menu-actualite a[href="/evenements"]')?.textContent).toContain('Après connexion');
     expect(page.querySelector('#menu-carriere a[href="/stages"]')?.textContent).toContain('Après connexion');
     expect(page.querySelector('#menu-carriere a[href="/insertion"]')?.textContent).toContain('À venir');

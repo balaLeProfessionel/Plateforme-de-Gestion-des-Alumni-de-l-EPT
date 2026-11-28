@@ -1,0 +1,75 @@
+import { registerLocaleData } from '@angular/common';
+import localeFr from '@angular/common/locales/fr';
+import { Message } from '../../../core/services/models/messagerie.model';
+import { fusionnerMessages, libelleJour, lignesDuFil } from './blocs-messages';
+
+registerLocaleData(localeFr);
+
+const message = (id: string, envoyeLe: string, auteurId = 'a', deMoi = false): Message => ({
+  id, auteurId, auteurNom: 'Awa Diop', auteurPhoto: null, contenu: id, supprime: false, envoyeLe, deMoi, pieceJointe: null, systeme: false,
+});
+
+describe('Blocs du fil de messages', () => {
+  const maintenant = new Date(2026, 10, 14, 15, 0);
+
+  it('fusionne sans doublon, dans l’ordre, en gardant la version la plus récente', () => {
+    const anciens = [message('m2', '2026-11-14T10:01:00Z'), message('m3', '2026-11-14T10:02:00Z')];
+    const supprime = { ...message('m3', '2026-11-14T10:02:00Z'), supprime: true, contenu: null };
+
+    const fusion = fusionnerMessages(anciens, [message('m1', '2026-11-14T10:00:00Z'), supprime]);
+
+    expect(fusion.map((m) => m.id)).toEqual(['m1', 'm2', 'm3']);
+    expect(fusion[2].supprime).toBe(true);
+  });
+
+  it('nomme les jours comme on les dit', () => {
+    expect(libelleJour(new Date(2026, 10, 14, 8), maintenant)).toBe('Aujourd’hui');
+    expect(libelleJour(new Date(2026, 10, 13, 23), maintenant)).toBe('Hier');
+    expect(libelleJour(new Date(2026, 10, 3, 9), maintenant)).toBe('mardi 3 novembre');
+    expect(libelleJour(new Date(2025, 0, 5, 9), maintenant)).toBe('dimanche 5 janvier 2025');
+  });
+
+  it('ouvre un jour au premier message et colle les messages rapprochés d’un même auteur', () => {
+    const lignes = lignesDuFil([
+      message('m1', new Date(2026, 10, 13, 9, 0).toISOString(), 'a'),
+      message('m2', new Date(2026, 10, 14, 9, 0).toISOString(), 'a'),
+      message('m3', new Date(2026, 10, 14, 9, 2).toISOString(), 'a'),
+      message('m4', new Date(2026, 10, 14, 9, 3).toISOString(), 'b'),
+      message('m5', new Date(2026, 10, 14, 9, 30).toISOString(), 'b'),
+    ], maintenant);
+
+    expect(lignes.map((l) => l.jour)).toEqual(['Hier', 'Aujourd’hui', null, null, null]);
+    expect(lignes.map((l) => l.suite)).toEqual([false, false, true, false, false]);
+  });
+
+  it('résume en une ligne les suppressions d’affilée d’un même auteur, le même jour', () => {
+    const supprime = (id: string, heure: number, minute: number, auteurId = 'a'): Message =>
+      ({ ...message(id, new Date(2026, 10, 14, heure, minute).toISOString(), auteurId), supprime: true, contenu: null });
+    const lignes = lignesDuFil([
+      { ...message('m0', new Date(2026, 10, 13, 22, 0).toISOString()), supprime: true, contenu: null },
+      supprime('m1', 9, 0),
+      supprime('m2', 9, 1),
+      supprime('m3', 9, 40),
+      supprime('m4', 9, 41, 'b'),
+      message('m5', new Date(2026, 10, 14, 9, 42).toISOString(), 'a'),
+      supprime('m6', 9, 43),
+    ], maintenant);
+
+    // Hier reste à part (autre jour) ; b rompt la série de a ; un message intact aussi.
+    expect(lignes.map((l) => [l.message.id, l.supprimes])).toEqual([
+      ['m0', 1], ['m1', 3], ['m4', 1], ['m5', 0], ['m6', 1],
+    ]);
+    expect(lignes.map((l) => l.jour)).toEqual(['Hier', 'Aujourd’hui', null, null, null]);
+  });
+
+  it('ne colle pas une bulle à un message d’arrivée dans une communauté, ni l’inverse', () => {
+    const arrivee: Message = { ...message('m2', new Date(2026, 10, 14, 9, 1).toISOString()), systeme: true };
+    const lignes = lignesDuFil([
+      message('m1', new Date(2026, 10, 14, 9, 0).toISOString()),
+      arrivee,
+      message('m3', new Date(2026, 10, 14, 9, 2).toISOString()),
+    ], maintenant);
+
+    expect(lignes.map((l) => l.suite)).toEqual([false, false, false]);
+  });
+});

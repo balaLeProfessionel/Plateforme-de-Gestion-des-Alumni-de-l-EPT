@@ -1,0 +1,79 @@
+<form class="carte" (submit)="envoyer($event)" novalidate>
+  @if (erreur(); as message) { <p class="message erreur" role="alert">{{ message }}</p> }
+  <div class="grille">
+    @if (administration()) {
+      <div class="champ large">
+        <label for="accueil-organisme">Établissement d’origine</label>
+        <input id="accueil-organisme" type="text" autocomplete="off" list="accueil-organismes" [formField]="formulaire.organisme"
+          [attr.aria-invalid]="formulaire.organisme().touched() && formulaire.organisme().invalid()" aria-describedby="aide-accueil-organisme erreur-accueil-organisme" />
+        <datalist id="accueil-organismes">@for (s of suggestions(); track s.id) { <option [value]="s.nom"></option> }</datalist>
+        <small id="aide-accueil-organisme" class="aide" aria-live="polite">
+          @if (organismeConnu(); as connu) { Établissement connu : {{ connu.nom }}. }
+          @else if (modele().organisme.trim()) { Nouvel établissement : il sera créé sans compte. }
+          @else { Commencez à taper son nom pour retrouver un établissement connu. }
+        </small>
+        @if (formulaire.organisme().touched() && formulaire.organisme().errors()[0]; as e) { <small id="erreur-accueil-organisme" class="erreur-champ">{{ e.message }}</small> }
+      </div>
+    }
+    <div class="champ">
+      <label for="accueil-prenom">Prénom</label>
+      <input id="accueil-prenom" type="text" autocomplete="off" [formField]="formulaire.prenom"
+        [attr.aria-invalid]="formulaire.prenom().touched() && formulaire.prenom().invalid()" aria-describedby="erreur-accueil-prenom" />
+      @if (formulaire.prenom().touched() && formulaire.prenom().errors()[0]; as e) { <small id="erreur-accueil-prenom" class="erreur-champ">{{ e.message }}</small> }
+    </div>
+    <div class="champ">
+      <label for="accueil-nom">Nom</label>
+      <input id="accueil-nom" type="text" autocomplete="off" [formField]="formulaire.nom"
+        [attr.aria-invalid]="formulaire.nom().touched() && formulaire.nom().invalid()" aria-describedby="erreur-accueil-nom" />
+      @if (formulaire.nom().touched() && formulaire.nom().errors()[0]; as e) { <small id="erreur-accueil-nom" class="erreur-champ">{{ e.message }}</small> }
+    </div>
+    <div class="champ">
+      <label for="accueil-email">E-mail (facultatif)</label>
+      <input id="accueil-email" type="email" autocomplete="off" [formField]="formulaire.email"
+        [attr.aria-invalid]="formulaire.email().touched() && formulaire.email().invalid()" aria-describedby="erreur-accueil-email" />
+      @if (formulaire.email().touched() && formulaire.email().errors()[0]; as e) { <small id="erreur-accueil-email" class="erreur-champ">{{ e.message }}</small> }
+    </div>
+    <div class="champ">
+      <label for="accueil-programme">Programme d’origine</label>
+      <input id="accueil-programme" type="text" autocomplete="off" placeholder="Master génie logiciel" [formField]="formulaire.programmeOrigine"
+        [attr.aria-invalid]="formulaire.programmeOrigine().touched() && formulaire.programmeOrigine().invalid()" aria-describedby="erreur-accueil-programme" />
+      @if (formulaire.programmeOrigine().touched() && formulaire.programmeOrigine().errors()[0]; as e) { <small id="erreur-accueil-programme" class="erreur-champ">{{ e.message }}</small> }
+    </div>
+    <div class="champ">
+      <label for="accueil-filiere">Filière d’accueil à l’EPT</label>
+      <select id="accueil-filiere" [formField]="formulaire.filiereAccueilId"
+        [attr.aria-invalid]="formulaire.filiereAccueilId().touched() && formulaire.filiereAccueilId().invalid()" aria-describedby="erreur-accueil-filiere">
+        <option value="">Choisir…</option>
+        @for (f of filieres(); track f.id) { <option [value]="f.id">{{ f.nom }}</option> }
+      </select>
+      @if (formulaire.filiereAccueilId().touched() && formulaire.filiereAccueilId().errors()[0]; as e) { <small id="erreur-accueil-filiere" class="erreur-champ">{{ e.message }}</small> }
+    </div>
+    <div class="champ">
+      <label for="accueil-type">Type de mobilité</label>
+      <select id="accueil-type" [formField]="formulaire.type">
+        @for (t of types; track t) { <option [value]="t">{{ libellesType[t] }}</option> }
+      </select>
+    </div>
+    <div class="champ">
+      <label for="accueil-annee">Année universitaire</label>
+      <select id="accueil-annee" [formField]="formulaire.anneeUniversitaire">
+        @for (a of annees; track a) { <option [value]="a">{{ a }}</option> }
+      </select>
+    </div>
+    <div class="champ">
+      <label for="accueil-debut">Arrivée prévue (facultatif)</label>
+      <input id="accueil-debut" type="date" [formField]="formulaire.dateDebut" />
+    </div>
+    <div class="champ">
+      <label for="accueil-fin">Départ prévu (facultatif)</label>
+      <input id="accueil-fin" type="date" [formField]="formulaire.dateFin"
+        [attr.aria-invalid]="formulaire.dateFin().touched() && formulaire.dateFin().invalid()" aria-describedby="erreur-accueil-fin" />
+      @if (formulaire.dateFin().touched() && formulaire.dateFin().errors()[0]; as e) { <small id="erreur-accueil-fin" class="erreur-champ">{{ e.message }}</small> }
+    </div>
+  </div>
+  <div class="boutons">
+    <button type="submit" class="bouton principal" [disabled]="enCours()">
+      {{ administration() ? 'Enregistrer la mobilité' : initial() ? 'Enregistrer la correction' : 'Proposer l’étudiant' }}</button>
+    <button type="button" class="bouton" (click)="annulee.emit()">Ne rien changer</button>
+  </div>
+</form>

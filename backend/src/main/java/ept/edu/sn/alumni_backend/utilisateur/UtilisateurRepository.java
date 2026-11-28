@@ -24,8 +24,8 @@ import java.util.Optional;
 @Repository
 public interface UtilisateurRepository extends JpaRepository<Utilisateur, UUID>,
         JpaSpecificationExecutor<Utilisateur> {
-    /** Chargé par le filtre JWT hors transaction : les responsabilités viennent avec le compte. */
-    @EntityGraph(attributePaths = "permissionsAdmin")
+    /** Chargé par le filtre JWT hors transaction : les responsabilités et la filière viennent avec le compte. */
+    @EntityGraph(attributePaths = {"permissionsAdmin", "filiere"})
     Optional<Utilisateur> findByEmail(String email);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
@@ -33,6 +33,9 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, UUID>,
     Optional<Utilisateur> findByIdForUpdate(@Param("id") UUID id);
 
     boolean existsByEmail(String email);
+
+    /** Le compte qui représente un organisme (son contact), le plus ancien s'il y en avait plusieurs. */
+    Optional<Utilisateur> findFirstByOrganismeIdOrderByDateCreationAsc(UUID organismeId);
 
     boolean existsByRole(TypeRole role);
 

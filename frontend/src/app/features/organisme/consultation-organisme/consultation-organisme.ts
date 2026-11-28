@@ -6,21 +6,24 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, combineLatest, map, of, startWith, Subject, switchMap, tap } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth/auth-service';
+import { MessagerieService } from '../../../core/services/messagerie/messagerie';
 import { OrganismePublic, ResumeReseauOrganisme } from '../../../core/services/models/organisme.model';
 import { OrganismeService } from '../../../core/services/organisme/organisme-service';
 import { BoutonRetour } from '../../../shared/bouton-retour/bouton-retour';
 import { EnteteOrganisme } from '../entete-organisme/entete-organisme';
 import { EvenementsOrganisme } from '../evenements-organisme/evenements-organisme';
 import { MembresOrganisme } from '../membres-organisme/membres-organisme';
+import { PartenariatOrganisme } from '../../partenaires/partenariat-organisme/partenariat-organisme';
 
 @Component({
   selector: 'app-consultation-organisme',
-  imports: [DatePipe, BoutonRetour, EnteteOrganisme, MembresOrganisme, EvenementsOrganisme],
+  imports: [DatePipe, BoutonRetour, EnteteOrganisme, MembresOrganisme, EvenementsOrganisme, PartenariatOrganisme],
   templateUrl: './consultation-organisme.html',
   styleUrl: './consultation-organisme.scss',
 })
 export class ConsultationOrganisme {
   private readonly organismeService = inject(OrganismeService);
+  private readonly messagerie = inject(MessagerieService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -30,10 +33,16 @@ export class ConsultationOrganisme {
   protected readonly enChargement = signal(true);
   protected readonly messageErreur = signal<string | null>(null);
   protected readonly reseau = signal<ResumeReseauOrganisme | null>(null);
+  protected readonly ouvertureMessagerie = signal(false);
+  protected readonly erreurMessagerie = signal<string | null>(null);
   /** Identifiant de l'organisme du compte connecté, s'il s'agit d'un compte organisme. */
   private readonly monOrganismeId = signal<string | null>(null);
   protected readonly estMaFiche = computed(() =>
     this.monOrganismeId() !== null && this.monOrganismeId() === this.organisme()?.id);
+  private readonly compteOrganisme = inject(AuthService).utilisateur()?.role === 'ORGANISME';
+  /** « Écrire » : pas sur sa propre fiche ; un compte organisme attend de savoir laquelle est la sienne. */
+  protected readonly peutEcrire = computed(() =>
+    !this.compteOrganisme || (this.monOrganismeId() !== null && !this.estMaFiche()));
 
   protected readonly typeOrganisme = computed(() => {
     const type = this.organisme()?.typeOrganisme;
@@ -96,6 +105,19 @@ export class ConsultationOrganisme {
 
   protected actualiser(): void {
     this.actualiserSujet.next();
+  }
+
+  /** Ouvre la conversation avec l'organisme (créée au besoin) et y emmène. */
+  protected ecrire(organismeId: string): void {
+    this.ouvertureMessagerie.set(true);
+    this.erreurMessagerie.set(null);
+    this.messagerie.ouvrirAvecOrganisme(organismeId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: ({ id }) => void this.router.navigate(['/messagerie', id], { state: { saisie: true } }),
+      error: (erreur: HttpErrorResponse) => {
+        this.ouvertureMessagerie.set(false);
+        this.erreurMessagerie.set(erreur.error?.message ?? 'La conversation n’a pas pu être ouverte. Réessayez.');
+      },
+    });
   }
 
 }

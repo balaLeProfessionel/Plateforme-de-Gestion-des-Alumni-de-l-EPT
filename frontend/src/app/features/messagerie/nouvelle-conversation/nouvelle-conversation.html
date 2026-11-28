@@ -1,0 +1,38 @@
+<dialog #dialogue class="fenetre" aria-labelledby="titre-nouvelle" (close)="fermee.emit()">
+  <form (submit)="valider($event)" novalidate>
+    <header>
+      <h2 id="titre-nouvelle">Nouvelle conversation</h2>
+      <button type="button" class="fermer" aria-label="Fermer" (click)="dialogue.close()">
+        <i class="pi pi-times" aria-hidden="true"></i>
+      </button>
+    </header>
+
+    <div class="corps">
+      <p class="consigne">Choisissez un membre pour lui écrire, ou plusieurs pour créer un groupe.</p>
+
+      <!-- Le nom passe avant la recherche : la liste des résultats le cacherait sinon. -->
+      @if (groupe()) {
+        <div class="champ-nom">
+          <label for="nom-groupe">Nom du groupe</label>
+          <input id="nom-groupe" type="text" autocomplete="off" placeholder="Ex. Promotion 2018, Club robotique"
+            [formField]="formulaire.nom"
+            [attr.aria-invalid]="formulaire.nom().touched() && formulaire.nom().invalid()" aria-describedby="erreur-nom-groupe" />
+          @if (formulaire.nom().touched() && formulaire.nom().errors()[0]; as erreurNom) {
+            <small id="erreur-nom-groupe" class="erreur-champ">{{ erreurNom.message }}</small>
+          }
+        </div>
+      }
+
+      <app-selection-membres identifiant="nouvelle" [focusInitial]="true" [(choisis)]="choisis" />
+
+      @if (erreur()) { <p class="erreur" role="alert">{{ erreur() }}</p> }
+    </div>
+
+    <footer>
+      <button type="button" class="secondaire" (click)="dialogue.close()">Annuler</button>
+      <button type="submit" class="principal" [disabled]="choisis().length === 0 || formulaire().submitting()">
+        {{ libelleAction() }}
+      </button>
+    </footer>
+  </form>
+</dialog>

@@ -1,0 +1,187 @@
+// Styles globaux (encapsulation desactivee), tous prefixes par .champ-formulaire
+.champ-formulaire {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.champ-formulaire__cadre {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 3.5rem;
+  padding: 0.45rem 0.9rem 0.4rem;
+  border: 1.5px solid var(--ept-border-champ);
+  border-radius: var(--ept-radius-sm);
+  background: var(--ept-surface);
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:hover { border-color: var(--ept-primary); }
+
+  &:focus-within {
+    border-color: var(--ept-primary);
+    box-shadow: 0 0 0 3px var(--ept-primary-light);
+  }
+
+  > input,
+  > select {
+    width: 100%;
+    min-width: 0;
+    padding: 0.1rem 2.2rem 0.1rem 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--ept-text);
+    font: inherit;
+    font-size: 1rem; // 16 px : pas de zoom automatique sur iOS
+    appearance: none;
+  }
+
+  > select { cursor: pointer; }
+
+  // Liste déroulante stylable (Chrome, Edge récents) : la liste native prend la largeur de l'option
+  // la plus longue et sort de l'écran d'un téléphone. Ailleurs, la liste native reste en place.
+  @supports (appearance: base-select) {
+    > select,
+    > select::picker(select) { appearance: base-select; }
+
+    > select::picker-icon { display: none; } // le chevron est fourni par le gabarit
+
+    // La liste s'aligne sur le cadre entier (icône comprise) et prend sa largeur
+    anchor-name: --cadre-champ;
+    anchor-scope: --cadre-champ;
+
+    > select::picker(select) {
+      position-anchor: --cadre-champ;
+      left: anchor(left);
+      width: anchor-size(width);
+      max-width: calc(100vw - 2rem);
+      // Toute la liste tient d'habitude ; sur un écran très bas elle défile (doigt, molette, flèches)
+      // sans barre visible : une ombre en haut ou en bas signale seulement qu'il reste des options.
+      // 100 % = la place restante sous le champ (ou au-dessus, si le navigateur la retourne)
+      max-height: min(30rem, 100%);
+      overflow-y: auto;
+      scrollbar-width: none;
+      margin-block: 0.4rem;
+      padding: 0.3rem;
+      border: 1px solid var(--ept-border);
+      border-radius: var(--ept-radius-sm);
+      background:
+        linear-gradient(var(--ept-surface) 30%, transparent) top / 100% 2.5rem no-repeat local,
+        linear-gradient(transparent, var(--ept-surface) 70%) bottom / 100% 2.5rem no-repeat local,
+        radial-gradient(farthest-side at 50% 0, rgb(1 67 101 / 18%), transparent) top / 100% .75rem no-repeat scroll,
+        radial-gradient(farthest-side at 50% 100%, rgb(1 67 101 / 18%), transparent) bottom / 100% .75rem no-repeat scroll,
+        var(--ept-surface);
+      box-shadow: var(--ept-shadow-md);
+    }
+
+    > select option {
+      padding: 0.6rem 0.7rem;
+      border-radius: var(--ept-radius-sm);
+      color: var(--ept-text);
+      white-space: normal;
+      overflow-wrap: anywhere;
+
+      &:hover, &:focus-visible { background: var(--ept-primary-light); outline: none; }
+      &:checked { font-weight: 600; color: var(--ept-primary); }
+      &::checkmark { display: none; }
+    }
+  }
+
+  // L'exemple n'apparaît qu'au focus : hors focus, il passerait pour une valeur saisie
+  > input::placeholder { color: transparent; opacity: 1; }
+  > input:focus::placeholder { color: var(--ept-text-secondary); }
+}
+
+.champ-formulaire__cadre--icone {
+  padding-left: 2.7rem;
+}
+
+.champ-formulaire__cadre--erreur {
+  border-color: var(--ept-error);
+
+  &:hover, &:focus-within { border-color: var(--ept-error); }
+  &:focus-within { box-shadow: 0 0 0 3px var(--ept-error-light); }
+
+  .champ-formulaire__icone, .champ-formulaire__libelle { color: var(--ept-error-dark); }
+}
+
+.champ-formulaire__icone {
+  position: absolute;
+  left: 0.95rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ept-text-secondary);
+  font-size: 1.05rem;
+}
+
+.champ-formulaire__cadre:focus-within .champ-formulaire__icone,
+.champ-formulaire__cadre:focus-within .champ-formulaire__libelle {
+  color: var(--ept-primary);
+}
+
+.champ-formulaire__cadre--erreur:focus-within .champ-formulaire__icone,
+.champ-formulaire__cadre--erreur:focus-within .champ-formulaire__libelle {
+  color: var(--ept-error-dark);
+}
+
+.champ-formulaire__libelle {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ept-text-secondary);
+  cursor: text;
+}
+
+.champ-formulaire__requis {
+  margin-left: 0.15rem;
+  color: var(--ept-error);
+}
+
+.champ-formulaire__suffixe {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  &:empty { display: none; }
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: none;
+    border-radius: var(--ept-radius-sm);
+    background: transparent;
+    color: var(--ept-text-secondary);
+    cursor: pointer;
+
+    &:hover { color: var(--ept-primary); }
+    &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 1px; }
+  }
+}
+
+.champ-formulaire__valide {
+  color: var(--ept-success);
+  font-size: 1.05rem;
+}
+
+.champ-formulaire__message {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.2rem;
+  color: var(--ept-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.4;
+
+  .pi { font-size: 0.85rem; margin-top: 0.1rem; }
+}
+
+.champ-formulaire__message--erreur {
+  color: var(--ept-error-dark);
+}

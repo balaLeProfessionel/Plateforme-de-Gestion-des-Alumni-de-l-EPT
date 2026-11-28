@@ -23,9 +23,9 @@ describe('PageBientot', () => {
     expect(element.textContent).toContain('pas encore disponible');
   });
 
-  it('annonce que les offres d emploi ne sont pas encore disponibles', async () => {
-    const element = await page('offres-emploi');
-    expect(element.querySelector('h1')?.textContent).toContain('Offres d’emploi');
+  it('annonce que l’insertion professionnelle n’est pas encore disponible', async () => {
+    const element = await page('insertion');
+    expect(element.querySelector('h1')?.textContent).toContain('Insertion professionnelle');
     expect(element.textContent).toContain('pas encore disponible');
   });
 });

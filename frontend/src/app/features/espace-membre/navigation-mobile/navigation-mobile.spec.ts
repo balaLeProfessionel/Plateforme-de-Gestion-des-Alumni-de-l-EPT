@@ -5,16 +5,19 @@ import { Router, provideRouter } from '@angular/router';
 import { CompteurInscriptions } from '../../../core/services/admin/compteur-inscriptions';
 import { AuthService } from '../../../core/services/auth/auth-service';
 import { CompteurDemandesMentorat } from '../../../core/services/mentorat/compteur-demandes';
+import { CompteurMessages } from '../../../core/services/messagerie/compteur-messages';
 import { NavigationMobile } from './navigation-mobile';
 
 describe('Navigation mobile', () => {
   const demandesEnAttente = signal(0);
   const inscriptionsEnAttente = signal(0);
+  const messagesNonLus = signal(0);
   const role = signal('ALUMNI');
 
   beforeEach(() => {
     demandesEnAttente.set(0);
     inscriptionsEnAttente.set(0);
+    messagesNonLus.set(0);
     role.set('ALUMNI');
     TestBed.configureTestingModule({
       imports: [NavigationMobile],
@@ -22,6 +25,7 @@ describe('Navigation mobile', () => {
         provideRouter([{ path: '**', children: [] }]),
         { provide: CompteurDemandesMentorat, useValue: { nombre: demandesEnAttente } },
         { provide: CompteurInscriptions, useValue: { nombre: inscriptionsEnAttente } },
+        { provide: CompteurMessages, useValue: { nombre: messagesNonLus } },
         { provide: AuthService, useValue: { aPermission: () => role() === 'ADMIN' } }
       ]
     });
@@ -102,6 +106,21 @@ describe('Navigation mobile', () => {
 
     await TestBed.inject(Router).navigateByUrl('/mentorat/recues');
     fixture.detectChanges();
+    expect(menu.getAttribute('aria-current')).toBe('page');
+  });
+
+  it('additionne messages non lus et demandes de mentorat dans « Menu » et les détaille', async () => {
+    messagesNonLus.set(1);
+    demandesEnAttente.set(2);
+    const fixture = TestBed.createComponent(NavigationMobile);
+    await TestBed.inject(Router).navigateByUrl('/messagerie/abc');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const menu = (fixture.nativeElement as HTMLElement).querySelector('button') as HTMLButtonElement;
+
+    expect(menu.querySelector('.pastille')?.textContent?.trim()).toBe('3');
+    expect(menu.textContent).toContain('1 message non lu et 2 demandes de mentorat en attente');
     expect(menu.getAttribute('aria-current')).toBe('page');
   });
 });

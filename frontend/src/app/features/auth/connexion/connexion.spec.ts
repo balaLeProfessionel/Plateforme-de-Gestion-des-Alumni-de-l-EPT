@@ -26,6 +26,21 @@ describe('Connexion', () => {
     expect(component).toBeTruthy();
   });
 
+  it('n affiche pas d erreur à l arrivée, seulement après un essai de connexion', () => {
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('[aria-invalid="true"]')).toBeNull();
+
+    component.seConnecter();
+    fixture.detectChanges();
+    expect(element.querySelector('#email-message')?.textContent).toContain("L'email est obligatoire");
+    expect(element.querySelector('#password-message')?.textContent).toContain('Le mot de passe est obligatoire');
+    const http = TestBed.inject(HttpTestingController);
+    // Seul appel attendu : la configuration du bouton Google, chargée à l'ouverture de la page
+    http.match('/api/auth/google/configuration');
+    http.verify();
+  });
+
   it('redirige un etudiant vers le changement du mot de passe initial', () => {
     const http = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);

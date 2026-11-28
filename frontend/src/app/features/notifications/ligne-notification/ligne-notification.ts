@@ -8,6 +8,10 @@ const ICONES: Record<TypeNotification, string> = {
   MENTORAT: 'pi-sitemap',
   EVENEMENT: 'pi-calendar',
   COMPTE: 'pi-user',
+  MESSAGE: 'pi-comments',
+  MOBILITE: 'pi-globe',
+  PARTENARIAT: 'pi-building',
+  EMPLOI: 'pi-briefcase',
 };
 
 /**

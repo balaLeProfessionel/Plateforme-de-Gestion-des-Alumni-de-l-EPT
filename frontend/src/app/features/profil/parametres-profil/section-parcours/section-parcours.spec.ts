@@ -52,6 +52,26 @@ describe('SectionParcours', () => {
     expect(fixture.nativeElement.textContent).toContain('Expériences professionnelles');
   });
 
+  it('replie les expériences en résumés et n’en ouvre qu’une à la fois', async () => {
+    await afficher('experience');
+    const racine = fixture.nativeElement as HTMLElement;
+    expect(racine.querySelector('app-carte-experience')).toBeNull();
+    expect(racine.querySelector('app-resume-parcours')?.textContent).toContain('Ingénieure');
+
+    (racine.querySelector('#modifier-exp-1') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(racine.querySelector('app-carte-experience')).not.toBeNull();
+    expect(racine.querySelector('app-resume-parcours')).toBeNull();
+
+    // Enregistrée : la carte se referme et le résumé annonce la réussite
+    composant().enregistrer({ id: 'exp-1', cle: 'exp-1', donnees: { poste: 'Ingénieure senior' } });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(racine.querySelector('app-carte-experience')).toBeNull();
+    expect(racine.querySelector('app-resume-parcours')?.textContent).toContain('Enregistré.');
+  });
+
   it('enregistre une nouvelle carte seule et remplace son brouillon', async () => {
     await afficher('experience');
     composant().ajouterBrouillon();

@@ -1,0 +1,24 @@
+<div class="champ-formulaire__cadre" [class.champ-formulaire__cadre--erreur]="erreur()"
+     [class.champ-formulaire__cadre--icone]="icone()">
+  @if (icone(); as classe) {
+    <i class="pi champ-formulaire__icone" [class]="'pi champ-formulaire__icone ' + classe" aria-hidden="true"></i>
+  }
+  <label class="champ-formulaire__libelle" [for]="pour()">
+    {{ libelle() }}
+    @if (obligatoire()) { <span class="champ-formulaire__requis" aria-hidden="true">*</span> }
+  </label>
+  <ng-content />
+  <div class="champ-formulaire__suffixe">
+    @if (valide() && !erreur()) {
+      <i class="pi pi-check-circle champ-formulaire__valide" aria-hidden="true"></i>
+    }
+    <ng-content select="[suffixe]" />
+  </div>
+</div>
+@if (erreur(); as texte) {
+  <small class="champ-formulaire__message champ-formulaire__message--erreur" [id]="pour() + '-message'">
+    <i class="pi pi-exclamation-circle" aria-hidden="true"></i>{{ texte }}
+  </small>
+} @else if (aide(); as texte) {
+  <small class="champ-formulaire__message" [id]="pour() + '-message'">{{ texte }}</small>
+}

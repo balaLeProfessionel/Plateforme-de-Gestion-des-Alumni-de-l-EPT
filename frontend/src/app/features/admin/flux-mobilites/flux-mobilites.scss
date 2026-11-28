@@ -1,0 +1,10 @@
+.annee { max-width: 14rem; margin-bottom: 1rem; }
+.tableau { overflow-x: auto; border: 1px solid var(--ept-border); border-radius: 12px; background: var(--ept-surface); }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--ept-border); color: var(--ept-primary-dark); text-align: left; }
+thead th { color: var(--ept-text-secondary); font-size: 0.78rem; font-weight: 700; }
+td { width: 8rem; font-variant-numeric: tabular-nums; }
+tbody th { font-weight: 600; overflow-wrap: anywhere; }
+tfoot th, tfoot td { border-bottom: 0; font-weight: 700; }
+a { color: var(--ept-primary); font-weight: 700; &:focus-visible { outline: 2px solid var(--ept-focus-clair); outline-offset: 2px; } }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

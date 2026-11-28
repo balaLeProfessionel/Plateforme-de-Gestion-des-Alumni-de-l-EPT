@@ -58,7 +58,7 @@ describe('EtapeExperiences', () => {
     animation.mockRestore();
   });
 
-  it('crée et modifie les expériences puis termine le parcours', () => {
+  it('crée et modifie les expériences puis passe aux compétences', () => {
     const navigation = vi.spyOn(TestBed.inject(Router), 'navigate');
     const donnees = requete();
 
@@ -74,7 +74,7 @@ describe('EtapeExperiences', () => {
     expect(composant['experiences']().map((item) => item.poste)).toEqual([
       'Poste modifié', 'Nouveau poste'
     ]);
-    expect(navigation).toHaveBeenCalledWith(['/accueil']);
+    expect(navigation).toHaveBeenCalledWith(['/completer-profil/competences']);
   });
 
   function requete(): ExperienceRequest {

@@ -1,0 +1,82 @@
+<dialog #dialogue class="dialogue" aria-labelledby="titre-fenetre-communaute" (cancel)="surAnnulation($event)" (close)="fermee.emit()">
+  <form (submit)="enregistrer($event)" novalidate>
+    <header class="entete">
+      <h2 id="titre-fenetre-communaute">{{ creation() ? 'Nouvelle communauté' : 'Modifier la communauté' }}</h2>
+      <button type="button" class="fermer" [disabled]="envoi()" (click)="fermer()" aria-label="Fermer">
+        <i class="pi pi-times" aria-hidden="true"></i>
+      </button>
+    </header>
+
+    @if (automatique()) {
+      <!-- Promo ou filière : nom et accès suivent les profils, seule la description se change. -->
+      <div class="fixe">
+        <p class="nom-fixe">{{ communaute()?.nom }}</p>
+        <p class="aide">{{ nature() }} : son nom et son accès suivent les profils des membres.</p>
+      </div>
+    } @else {
+      <div class="champ">
+        <label for="nom-communaute">Nom</label>
+        <input id="nom-communaute" type="text" autocomplete="off" [formField]="formulaire.nom"
+          placeholder="EPT à Saint-Louis, Énergie, Football…"
+          [attr.aria-invalid]="formulaire.nom().touched() && formulaire.nom().invalid()"
+          [attr.aria-describedby]="formulaire.nom().touched() && formulaire.nom().invalid()
+            ? 'erreur-nom-communaute compteur-nom-communaute' : 'compteur-nom-communaute'" />
+        @if (formulaire.nom().touched() && formulaire.nom().errors()[0]; as erreurNom) {
+          <p id="erreur-nom-communaute" class="erreur-champ">{{ erreurNom.message }}</p>
+        }
+        <p id="compteur-nom-communaute" class="compteur" [class.limite]="modele().nom.length >= longueurNom">
+          {{ modele().nom.length }} / {{ longueurNom }} caractères
+        </p>
+      </div>
+
+      @if (creation()) {
+        <div class="champ">
+          <label for="categorie-communaute">Catégorie</label>
+          <select id="categorie-communaute" [formField]="formulaire.categorie">
+            @for (categorie of categories; track categorie) {
+              <option [value]="categorie">{{ libelles[categorie] }}</option>
+            }
+          </select>
+        </div>
+      }
+
+      <fieldset class="champ">
+        <legend>Accès</legend>
+        <label class="option" [class.choisie]="modele().acces === 'OUVERTE'">
+          <input type="radio" name="acces-communaute" value="OUVERTE" [checked]="modele().acces === 'OUVERTE'"
+            (change)="choisirAcces('OUVERTE')" />
+          <span><strong>Ouverte</strong><small>Les alumni et étudiants la rejoignent d’un clic.</small></span>
+        </label>
+        <label class="option" [class.choisie]="modele().acces === 'SUR_DEMANDE'">
+          <input type="radio" name="acces-communaute" value="SUR_DEMANDE" [checked]="modele().acces === 'SUR_DEMANDE'"
+            (change)="choisirAcces('SUR_DEMANDE')" />
+          <span><strong>Sur demande</strong><small>Visible dans « À découvrir », mais personne ne la rejoint encore seul.</small></span>
+        </label>
+      </fieldset>
+    }
+
+    <div class="champ">
+      <label for="description-communaute">Description <span class="facultatif">(facultative)</span></label>
+      <textarea id="description-communaute" rows="3" [formField]="formulaire.description"
+        placeholder="À qui s’adresse cette communauté ?"
+        [attr.aria-invalid]="formulaire.description().invalid()"
+        [attr.aria-describedby]="formulaire.description().invalid()
+          ? 'erreur-description-communaute compteur-description-communaute' : 'compteur-description-communaute'"></textarea>
+      @if (formulaire.description().errors()[0]; as erreurDescription) {
+        <p id="erreur-description-communaute" class="erreur-champ">{{ erreurDescription.message }}</p>
+      }
+      <p id="compteur-description-communaute" class="compteur" [class.erreur-champ]="formulaire.description().invalid()">
+        {{ modele().description.length }} / {{ longueurDescription }} caractères
+      </p>
+    </div>
+
+    @if (erreur(); as message) { <p class="erreur" role="alert"><i class="pi pi-exclamation-circle" aria-hidden="true"></i> {{ message }}</p> }
+
+    <div class="actions">
+      <button type="button" class="secondaire" [disabled]="envoi()" (click)="fermer()">Annuler</button>
+      <button type="submit" class="principal" [disabled]="envoi() || (!creation() && !modifiee())">
+        {{ envoi() ? 'Enregistrement…' : (creation() ? 'Créer la communauté' : 'Enregistrer') }}
+      </button>
+    </div>
+  </form>
+</dialog>
