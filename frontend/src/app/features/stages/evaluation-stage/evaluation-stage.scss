@@ -1,7 +1,8 @@
 @use 'responsive' as *;
 @use '../accessibilite';
 
-.page-evaluation { display: grid; gap: 1rem; max-width: 60rem; padding-bottom: 5rem; }
+// Même cadre que les autres pages du module (.page-stages) : marges latérales et contenu centré
+.page-evaluation { display: grid; gap: 1rem; width: min(100% - 2rem, 1100px); margin: 0 auto; padding: 1.25rem 0 5rem; }
 h1 { margin: 0; color: var(--ept-primary-dark); font-size: 1.5rem; }
 h2 { margin: 0 0 0.6rem; color: var(--ept-primary-dark); font-size: 1.05rem; }
 .entete { display: grid; gap: 0.4rem; }

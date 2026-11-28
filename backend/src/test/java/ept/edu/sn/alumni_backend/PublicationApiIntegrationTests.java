@@ -87,6 +87,10 @@ class PublicationApiIntegrationTests {
         String chemin = "/api/publications/" + cible.getId() + "/commentaires";
         mvc.perform(get(chemin)).andExpect(status().isForbidden());
         mvc.perform(get(chemin).header(HttpHeaders.AUTHORIZATION, jeton(alumni))).andExpect(status().isNotFound());
+        // Un commentaire vide ou fait d'espaces est refusé.
+        mvc.perform(post(chemin).header(HttpHeaders.AUTHORIZATION, jeton(etudiant))
+            .contentType(MediaType.APPLICATION_JSON).content("{\"contenu\":\"   \"}"))
+            .andExpect(status().isBadRequest());
         MvcResult racine = mvc.perform(post(chemin).header(HttpHeaders.AUTHORIZATION, jeton(etudiant))
             .contentType(MediaType.APPLICATION_JSON).content("{\"contenu\":\" Commentaire racine \"}"))
             .andExpect(status().isCreated()).andExpect(jsonPath("$.contenu").value("Commentaire racine"))

@@ -134,3 +134,32 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/* Inscription avec Google commencée sur la page de connexion : compte retenu. */
+.bandeau-google {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--ept-radius);
+  background: var(--ept-primary-light);
+  color: var(--ept-primary-dark);
+
+  p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+}
+
+.lien-annuler {
+  border: 0;
+  background: none;
+  color: var(--ept-primary);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:focus-visible { outline: 2px solid var(--ept-sky); outline-offset: 2px; }
+}
+

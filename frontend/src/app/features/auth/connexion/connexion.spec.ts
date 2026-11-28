@@ -35,7 +35,10 @@ describe('Connexion', () => {
     fixture.detectChanges();
     expect(element.querySelector('#email-message')?.textContent).toContain("L'email est obligatoire");
     expect(element.querySelector('#password-message')?.textContent).toContain('Le mot de passe est obligatoire');
-    TestBed.inject(HttpTestingController).verify();
+    const http = TestBed.inject(HttpTestingController);
+    // Seul appel attendu : la configuration du bouton Google, chargée à l'ouverture de la page
+    http.match('/api/auth/google/configuration');
+    http.verify();
   });
 
   it('redirige un etudiant vers le changement du mot de passe initial', () => {

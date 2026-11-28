@@ -43,6 +43,11 @@
         }
       </div>
 
+      <!-- Google d'abord : le plus rapide pour qui a un compte Google -->
+      <app-bouton-google separateur="apres" texteSeparateur="ou avec votre email"
+        (connecte)="ouvrirEspace($event)" (erreur)="erreurGoogle($event)"
+        (inscriptionRequise)="inscrireAvecGoogle()" />
+
       <form (submit)="seConnecter($event)" novalidate>
       <app-champ-formulaire #cEmail="champ" pour="email" libelle="Email" icone="pi-envelope"
                             [obligatoire]="true" [erreur]="erreur('email')">

@@ -46,8 +46,20 @@ Seul le frontend est exposé sur la machine hôte. Il transmet les appels `/api`
 | `APP_STORAGE_PHOTOS_DIR` | Répertoire persistant des photos de profil dans le conteneur backend |
 | `APP_MAX_PHOTO_SIZE` | Taille maximale acceptée pour une photo de profil |
 | `PRIMENG_LICENSE` | Licence PrimeNG, injectée dans le frontend à la compilation. Sans elle, PrimeNG affiche une bannière |
+| `GOOGLE_CLIENT_ID` | Identifiant client OAuth Google du bouton « Continuer avec Google ». Vide : le bouton n'apparaît pas |
 | `APP_PREMIER_ADMIN_EMAIL` | Adresse du premier compte d'administration |
 | `APP_PREMIER_ADMIN_PASSWORD` | Mot de passe provisoire de ce compte, 8 caractères au moins |
+
+### Connexion avec Google
+
+Le bouton « Continuer avec Google » (pages de connexion et de création de compte) :
+
+- **adresse connue** : ouvre la session du compte ; un compte suspendu reste refusé. Un compte dont l'adresse n'avait jamais été vérifiée l'est alors, et son mot de passe est remplacé (il a pu être créé par quelqu'un d'autre avec cette adresse) ;
+- **adresse inconnue** : mène à l'inscription, pré-remplie avec le prénom, le nom et l'adresse donnés par Google. La personne choisit son profil (pas « étudiant », ces comptes sont créés par l'administration) ; l'adresse est vérifiée par Google, donc pas de code par e-mail ni de mot de passe (il pourra être choisi plus tard par « Mot de passe oublié »). La validation par l'administration est inchangée : seuls les alumni et le personnel à l'adresse EPT sont actifs tout de suite.
+
+1. Dans la console Google Cloud, créer un identifiant OAuth de type « Application Web ».
+2. Ajouter dans « Origines JavaScript autorisées » chaque adresse du frontend, par exemple `http://localhost:4200` en développement et l'adresse publique en production. Aucune URI de redirection n'est nécessaire.
+3. Renseigner `GOOGLE_CLIENT_ID` dans `.env` puis relancer la pile. Aucun secret client n'est utilisé : le serveur vérifie la signature du jeton avec les clés publiques de Google, l'émetteur, l'audience (cet identifiant) et l'expiration.
 
 Le fichier `.env` reste local et ne doit pas être ajouté au dépôt. `.env.example` contient uniquement une configuration de développement.
 

@@ -1,6 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { CadreInscription } from '../cadre-inscription/cadre-inscription';
+import { CadreInscription, ETAPES_INSCRIPTION, ETAPES_INSCRIPTION_GOOGLE } from '../cadre-inscription/cadre-inscription';
+
+import { InscriptionGoogle } from '../../../../core/services/auth/inscription-google';
 
 interface OptionRole {
   cle: string;
@@ -18,6 +20,13 @@ interface OptionRole {
 })
 export class ChoixRole {
   private readonly router = inject(Router);
+  private readonly inscriptionGoogle = inject(InscriptionGoogle);
+  /**
+   * Compte Google retenu depuis la page de connexion : la personne n’a plus qu’à choisir son profil.
+   * Sinon, Google est proposé à l’étape suivante, une fois le profil connu.
+   */
+  protected readonly google = this.inscriptionGoogle.enAttente;
+  protected readonly etapes = computed(() => (this.google() ? ETAPES_INSCRIPTION_GOOGLE : ETAPES_INSCRIPTION));
 
   protected readonly roles: OptionRole[] = [
     {
@@ -61,5 +70,9 @@ export class ChoixRole {
       return;
     }
     this.router.navigate(['/inscription/formulaire', role]);
+  }
+
+  protected abandonnerGoogle(): void {
+    this.inscriptionGoogle.oublier();
   }
 }

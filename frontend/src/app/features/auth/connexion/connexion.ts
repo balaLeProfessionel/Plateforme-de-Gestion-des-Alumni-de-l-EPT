@@ -4,12 +4,14 @@ import { AuthService } from '../../../core/services/auth/auth-service';
 import { CHIFFRES_CLES } from '../../vitrine/contenu-vitrine';
 import { Router, RouterLink } from '@angular/router';
 import { email, form, required, FormField } from '@angular/forms/signals';
+import { AuthResponse } from '../../../core/services/models/auth-response.model';
 import { ChampFormulaire } from '../../../shared/formulaires/champ-formulaire/champ-formulaire';
 import { focaliserPremiereErreur } from '../../../shared/formulaires/focus-premiere-erreur';
+import { BoutonGoogle } from '../bouton-google/bouton-google';
 
 @Component({
   selector: 'app-connexion',
-  imports: [DecimalPipe, NgOptimizedImage, FormField, ChampFormulaire, RouterLink],
+  imports: [DecimalPipe, NgOptimizedImage, FormField, ChampFormulaire, RouterLink, BoutonGoogle],
   templateUrl: './connexion.html',
   styleUrl: './connexion.scss',
 })
@@ -74,9 +76,7 @@ export class Connexion {
     this.authService.login(email, password).subscribe({
       next: (utilisateur) => {
         this.enChargement.set(false);
-        this.router.navigate([
-          utilisateur.doitChangerMotDePasse ? '/premiere-connexion' : '/accueil'
-        ]);
+        this.ouvrirEspace(utilisateur);
       },
       error: (err) => {
         this.enChargement.set(false);
@@ -84,5 +84,21 @@ export class Connexion {
         this.messageErreur.set(msg);
       }
     })
+  }
+
+  /** Après une connexion par mot de passe ou avec Google. */
+  protected ouvrirEspace(utilisateur: AuthResponse) {
+    this.messageErreur.set(null);
+    this.router.navigate([utilisateur.doitChangerMotDePasse ? '/premiere-connexion' : '/accueil']);
+  }
+
+  /** Adresse Google sans compte : on poursuit par l’inscription, pré-remplie avec ce que Google sait. */
+  protected inscrireAvecGoogle() {
+    void this.router.navigate(['/inscription']);
+  }
+
+  protected erreurGoogle(message: string) {
+    this.messageSucces.set(null);
+    this.messageErreur.set(message);
   }
 }
